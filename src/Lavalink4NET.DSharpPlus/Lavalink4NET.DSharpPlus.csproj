@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+    <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
+    <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
+    <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,dsharpplus</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Angelo Breuer</Authors>
+    <Company>Angelo Breuer</Company>
+    <Copyright>Angelo Breuer</Copyright>
+    <Product>Lavalink4NET</Product>
+    <Description>
+      A Lavalink wrapper for playing music using a discord bot.
+      Integration with DSharpPlus Library.
+</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00600" />
+  </ItemGroup>
+</Project>

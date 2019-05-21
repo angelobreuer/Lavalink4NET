@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <LangVersion>7.2</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>Angelo Breuer</Authors>
+    <Company>Angelo Breuer</Company>
+    <Description>A Lavalink wrapper for playing music using a discord bot.</Description>
+    <Copyright>Angelo Breuer 2019</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
+    <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
+    <Version>1.0.1</Version>
+    <PackageProjectUrl />
+    <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\angel\source\repos\Lavalink4NET\Lavalink4NET\Lavalink4NET.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Lavalink4NET.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+</Project>

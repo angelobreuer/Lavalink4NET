@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <PackageId>Lavalink4NET.Discord.NET</PackageId>
+    <Authors>Angelo Breuer</Authors>
+    <Company>Angelo Breuer</Company>
+    <Product>Lavalink4NET</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>
+      A Lavalink wrapper for playing music using a discord bot.
+      Integration with Discord.NET Library.
+    </Description>
+    <Copyright>Angelo Breuer</Copyright>
+    <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
+    <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\angel\source\repos\Lavalink4NET\Lavalink4NET.Discord_NET\Lavalink4NET.Discord_NET.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Lavalink4NET.Discord_NET.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
+  </ItemGroup>
+</Project>

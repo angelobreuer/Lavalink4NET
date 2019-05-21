@@ -1,0 +1,104 @@
+<!-- 
+ This is the default license template.
+ 
+ File: Lavalink4NET.Discord_NET.xml
+ Author: angel
+ Copyright (c) 2019 angel
+ 
+ To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ -->
+
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Lavalink4NET.Discord_NET</name>
+    </assembly>
+    <members>
+        <member name="T:Lavalink4NET.Discord_NET.DiscordClientWrapper">
+            <summary>
+                A wrapper for the discord client from the "Discord.NET" discord client library. (https://github.com/discord-net/Discord.Net)
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.InitializeAsync">
+            <summary>
+                Awaits the initialization of the discord client asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordShardedClient)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
+            </summary>
+            <param name="client">the sharded discord client</param>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordSocketClient)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
+            </summary>
+            <param name="client">the sharded discord client</param>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.BaseSocketClient,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
+            </summary>
+            <param name="baseSocketClient">the discord client</param>
+            <param name="shards">the number of shards</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="baseSocketClient"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                thrown if the specified shard count is less than 1.
+            </exception>
+        </member>
+        <member name="E:Lavalink4NET.Discord_NET.DiscordClientWrapper.VoiceServerUpdated">
+            <summary>
+                An asynchronous event which is triggered when the voice server was updated.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.Discord_NET.DiscordClientWrapper.VoiceStateUpdated">
+            <summary>
+                An asynchronous event which is triggered when a user voice state was updated.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Discord_NET.DiscordClientWrapper.CurrentUserId">
+            <summary>
+                Gets the current user snowflake identifier value.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Discord_NET.DiscordClientWrapper.ShardCount">
+            <summary>
+                Gets the number of total shards the bot uses.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.Dispose">
+            <summary>
+                Disposes the wrapper and unregisters all events attached to the discord client.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.SendVoiceUpdateAsync(System.UInt64,System.Nullable{System.UInt64},System.Boolean,System.Boolean)">
+            <summary>
+                Sends a voice channel state update asynchronously.
+            </summary>
+            <param name="guildId">the guild snowflake identifier</param>
+            <param name="voiceChannelId">
+                the snowflake identifier of the voice channel to join (if <see langword="null"/> the
+                client should disconnect from the voice channel).
+            </param>
+            <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+            <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
+            <summary>
+                Gets the snowflake identifier values of the users in the voice channel specified by
+                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
+            </summary>
+            <param name="guildId">the guild identifier snowflake where the channel is in</param>
+            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
+            <returns>
+                a task that represents the asynchronous operation
+                <para>the snowflake identifier values of the users in the voice channel</para>
+            </returns>
+        </member>
+    </members>
+</doc>
