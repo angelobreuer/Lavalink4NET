@@ -1,6 +1,5 @@
 ## Lavalink4NET
 
-
 Lavalink4NET is a wrapper for [Lavalink](https://github.com/Frederikam/Lavalink). 
 With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
@@ -14,6 +13,14 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Track Decoding
 - Optional Logging
 - Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
+
+### NuGet
+- Download [Lavalink4NET Core](https://www.nuget.org/packages/Lavalink4NET/) 
+![NuGet - Lavalink4NET Core](https://img.shields.io/nuget/vpre/Lavalink4NET.svg)
+- Download [Lavalink4NET for Discord.Net](https://www.nuget.org/packages/Lavalink4NET.Discord.NET/) 
+![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg)
+- Download [Lavalink4NET for DSharpPlus](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)
+![NuGet - Lavalink4NET DSharpPlus](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg)
 
 ### Prerequisites
 - One or more Lavalink Nodes
@@ -50,6 +57,22 @@ services.AddSingleton<IAudioService, LavalinkNode>();
 services.AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>();
 services.AddSingleton(new LavalinkNodeOptions {[...]});
 ```
+
+Now you can join a voice channel like the following:
+
+```csharp
+// get player
+var player = _audioService.GetPlayer<LavalinkPlayer>(guildId) 
+    ?? await _audioService.JoinAsync(guildId, voiceChannel);
+
+// resolve a track from youtube
+var myTrack = await player.GetTrackAsync("<search query>", SearchMode.YouTube);
+
+// play track
+await player.PlayAsync(myTrack);
+```
+
+___
 
 ### Dependencies
 - [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
