@@ -17,7 +17,7 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 
 ### Prerequisites
 - One or more Lavalink Nodes
-- .NET Core >= 2.2
+- .NET Core >= 2.0
 
 ### Getting Started
 
