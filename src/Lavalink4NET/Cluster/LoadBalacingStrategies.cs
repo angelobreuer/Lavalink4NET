@@ -41,8 +41,7 @@ namespace Lavalink4NET.Cluster
             nodes.OrderBy(s => s.LastUsage).First();
 
         /// <summary>
-        ///     The load-balancing strategy for the fewest players uses the node that has the
-        ///     least-playing player.
+        ///     The load-balancing strategy that uses the node that has the least-playing player.
         /// </summary>
         public static LoadBalacingStrategy LeastPlayersStrategy { get; } = (cluster, nodes) =>
             nodes.OrderBy(s => s.Statistics?.PlayingPlayers ?? 0).First();
