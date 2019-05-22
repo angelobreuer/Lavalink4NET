@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   LavalinkClusterNode.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,11 +27,15 @@
 
 namespace Lavalink4NET.Cluster
 {
+    using System;
     using System.Threading.Tasks;
     using Events;
     using Microsoft.Extensions.Logging;
 
-    internal sealed class LavalinkClusterNode : LavalinkNode
+    /// <summary>
+    ///     A clustered lavalink node with additional information.
+    /// </summary>
+    public sealed class LavalinkClusterNode : LavalinkNode
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
@@ -40,8 +44,14 @@ namespace Lavalink4NET.Cluster
         /// <param name="options">the node options for connecting</param>
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
-        public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger)
-            : base(options, client, logger) => Cluster = cluster;
+        /// <param name="id">the node number</param>
+        public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger, int id)
+            : base(options, client, logger)
+        {
+            Cluster = cluster;
+            Identifier = "Cluster Node-" + id;
+            LastUsage = DateTimeOffset.MinValue;
+        }
 
         /// <summary>
         ///     Gets the cluster owning the node.
@@ -55,8 +65,23 @@ namespace Lavalink4NET.Cluster
         /// <returns>a task that represents the asynchronous operation</returns>
         protected override Task OnStatisticsUpdateAsync(StatisticUpdateEventArgs eventArgs)
         {
-            Cluster.ReportStatistics(this, eventArgs);
+            Statistics = eventArgs;
             return base.OnStatisticsUpdateAsync(eventArgs);
         }
+
+        /// <summary>
+        ///     Gets an identifier that is used to identify the node (used for debugging or logging).
+        /// </summary>
+        public string Identifier { get; }
+
+        /// <summary>
+        ///     Gets the node statistics (may be <see langword="null"/>).
+        /// </summary>
+        public StatisticUpdateEventArgs Statistics { get; private set; }
+
+        /// <summary>
+        ///     Gets the coordinated universal time (UTC) point of the last usage of the node.
+        /// </summary>
+        public DateTimeOffset LastUsage { get; internal set; }
     }
 }

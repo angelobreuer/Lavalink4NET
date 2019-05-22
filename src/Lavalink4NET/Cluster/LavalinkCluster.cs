@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   LavalinkCluster.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,10 +42,12 @@ namespace Lavalink4NET.Cluster
     public sealed class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     {
         private readonly LoadBalacingStrategy _loadBalacingStrategy;
-        private readonly List<ClusterNodeInfo> _nodes;
+        private readonly List<LavalinkClusterNode> _nodes;
+        private readonly object _nodesLock;
         private readonly IDiscordClientWrapper _client;
         private readonly ILogger<Lavalink> _logger;
         private volatile int _nodeId;
+        private bool _initialized;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.
@@ -58,22 +60,23 @@ namespace Lavalink4NET.Cluster
             _loadBalacingStrategy = options.LoadBalacingStrategy;
             _client = client;
             _logger = logger;
-            _nodes = options.Nodes.Select(CreateNodeInfo).ToList();
+            _nodesLock = new object();
+            _nodes = options.Nodes.Select(CreateNode).ToList();
         }
 
         /// <summary>
-        ///     Initializes the audio service asynchronously.
+        ///     Initializes all nodes asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public Task InitializeAsync() => Task.WhenAll(_nodes.Select(s => s.Node.InitializeAsync()));
+        public async Task InitializeAsync()
+        {
+            await Task.WhenAll(_nodes.Select(s => s.InitializeAsync()));
 
-        /// <summary>
-        ///     Creates a node info for the specified <paramref name="nodeOptions"/>.
-        /// </summary>
-        /// <param name="nodeOptions">the node options</param>
-        /// <returns>the created node info</returns>
-        private ClusterNodeInfo CreateNodeInfo(LavalinkNodeOptions nodeOptions)
-            => new ClusterNodeInfo(new LavalinkClusterNode(this, nodeOptions, _client, _logger), _nodeId++);
+            _initialized = true;
+        }
+
+        private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
+            => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _nodeId++);
 
         /// <summary>
         ///     Dynamically adds a node to the cluster asynchronously.
@@ -83,38 +86,57 @@ namespace Lavalink4NET.Cluster
         ///     a task that represents the asynchronous operation
         ///     <para>the cluster node info created for the node</para>
         /// </returns>
-        public async Task<ClusterNodeInfo> AddNodeAsync(LavalinkNodeOptions nodeOptions)
+        public async Task<LavalinkClusterNode> AddNodeAsync(LavalinkNodeOptions nodeOptions)
         {
-            // create node info
-            var info = CreateNodeInfo(nodeOptions);
+            var node = CreateNode(nodeOptions);
 
             // initialize node
-            await info.Node.InitializeAsync();
+            await node.InitializeAsync();
 
             // add node info to nodes (so make it available for load balancing)
-            _nodes.Add(info);
+            lock (_nodesLock)
+            {
+                _nodes.Add(node);
+            }
 
-            return info;
+            return node;
         }
 
         /// <summary>
         ///     Gets the preferred node using the <see cref="LoadBalacingStrategy"/> specified in the options.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public LavalinkNode GetPreferredNode()
         {
-            // get the preferred node by the load balancing strategy
-            var node = _loadBalacingStrategy(this, _nodes.ToArray());
+            if (!_initialized)
+            {
+                throw new InvalidOperationException("The cluster has not been initialized.");
+            }
 
-            // update last usage
-            node.LastUsage = DateTimeOffset.UtcNow;
+            lock (_nodesLock)
+            {
+                // get the preferred node by the load balancing strategy
+                var node = _loadBalacingStrategy(this, _nodes.ToArray());
 
-            return node.Node;
+                // update last usage
+                node.LastUsage = DateTimeOffset.UtcNow;
+
+                return node;
+            }
         }
 
         /// <summary>
         ///     Disposes all underlying nodes.
         /// </summary>
-        public void Dispose() => _nodes.ForEach(s => s.Node.Dispose());
+        public void Dispose()
+        {
+            lock (_nodesLock)
+            {
+                _nodes.ForEach(s => s.Dispose());
+            }
+        }
 
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
@@ -122,6 +144,9 @@ namespace Lavalink4NET.Cluster
         /// <typeparam name="TPlayer">the type of the player to use</typeparam>
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer
             => GetServingNode(guildId).GetPlayer<TPlayer>(guildId);
 
@@ -131,8 +156,23 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="guildId">the guild snowflake identifier</param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public LavalinkNode GetServingNode(ulong guildId)
-            => _nodes.FirstOrDefault(s => s.Node.HasPlayer(guildId))?.Node ?? GetPreferredNode();
+        {
+            lock (_nodesLock)
+            {
+                var node = _nodes.FirstOrDefault(s => s.HasPlayer(guildId));
+
+                if (node != null)
+                {
+                    return node;
+                }
+            }
+
+            return GetPreferredNode();
+        }
 
         /// <summary>
         ///     Gets the track for the specified <paramref name="query"/> asynchronously.
@@ -140,6 +180,9 @@ namespace Lavalink4NET.Cluster
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
         /// <returns>the track found for the query</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None)
             => GetPreferredNode().GetTrackAsync(query, mode);
 
@@ -149,6 +192,9 @@ namespace Lavalink4NET.Cluster
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
         /// <returns>the tracks found for the query</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None)
             => GetPreferredNode().GetTracksAsync(query, mode);
 
@@ -159,8 +205,16 @@ namespace Lavalink4NET.Cluster
         ///     the snowflake identifier of the guild to create the player for
         /// </param>
         /// <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public bool HasPlayer(ulong guildId)
-            => _nodes.Any(s => s.Node.HasPlayer(guildId));
+        {
+            lock (_nodesLock)
+            {
+                return _nodes.Any(s => s.HasPlayer(guildId));
+            }
+        }
 
         /// <summary>
         ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
@@ -173,6 +227,9 @@ namespace Lavalink4NET.Cluster
         ///     a task that represents the asynchronous operation
         ///     <para>the audio player</para>
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
             where TPlayer : LavalinkPlayer
             => GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
@@ -185,15 +242,10 @@ namespace Lavalink4NET.Cluster
         /// <returns>
         ///     a task that represents the asynchronous operation <param>the request response</param>
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
         public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None)
             => GetPreferredNode().LoadTracksAsync(query, mode);
-
-        /// <summary>
-        ///     Reports the statistics for the specified <paramref name="clusterNode"/>.
-        /// </summary>
-        /// <param name="clusterNode">the cluster node the report is for</param>
-        /// <param name="eventArgs">the reported statistics</param>
-        internal void ReportStatistics(LavalinkClusterNode clusterNode, StatisticUpdateEventArgs eventArgs)
-            => _nodes.Single(s => s.Node == clusterNode).Statistics = eventArgs;
     }
 }
