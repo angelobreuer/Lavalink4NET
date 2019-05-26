@@ -97,7 +97,9 @@ namespace Lavalink4NET.Player
                 return new UserVoteSkipInfo(info, false, false);
             }
 
+            // add vote and re-get info, because the votes were changed.
             _skipVotes.Add(userId);
+            info = await GetVoteInfoAsync();
 
             if (info.Percentage >= percentage)
             {
