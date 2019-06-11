@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   TrackDecoder.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,10 +41,54 @@ namespace Lavalink4NET.Decoding
         /// </summary>
         /// <param name="identifier">the track identifier (encoded in base64)</param>
         /// <param name="verify">a value indicating whether the track header should be verified</param>
+        /// <returns>the decoded track</returns>
+        /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
+        public static LavalinkTrack DecodeTrack(string identifier, bool verify = true)
+            => new LavalinkTrack(identifier, DecodeTrackInfo(identifier, verify));
+
+        /// <summary>
+        ///     Decodes a lavalink track identifier.
+        /// </summary>
+        /// <param name="identifier">the track identifier (encoded in base64)</param>
+        /// <param name="verify">a value indicating whether the track header should be verified</param>
         /// <returns>the decoded track info</returns>
         /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-        public static LavalinkTrackInfo DecodeTrack(string identifier, bool verify = true)
-            => DecodeTrack(Convert.FromBase64String(identifier), verify);
+        public static LavalinkTrackInfo DecodeTrackInfo(string identifier, bool verify = true)
+            => DecodeTrackInfo(Convert.FromBase64String(identifier), verify);
+
+        /// <summary>
+        ///     Decodes a lavalink track identifier.
+        /// </summary>
+        /// <param name="buffer">the raw track identifier</param>
+        /// <param name="verify">a value indicating whether the track header should be verified</param>
+        /// <returns>the decoded track info</returns>
+        /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
+        public static LavalinkTrackInfo DecodeTrackInfo(byte[] buffer, bool verify = true)
+        {
+            using (var memoryStream = new MemoryStream(buffer))
+            using (var reader = new DataInputReader(memoryStream))
+            {
+                ReadHeader(reader, buffer.Length, verify);
+
+                var title = reader.ReadString();
+                var author = reader.ReadString();
+                var length = reader.ReadInt64();
+                var identifier = reader.ReadString();
+                var isStream = reader.ReadBoolean();
+                var uri = reader.ReadBoolean() ? reader.ReadString() : null;
+
+                return new LavalinkTrackInfo
+                {
+                    Title = title,
+                    Author = author,
+                    Duration = TimeSpan.FromMilliseconds(length),
+                    TrackIdentifier = identifier,
+                    IsLiveStream = isStream,
+                    IsSeekable = !isStream,
+                    Source = uri
+                };
+            }
+        }
 
         /// <summary>
         ///     Reads the track header.
@@ -74,40 +118,6 @@ namespace Lavalink4NET.Decoding
             if (verify && version != 2)
             {
                 throw new InvalidOperationException($"Error while verifying track header: Invalid track version: Was: {version}, expected: 2.");
-            }
-        }
-
-        /// <summary>
-        ///     Decodes a lavalink track identifier.
-        /// </summary>
-        /// <param name="buffer">the raw track identifier</param>
-        /// <param name="verify">a value indicating whether the track header should be verified</param>
-        /// <returns>the decoded track info</returns>
-        /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-        public static LavalinkTrackInfo DecodeTrack(byte[] buffer, bool verify = true)
-        {
-            using (var memoryStream = new MemoryStream(buffer))
-            using (var reader = new DataInputReader(memoryStream))
-            {
-                ReadHeader(reader, buffer.Length, verify);
-
-                var title = reader.ReadString();
-                var author = reader.ReadString();
-                var length = reader.ReadInt64();
-                var identifier = reader.ReadString();
-                var isStream = reader.ReadBoolean();
-                var uri = reader.ReadBoolean() ? reader.ReadString() : null;
-
-                return new LavalinkTrackInfo
-                {
-                    Title = title,
-                    Author = author,
-                    Duration = TimeSpan.FromMilliseconds(length),
-                    TrackIdentifier = identifier,
-                    IsLiveStream = isStream,
-                    IsSeekable = !isStream,
-                    Source = uri
-                };
             }
         }
     }

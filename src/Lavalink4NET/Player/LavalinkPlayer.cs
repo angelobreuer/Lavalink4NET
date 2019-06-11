@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   LavalinkPlayer.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -98,6 +98,11 @@ namespace Lavalink4NET.Player
         ///     Gets the voice channel id the player is connected to.
         /// </summary>
         public ulong? VoiceChannelId { get; private set; }
+
+        /// <summary>
+        ///     Gets the current player volume.
+        /// </summary>
+        public float Volume { get; private set; } = 1f;
 
         /// <summary>
         ///     Joins the voice channel specified by <paramref name="voiceChannelId"/> asynchronously.
@@ -253,7 +258,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task SetVolumeAsync(float volume = 1f)
+        public async Task SetVolumeAsync(float volume = 1f)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -264,7 +269,9 @@ namespace Lavalink4NET.Player
             }
 
             var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
-            return _lavalinkSocket.SendPayloadAsync(payload);
+            await _lavalinkSocket.SendPayloadAsync(payload);
+
+            Volume = volume;
         }
 
         /// <summary>
