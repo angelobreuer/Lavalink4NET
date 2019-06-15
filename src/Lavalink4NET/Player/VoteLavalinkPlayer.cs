@@ -69,7 +69,10 @@ namespace Lavalink4NET.Player
         {
             EnsureNotDestroyed();
 
-            var users = await Client.GetChannelUsersAsync(GuildId, VoiceChannelId.Value);
+            // get users in channel without the bot
+            var users = (await Client.GetChannelUsersAsync(GuildId, VoiceChannelId.Value))
+                .Where(s => s != Client.CurrentUserId);
+
             var votes = _skipVotes.Intersect(users).ToArray();
             return new VoteSkipInfo(votes, users.Count());
         }

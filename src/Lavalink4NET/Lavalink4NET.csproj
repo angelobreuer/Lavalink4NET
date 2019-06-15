@@ -16,7 +16,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
     <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
-    <Version>1.0.8</Version>
+    <Version>1.1.0</Version>
     <PackageProjectUrl />
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
