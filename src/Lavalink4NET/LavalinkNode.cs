@@ -226,10 +226,16 @@ namespace Lavalink4NET
             }
 
             // the voice web socket was closed
-            if (payload is WebSocketClosedEvent)
+            if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
                 Players.Remove(payload.GuildId);
                 player.Dispose();
+
+                Logger?.LogWarning("Voice WebSocket was closed for player: {PlayerId}" +
+                    "\nClose Code: {CloseCode} ({CloseCodeInt}, Reason: {Reason}, By Remote: {ByRemote}",
+                    payload.GuildId, webSocketClosedEvent.CloseCode,
+                    (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
+                    webSocketClosedEvent.ByRemote ? "Yes" : "No");
             }
 
             return Task.CompletedTask;
