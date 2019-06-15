@@ -21,6 +21,8 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 ![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg)
 - Download [Lavalink4NET for DSharpPlus](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)
 ![NuGet - Lavalink4NET DSharpPlus](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg)
+- Download [Lavalink4NET for DSharpPlus](https://www.nuget.org/packages/Lavalink4NET.MemoryCache/)
+![NuGet - Lavalink4NET MemoryCache](https://img.shields.io/nuget/vpre/Lavalink4NET.MemoryCache.svg)
 
 ### Prerequisites
 - One or more Lavalink Nodes
