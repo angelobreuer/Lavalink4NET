@@ -48,8 +48,9 @@ namespace Lavalink4NET
         /// <param name="options">the node options for connecting</param>
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null)
-            : base(options, client, logger)
+        /// <param name="cache">an optional cache that caches track requests</param>
+        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
+            : base(options, client, logger, cache)
         {
             _discordClient = client;
             Players = new Dictionary<ulong, LavalinkPlayer>();

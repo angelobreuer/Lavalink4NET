@@ -46,6 +46,7 @@ namespace Lavalink4NET.Cluster
         private readonly object _nodesLock;
         private readonly IDiscordClientWrapper _client;
         private readonly ILogger<Lavalink> _logger;
+        private readonly ILavalinkCache _cache;
         private volatile int _nodeId;
         private bool _initialized;
 
@@ -55,11 +56,16 @@ namespace Lavalink4NET.Cluster
         /// <param name="options">the cluster options</param>
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null)
+        /// <param name="cache">
+        ///     a cache that is shared between the different lavalink rest clients. If the cache is
+        ///     <see langword="null"/>, no cache will be used.
+        /// </param>
+        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
         {
             _loadBalacingStrategy = options.LoadBalacingStrategy;
             _client = client;
             _logger = logger;
+            _cache = cache;
             _nodesLock = new object();
             _nodes = options.Nodes.Select(CreateNode).ToList();
         }
@@ -75,8 +81,13 @@ namespace Lavalink4NET.Cluster
             _initialized = true;
         }
 
+        /// <summary>
+        ///     Creates a new lavalink cluster node.
+        /// </summary>
+        /// <param name="nodeOptions">the node options</param>
+        /// <returns>the created node</returns>
         private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
-            => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _nodeId++);
+            => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _cache, _nodeId++);
 
         /// <summary>
         ///     Dynamically adds a node to the cluster asynchronously.
@@ -180,23 +191,31 @@ namespace Lavalink4NET.Cluster
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
         /// <returns>the track found for the query</returns>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
-        public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None)
-            => GetPreferredNode().GetTrackAsync(query, mode);
+        public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+            => GetPreferredNode().GetTrackAsync(query, mode, noCache);
 
         /// <summary>
         ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
         /// </summary>
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <returns>the tracks found for the query</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
-        public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None)
-            => GetPreferredNode().GetTracksAsync(query, mode);
+        public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+            => GetPreferredNode().GetTracksAsync(query, mode, noCache);
 
         /// <summary>
         ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
@@ -239,13 +258,17 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="query">the search query</param>
         /// <param name="mode">the track search mode</param>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <returns>
         ///     a task that represents the asynchronous operation <param>the request response</param>
         /// </returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
-        public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None)
-            => GetPreferredNode().LoadTracksAsync(query, mode);
+        public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+            => GetPreferredNode().LoadTracksAsync(query, mode, noCache);
     }
 }

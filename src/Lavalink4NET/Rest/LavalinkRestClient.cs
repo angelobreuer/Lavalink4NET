@@ -44,6 +44,8 @@ namespace Lavalink4NET.Rest
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<Lavalink> _logger;
+        private readonly ILavalinkCache _cache;
+        private readonly TimeSpan _cacheTime;
 
         /// <summary>
         ///     The header name for the version of the Lavalink HTTP response from the node. See
@@ -57,11 +59,33 @@ namespace Lavalink4NET.Rest
         /// </summary>
         /// <param name="options">the rest client options</param>
         /// <param name="logger">the logger</param>
-        public LavalinkRestClient(LavalinkRestOptions options, ILogger<Lavalink> logger = null)
+        /// <param name="cache">an optional cache that caches track requests</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the track cache time ( <see cref="LavalinkRestOptions.TrackCacheTime"/>) is
+        ///     equal or less than <see cref="TimeSpan.Zero"/>.
+        /// </exception>
+        public LavalinkRestClient(LavalinkRestOptions options, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
         {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (options.TrackCacheTime <= TimeSpan.Zero)
+            {
+                throw new InvalidOperationException("The track cache time is negative or zero. Please do not " +
+                    "specify a cache in the constructor instead of using a zero cache time.");
+            }
+
             _httpClient = new HttpClient { BaseAddress = new Uri(options.RestUri) };
             _httpClient.DefaultRequestHeaders.Add("Authorization", options.Password);
+
             _logger = logger;
+            _cache = cache;
+            _cacheTime = options.TrackCacheTime;
         }
 
         /// <summary>
@@ -102,28 +126,40 @@ namespace Lavalink4NET.Rest
         /// </summary>
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <returns>the track found for the query</returns>
-        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None)
-            => (await GetTracksAsync(query, mode))?.FirstOrDefault();
+        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+            => (await GetTracksAsync(query, mode, noCache))?.FirstOrDefault();
 
         /// <summary>
         ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
         /// </summary>
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <returns>the tracks found for the query</returns>
-        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None)
-            => (await LoadTracksAsync(query, mode))?.Tracks;
+        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+            => (await LoadTracksAsync(query, mode, noCache))?.Tracks;
 
         /// <summary>
         ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.
         /// </summary>
         /// <param name="query">the search query</param>
         /// <param name="mode">the track search mode</param>
+        /// <param name="noCache">
+        ///     a value indicating whether the track should be returned from cache, if it is cached.
+        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
+        /// </param>
         /// <returns>
         ///     a task that represents the asynchronous operation <param>the request response</param>
         /// </returns>
-        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None)
+        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
         {
             if (!(query.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
                 && query.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase)))
@@ -138,6 +174,14 @@ namespace Lavalink4NET.Rest
                 }
             }
 
+            // check if a cache provider is specified in constructor and the track request is cached
+            // and caching is wanted (see: "noCache" method parameter)
+            if (_cache != null && !noCache && _cache.TryGetItem<TrackLoadResponsePayload>("track-" + query, out var track))
+            {
+                _logger?.LogDebug("Loaded track from cache `{Query}`.", query);
+                return track;
+            }
+
             _logger?.LogDebug("Loading track '{Query}'...", query);
 
             using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}"))
@@ -145,7 +189,12 @@ namespace Lavalink4NET.Rest
                 VerifyResponse(response);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<TrackLoadResponsePayload>(responseContent);
+                var trackLoad = JsonConvert.DeserializeObject<TrackLoadResponsePayload>(responseContent);
+
+                // cache (if a cache provider is specified)
+                _cache?.AddItem("track-" + query, trackLoad, DateTimeOffset.UtcNow + _cacheTime);
+
+                return trackLoad;
             }
         }
     }

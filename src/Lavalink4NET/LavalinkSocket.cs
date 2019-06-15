@@ -64,8 +64,9 @@ namespace Lavalink4NET
         /// <param name="options">the node options</param>
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
-        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger)
-            : base(options, logger)
+        /// <param name="cache">an optional cache that caches track requests</param>
+        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger, ILavalinkCache cache = null)
+            : base(options, logger, cache)
         {
             Logger = logger;
 

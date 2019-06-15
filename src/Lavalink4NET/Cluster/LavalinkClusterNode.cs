@@ -44,9 +44,11 @@ namespace Lavalink4NET.Cluster
         /// <param name="options">the node options for connecting</param>
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
+        /// <param name="cache">an optional cache that caches track requests</param>
         /// <param name="id">the node number</param>
-        public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger, int id)
-            : base(options, client, logger)
+        public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
+            ILogger<Lavalink> logger, ILavalinkCache cache, int id)
+            : base(options, client, logger, cache)
         {
             Cluster = cluster;
             Identifier = "Cluster Node-" + id;

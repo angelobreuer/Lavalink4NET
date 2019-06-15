@@ -12,5 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj" />
+    <ProjectReference Include="..\..\src\Lavalink4NET.MemoryCache\Lavalink4NET.MemoryCache.csproj" />
   </ItemGroup>
 </Project>

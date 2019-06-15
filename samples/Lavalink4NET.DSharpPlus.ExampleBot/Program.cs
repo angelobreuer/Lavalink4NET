@@ -31,6 +31,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
     using System.Threading.Tasks;
     using global::DSharpPlus;
     using Lavalink4NET.Cluster;
+    using Lavalink4NET.MemoryCache;
     using Lavalink4NET.Player;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -70,6 +71,9 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
 
                 LoadBalacingStrategy = LoadBalacingStrategies.RoundRobinStrategy
             })
+
+            // Request Caching for Lavalink
+            .AddSingleton<ILavalinkCache, LavalinkCache>()
 
             // Logging
             .AddLogging(s => s.AddConsole().SetMinimumLevel(Trace))
