@@ -207,6 +207,7 @@ namespace Lavalink4NET
             }
 
             _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
             _webSocket?.Dispose();
 
             base.Dispose();

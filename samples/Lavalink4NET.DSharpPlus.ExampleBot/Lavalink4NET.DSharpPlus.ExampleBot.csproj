@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj" />
+    <ProjectReference Include="..\..\src\Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj" />
   </ItemGroup>
 </Project>

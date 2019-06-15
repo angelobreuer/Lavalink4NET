@@ -13,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lavalink4NET.Discord_NET\Lavalink4NET.Discord_NET.csproj" />
+    <ProjectReference Include="..\..\src\Lavalink4NET.Discord_NET\Lavalink4NET.Discord_NET.csproj" />
   </ItemGroup>
 </Project>

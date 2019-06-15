@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus", "Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj", "{3A39C12E-7FE0-406B-A369-73DC91C4DD5B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus.ExampleBot", "..\samples\Lavalink4NET.DSharpPlus.ExampleBot\Lavalink4NET.DSharpPlus.ExampleBot.csproj", "{17A7A6C1-FFC8-43E7-AB59-4EABB143E1A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.Discord_NET.ExampleBot.csproj", "{824B101F-A09A-4C64-B6FE-543966E46A9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{3A39C12E-7FE0-406B-A369-73DC91C4DD5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A39C12E-7FE0-406B-A369-73DC91C4DD5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A39C12E-7FE0-406B-A369-73DC91C4DD5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A7A6C1-FFC8-43E7-AB59-4EABB143E1A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A7A6C1-FFC8-43E7-AB59-4EABB143E1A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A7A6C1-FFC8-43E7-AB59-4EABB143E1A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A7A6C1-FFC8-43E7-AB59-4EABB143E1A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{824B101F-A09A-4C64-B6FE-543966E46A9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{824B101F-A09A-4C64-B6FE-543966E46A9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{824B101F-A09A-4C64-B6FE-543966E46A9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{824B101F-A09A-4C64-B6FE-543966E46A9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
