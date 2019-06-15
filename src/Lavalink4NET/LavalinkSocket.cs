@@ -283,6 +283,13 @@ namespace Lavalink4NET
                 // send the payload
                 await _webSocket.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, CancellationToken.None);
             }
+            catch (Exception ex)
+            {
+                Logger?.LogWarning(ex, "Failed to send payload. Trying to reconnect to node...");
+
+                // enqueue packet that failed to sent
+                _queue.Enqueue(payload);
+            }
             finally
             {
                 // return the buffer to its pool for later reuse
