@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   LavalinkRestClient.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -69,7 +69,7 @@ namespace Lavalink4NET.Rest
 
             if (!response.Headers.TryGetValues(VersionHeaderName, out var values))
             {
-                _logger.LogWarning("Expected header `{Header}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
+                _logger?.LogWarning("Expected header `{Header}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
                 return;
             }
 
@@ -77,7 +77,7 @@ namespace Lavalink4NET.Rest
 
             if (!int.TryParse(rawVersion, out var version) || version <= 2)
             {
-                _logger.LogWarning("Invalid version {Version}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
+                _logger?.LogWarning("Invalid version {Version}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
             }
         }
 
@@ -127,7 +127,7 @@ namespace Lavalink4NET.Rest
                 }
             }
 
-            _logger.LogDebug("Loading track '{Query}'...", query);
+            _logger?.LogDebug("Loading track '{Query}'...", query);
 
             using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}"))
             {
