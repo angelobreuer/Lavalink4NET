@@ -182,18 +182,28 @@ namespace Lavalink4NET.Player
         ///     Plays the specified <paramref name="track"/> asynchronously.
         /// </summary>
         /// <param name="track">the track to play</param>
+        /// <param name="startTime">the track start position</param>
+        /// <param name="endTime">the track end position</param>
+        /// <param name="noReplace">
+        ///     a value indicating whether the track play should be ignored if the same track is
+        ///     currently playing
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task PlayAsync(LavalinkTrack track)
+        public virtual async Task PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
+            TimeSpan? endTime = null, bool noReplace = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
 
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
-            await _lavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier));
+
+            await _lavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
+                startTime, endTime, noReplace));
+
             State = PlayerState.Playing;
         }
 

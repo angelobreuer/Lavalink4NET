@@ -28,12 +28,10 @@
 namespace Lavalink4NET.DSharpPlus.ExampleBot
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using global::DSharpPlus;
     using Lavalink4NET.Cluster;
     using Lavalink4NET.Player;
-    using Lavalink4NET.Rest;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using static Microsoft.Extensions.Logging.LogLevel;

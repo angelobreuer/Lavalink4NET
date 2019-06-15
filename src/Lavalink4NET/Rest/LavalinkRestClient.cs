@@ -30,6 +30,7 @@ namespace Lavalink4NET.Rest
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
@@ -63,8 +64,18 @@ namespace Lavalink4NET.Rest
             _logger = logger;
         }
 
+        /// <summary>
+        ///     Verifies the specified <paramref name="response"/>. This makes sure that the right
+        ///     Lavalink Server version is used and the response status code is success.
+        /// </summary>
+        /// <param name="response">the response received</param>
         private void VerifyResponse(HttpResponseMessage response)
         {
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                throw new InvalidOperationException("Received 403 Forbidden response from Lavalink node. Make sure you are using the right password.");
+            }
+
             response.EnsureSuccessStatusCode();
 
             if (!response.Headers.TryGetValues(VersionHeaderName, out var values))

@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   QueuedLavalinkPlayer.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,12 +55,19 @@ namespace Lavalink4NET.Player
         ///     Plays the specified <paramref name="track"/> asynchronously.
         /// </summary>
         /// <param name="track">the track to play</param>
+        /// <param name="startTime">the track start position</param>
+        /// <param name="endTime">the track end position</param>
+        /// <param name="noReplace">
+        ///     a value indicating whether the track play should be ignored if the same track is
+        ///     currently playing
+        /// </param>
         /// <returns>
         ///     a task that represents the asynchronous operation
         ///     <para>the position in the track queue ( <c>0</c> = now playing)</para>
         /// </returns>
-        public new Task<int> PlayAsync(LavalinkTrack track)
-            => PlayAsync(track, true);
+        public new Task<int> PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
+            TimeSpan? endTime = null, bool noReplace = false)
+            => PlayAsync(track, true, startTime, endTime, noReplace);
 
         /// <summary>
         ///     Plays the specified <paramref name="track"/> asynchronously.
@@ -69,12 +76,19 @@ namespace Lavalink4NET.Player
         /// <param name="enqueue">
         ///     a value indicating whether the track should be enqueued in the track queue
         /// </param>
+        /// <param name="startTime">the track start position</param>
+        /// <param name="endTime">the track end position</param>
+        /// <param name="noReplace">
+        ///     a value indicating whether the track play should be ignored if the same track is
+        ///     currently playing
+        /// </param>
         /// <returns>
         ///     a task that represents the asynchronous operation
         ///     <para>the position in the track queue ( <c>0</c> = now playing)</para>
         /// </returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task<int> PlayAsync(LavalinkTrack track, bool enqueue)
+        public virtual async Task<int> PlayAsync(LavalinkTrack track, bool enqueue,
+            TimeSpan? startTime = null, TimeSpan? endTime = null, bool noReplace = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -91,7 +105,7 @@ namespace Lavalink4NET.Player
                 return QueuedTracks.Count;
             }
 
-            await base.PlayAsync(track);
+            await base.PlayAsync(track, startTime, endTime, noReplace);
             return 0;
         }
 
