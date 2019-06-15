@@ -12,17 +12,14 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Queueing / Voting-System
 - Track Decoding
 - Optional Logging
+- Optional Request Caching
 - Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 ### NuGet
-- Download [Lavalink4NET Core](https://www.nuget.org/packages/Lavalink4NET/) 
-![NuGet - Lavalink4NET Core](https://img.shields.io/nuget/vpre/Lavalink4NET.svg)
-- Download [Lavalink4NET for Discord.Net](https://www.nuget.org/packages/Lavalink4NET.Discord.NET/) 
-![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg)
-- Download [Lavalink4NET for DSharpPlus](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)
-![NuGet - Lavalink4NET DSharpPlus](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg)
-- Download [Lavalink4NET MemoryCache](https://www.nuget.org/packages/Lavalink4NET.MemoryCache/)
-![NuGet - Lavalink4NET MemoryCache](https://img.shields.io/nuget/vpre/Lavalink4NET.MemoryCache.svg)
+- Download [Lavalink4NET Core ![NuGet - Lavalink4NET Core](https://img.shields.io/nuget/vpre/Lavalink4NET.svg)](https://www.nuget.org/packages/Lavalink4NET/) 
+- Download [Lavalink4NET for Discord.Net ![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg)](https://www.nuget.org/packages/Lavalink4NET.Discord.NET/) 
+- Download [Lavalink4NET for DSharpPlus ![NuGet - Lavalink4NET DSharpPlus](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg)](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)
+- Download [Lavalink4NET MemoryCache ![NuGet - Lavalink4NET MemoryCache](https://img.shields.io/nuget/vpre/Lavalink4NET.MemoryCache.svg)](https://www.nuget.org/packages/Lavalink4NET.MemoryCache/)
 
 ### Prerequisites
 - One or more Lavalink Nodes
