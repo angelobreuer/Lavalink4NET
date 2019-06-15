@@ -71,6 +71,8 @@ var myTrack = await player.GetTrackAsync("<search query>", SearchMode.YouTube);
 await player.PlayAsync(myTrack);
 ```
 
+For more documentation, see: [Lavalink4NET Wiki](https://github.com/angelobreuer/Lavalink4NET/wiki)
+
 ___
 
 ### Dependencies
