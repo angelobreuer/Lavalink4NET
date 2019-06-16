@@ -44,7 +44,7 @@ var audioService = new LavalinkNode(new LavalinkNodeOptions
 }, new DiscordClientWrapper(client));
 ```
 
-These options can be looked up in the `application.yml` of your Lavalink Node.
+You can lookup these options in the `application.yml` of your Lavalink Node(s).
 
 You need to initialize the service before using it:
 ```csharp
