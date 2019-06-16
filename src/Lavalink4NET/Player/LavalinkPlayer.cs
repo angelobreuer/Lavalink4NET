@@ -260,6 +260,11 @@ namespace Lavalink4NET.Player
         ///     Updates the player volume asynchronously.
         /// </summary>
         /// <param name="volume">the player volume (0f - 10f)</param>
+        /// <param name="normalize">
+        ///     a value indicating whether if the <paramref name="volume"/> is out of range (0f -
+        ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
+        ///     -20f to 0f.
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
@@ -268,14 +273,21 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task SetVolumeAsync(float volume = 1f)
+        public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
 
             if (volume > 10f || volume < 0f)
             {
-                throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
+                if (!normalize)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
+                }
+
+                // bring the values into range (0f - 10f)
+                volume = Math.Max(0f, volume);
+                volume = Math.Min(10f, volume);
             }
 
             var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
