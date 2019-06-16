@@ -13,6 +13,7 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Track Decoding
 - Optional Logging
 - Optional Request Caching
+- Optional Inactivity Tracking
 - Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 ### NuGet
