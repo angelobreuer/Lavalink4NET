@@ -35,6 +35,12 @@ namespace Lavalink4NET.Rest
     public class LavalinkRestOptions
     {
         /// <summary>
+        ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
+        ///     to the logger (This should be only used for development)
+        /// </summary>
+        public bool DebugPayloads { get; set; } = false;
+
+        /// <summary>
         ///     Gets or sets the Lavalink Node Password.
         /// </summary>
         public string Password { get; set; } = "youshallnotpass";

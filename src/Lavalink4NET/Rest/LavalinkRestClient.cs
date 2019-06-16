@@ -46,6 +46,7 @@ namespace Lavalink4NET.Rest
         private readonly ILogger<Lavalink> _logger;
         private readonly ILavalinkCache _cache;
         private readonly TimeSpan _cacheTime;
+        private readonly bool _debugPayloads;
 
         /// <summary>
         ///     The header name for the version of the Lavalink HTTP response from the node. See
@@ -86,6 +87,7 @@ namespace Lavalink4NET.Rest
             _logger = logger;
             _cache = cache;
             _cacheTime = options.TrackCacheTime;
+            _debugPayloads = options.DebugPayloads;
         }
 
         /// <summary>
@@ -189,6 +191,12 @@ namespace Lavalink4NET.Rest
                 VerifyResponse(response);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (_debugPayloads)
+                {
+                    _logger?.LogDebug("Got response for track load: `{Query}`: {Payload}.", query, responseContent);
+                }
+
                 var trackLoad = JsonConvert.DeserializeObject<TrackLoadResponsePayload>(responseContent);
 
                 // cache (if a cache provider is specified)
