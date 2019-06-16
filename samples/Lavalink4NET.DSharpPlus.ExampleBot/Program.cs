@@ -64,6 +64,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                     {
                         // add your node configuration
                     },
+
                     new LavalinkNodeOptions
                     {
                         // add your node configuration
