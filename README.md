@@ -13,6 +13,7 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Track Decoding
 - Optional Logging
 - Optional Request Caching
+- Optional Inactivity Tracking
 - Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 ### NuGet
@@ -43,7 +44,7 @@ var audioService = new LavalinkNode(new LavalinkNodeOptions
 }, new DiscordClientWrapper(client));
 ```
 
-These options can be looked up in the `application.yml` of your Lavalink Node.
+You can lookup these options in the `application.yml` of your Lavalink Node(s).
 
 You need to initialize the service before using it:
 ```csharp
@@ -78,3 +79,4 @@ ___
 ### Dependencies
 - [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
 - [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/) *(for Logging)*
+- [System.Runtime.Caching](https://www.nuget.org/packages/System.Runtime.Caching/) *(in Lavalink4NET.MemoryCache, for optional request caching)*
