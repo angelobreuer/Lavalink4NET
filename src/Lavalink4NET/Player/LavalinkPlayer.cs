@@ -367,30 +367,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Asynchronously triggered when a track ends.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when an exception occurred while playing a track.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when a track got stuck.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
         ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected to
         ///     a voice channel.
         /// </summary>
@@ -418,6 +394,39 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Asynchronously triggered when the player has connected to a voice channel.
+        /// </summary>
+        /// <param name="voiceServer">the voice server connected to</param>
+        /// <param name="voiceState">the voice state</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track ends.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when an exception occurred while playing a track.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track got stuck.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
         ///     Sends the voice state and server data to the Lavalink Node if both is provided.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
@@ -430,6 +439,8 @@ namespace Lavalink4NET.Player
 
             await _lavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
+
+            await OnConnectedAsync(_voiceServer, _voiceState);
 
             _voiceServer = null;
             _voiceState = null;
