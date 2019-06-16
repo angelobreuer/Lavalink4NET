@@ -190,7 +190,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         /// </returns>
         private async Task<VoteLavalinkPlayer> GetPlayerAsync(bool connectToVoiceChannel = true)
         {
-            var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild.Id);
+            var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild);
 
             if (player != null
                 && player.State != PlayerState.NotConnected
@@ -213,7 +213,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
                 return null;
             }
 
-            return await _audioService.JoinAsync<VoteLavalinkPlayer>(Context.Guild.Id, user.VoiceChannel.Id);
+            return await _audioService.JoinAsync<VoteLavalinkPlayer>(user.VoiceChannel);
         }
     }
 }
