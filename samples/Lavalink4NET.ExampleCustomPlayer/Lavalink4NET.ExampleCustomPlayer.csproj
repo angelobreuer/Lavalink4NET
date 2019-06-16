@@ -4,4 +4,8 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Lavalink4NET\Lavalink4NET.csproj" />
+  </ItemGroup>
 </Project>

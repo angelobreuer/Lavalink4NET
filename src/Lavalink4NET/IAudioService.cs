@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   IAudioService.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,7 @@
 namespace Lavalink4NET
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Player;
     using Rest;
@@ -38,18 +39,21 @@ namespace Lavalink4NET
     public interface IAudioService : IDisposable, ILavalinkRestClient
     {
         /// <summary>
-        ///     Initializes the audio service asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        Task InitializeAsync();
-
-        /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
         /// </summary>
         /// <typeparam name="TPlayer">the type of the player to use</typeparam>
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
         TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer;
+
+        /// <summary>
+        ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
+        /// </summary>
+        /// <typeparam name="TPlayer">
+        ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
+        /// </typeparam>
+        /// <returns>the player list</returns>
+        IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer;
 
         /// <summary>
         ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
@@ -59,6 +63,12 @@ namespace Lavalink4NET
         /// </param>
         /// <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
         bool HasPlayer(ulong guildId);
+
+        /// <summary>
+        ///     Initializes the audio service asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        Task InitializeAsync();
 
         /// <summary>
         ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.

@@ -61,7 +61,7 @@
         /// <param name="voiceServer">the voice server connected to</param>
         /// <param name="voiceState">the voice state</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected async override Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+        public async override Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
         {
             // check if a volume has been stored
             if (_volumes.TryGetValue(GuildId, out var volume) && Volume != volume)

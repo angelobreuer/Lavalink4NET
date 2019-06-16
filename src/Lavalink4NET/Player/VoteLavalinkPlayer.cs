@@ -45,7 +45,7 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal override Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+        public override Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
         {
             ClearVotes();
             return base.OnTrackEndAsync(eventArgs);

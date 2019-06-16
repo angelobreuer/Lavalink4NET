@@ -29,6 +29,7 @@ namespace Lavalink4NET
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Events;
     using Microsoft.Extensions.Logging;
@@ -135,6 +136,16 @@ namespace Lavalink4NET
 
             return player1;
         }
+
+        /// <summary>
+        ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
+        /// </summary>
+        /// <typeparam name="TPlayer">
+        ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
+        /// </typeparam>
+        /// <returns>the player list</returns>
+        public IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer
+            => Players.Select(s => s.Value).OfType<TPlayer>().ToList().AsReadOnly();
 
         /// <summary>
         ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.

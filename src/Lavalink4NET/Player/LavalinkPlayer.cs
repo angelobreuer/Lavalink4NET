@@ -399,7 +399,7 @@ namespace Lavalink4NET.Player
         /// <param name="voiceServer">the voice server connected to</param>
         /// <param name="voiceState">the voice state</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+        public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
             => Task.CompletedTask;
 
         /// <summary>
@@ -407,7 +407,7 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+        public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
             => Task.CompletedTask;
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+        public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
             => Task.CompletedTask;
 
         /// <summary>
@@ -423,7 +423,7 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+        public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
             => Task.CompletedTask;
 
         /// <summary>
