@@ -25,14 +25,14 @@
  *  THE SOFTWARE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Lavalink4NET.Events;
-
 namespace Lavalink4NET.Player
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Lavalink4NET.Events;
+
     /// <summary>
     ///     A lavalink player with a queuing and voting system.
     /// </summary>
@@ -80,7 +80,7 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Clears all user votes.
         /// </summary>
-        public void ClearVotes() => _skipVotes.Clear();
+        public virtual void ClearVotes() => _skipVotes.Clear();
 
         /// <summary>
         ///     Submits an user vote asynchronously.
@@ -89,7 +89,7 @@ namespace Lavalink4NET.Player
         /// <param name="percentage">the minimum voting percentage to skip the track</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task<UserVoteSkipInfo> VoteAsync(ulong userId, float percentage = .5f)
+        public virtual async Task<UserVoteSkipInfo> VoteAsync(ulong userId, float percentage = .5f)
         {
             EnsureNotDestroyed();
 

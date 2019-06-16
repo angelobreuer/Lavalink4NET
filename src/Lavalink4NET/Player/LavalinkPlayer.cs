@@ -111,7 +111,7 @@ namespace Lavalink4NET.Player
         /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
         /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+        public virtual async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
         {
             await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
             VoiceChannelId = voiceChannelId;
@@ -125,7 +125,7 @@ namespace Lavalink4NET.Player
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
-        public async Task DisconnectAsync()
+        public virtual async Task DisconnectAsync()
         {
             EnsureConnected();
 
@@ -138,7 +138,7 @@ namespace Lavalink4NET.Player
         ///     Destroys the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (State == PlayerState.Destroyed)
             {
@@ -164,7 +164,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task PauseAsync()
+        public virtual async Task PauseAsync()
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -218,7 +218,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the current playing track is not paused
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task ResumeAsync()
+        public virtual async Task ResumeAsync()
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -243,7 +243,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the current playing track does not support seeking.
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task SeekPositionAsync(TimeSpan position)
+        public virtual Task SeekPositionAsync(TimeSpan position)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -268,7 +268,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task SetVolumeAsync(float volume = 1f)
+        public virtual async Task SetVolumeAsync(float volume = 1f)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -318,7 +318,7 @@ namespace Lavalink4NET.Player
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true)
+        public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true)
         {
             EnsureNotDestroyed();
 
