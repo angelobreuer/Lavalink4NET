@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   TrackLoadResponsePayload.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,10 +31,17 @@ namespace Lavalink4NET.Rest
     using Player;
 
     /// <summary>
-    ///     The RESTful api HTTP response object for request to the "/tracks" endpoint.
+    ///     t The RESTful api HTTP response object for request to the "/tracks" endpoint.
     /// </summary>
     public sealed class TrackLoadResponsePayload
     {
+        /// <summary>
+        ///     Gets an exception that indicates why the track load failed (see: <see cref="LoadType"/>).
+        /// </summary>
+        /// <remarks>This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.</remarks>
+        [JsonProperty("exception")]
+        public TrackLoadException Exception { get; internal set; }
+
         /// <summary>
         ///     Gets the type of what was loaded.
         /// </summary>
