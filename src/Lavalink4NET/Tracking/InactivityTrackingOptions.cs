@@ -9,7 +9,7 @@
     {
         /// <summary>
         ///     Gets or sets a value indicating whether the first track (after using
-        ///     <see cref="InactivityTrackingService.StartTracking"/>) should be delayed using the <see cref="PollInterval"/>.
+        ///     <see cref="InactivityTrackingService.BeginTracking"/>) should be delayed using the <see cref="PollInterval"/>.
         /// </summary>
         /// <remarks>This property defaults to <see langword="true"/>.</remarks>
         public bool DelayFirstTrack { get; set; } = true;
