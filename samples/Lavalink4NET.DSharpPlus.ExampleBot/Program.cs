@@ -48,7 +48,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
             .AddSingleton<DiscordClient>()
             .AddSingleton(new DiscordConfiguration
             {
-                Token = "" // TODO insert your bot token here
+                Token = BotCredentials.Token
             })
 
             // Lavalink
@@ -94,7 +94,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
 
                 // join channel
                 var track = await audioService.GetTrackAsync("<youtube search query>");
-                var player = await audioService.JoinAsync<LavalinkPlayer>(/* Your Guild Id */0, /* Your Voice Channel Id */0);
+                var player = await audioService.JoinAsync<LavalinkPlayer>(BotCredentials.GuildId, BotCredentials.VoiceChannelId);
 
                 using (player)
                 {
