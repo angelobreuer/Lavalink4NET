@@ -47,6 +47,12 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         /// <param name="audioService">the audio service</param>
         public MusicModule(IAudioService audioService) => _audioService = audioService;
 
+        /// <summary>
+        ///     Gets the guild player asynchronously.
+        /// </summary>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the lavalink player.
+        /// </returns>
         private async Task<VoteLavalinkPlayer> GetPlayerAsync()
         {
             var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild.Id);
@@ -104,6 +110,10 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             }
         }
 
+        /// <summary>
+        ///     Stops the current track asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
         [Command("stop")]
         public async Task Stop()
         {
@@ -117,6 +127,10 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             await player.StopAsync();
         }
 
+        /// <summary>
+        ///     Disconnects from the current voice channel connected to asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
         [Command("disconnect")]
         public async Task Disconnect()
         {
@@ -132,6 +146,11 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             await player.StopAsync(true);
         }
 
+        /// <summary>
+        ///     Updates the player volume asynchronously.
+        /// </summary>
+        /// <param name="volume">the volume (1 - 1000)</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
         [Command("volume")]
         public async Task Volume(int volume = 100)
         {
@@ -151,6 +170,10 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             await player.SetVolumeAsync(volume / 100f);
         }
 
+        /// <summary>
+        ///     Shows the track position asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
         [Command("position")]
         public async Task Position()
         {
