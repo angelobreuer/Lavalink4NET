@@ -79,3 +79,4 @@ ___
 ### Dependencies
 - [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
 - [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/) *(for Logging)*
+- [System.Runtime.Caching](https://www.nuget.org/packages/System.Runtime.Caching/) *(in Lavalink4NET.MemoryCache, for optional request caching)*
