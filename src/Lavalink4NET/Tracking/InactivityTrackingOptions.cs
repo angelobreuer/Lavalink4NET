@@ -34,12 +34,5 @@
         /// </summary>
         /// <remarks>This property defaults to <see langword="false"/>.</remarks>
         public bool TrackInactivity { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the tracking mode for players.
-        /// </summary>
-        /// <remarks>This property defaults to <c>InactivityTrackingMode.Default</c></remarks>
-        public InactivityTrackingMode TrackingMode { get; set; }
-            = InactivityTrackingMode.Default;
     }
 }

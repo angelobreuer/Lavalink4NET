@@ -16,9 +16,11 @@
     {
         private readonly IAudioService _audioService;
         private readonly IDiscordClientWrapper _clientWrapper;
-        private readonly InactivityTrackingOptions _options;
         private readonly ILogger<InactivityTrackingService> _logger;
+        private readonly InactivityTrackingOptions _options;
         private readonly IDictionary<ulong, DateTimeOffset> _players;
+        private readonly IList<InactivityTracker> _trackers;
+        private readonly object _trackersLock;
         private Timer _timer;
 
         /// <summary>
@@ -46,6 +48,13 @@
             _logger = logger;
             _players = new Dictionary<ulong, DateTimeOffset>();
 
+            _trackers = new List<InactivityTracker>();
+            _trackersLock = new object();
+
+            // add default trackers
+            _trackers.Add(DefaultInactivityTrackers.UsersInactivityTracker);
+            _trackers.Add(DefaultInactivityTrackers.ChannelInactivityTracker);
+
             if (options.TrackInactivity)
             {
                 BeginTracking();
@@ -61,6 +70,58 @@
         ///     Gets a value indicating whether the service is tracking inactive players.
         /// </summary>
         public bool IsTracking => _timer != null;
+
+        /// <summary>
+        ///     Gets all trackers.
+        /// </summary>
+        public IReadOnlyList<InactivityTracker> Trackers
+        {
+            get
+            {
+                lock (_trackersLock)
+                {
+                    return _trackers.ToList().AsReadOnly();
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Adds a tracker to the track list dynamically.
+        /// </summary>
+        /// <param name="tracker">the tracker to add</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
+        /// </exception>
+        public void AddTracker(InactivityTracker tracker)
+        {
+            if (tracker is null)
+            {
+                throw new ArgumentNullException(nameof(tracker));
+            }
+
+            lock (_trackersLock)
+            {
+                _trackers.Add(tracker);
+            }
+        }
+
+        /// <summary>
+        ///     Beings tracking of inactive players.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the service is already tracking inactive players.
+        /// </exception>
+        public void BeginTracking()
+        {
+            if (_timer != null)
+            {
+                throw new InvalidOperationException("Already tracking.");
+            }
+
+            // initialize the timer that polls inactive players
+            _timer = new Timer(_ => _ = PollAsync(), null,
+               _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero, _options.PollInterval);
+        }
 
         /// <summary>
         ///     Disposes the underlying timer.
@@ -99,28 +160,24 @@
             // get all created player instances in the audio service
             var players = _audioService.GetPlayers<LavalinkPlayer>();
 
-            // track inactive players by users in voice channel
-            if (_options.TrackingMode.HasFlag(InactivityTrackingMode.User))
+            // iterate through players that are connected to a voice channel
+            foreach (var player in players.Where(s => s.VoiceChannelId.HasValue))
             {
-                // iterate through players that are connected to a voice channel
-                foreach (var player in players.Where(s => s.VoiceChannelId.HasValue))
+                // check if the player is inactive
+                if (await IsInactiveAsync(player))
                 {
-                    // check if the player is inactive
-                    if (await IsInactiveAsync(player))
+                    // add the player to tracking list
+                    if (_players.TryAdd(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay))
                     {
-                        // add the player to tracking list
-                        if (_players.TryAdd(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay))
-                        {
-                            _logger.LogTrace("Added logger to tracking list: {GuildId}, removing in {Time}.", player.GuildId, _options.DisconnectDelay);
-                        }
+                        _logger.LogTrace("Added logger to tracking list: {GuildId}, removing in {Time}.", player.GuildId, _options.DisconnectDelay);
                     }
-                    else
+                }
+                else
+                {
+                    // the player is active again, remove from tracking list
+                    if (_players.Remove(player.GuildId))
                     {
-                        // the player is active again, remove from tracking list
-                        if (_players.Remove(player.GuildId))
-                        {
-                            _logger.LogTrace("Player got active again: {GuildId}, removed from tracking list.", player.GuildId);
-                        }
+                        _logger.LogTrace("Player got active again: {GuildId}, removed from tracking list.", player.GuildId);
                     }
                 }
             }
@@ -159,21 +216,23 @@
         }
 
         /// <summary>
-        ///     Beings tracking of inactive players.
+        ///     Removes a tracker from the tracker list dynamically.
         /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the service is already tracking inactive players.
+        /// <param name="tracker">the tracker to remove</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
         /// </exception>
-        public void BeginTracking()
+        public void RemoveTracker(InactivityTracker tracker)
         {
-            if (_timer != null)
+            if (tracker is null)
             {
-                throw new InvalidOperationException("Already tracking.");
+                throw new ArgumentNullException(nameof(tracker));
             }
 
-            // initialize the timer that polls inactive players
-            _timer = new Timer(_ => _ = PollAsync(), null,
-               _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero, _options.PollInterval);
+            lock (_trackersLock)
+            {
+                _trackers.Remove(tracker);
+            }
         }
 
         /// <summary>
@@ -203,32 +262,16 @@
         /// </returns>
         protected virtual async Task<bool> IsInactiveAsync(LavalinkPlayer player)
         {
-            // check if user-tracking is enabled
-            if (_options.TrackingMode.HasFlag(InactivityTrackingMode.User))
+            // iterate through the trackers
+            foreach (var tracker in Trackers)
             {
-                // count the users in the player voice channel (bot excluded)
-                var userCount = (await _clientWrapper.GetChannelUsersAsync(player.GuildId, player.VoiceChannelId.Value))
-                    .Where(s => s != _clientWrapper.CurrentUserId)
-                    .Count();
-
-                // check if there are no users in the channel (bot excluded)
-                if (userCount == 0)
+                // check if the player is inactivity
+                if (await tracker(player, _clientWrapper))
                 {
                     return true;
                 }
             }
 
-            // check if track-tracking is enabled
-            if (_options.TrackingMode.HasFlag(InactivityTrackingMode.Track))
-            {
-                // check if no track is playing
-                if (player.State != PlayerState.Playing)
-                {
-                    return true;
-                }
-            }
-
-            // the player is active
             return false;
         }
 
