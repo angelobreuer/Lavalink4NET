@@ -88,14 +88,10 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                 var client = provider.GetRequiredService<DiscordClient>();
                 var audioService = provider.GetRequiredService<IAudioService>();
                 var logger = provider.GetRequiredService<ILogger<Program>>();
-                var inactivityTracking = provider.GetRequiredService<InactivityTrackingService>();
 
                 // connect to discord gateway and initialize node connection
                 await client.ConnectAsync();
                 await audioService.InitializeAsync();
-
-                // begin inactivity tracking
-                inactivityTracking.StartTracking();
 
                 // join channel
                 var track = await audioService.GetTrackAsync("<youtube search query>", SearchMode.YouTube);
