@@ -11,6 +11,7 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Extensible
 - Queueing / Voting-System
 - Track Decoding
+- Auto-Reconnect and Resuming
 - Optional Logging
 - Optional Request Caching
 - Optional Inactivity Tracking
