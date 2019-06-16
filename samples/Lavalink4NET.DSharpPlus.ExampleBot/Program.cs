@@ -33,6 +33,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
     using Lavalink4NET.Cluster;
     using Lavalink4NET.MemoryCache;
     using Lavalink4NET.Player;
+    using Lavalink4NET.Rest;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using static Microsoft.Extensions.Logging.LogLevel;
@@ -87,25 +88,26 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                 var client = provider.GetRequiredService<DiscordClient>();
                 var audioService = provider.GetRequiredService<IAudioService>();
                 var logger = provider.GetRequiredService<ILogger<Program>>();
+                var inactivityTracking = provider.GetRequiredService<InactivityTrackingService>();
 
                 // connect to discord gateway and initialize node connection
                 await client.ConnectAsync();
                 await audioService.InitializeAsync();
 
+                // begin inactivity tracking
+                inactivityTracking.StartTracking();
+
                 // join channel
-                var track = await audioService.GetTrackAsync("<youtube search query>");
+                var track = await audioService.GetTrackAsync("<youtube search query>", SearchMode.YouTube);
                 var player = await audioService.JoinAsync<LavalinkPlayer>(BotCredentials.GuildId, BotCredentials.VoiceChannelId);
 
-                using (player)
+                await player.PlayAsync(track);
+
+                logger.LogInformation("Ready. Press [Q] to exit.");
+
+                // wait until user presses [Q]
+                while (Console.ReadKey(true).Key != ConsoleKey.Q)
                 {
-                    await player.PlayAsync(track);
-
-                    logger.LogInformation("Ready. Press [Q] to exit.");
-
-                    // wait until user presses [Q]
-                    while (Console.ReadKey(true).Key != ConsoleKey.Q)
-                    {
-                    }
                 }
             }
         }
