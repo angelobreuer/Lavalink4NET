@@ -196,7 +196,7 @@ namespace Lavalink4NET.Tracking
                     // add the player to tracking list
                     if (_players.TryAdd(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay))
                     {
-                        _logger.LogTrace("Added logger to tracking list: {GuildId}, removing in {Time}.", player.GuildId, _options.DisconnectDelay);
+                        _logger.LogTrace("Tracked player {PlayerId} as inactive.", player.GuildId);
                     }
                 }
                 else
@@ -204,7 +204,7 @@ namespace Lavalink4NET.Tracking
                     // the player is active again, remove from tracking list
                     if (_players.Remove(player.GuildId))
                     {
-                        _logger.LogTrace("Player got active again: {GuildId}, removed from tracking list.", player.GuildId);
+                        _logger.LogTrace("Removed player {PlayerId} from tracking list.", player.GuildId);
                     }
                 }
             }
@@ -230,11 +230,10 @@ namespace Lavalink4NET.Tracking
                     // it is wanted that the player should not stop.
                     if (!eventArgs.ShouldStop)
                     {
-                        _logger.LogTrace("Inactivity disposing was stopped by event for player: {PlayerId}.", player.Key);
                         continue;
                     }
 
-                    _logger.LogTrace("Disposing player {GuildId} due to inactivity.", player.Key);
+                    _logger.LogTrace("Destroyed player {GuildId} due inactivity.", player.Key);
 
                     // dispose the player
                     trackedPlayer.Dispose();
