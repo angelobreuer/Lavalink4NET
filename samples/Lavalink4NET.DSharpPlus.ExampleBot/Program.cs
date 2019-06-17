@@ -62,11 +62,17 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                 {
                     new LavalinkNodeOptions
                     {
+                        RestUri = BotCredentials.Node1.RestUri,
+                        Password = BotCredentials.Node1.Password,
+                        WebSocketUri = BotCredentials.Node1.WebSocketUri
                         // add your node configuration
                     },
 
                     new LavalinkNodeOptions
                     {
+                        RestUri = BotCredentials.Node2.RestUri,
+                        Password = BotCredentials.Node2.Password,
+                        WebSocketUri = BotCredentials.Node2.WebSocketUri
                         // add your node configuration
                     }
                 },
