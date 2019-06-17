@@ -290,6 +290,12 @@ namespace Lavalink4NET.Player
                 volume = Math.Min(10f, volume);
             }
 
+            // check if the volume is already the same as wanted
+            if (Volume == volume)
+            {
+                return;
+            }
+
             var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
             await _lavalinkSocket.SendPayloadAsync(payload);
 
