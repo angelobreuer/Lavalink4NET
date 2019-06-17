@@ -216,9 +216,8 @@ namespace Lavalink4NET.Tracking
                     {
                         _logger.LogTrace("Removed player {PlayerId} from tracking list.", player.GuildId);
 
-                        // trigger event
-                        await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                            player, InactivityTrackingStatus.Untracked));
+                        // remove from tracking list
+                        await UntrackPlayerAsync(player);
                     }
                 }
             }
@@ -234,11 +233,8 @@ namespace Lavalink4NET.Tracking
                     // player does not exists, remove it from the tracking list and continue.
                     if (trackedPlayer == null)
                     {
-                        _players.Remove(player.Key);
-
-                        // trigger event
-                        await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                            trackedPlayer, InactivityTrackingStatus.Untracked));
+                        // remove from tracking list
+                        await UntrackPlayerAsync(trackedPlayer);
 
                         continue;
                     }
@@ -259,11 +255,7 @@ namespace Lavalink4NET.Tracking
                     trackedPlayer.Dispose();
 
                     // remove from tracking list
-                    _players.Remove(trackedPlayer.GuildId);
-
-                    // trigger event
-                    await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                        trackedPlayer, InactivityTrackingStatus.Untracked));
+                    await UntrackPlayerAsync(trackedPlayer);
                 }
             }
         }
@@ -303,6 +295,37 @@ namespace Lavalink4NET.Tracking
 
             _timer.Dispose();
             _timer = null;
+        }
+
+        /// <summary>
+        ///     Removes the specified <paramref name="player"/> from the inactivity tracking list asynchronously.
+        /// </summary>
+        /// <param name="player">the player to remove</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is a value
+        ///     indicating whether the player was removed from the tracking list.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+        /// </exception>
+        public async Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
+        {
+            if (player is null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
+            if (!_players.Remove(player.GuildId))
+            {
+                // player was not tracked
+                return false;
+            }
+
+            // trigger event
+            await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
+                player, InactivityTrackingStatus.Untracked));
+
+            return true;
         }
 
         /// <summary>
