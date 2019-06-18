@@ -31,7 +31,6 @@ namespace Lavalink4NET.Cluster
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Events;
     using Microsoft.Extensions.Logging;
     using Player;
     using Rest;
@@ -150,8 +149,11 @@ namespace Lavalink4NET.Cluster
 
             lock (_nodesLock)
             {
+                // find a connected node
+                var nodes = _nodes.Where(s => s.IsConnected).ToArray();
+
                 // get the preferred node by the load balancing strategy
-                var node = _loadBalacingStrategy(this, _nodes.ToArray());
+                var node = _loadBalacingStrategy(this, nodes);
 
                 // update last usage
                 node.LastUsage = DateTimeOffset.UtcNow;
