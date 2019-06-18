@@ -1,7 +1,10 @@
 ## Lavalink4NET
 
+[![CodeFactor](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge)](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net)
+
 Lavalink4NET is a wrapper for [Lavalink](https://github.com/Frederikam/Lavalink). 
 With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
+
 
 ![Lavalink4NET Icon](https://imgur.com/DbTYXxY.png)
 
