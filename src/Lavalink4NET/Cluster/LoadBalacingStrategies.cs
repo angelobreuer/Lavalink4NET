@@ -52,5 +52,59 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         public static LoadBalacingStrategy RoundRobinStrategy { get; } = (cluster, nodes)
             => nodes.OrderBy(s => s.LastUsage).First();
+
+        /// <summary>
+        ///     The score strategy favors the node that is less used (with the lowest system load).
+        /// </summary>
+        public static LoadBalacingStrategy ScoreStrategy { get; } = (cluster, nodes)
+            => nodes.OrderBy(s => CalculateScore(s.Statistics)).First();
+
+        /// <summary>
+        ///     Calculates the node score.
+        /// </summary>
+        /// <param name="statistics">the node statistics</param>
+        /// <returns>the score for the node</returns>
+        private static double CalculateScore(StatisticUpdateEventArgs statistics)
+        {
+            // no statistics retrieved for the node.
+            if (statistics is null)
+            {
+                return 0d;
+            }
+
+            // factors = the number of factors including the average calculation
+            var factors = 0d;
+            var totalWeight = 0d;
+
+            void IncludeFactor(double score, double weight)
+            {
+                factors += weight;
+                totalWeight += score * weight;
+            }
+
+            // statistics.Processor.Cores (4x) higher = better
+            IncludeFactor(statistics.Processor.Cores, 4);
+
+            // statistics.Processor.NodeLoad (3x) lower = better
+            IncludeFactor(-statistics.Processor.NodeLoad, 3);
+
+            // statistics.Processor.SystemLoad (4x) lower = better
+            IncludeFactor(-statistics.Processor.SystemLoad, 4);
+
+            // statistics.Memory.FreeMemory (2x) higher = better
+            IncludeFactor(statistics.Memory.FreeMemory, 2);
+
+            // statistics.PlayingPlayers (3x) lower = better
+            IncludeFactor(-statistics.PlayingPlayers, 3);
+
+            // statistics.FrameStatistics.AverageDeficitFrames (0.5x) lower = better
+            IncludeFactor(-statistics.FrameStatistics.AverageDeficitFrames, .5d);
+
+            // statistics.FrameStatistics.AverageNulledFrames (0.5x) lower = better
+            IncludeFactor(-statistics.FrameStatistics.AverageNulledFrames, .5d);
+
+            // calculate average of weight
+            return totalWeight / factors;
+        }
     }
 }
