@@ -157,6 +157,17 @@ namespace Lavalink4NET.Tracking
         }
 
         /// <summary>
+        ///     Removes all registered trackers.
+        /// </summary>
+        public void ClearTrackers()
+        {
+            lock (_trackersLock)
+            {
+                _trackers.Clear();
+            }
+        }
+
+        /// <summary>
         ///     Disposes the underlying timer.
         /// </summary>
         public void Dispose() => _timer?.Dispose();
