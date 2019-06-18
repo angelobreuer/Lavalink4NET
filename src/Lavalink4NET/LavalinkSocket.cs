@@ -52,6 +52,7 @@ namespace Lavalink4NET
         private readonly string _password;
         private readonly Queue<IPayload> _queue;
         private readonly byte[] _receiveBuffer;
+        private readonly ReconnectStrategy _reconnectionStrategy;
         private readonly bool _resume;
         private readonly Guid _resumeKey;
         private readonly Uri _webSocketUri;
@@ -81,6 +82,11 @@ namespace Lavalink4NET
                 options.BufferSize = 1024 * 1024; // 1 MiB buffer size
             }
 
+            if (options.ReconnectStrategy is null)
+            {
+                throw new InvalidOperationException("No reconnection strategy specified in options.");
+            }
+
             _client = client;
             _password = options.Password;
             _webSocketUri = new Uri(options.WebSocketUri);
@@ -90,6 +96,7 @@ namespace Lavalink4NET
             _ioDebug = options.DebugPayloads;
             _resumeKey = Guid.NewGuid();
             _queue = new Queue<IPayload>();
+            _reconnectionStrategy = options.ReconnectStrategy;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -477,6 +484,8 @@ namespace Lavalink4NET
                     await ProcessNextPayload();
                 }
 
+                var lostConnectionAt = DateTimeOffset.UtcNow;
+
                 // try reconnect
                 for (var attempt = 0; !_cancellationTokenSource.IsCancellationRequested; attempt++)
                 {
@@ -484,12 +493,17 @@ namespace Lavalink4NET
                     await ConnectAsync();
 
                     // add delay between reconnects
-                    if (!IsConnected && attempt > 3)
+                    var delay = _reconnectionStrategy(lostConnectionAt, attempt);
+
+                    // reconnection give up
+                    if (delay is null)
                     {
-                        var delay = TimeSpan.FromSeconds(3 * Math.Min(attempt, 20));
-                        Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay);
-                        await Task.Delay(delay);
+                        Logger?.LogWarning("Reconnection failed! .. giving up.");
+                        return;
                     }
+
+                    Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay.Value);
+                    await Task.Delay(delay.Value);
                 }
             }
         }

@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkNodeOptions.cs
+﻿/*
+ *  File:   LavalinkClusterNode.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -27,37 +27,22 @@
 
 namespace Lavalink4NET
 {
-    using Rest;
+    using System;
 
     /// <summary>
-    ///     The required options used to connect to a lavalink node.
+    ///     A set of out-of-box reconnect strategies provided by Lavalink4NET.
     /// </summary>
-    public sealed class LavalinkNodeOptions : LavalinkRestOptions
+    public static class ReconnectStrategies
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether session resuming should be used when the
-        ///     connection to the node is aborted.
+        ///     The default reconnection strategy.
         /// </summary>
-        /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-        public bool AllowResuming { get; set; } = true;
+        public static ReconnectStrategy DefaultStrategy { get; } = (start, tries)
+            => TimeSpan.FromSeconds(Math.Max(15, tries * 5));
 
         /// <summary>
-        ///     Gets or sets the buffer size when receiving payloads from a lavalink node.
+        ///     A reconnection strategy that disables the reconnection.
         /// </summary>
-        /// <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
-        public int BufferSize { get; set; } = 1024 * 1024;
-
-        /// <summary>
-        ///     Gets or sets the reconnect strategy for reconnection.
-        /// </summary>
-        /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>
-        public ReconnectStrategy ReconnectStrategy { get; set; }
-            = ReconnectStrategies.DefaultStrategy;
-
-        /// <summary>
-        ///     Gets or sets the Lavalink Node WebSocket host(name).
-        /// </summary>
-        /// <remarks>This property defaults to <c>ws://localhost:8080/</c>.</remarks>
-        public string WebSocketUri { get; set; } = "ws://localhost:8080/";
+        public static ReconnectStrategy None { get; } = (start, tries) => null;
     }
 }
