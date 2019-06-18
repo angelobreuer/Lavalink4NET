@@ -84,6 +84,12 @@ namespace Lavalink4NET.Rest
             _httpClient = new HttpClient { BaseAddress = new Uri(options.RestUri) };
             _httpClient.DefaultRequestHeaders.Add("Authorization", options.Password);
 
+            // add user-agent request header
+            if (!string.IsNullOrWhiteSpace(options.UserAgent))
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
+            }
+
             _logger = logger;
             _cache = cache;
             _cacheTime = options.TrackCacheTime;

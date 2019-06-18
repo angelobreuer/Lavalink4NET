@@ -38,16 +38,19 @@ namespace Lavalink4NET.Rest
         ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
         ///     to the logger (This should be only used for development)
         /// </summary>
+        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
         public bool DebugPayloads { get; set; } = false;
 
         /// <summary>
         ///     Gets or sets the Lavalink Node Password.
         /// </summary>
+        /// <remarks>This property defaults to <c>"youshallnotpass"</c>.</remarks>
         public string Password { get; set; } = "youshallnotpass";
 
         /// <summary>
         ///     Gets or sets the Lavalink Node restful HTTP api URI.
         /// </summary>
+        /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
         public string RestUri { get; set; } = "http://localhost:8080/";
 
         /// <summary>
@@ -56,6 +59,14 @@ namespace Lavalink4NET.Rest
         /// <remarks>
         ///     Note higher time spans can cause more memory usage, but reduce the request number.
         /// </remarks>
+        /// <remarks>This property defaults to <c>TimeSpan.FromMinutes(5)</c>.</remarks>
         public TimeSpan TrackCacheTime { get; set; } = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        ///     Gets or sets the user-agent for HTTP requests (use <see langword="null"/> to disable
+        ///     the custom user-agent header).
+        /// </summary>
+        /// <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
+        public string UserAgent { get; set; } = "Lavalink4NET";
     }
 }
