@@ -61,6 +61,37 @@ namespace Lavalink4NET.Cluster
         public LavalinkCluster Cluster { get; }
 
         /// <summary>
+        ///     Gets an identifier that is used to identify the node (used for debugging or logging).
+        /// </summary>
+        public string Identifier { get; }
+
+        /// <summary>
+        ///     Gets the coordinated universal time (UTC) point of the last usage of the node.
+        /// </summary>
+        public DateTimeOffset LastUsage { get; internal set; }
+
+        /// <summary>
+        ///     Gets the node statistics (may be <see langword="null"/>).
+        /// </summary>
+        public StatisticUpdateEventArgs Statistics { get; private set; }
+
+        /// <summary>
+        ///     Triggers the <see cref="LavalinkSocket.Connected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected override Task OnConnectedAsync(ConnectedEventArgs eventArgs)
+            => Task.WhenAll(base.OnConnectedAsync(eventArgs), Cluster.NodeConnectedAsync(this, eventArgs));
+
+        /// <summary>
+        ///     Triggers the <see cref="LavalinkSocket.Disconnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected override Task OnDisconnectedAsync(DisconnectedEventArgs eventArgs)
+            => Task.WhenAll(base.OnDisconnectedAsync(eventArgs), Cluster.NodeDisconnectedAsync(this, eventArgs));
+
+        /// <summary>
         ///     Invokes the <see cref="LavalinkNode.StatisticsUpdated"/> event asynchronously.
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
@@ -70,20 +101,5 @@ namespace Lavalink4NET.Cluster
             Statistics = eventArgs;
             return base.OnStatisticsUpdateAsync(eventArgs);
         }
-
-        /// <summary>
-        ///     Gets an identifier that is used to identify the node (used for debugging or logging).
-        /// </summary>
-        public string Identifier { get; }
-
-        /// <summary>
-        ///     Gets the node statistics (may be <see langword="null"/>).
-        /// </summary>
-        public StatisticUpdateEventArgs Statistics { get; private set; }
-
-        /// <summary>
-        ///     Gets the coordinated universal time (UTC) point of the last usage of the node.
-        /// </summary>
-        public DateTimeOffset LastUsage { get; internal set; }
     }
 }

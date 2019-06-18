@@ -31,6 +31,7 @@ namespace Lavalink4NET.Cluster
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Lavalink4NET.Events;
     using Microsoft.Extensions.Logging;
     using Player;
     using Rest;
@@ -38,7 +39,7 @@ namespace Lavalink4NET.Cluster
     /// <summary>
     ///     A set of lavalink nodes bound to a cluster usable for voice node balancing.
     /// </summary>
-    public sealed class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
+    public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     {
         private readonly ILavalinkCache _cache;
         private readonly IDiscordClientWrapper _client;
@@ -68,6 +69,16 @@ namespace Lavalink4NET.Cluster
             _nodesLock = new object();
             _nodes = options.Nodes.Select(CreateNode).ToList();
         }
+
+        /// <summary>
+        ///     An asynchronous event triggered when a node connected.
+        /// </summary>
+        public event AsyncEventHandler<NodeConnectedEventArgs> NodeConnected;
+
+        /// <summary>
+        ///     An asynchronous event triggered when a node disconnected.
+        /// </summary>
+        public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
 
         /// <summary>
         ///     Dynamically adds a node to the cluster asynchronously.
@@ -137,6 +148,7 @@ namespace Lavalink4NET.Cluster
         /// <summary>
         ///     Gets the preferred node using the <see cref="LoadBalacingStrategy"/> specified in the options.
         /// </summary>
+        /// <returns>the next preferred node</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
@@ -167,7 +179,7 @@ namespace Lavalink4NET.Cluster
         ///     node serves the guild, <see cref="GetPreferredNode()"/> is used).
         /// </summary>
         /// <param name="guildId">the guild snowflake identifier</param>
-        /// <returns></returns>
+        /// <returns>the serving node for the specified <paramref name="guildId"/></returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
@@ -282,6 +294,40 @@ namespace Lavalink4NET.Cluster
         /// </exception>
         public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
             => GetPreferredNode().LoadTracksAsync(query, mode, noCache);
+
+        /// <summary>
+        ///     An internal callback when a cluster node connected to the cluster asynchronously.
+        /// </summary>
+        /// <param name="node">the node where the connection was opened</param>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        internal Task NodeConnectedAsync(LavalinkClusterNode node, ConnectedEventArgs eventArgs)
+            => OnNodeConnectedAsync(new NodeConnectedEventArgs(node, eventArgs));
+
+        /// <summary>
+        ///     An internal callback when a cluster node disconnected from the cluster asynchronously.
+        /// </summary>
+        /// <param name="node">the node where the connection was closed</param>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        internal Task NodeDisconnectedAsync(LavalinkClusterNode node, DisconnectedEventArgs eventArgs)
+            => OnNodeDisconnectedAsync(new NodeDisconnectedEventArgs(node, eventArgs));
+
+        /// <summary>
+        ///     Triggers the <see cref="NodeConnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnNodeConnectedAsync(NodeConnectedEventArgs eventArgs)
+            => NodeConnected.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Triggers the <see cref="NodeDisconnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnNodeDisconnectedAsync(NodeDisconnectedEventArgs eventArgs)
+            => NodeDisconnected.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Creates a new lavalink cluster node.
