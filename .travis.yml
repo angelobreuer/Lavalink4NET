@@ -1,5 +1,5 @@
 language: csharp
 solution: src/Lavalink4NET.sln
-dotnet: 2.1.502
+dotnet: 2.0
 script:
  - dotnet restore
