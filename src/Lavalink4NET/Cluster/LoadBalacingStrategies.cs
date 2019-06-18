@@ -54,17 +54,17 @@ namespace Lavalink4NET.Cluster
             => nodes.OrderBy(s => s.LastUsage).First();
 
         /// <summary>
-        ///     The score strategy favors the node that is less used (with the lowest system load).
+        ///     The score strategy favors the node that has the highest score (higher = better).
         /// </summary>
         public static LoadBalacingStrategy ScoreStrategy { get; } = (cluster, nodes)
-            => nodes.OrderBy(s => CalculateScore(s.Statistics)).First();
+            => nodes.OrderByDescending(s => CalculateScore(s.Statistics)).First();
 
         /// <summary>
         ///     Calculates the node score.
         /// </summary>
         /// <param name="statistics">the node statistics</param>
-        /// <returns>the score for the node</returns>
-        private static double CalculateScore(StatisticUpdateEventArgs statistics)
+        /// <returns>the score for the node (higher = better)</returns>
+        public static double CalculateScore(StatisticUpdateEventArgs statistics)
         {
             // no statistics retrieved for the node.
             if (statistics is null)
