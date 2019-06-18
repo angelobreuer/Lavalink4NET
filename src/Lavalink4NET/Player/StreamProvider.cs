@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkTrackInfo.cs
+﻿/*
+ *  File:   StreamProvider.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -27,57 +27,49 @@
 
 namespace Lavalink4NET.Player
 {
-    using System;
-    using Newtonsoft.Json;
-
     /// <summary>
-    ///     The information store for a lavalink track.
+    ///     A set of different stream providers supported by lavaplayer (https://github.com/sedmelluq/lavaplayer).
     /// </summary>
-    public class LavalinkTrackInfo
+    public enum StreamProvider
     {
         /// <summary>
-        ///     Gets the name of the track author.
+        ///     Unknown stream provider.
         /// </summary>
-        [JsonRequired, JsonProperty("author")]
-        public string Author { get; internal set; }
+        Unknown,
 
         /// <summary>
-        ///     Gets the title of the track.
+        ///     A stream from YouTube.
         /// </summary>
-        [JsonRequired, JsonProperty("title")]
-        public string Title { get; internal set; }
+        YouTube,
 
         /// <summary>
-        ///     Gets the track source.
+        ///     A stream from SoundCloud.
         /// </summary>
-        [JsonRequired, JsonProperty("uri")]
-        public string Source { get; internal set; }
-
-        [JsonRequired, JsonProperty("length")]
-        internal long RawDuration { set => Duration = value == long.MaxValue ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(value); }
+        SoundCloud,
 
         /// <summary>
-        ///     Gets the duration of the track.
+        ///     A stream from Bandcamp.
         /// </summary>
-        [JsonIgnore]
-        public TimeSpan Duration { get; internal set; }
+        Bandcamp,
 
         /// <summary>
-        ///     Gets a value indicating whether the track is a live stream.
+        ///     A stream from Vimeo.
         /// </summary>
-        [JsonRequired, JsonProperty("isStream")]
-        public bool IsLiveStream { get; internal set; }
+        Vimeo,
 
         /// <summary>
-        ///     Gets a value indicating whether the track is seek-able.
+        ///     A stream from Twitch.
         /// </summary>
-        [JsonRequired, JsonProperty("isSeekable")]
-        public bool IsSeekable { get; internal set; }
+        Twitch,
 
         /// <summary>
-        ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
+        ///     A stream from a local file.
         /// </summary>
-        [JsonRequired, JsonProperty("identifier")]
-        public string TrackIdentifier { get; internal set; }
+        Local,
+
+        /// <summary>
+        ///     A stream from a HTTP URL (mp3, flac, wav, WebM, MP4/M4A, OGG, AAC, M3U or PLS).
+        /// </summary>
+        Http,
     }
 }
