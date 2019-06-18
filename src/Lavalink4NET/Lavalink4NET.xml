@@ -281,15 +281,32 @@
                 Provides a set of load balancing strategies.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.LeastPlayersStrategy">
+            <summary>
+                The load-balancing strategy that uses the node that has the least-playing player.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.LoadStrategy">
+            <summary>
+                The load strategy favors the node that is less used (with the lowest system load).
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.RoundRobinStrategy">
             <summary>
                 The round robin load balancing strategy favors the node that has not been used the longest.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.LeastPlayersStrategy">
+        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.ScoreStrategy">
             <summary>
-                The load-balancing strategy that uses the node that has the least-playing player.
+                The score strategy favors the node that has the highest score (higher = better).
             </summary>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LoadBalacingStrategies.CalculateScore(Lavalink4NET.Events.StatisticUpdateEventArgs)">
+            <summary>
+                Calculates the node score.
+            </summary>
+            <param name="statistics">the node statistics</param>
+            <returns>the score for the node (higher = better)</returns>
         </member>
         <member name="T:Lavalink4NET.Cluster.LoadBalacingStrategy">
             <summary>
