@@ -3319,6 +3319,11 @@
                 thrown if the service is already tracking inactive players.
             </exception>
         </member>
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.ClearTrackers">
+            <summary>
+                Removes all registered trackers.
+            </summary>
+        </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.Dispose">
             <summary>
                 Disposes the underlying timer.

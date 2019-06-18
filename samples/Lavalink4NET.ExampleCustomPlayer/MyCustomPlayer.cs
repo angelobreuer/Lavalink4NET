@@ -35,6 +35,11 @@
         ///     Updates the player volume asynchronously.
         /// </summary>
         /// <param name="volume">the player volume (0f - 10f)</param>
+        /// <param name="normalize">
+        ///     a value indicating whether if the <paramref name="volume"/> is out of range (0f -
+        ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
+        ///     -20f to 0f.
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
@@ -43,16 +48,16 @@
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public override Task SetVolumeAsync(float volume = 1)
+        public override async Task SetVolumeAsync(float volume = 1, bool normalize = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
 
+            // call the base method, without using it the volume would remain the same.
+            await base.SetVolumeAsync(volume, normalize);
+
             // store the volume of the player
             _volumes[GuildId] = volume;
-
-            // call the base method, without using it the volume would remain the same.
-            return base.SetVolumeAsync(volume);
         }
 
         /// <summary>
