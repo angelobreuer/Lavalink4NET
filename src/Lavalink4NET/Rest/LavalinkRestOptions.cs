@@ -35,6 +35,15 @@ namespace Lavalink4NET.Rest
     public class LavalinkRestOptions
     {
         /// <summary>
+        ///     Gets or sets a value indicating whether HTTP payloads should be compressed.
+        /// </summary>
+        /// <remarks>
+        ///     This property defaults to <see langword="true"/>. Note this property does not change
+        ///     the behavior of <see cref="LavalinkSocket"/>.
+        /// </remarks>
+        public bool Compression { get; set; } = true;
+
+        /// <summary>
         ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
         ///     to the logger (This should be only used for development)
         /// </summary>

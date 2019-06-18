@@ -42,18 +42,18 @@ namespace Lavalink4NET.Rest
     /// </summary>
     public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<Lavalink> _logger;
-        private readonly ILavalinkCache _cache;
-        private readonly TimeSpan _cacheTime;
-        private readonly bool _debugPayloads;
-
         /// <summary>
         ///     The header name for the version of the Lavalink HTTP response from the node. See
         ///     https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md#significant-changes-v20---v30
         ///     for more details.
         /// </summary>
         private const string VersionHeaderName = "Lavalink-Api-Version";
+
+        private readonly ILavalinkCache _cache;
+        private readonly TimeSpan _cacheTime;
+        private readonly bool _debugPayloads;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<Lavalink> _logger;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkRestClient"/> class.
@@ -81,7 +81,22 @@ namespace Lavalink4NET.Rest
                     "specify a cache in the constructor instead of using a zero cache time.");
             }
 
-            _httpClient = new HttpClient { BaseAddress = new Uri(options.RestUri) };
+            // initialize HTTP client handler
+            var httpHandler = new HttpClientHandler();
+
+            // check if automatic decompression should be used
+            if (options.Compression)
+            {
+                // setup compression
+                httpHandler.AutomaticDecompression = DecompressionMethods.GZip
+                    | DecompressionMethods.Deflate;
+            }
+
+            // disables cookies
+            httpHandler.UseCookies = false;
+
+            // initialize HTTP client
+            _httpClient = new HttpClient(httpHandler) { BaseAddress = new Uri(options.RestUri) };
             _httpClient.DefaultRequestHeaders.Add("Authorization", options.Password);
 
             // add user-agent request header
@@ -94,34 +109,6 @@ namespace Lavalink4NET.Rest
             _cache = cache;
             _cacheTime = options.TrackCacheTime;
             _debugPayloads = options.DebugPayloads;
-        }
-
-        /// <summary>
-        ///     Verifies the specified <paramref name="response"/>. This makes sure that the right
-        ///     Lavalink Server version is used and the response status code is success.
-        /// </summary>
-        /// <param name="response">the response received</param>
-        private void VerifyResponse(HttpResponseMessage response)
-        {
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                throw new InvalidOperationException("Received 403 Forbidden response from Lavalink node. Make sure you are using the right password.");
-            }
-
-            response.EnsureSuccessStatusCode();
-
-            if (!response.Headers.TryGetValues(VersionHeaderName, out var values))
-            {
-                _logger?.LogWarning("Expected header `{Header}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
-                return;
-            }
-
-            var rawVersion = values.Single();
-
-            if (!int.TryParse(rawVersion, out var version) || version <= 2)
-            {
-                _logger?.LogWarning("Invalid version {Version}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
-            }
         }
 
         /// <summary>
@@ -209,6 +196,34 @@ namespace Lavalink4NET.Rest
                 _cache?.AddItem("track-" + query, trackLoad, DateTimeOffset.UtcNow + _cacheTime);
 
                 return trackLoad;
+            }
+        }
+
+        /// <summary>
+        ///     Verifies the specified <paramref name="response"/>. This makes sure that the right
+        ///     Lavalink Server version is used and the response status code is success.
+        /// </summary>
+        /// <param name="response">the response received</param>
+        private void VerifyResponse(HttpResponseMessage response)
+        {
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                throw new InvalidOperationException("Received 403 Forbidden response from Lavalink node. Make sure you are using the right password.");
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            if (!response.Headers.TryGetValues(VersionHeaderName, out var values))
+            {
+                _logger?.LogWarning("Expected header `{Header}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
+                return;
+            }
+
+            var rawVersion = values.Single();
+
+            if (!int.TryParse(rawVersion, out var version) || version <= 2)
+            {
+                _logger?.LogWarning("Invalid version {Version}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
             }
         }
     }
