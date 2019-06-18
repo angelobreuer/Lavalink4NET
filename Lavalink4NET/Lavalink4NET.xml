@@ -1206,21 +1206,30 @@
                 The required options used to connect to a lavalink node.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.LavalinkNodeOptions.WebSocketUri">
-            <summary>
-                Gets or sets the Lavalink Node WebSocket host(name).
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.LavalinkNodeOptions.BufferSize">
-            <summary>
-                Gets or sets the buffer size when receiving payloads from a lavalink node.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.AllowResuming">
             <summary>
                 Gets or sets a value indicating whether session resuming should be used when the
                 connection to the node is aborted.
             </summary>
+            <remarks>This property defaults to <see langword="true"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.BufferSize">
+            <summary>
+                Gets or sets the buffer size when receiving payloads from a lavalink node.
+            </summary>
+            <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
+        </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.ReconnectStrategy">
+            <summary>
+                Gets or sets the reconnect strategy for reconnection.
+            </summary>
+            <remarks>This property defaults to <see cref="P:Lavalink4NET.ReconnectStrategies.DefaultStrategy"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.WebSocketUri">
+            <summary>
+                Gets or sets the Lavalink Node WebSocket host(name).
+            </summary>
+            <remarks>This property defaults to <c>ws://localhost:8080/</c>.</remarks>
         </member>
         <member name="T:Lavalink4NET.LavalinkSocket">
             <summary>
@@ -2665,6 +2674,32 @@
             <summary>
                 Gets the total number of users in the voice channel (the bot is excluded).
             </summary>
+        </member>
+        <member name="T:Lavalink4NET.ReconnectStrategies">
+            <summary>
+                A set of out-of-box reconnect strategies provided by Lavalink4NET.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.ReconnectStrategies.DefaultStrategy">
+            <summary>
+                The default reconnection strategy.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.ReconnectStrategies.None">
+            <summary>
+                A reconnection strategy that disables the reconnection.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.ReconnectStrategy">
+            <summary>
+                The delegate for a reconnection strategy.
+            </summary>
+            <param name="start">the time when the reconnection started / the connection was lost</param>
+            <param name="tries">the number of tries to reconnect (one-based)</param>
+            <returns>
+                the time to wait to the next reconnect; or <see langword="null"/> if it is wanted to give
+                up reconnecting to the node.
+            </returns>
         </member>
         <member name="T:Lavalink4NET.Rest.ILavalinkRestClient">
             <summary>
