@@ -290,7 +290,7 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="payload">the payload</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected Task OnPlayerPayloadReceived(IPlayerPayload payload)
+        protected virtual Task OnPlayerPayloadReceived(IPlayerPayload payload)
         {
             var player = GetPlayer<LavalinkPlayer>(ulong.Parse(payload.GuildId));
 
