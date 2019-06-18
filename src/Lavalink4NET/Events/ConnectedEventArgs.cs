@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   ConnectedEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,26 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET.Events
 {
+    using System;
+
     /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
+    ///     The event arguments for the <see cref="LavalinkSocket.Connected"/> event.
     /// </summary>
-    public sealed class LavalinkClusterOptions
+    public class ConnectedEventArgs : ConnectionEventArgs
     {
         /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
+        ///     Initializes a new instance of the <see cref="ConnectedEventArgs"/> class.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+        /// <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+        public ConnectedEventArgs(Uri uri, bool wasReconnect) : base(uri)
+            => WasReconnect = wasReconnect;
 
         /// <summary>
-        ///     Gets or sets the cluster node options.
+        ///     Gets a value indicating whether the connect was a reconnect.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
+        public bool WasReconnect { get; }
     }
 }

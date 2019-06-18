@@ -1,5 +1,5 @@
-/*
- *  File:   TrackLoadResponsePayload.cs
+﻿/*
+ *  File:   DisconnectedEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,39 +25,45 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Events
 {
-    using Newtonsoft.Json;
-    using Player;
+    using System;
+    using System.Net.WebSockets;
 
     /// <summary>
-    ///     t The RESTful api HTTP response object for request to the "/tracks" endpoint.
+    ///     The event arguments for the <see cref="LavalinkSocket.Disconnected"/> event.
     /// </summary>
-    public sealed class TrackLoadResponsePayload
+    public class DisconnectedEventArgs : ConnectionEventArgs
     {
         /// <summary>
-        ///     Gets an exception that indicates why the track load failed (see: <see cref="LoadType"/>).
+        ///     Initializes a new instance of the <see cref="DisconnectedEventArgs"/> class.
         /// </summary>
-        /// <remarks>This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.</remarks>
-        [JsonProperty("exception")]
-        public TrackLoadException Exception { get; internal set; }
+        /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+        /// <param name="closeStatus">the close status</param>
+        /// <param name="reason">the close reason</param>
+        /// <param name="byRemote">
+        ///     a value indicating whether the connection was closed by the remote endpoint.
+        /// </param>
+        public DisconnectedEventArgs(Uri uri, WebSocketCloseStatus closeStatus, string reason, bool byRemote) : base(uri)
+        {
+            CloseStatus = closeStatus;
+            Reason = reason;
+            ByRemote = byRemote;
+        }
 
         /// <summary>
-        ///     Gets the type of what was loaded.
+        ///     Gets the close status.
         /// </summary>
-        [JsonRequired, JsonProperty("loadType")]
-        public TrackLoadType LoadType { get; internal set; }
+        public WebSocketCloseStatus CloseStatus { get; }
 
         /// <summary>
-        ///     Gets the information about the playlist.
+        ///     Gets the close reason.
         /// </summary>
-        [JsonRequired, JsonProperty("playlistInfo")]
-        public PlaylistInfo PlaylistInfo { get; internal set; }
+        public string Reason { get; }
 
         /// <summary>
-        ///     Gets the loaded tracks.
+        ///     Gets a value indicating whether the connection was closed by the remote endpoint.
         /// </summary>
-        [JsonRequired, JsonProperty("tracks")]
-        public LavalinkTrack[] Tracks { get; internal set; }
+        public bool ByRemote { get; }
     }
 }

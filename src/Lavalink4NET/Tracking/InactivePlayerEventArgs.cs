@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   InactivePlayerEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,40 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET.Tracking
 {
+    using System;
+    using Lavalink4NET.Player;
+
     /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
+    ///     The event arguments for the <see cref="InactivityTrackingService.InactivePlayer"/>.
     /// </summary>
-    public sealed class LavalinkClusterOptions
+    public sealed class InactivePlayerEventArgs : EventArgs
     {
         /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
+        ///     Initialize a new instance of the <see cref="InactivePlayerEventArgs"/> class.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        /// <param name="audioService">the audio service</param>
+        /// <param name="player">the affected player</param>
+        public InactivePlayerEventArgs(IAudioService audioService, LavalinkPlayer player)
+        {
+            AudioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+            Player = player ?? throw new ArgumentNullException(nameof(player));
+        }
 
         /// <summary>
-        ///     Gets or sets the cluster node options.
+        ///     Gets the audio service.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
+        public IAudioService AudioService { get; }
+
+        /// <summary>
+        ///     Gets the affected player.
+        /// </summary>
+        public LavalinkPlayer Player { get; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the player should be stopped.
+        /// </summary>
+        public bool ShouldStop { get; set; } = true;
     }
 }

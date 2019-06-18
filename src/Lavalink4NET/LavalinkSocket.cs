@@ -52,6 +52,7 @@ namespace Lavalink4NET
         private readonly string _password;
         private readonly Queue<IPayload> _queue;
         private readonly byte[] _receiveBuffer;
+        private readonly ReconnectStrategy _reconnectionStrategy;
         private readonly bool _resume;
         private readonly Guid _resumeKey;
         private readonly Uri _webSocketUri;
@@ -81,6 +82,11 @@ namespace Lavalink4NET
                 options.BufferSize = 1024 * 1024; // 1 MiB buffer size
             }
 
+            if (options.ReconnectStrategy is null)
+            {
+                throw new InvalidOperationException("No reconnection strategy specified in options.");
+            }
+
             _client = client;
             _password = options.Password;
             _webSocketUri = new Uri(options.WebSocketUri);
@@ -90,8 +96,19 @@ namespace Lavalink4NET
             _ioDebug = options.DebugPayloads;
             _resumeKey = Guid.NewGuid();
             _queue = new Queue<IPayload>();
+            _reconnectionStrategy = options.ReconnectStrategy;
             _cancellationTokenSource = new CancellationTokenSource();
         }
+
+        /// <summary>
+        ///     Asynchronously triggered when the socket connected to a remote endpoint.
+        /// </summary>
+        public event AsyncEventHandler<ConnectedEventArgs> Connected;
+
+        /// <summary>
+        ///     Asynchronously triggered when the socket disconnected from the remote endpoint.
+        /// </summary>
+        public event AsyncEventHandler<DisconnectedEventArgs> Disconnected;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a payload was received from the
@@ -109,6 +126,35 @@ namespace Lavalink4NET
         ///     Gets the logger.
         /// </summary>
         public ILogger<Lavalink> Logger { get; }
+
+        /// <summary>
+        ///     Closes the connection to the remote endpoint asynchronously.
+        /// </summary>
+        /// <param name="closeStatus">the close status</param>
+        /// <param name="reason">the close reason</param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token used to propagate notification that this operation should be canceled.
+        /// </param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        public async Task CloseAsync(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string reason = "", CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (_webSocket == null)
+            {
+                throw new InvalidOperationException("Connection not open.");
+            }
+
+            // close connection
+            await _webSocket.CloseAsync(closeStatus, reason, cancellationToken);
+
+            // dispose web socket
+            _webSocket.Dispose();
+            _webSocket = null;
+
+            // trigger event
+            await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, closeStatus, reason, false));
+        }
 
         /// <summary>
         ///     Connects to the lavalink node asynchronously.
@@ -186,6 +232,9 @@ namespace Lavalink4NET
                     Logger?.LogInformation("{Type} to Lavalink Node!", type);
                 }
             }
+
+            // trigger (re)connected event
+            await OnConnectedAsync(new ConnectedEventArgs(_webSocketUri, _initialized));
 
             // resume next session
             _initialized = true;
@@ -320,6 +369,22 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Triggers the <see cref="Connected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected virtual Task OnConnectedAsync(ConnectedEventArgs eventArgs)
+            => Connected.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Triggers the <see cref="Disconnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected virtual Task OnDisconnectedAsync(DisconnectedEventArgs eventArgs)
+            => Disconnected.InvokeAsync(this, eventArgs);
+
+        /// <summary>
         ///     Invokes the <see cref="PayloadReceived"/> event asynchronously. (Can be override for
         ///     event catching)
         /// </summary>
@@ -352,6 +417,7 @@ namespace Lavalink4NET
                 }
 
                 Logger?.LogWarning(ex, "Lavalink Node disconnected (without handshake, maybe connection loss or server crash)");
+                await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, WebSocketCloseStatus.Empty, string.Empty, true));
 
                 _webSocket.Dispose();
                 _webSocket = null;
@@ -362,6 +428,7 @@ namespace Lavalink4NET
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 Logger?.LogWarning("Lavalink Node disconnected: {Status}, {Description}.", result.CloseStatus.Value, result.CloseStatusDescription);
+                await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription, true));
 
                 _webSocket.Dispose();
                 _webSocket = null;
@@ -398,11 +465,8 @@ namespace Lavalink4NET
             }
             catch (Exception ex)
             {
-                await _webSocket.CloseAsync(WebSocketCloseStatus.InvalidPayloadData, string.Empty, CancellationToken.None);
-                _webSocket.Dispose();
-                _webSocket = null;
-
                 Logger?.LogWarning(ex, "Received bad payload: {Content}.", content);
+                await CloseAsync(WebSocketCloseStatus.InvalidPayloadData);
             }
         }
 
@@ -420,6 +484,8 @@ namespace Lavalink4NET
                     await ProcessNextPayload();
                 }
 
+                var lostConnectionAt = DateTimeOffset.UtcNow;
+
                 // try reconnect
                 for (var attempt = 0; !_cancellationTokenSource.IsCancellationRequested; attempt++)
                 {
@@ -427,12 +493,17 @@ namespace Lavalink4NET
                     await ConnectAsync();
 
                     // add delay between reconnects
-                    if (!IsConnected && attempt > 3)
+                    var delay = _reconnectionStrategy(lostConnectionAt, attempt);
+
+                    // reconnection give up
+                    if (delay is null)
                     {
-                        var delay = TimeSpan.FromSeconds(3 * Math.Min(attempt, 20));
-                        Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay);
-                        await Task.Delay(delay);
+                        Logger?.LogWarning("Reconnection failed! .. giving up.");
+                        return;
                     }
+
+                    Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay.Value);
+                    await Task.Delay(delay.Value);
                 }
             }
         }

@@ -43,6 +43,10 @@ namespace Lavalink4NET.Player
         public LavalinkTrack(string identifier, LavalinkTrackInfo info)
             : this(info) => Identifier = identifier;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LavalinkTrack"/> class.
+        /// </summary>
+        /// <param name="info">the track info</param>
         [JsonConstructor]
         internal LavalinkTrack(LavalinkTrackInfo info)
         {
@@ -53,6 +57,7 @@ namespace Lavalink4NET.Player
             IsLiveStream = info.IsLiveStream;
             IsSeekable = info.IsSeekable;
             TrackIdentifier = info.TrackIdentifier;
+            Provider = StreamProviderUtil.GetStreamProvider(info.Source);
         }
 
         /// <summary>
@@ -102,5 +107,11 @@ namespace Lavalink4NET.Player
         /// </summary>
         [JsonIgnore]
         public string TrackIdentifier { get; }
+
+        /// <summary>
+        ///     Gets the stream provider (e.g. YouTube).
+        /// </summary>
+        [JsonIgnore]
+        public StreamProvider Provider { get; }
     }
 }

@@ -27,6 +27,7 @@
 
 namespace Lavalink4NET.Discord_NET.ExampleBot
 {
+    using System;
     using System.Threading.Tasks;
     using Discord.Commands;
     using Lavalink4NET.Player;
@@ -45,28 +46,30 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         ///     Initializes a new instance of the <see cref="MusicModule"/> class.
         /// </summary>
         /// <param name="audioService">the audio service</param>
-        public MusicModule(IAudioService audioService) => _audioService = audioService;
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
+        /// </exception>
+        public MusicModule(IAudioService audioService)
+            => _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
 
-        private async Task<VoteLavalinkPlayer> GetPlayerAsync()
+        /// <summary>
+        ///     Disconnects from the current voice channel connected to asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        [Command("disconnect", RunMode = RunMode.Async)]
+        public async Task Disconnect()
         {
-            var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild.Id);
+            var player = await GetPlayerAsync();
 
-            if (player != null
-                && player.State != PlayerState.NotConnected
-                && player.State != PlayerState.Destroyed)
+            if (player == null)
             {
-                return player;
+                return;
             }
 
-            var user = Context.Guild.GetUser(Context.User.Id);
-
-            if (!user.VoiceState.HasValue)
-            {
-                await ReplyAsync("You must be in a voice channel!");
-                return null;
-            }
-
-            return await _audioService.JoinAsync<VoteLavalinkPlayer>(Context.Guild.Id, user.VoiceChannel.Id);
+            // when using StopAsync(true) the player also disconnects and clears the track queue.
+            // DisconnectAsync only disconnects from the channel.
+            await player.StopAsync(true);
+            await ReplyAsync("Disconnected.");
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         /// </summary>
         /// <param name="query">the search query</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        [Command("play")]
+        [Command("play", RunMode = RunMode.Async)]
         public async Task Play([Remainder]string query)
         {
             var player = await GetPlayerAsync();
@@ -104,54 +107,11 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             }
         }
 
-        [Command("stop")]
-        public async Task Stop()
-        {
-            var player = await GetPlayerAsync();
-
-            if (player == null)
-            {
-                return;
-            }
-
-            await player.StopAsync();
-        }
-
-        [Command("disconnect")]
-        public async Task Disconnect()
-        {
-            var player = await GetPlayerAsync();
-
-            if (player == null)
-            {
-                return;
-            }
-
-            // when using StopAsync(true) the player also disconnects and clears the track queue.
-            // DisconnectAsync only disconnects from the channel.
-            await player.StopAsync(true);
-        }
-
-        [Command("volume")]
-        public async Task Volume(int volume = 100)
-        {
-            if (volume > 1000 || volume < 0)
-            {
-                await ReplyAsync("Volume out of range: 0 - 1000!");
-                return;
-            }
-
-            var player = await GetPlayerAsync();
-
-            if (player == null)
-            {
-                return;
-            }
-
-            await player.SetVolumeAsync(volume / 100f);
-        }
-
-        [Command("position")]
+        /// <summary>
+        ///     Shows the track position asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        [Command("position", RunMode = RunMode.Async)]
         public async Task Position()
         {
             var player = await GetPlayerAsync();
@@ -168,6 +128,92 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             }
 
             await ReplyAsync($"Position: {player.TrackPosition} / {player.CurrentTrack.Duration}.");
+        }
+
+        /// <summary>
+        ///     Stops the current track asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        [Command("stop", RunMode = RunMode.Async)]
+        public async Task Stop()
+        {
+            var player = await GetPlayerAsync();
+
+            if (player == null)
+            {
+                return;
+            }
+
+            if (player.CurrentTrack == null)
+            {
+                await ReplyAsync("Nothing playing!");
+                return;
+            }
+
+            await player.StopAsync();
+            await ReplyAsync("Stopped playing.");
+        }
+
+        /// <summary>
+        ///     Updates the player volume asynchronously.
+        /// </summary>
+        /// <param name="volume">the volume (1 - 1000)</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        [Command("volume", RunMode = RunMode.Async)]
+        public async Task Volume(int volume = 100)
+        {
+            if (volume > 1000 || volume < 0)
+            {
+                await ReplyAsync("Volume out of range: 0% - 1000%!");
+                return;
+            }
+
+            var player = await GetPlayerAsync();
+
+            if (player == null)
+            {
+                return;
+            }
+
+            await player.SetVolumeAsync(volume / 100f);
+            await ReplyAsync($"Volume updated: {volume}%");
+        }
+
+        /// <summary>
+        ///     Gets the guild player asynchronously.
+        /// </summary>
+        /// <param name="connectToVoiceChannel">
+        ///     a value indicating whether to connect to a voice channel
+        /// </param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the lavalink player.
+        /// </returns>
+        private async Task<VoteLavalinkPlayer> GetPlayerAsync(bool connectToVoiceChannel = true)
+        {
+            var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild);
+
+            if (player != null
+                && player.State != PlayerState.NotConnected
+                && player.State != PlayerState.Destroyed)
+            {
+                return player;
+            }
+
+            var user = Context.Guild.GetUser(Context.User.Id);
+
+            if (!user.VoiceState.HasValue)
+            {
+                await ReplyAsync("You must be in a voice channel!");
+                return null;
+            }
+
+            if (!connectToVoiceChannel)
+            {
+                await ReplyAsync("The bot is not in a voice channel!");
+                return null;
+            }
+
+            return await _audioService.JoinAsync<VoteLavalinkPlayer>(user.VoiceChannel);
         }
     }
 }

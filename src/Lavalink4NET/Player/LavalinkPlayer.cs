@@ -111,7 +111,7 @@ namespace Lavalink4NET.Player
         /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
         /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+        public virtual async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
         {
             await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
             VoiceChannelId = voiceChannelId;
@@ -125,7 +125,7 @@ namespace Lavalink4NET.Player
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
-        public async Task DisconnectAsync()
+        public virtual async Task DisconnectAsync()
         {
             EnsureConnected();
 
@@ -138,7 +138,7 @@ namespace Lavalink4NET.Player
         ///     Destroys the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (State == PlayerState.Destroyed)
             {
@@ -164,7 +164,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task PauseAsync()
+        public virtual async Task PauseAsync()
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -218,7 +218,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the current playing track is not paused
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task ResumeAsync()
+        public virtual async Task ResumeAsync()
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -243,7 +243,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the current playing track does not support seeking.
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task SeekPositionAsync(TimeSpan position)
+        public virtual Task SeekPositionAsync(TimeSpan position)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -260,6 +260,11 @@ namespace Lavalink4NET.Player
         ///     Updates the player volume asynchronously.
         /// </summary>
         /// <param name="volume">the player volume (0f - 10f)</param>
+        /// <param name="normalize">
+        ///     a value indicating whether if the <paramref name="volume"/> is out of range (0f -
+        ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
+        ///     -20f to 0f.
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
@@ -268,14 +273,27 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public async Task SetVolumeAsync(float volume = 1f)
+        public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
 
             if (volume > 10f || volume < 0f)
             {
-                throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
+                if (!normalize)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
+                }
+
+                // bring the values into range (0f - 10f)
+                volume = Math.Max(0f, volume);
+                volume = Math.Min(10f, volume);
+            }
+
+            // check if the volume is already the same as wanted
+            if (Volume == volume)
+            {
+                return;
             }
 
             var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
@@ -318,7 +336,7 @@ namespace Lavalink4NET.Player
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true)
+        public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true)
         {
             EnsureNotDestroyed();
 
@@ -367,30 +385,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Asynchronously triggered when a track ends.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when an exception occurred while playing a track.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when a track got stuck.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
         ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected to
         ///     a voice channel.
         /// </summary>
@@ -418,6 +412,39 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Asynchronously triggered when the player has connected to a voice channel.
+        /// </summary>
+        /// <param name="voiceServer">the voice server connected to</param>
+        /// <param name="voiceState">the voice state</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track ends.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when an exception occurred while playing a track.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track got stuck.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
         ///     Sends the voice state and server data to the Lavalink Node if both is provided.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
@@ -430,6 +457,8 @@ namespace Lavalink4NET.Player
 
             await _lavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
+
+            await OnConnectedAsync(_voiceServer, _voiceState);
 
             _voiceServer = null;
             _voiceState = null;

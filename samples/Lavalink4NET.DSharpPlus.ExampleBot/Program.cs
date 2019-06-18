@@ -33,6 +33,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
     using Lavalink4NET.Cluster;
     using Lavalink4NET.MemoryCache;
     using Lavalink4NET.Player;
+    using Lavalink4NET.Rest;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using static Microsoft.Extensions.Logging.LogLevel;
@@ -48,7 +49,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
             .AddSingleton<DiscordClient>()
             .AddSingleton(new DiscordConfiguration
             {
-                Token = "" // TODO insert your bot token here
+                Token = BotCredentials.Token
             })
 
             // Lavalink
@@ -61,10 +62,17 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                 {
                     new LavalinkNodeOptions
                     {
+                        RestUri = BotCredentials.Node1.RestUri,
+                        Password = BotCredentials.Node1.Password,
+                        WebSocketUri = BotCredentials.Node1.WebSocketUri
                         // add your node configuration
                     },
+
                     new LavalinkNodeOptions
                     {
+                        RestUri = BotCredentials.Node2.RestUri,
+                        Password = BotCredentials.Node2.Password,
+                        WebSocketUri = BotCredentials.Node2.WebSocketUri
                         // add your node configuration
                     }
                 },
@@ -93,19 +101,16 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                 await audioService.InitializeAsync();
 
                 // join channel
-                var track = await audioService.GetTrackAsync("<youtube search query>");
-                var player = await audioService.JoinAsync<LavalinkPlayer>(/* Your Guild Id */0, /* Your Voice Channel Id */0);
+                var track = await audioService.GetTrackAsync("<youtube search query>", SearchMode.YouTube);
+                var player = await audioService.JoinAsync<LavalinkPlayer>(BotCredentials.GuildId, BotCredentials.VoiceChannelId);
 
-                using (player)
+                await player.PlayAsync(track);
+
+                logger.LogInformation("Ready. Press [Q] to exit.");
+
+                // wait until user presses [Q]
+                while (Console.ReadKey(true).Key != ConsoleKey.Q)
                 {
-                    await player.PlayAsync(track);
-
-                    logger.LogInformation("Ready. Press [Q] to exit.");
-
-                    // wait until user presses [Q]
-                    while (Console.ReadKey(true).Key != ConsoleKey.Q)
-                    {
-                    }
                 }
             }
         }

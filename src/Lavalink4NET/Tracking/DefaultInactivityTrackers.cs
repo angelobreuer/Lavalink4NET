@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   DefaultInactivityTrackers.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,36 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET.Tracking
 {
+    using System.Linq;
+    using System.Threading.Tasks;
+
     /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
+    ///     A set of default out-of-box inactivity trackers.
     /// </summary>
-    public sealed class LavalinkClusterOptions
+    public static class DefaultInactivityTrackers
     {
         /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
+        ///     An inactivity tracker ( <see cref="InactivityTracker"/>) which marks a player as
+        ///     "inactive" when there are no users in the channel except the bot itself.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        public static InactivityTracker UsersInactivityTracker { get; } = async (player, client) =>
+        {
+            // count the users in the player voice channel (bot excluded)
+            var userCount = (await client.GetChannelUsersAsync(player.GuildId, player.VoiceChannelId.Value))
+                .Where(s => s != client.CurrentUserId)
+                .Count();
+
+            // check if there are no users in the channel (bot excluded)
+            return userCount == 0;
+        };
 
         /// <summary>
-        ///     Gets or sets the cluster node options.
+        ///     An inactivity tracker ( <see cref="InactivityTracker"/>) which marks a player as
+        ///     "inactive" when the player is not playing a track.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
+        public static InactivityTracker ChannelInactivityTracker { get; } = (player, _)
+            => Task.FromResult(player.State != Player.PlayerState.NotPlaying);
     }
 }

@@ -1,5 +1,5 @@
-/*
- *  File:   TrackLoadResponsePayload.cs
+﻿/*
+ *  File:   ConnectedEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,39 +25,37 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Events
 {
-    using Newtonsoft.Json;
-    using Player;
+    using System;
+    using Lavalink4NET.Cluster;
 
     /// <summary>
-    ///     t The RESTful api HTTP response object for request to the "/tracks" endpoint.
+    ///     The event arguments for the <see cref="LavalinkCluster.NodeConnected"/> event.
     /// </summary>
-    public sealed class TrackLoadResponsePayload
+    public class NodeConnectedEventArgs : ConnectedEventArgs
     {
         /// <summary>
-        ///     Gets an exception that indicates why the track load failed (see: <see cref="LoadType"/>).
+        ///     Initializes a new instance of the <see cref="NodeConnectedEventArgs"/> class.
         /// </summary>
-        /// <remarks>This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.</remarks>
-        [JsonProperty("exception")]
-        public TrackLoadException Exception { get; internal set; }
+        /// <param name="node">the node that connected</param>
+        /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+        /// <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+        public NodeConnectedEventArgs(LavalinkClusterNode node, Uri uri, bool wasReconnect)
+            : base(uri, wasReconnect) => Node = node ?? throw new ArgumentNullException(nameof(node));
 
         /// <summary>
-        ///     Gets the type of what was loaded.
+        ///     Initializes a new instance of the <see cref="NodeConnectedEventArgs"/> class.
         /// </summary>
-        [JsonRequired, JsonProperty("loadType")]
-        public TrackLoadType LoadType { get; internal set; }
+        /// <param name="node">the node that connected</param>
+        /// <param name="eventArgs">the event arguments to copy</param>
+        public NodeConnectedEventArgs(LavalinkClusterNode node, ConnectedEventArgs eventArgs)
+            : base(eventArgs.Uri, eventArgs.WasReconnect)
+            => Node = node ?? throw new ArgumentNullException(nameof(node));
 
         /// <summary>
-        ///     Gets the information about the playlist.
+        ///     Gets the node that connected.
         /// </summary>
-        [JsonRequired, JsonProperty("playlistInfo")]
-        public PlaylistInfo PlaylistInfo { get; internal set; }
-
-        /// <summary>
-        ///     Gets the loaded tracks.
-        /// </summary>
-        [JsonRequired, JsonProperty("tracks")]
-        public LavalinkTrack[] Tracks { get; internal set; }
+        public LavalinkClusterNode Node { get; }
     }
 }

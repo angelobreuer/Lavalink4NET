@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkNodeOptions.cs
+﻿/*
+ *  File:   InactivityTrackingOptions.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,39 +25,41 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET
+namespace Lavalink4NET.Tracking
 {
-    using Rest;
+    using System;
 
     /// <summary>
-    ///     The required options used to connect to a lavalink node.
+    ///     The options for the <see cref="InactivityTrackingService"/>.
     /// </summary>
-    public sealed class LavalinkNodeOptions : LavalinkRestOptions
+    public sealed class InactivityTrackingOptions
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether session resuming should be used when the
-        ///     connection to the node is aborted.
+        ///     Gets or sets a value indicating whether the first track (after using
+        ///     <see cref="InactivityTrackingService.BeginTracking"/>) should be delayed using the <see cref="PollInterval"/>.
         /// </summary>
         /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-        public bool AllowResuming { get; set; } = true;
+        public bool DelayFirstTrack { get; set; } = true;
 
         /// <summary>
-        ///     Gets or sets the buffer size when receiving payloads from a lavalink node.
+        ///     Gets or sets the delay for a player stop. Use <see cref="TimeSpan.Zero"/> for
+        ///     disconnect immediately from the channel.
         /// </summary>
-        /// <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
-        public int BufferSize { get; set; } = 1024 * 1024;
+        /// <remarks>This property defaults to <c>TimeSpan.FromSeconds(30)</c></remarks>
+        public TimeSpan DisconnectDelay { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        ///     Gets or sets the reconnect strategy for reconnection.
+        ///     Gets or sets the poll interval for the <see cref="InactivityTrackingService"/> in
+        ///     which the players should be tested for inactivity. This also affects the <see cref="DisconnectDelay"/>.
         /// </summary>
-        /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>
-        public ReconnectStrategy ReconnectStrategy { get; set; }
-            = ReconnectStrategies.DefaultStrategy;
+        /// <remarks>This property defaults to <c>TimeSpan.FromSeconds(5)</c></remarks>
+        public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node WebSocket host(name).
+        ///     Gets or sets a value indicating whether the <see cref="InactivityTrackingService"/>
+        ///     should start tracking inactive players after constructing it.
         /// </summary>
-        /// <remarks>This property defaults to <c>ws://localhost:8080/</c>.</remarks>
-        public string WebSocketUri { get; set; } = "ws://localhost:8080/";
+        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
+        public bool TrackInactivity { get; set; }
     }
 }

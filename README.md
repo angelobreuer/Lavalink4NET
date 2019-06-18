@@ -1,7 +1,10 @@
 ## Lavalink4NET
 
+[![CodeFactor](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge)](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net)
+
 Lavalink4NET is a wrapper for [Lavalink](https://github.com/Frederikam/Lavalink). 
 With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
+
 
 ![Lavalink4NET Icon](https://imgur.com/DbTYXxY.png)
 
@@ -11,8 +14,10 @@ With support for [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Dis
 - Extensible
 - Queueing / Voting-System
 - Track Decoding
+- Auto-Reconnect and Resuming
 - Optional Logging
 - Optional Request Caching
+- Optional Inactivity Tracking
 - Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 ### NuGet
@@ -43,7 +48,7 @@ var audioService = new LavalinkNode(new LavalinkNodeOptions
 }, new DiscordClientWrapper(client));
 ```
 
-These options can be looked up in the `application.yml` of your Lavalink Node.
+You can lookup these options in the `application.yml` of your Lavalink Node(s).
 
 You need to initialize the service before using it:
 ```csharp
@@ -78,3 +83,4 @@ ___
 ### Dependencies
 - [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
 - [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/) *(for Logging)*
+- [System.Runtime.Caching](https://www.nuget.org/packages/System.Runtime.Caching/) *(in Lavalink4NET.MemoryCache, for optional request caching)*

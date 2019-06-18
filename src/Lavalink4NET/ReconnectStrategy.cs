@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   LavalinkClusterNode.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,18 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET
 {
-    /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
-    /// </summary>
-    public sealed class LavalinkClusterOptions
-    {
-        /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
-        /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+    using System;
 
-        /// <summary>
-        ///     Gets or sets the cluster node options.
-        /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
-    }
+    /// <summary>
+    ///     The delegate for a reconnection strategy.
+    /// </summary>
+    /// <param name="start">the time when the reconnection started / the connection was lost</param>
+    /// <param name="tries">the number of tries to reconnect (one-based)</param>
+    /// <returns>
+    ///     the time to wait to the next reconnect; or <see langword="null"/> if it is wanted to give
+    ///     up reconnecting to the node.
+    /// </returns>
+    public delegate TimeSpan? ReconnectStrategy(DateTimeOffset start, int tries);
 }

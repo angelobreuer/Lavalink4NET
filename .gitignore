@@ -5,6 +5,7 @@
 
 .vs/
 .vscode/
+BotCredentials.cs
 
 # User-specific files
 *.rsuser

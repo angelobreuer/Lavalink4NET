@@ -65,7 +65,7 @@ namespace Lavalink4NET.Player
         ///     a task that represents the asynchronous operation
         ///     <para>the position in the track queue ( <c>0</c> = now playing)</para>
         /// </returns>
-        public new Task<int> PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
+        public virtual new Task<int> PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
             TimeSpan? endTime = null, bool noReplace = false)
             => PlayAsync(track, true, startTime, endTime, noReplace);
 
@@ -114,7 +114,7 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected internal override async Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+        public override async Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
         {
             if (eventArgs.MayStartNext)
             {
@@ -149,7 +149,7 @@ namespace Lavalink4NET.Player
         /// <param name="count">the number of tracks to skip</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public Task SkipAsync(int count = 1)
+        public virtual Task SkipAsync(int count = 1)
         {
             // no tracks to skip
             if (count <= 0)

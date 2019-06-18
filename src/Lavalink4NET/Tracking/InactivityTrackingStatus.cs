@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   InactivityTrackingStatus.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,26 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET.Tracking
 {
     /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
+    ///     The tracking states for players.
     /// </summary>
-    public sealed class LavalinkClusterOptions
+    public enum InactivityTrackingStatus
     {
         /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
+        ///     The player is not tracked and is active.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        Untracked,
 
         /// <summary>
-        ///     Gets or sets the cluster node options.
+        ///     The player is tracked for inactivity, but the stop delay was not exceeded.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
+        Tracked,
+
+        /// <summary>
+        ///     The player was tracked for inactivity and will be stopped on the next poll.
+        /// </summary>
+        Inactive
     }
 }

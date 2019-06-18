@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkClusterOptions.cs
+﻿/*
+ *  File:   StreamProvider.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,51 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Cluster
+namespace Lavalink4NET.Player
 {
     /// <summary>
-    ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
+    ///     A set of different stream providers supported by lavaplayer (https://github.com/sedmelluq/lavaplayer).
     /// </summary>
-    public sealed class LavalinkClusterOptions
+    public enum StreamProvider
     {
         /// <summary>
-        ///     Gets or sets the load balancing strategy to use.
+        ///     Unknown stream provider.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        Unknown,
 
         /// <summary>
-        ///     Gets or sets the cluster node options.
+        ///     A stream from YouTube.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
+        YouTube,
+
+        /// <summary>
+        ///     A stream from SoundCloud.
+        /// </summary>
+        SoundCloud,
+
+        /// <summary>
+        ///     A stream from Bandcamp.
+        /// </summary>
+        Bandcamp,
+
+        /// <summary>
+        ///     A stream from Vimeo.
+        /// </summary>
+        Vimeo,
+
+        /// <summary>
+        ///     A stream from Twitch.
+        /// </summary>
+        Twitch,
+
+        /// <summary>
+        ///     A stream from a local file.
+        /// </summary>
+        Local,
+
+        /// <summary>
+        ///     A stream from a HTTP URL (mp3, flac, wav, WebM, MP4/M4A, OGG, AAC, M3U or PLS).
+        /// </summary>
+        Http,
     }
 }
