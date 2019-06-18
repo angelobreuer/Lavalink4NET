@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Cluster
 {
     using System.Linq;
+    using Lavalink4NET.Events;
 
     /// <summary>
     ///     Provides a set of load balancing strategies.
@@ -35,15 +36,21 @@ namespace Lavalink4NET.Cluster
     public static class LoadBalacingStrategies
     {
         /// <summary>
-        ///     The round robin load balancing strategy favors the node that has not been used the longest.
-        /// </summary>
-        public static LoadBalacingStrategy RoundRobinStrategy { get; } = (cluster, nodes) =>
-            nodes.OrderBy(s => s.LastUsage).First();
-
-        /// <summary>
         ///     The load-balancing strategy that uses the node that has the least-playing player.
         /// </summary>
-        public static LoadBalacingStrategy LeastPlayersStrategy { get; } = (cluster, nodes) =>
-            nodes.OrderBy(s => s.Statistics?.PlayingPlayers ?? 0).First();
+        public static LoadBalacingStrategy LeastPlayersStrategy { get; } = (cluster, nodes)
+            => nodes.OrderBy(s => s.Statistics?.PlayingPlayers ?? 0).First();
+
+        /// <summary>
+        ///     The load strategy favors the node that is less used (with the lowest system load).
+        /// </summary>
+        public static LoadBalacingStrategy LoadStrategy { get; } = (cluster, nodes)
+            => nodes.OrderBy(s => s.Statistics?.Processor?.SystemLoad ?? 1f).First();
+
+        /// <summary>
+        ///     The round robin load balancing strategy favors the node that has not been used the longest.
+        /// </summary>
+        public static LoadBalacingStrategy RoundRobinStrategy { get; } = (cluster, nodes)
+            => nodes.OrderBy(s => s.LastUsage).First();
     }
 }
