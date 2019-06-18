@@ -29,6 +29,9 @@ namespace Lavalink4NET.Player
 {
     using System;
 
+    /// <summary>
+    ///     An utility class for detecting the stream provider for a lavaplayer URI.
+    /// </summary>
     public sealed class StreamProviderUtil
     {
         /// <summary>
@@ -61,6 +64,30 @@ namespace Lavalink4NET.Player
             // uri can not be parsed
             return StreamProvider.Unknown;
         }
+
+        /// <summary>
+        ///     Gets a value indicating whether the specified <paramref name="path"/> is a HTTP
+        ///     stream URL supported by lavaplayer.
+        /// </summary>
+        /// <param name="path">the URI path ( <see cref="Uri.AbsolutePath"/>)</param>
+        /// <returns>
+        ///     a value indicating whether the specified <paramref name="path"/> is a HTTP stream URL
+        ///     supported by lavaplayer
+        /// </returns>
+        public static bool IsHttpStreamUrl(string path)
+            => path.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".flac", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".webm", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".mp4", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".m4a", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".3gp", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".mpg", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".mpeg", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".m4b", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".m3u", StringComparison.InvariantCultureIgnoreCase)
+            || path.EndsWith(".pls", StringComparison.InvariantCultureIgnoreCase);
 
         /// <summary>
         ///     Gets the stream provider that has the characters for the specified
@@ -119,19 +146,7 @@ namespace Lavalink4NET.Player
             }
 
             // .mp3, .flac, .wav, .webm, .mp4/.m4a, .ogg, .3gb/.mpg/.mpeg/.m4b, m3u/pls external sources.
-            if (path.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".flac", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".webm", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".mp4", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".m4a", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".3gp", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".mpg", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".mpeg", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".m4b", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".m3u", StringComparison.InvariantCultureIgnoreCase)
-                || path.EndsWith(".pls", StringComparison.InvariantCultureIgnoreCase))
+            if (IsHttpStreamUrl(path))
             {
                 return StreamProvider.Http;
             }

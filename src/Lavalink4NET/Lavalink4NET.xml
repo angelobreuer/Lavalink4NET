@@ -2596,6 +2596,11 @@
                 A stream from a HTTP URL (mp3, flac, wav, WebM, MP4/M4A, OGG, AAC, M3U or PLS).
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Player.StreamProviderUtil">
+            <summary>
+                An utility class for detecting the stream provider for a lavaplayer URI.
+            </summary>
+        </member>
         <member name="M:Lavalink4NET.Player.StreamProviderUtil.GetStreamProvider(System.String)">
             <summary>
                 Gets the stream provider that has the characters for the specified <paramref name="uri"/>.
@@ -2605,6 +2610,17 @@
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="uri"/> is blank.
             </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.StreamProviderUtil.IsHttpStreamUrl(System.String)">
+            <summary>
+                Gets a value indicating whether the specified <paramref name="path"/> is a HTTP
+                stream URL supported by lavaplayer.
+            </summary>
+            <param name="path">the URI path ( <see cref="P:System.Uri.AbsolutePath"/>)</param>
+            <returns>
+                a value indicating whether the specified <paramref name="path"/> is a HTTP stream URL
+                supported by lavaplayer
+            </returns>
         </member>
         <member name="M:Lavalink4NET.Player.StreamProviderUtil.GetStreamProvider(System.String,System.String)">
             <summary>
