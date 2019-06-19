@@ -25,10 +25,10 @@
  *  THE SOFTWARE.
  */
 
-using System;
-
 namespace Lavalink4NET.Rest
 {
+    using System;
+
     /// <summary>
     ///     An abstraction for the options for a RESTful HTTP client.
     /// </summary>

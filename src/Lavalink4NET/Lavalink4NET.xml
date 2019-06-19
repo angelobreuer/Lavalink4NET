@@ -1430,19 +1430,7 @@
                 The service options for the <see cref="T:Lavalink4NET.Lyrics.LyricsService"/> class.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.CacheTime">
-            <summary>
-                Gets or sets the time to cache the lyrics response.
-            </summary>
-            <remarks>This property defaults to <c>TimeSpan.FromMinutes(10)</c>.</remarks>
-        </member>
-        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.Decompression">
-            <summary>
-                Gets or sets a value indicating whether HTTP payloads should be decompressed.
-            </summary>
-            <remarks>This property defaults to <see langword="true"/>.</remarks>
-        </member>
-        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.Endpoint">
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.RestUri">
             <summary>
                 Gets or sets the base endpoint of the Lyrics API service ("lyrics.ovh"). This
                 property can be useful when using a local lyrics.ovh API service.
@@ -1461,12 +1449,20 @@
             </summary>
             <remarks>This property defaults to <see langword="true"/>.</remarks>
         </member>
-        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.UserAgent">
+        <member name="T:Lavalink4NET.Lyrics.LyricsResponse">
             <summary>
-                Gets or sets the user agent (header) for requests to the lyrics.ovh API service. Use
-                <see langword="null"/> to disable adding the user agent header to the request.
+                The response payload returned by the lyrics API service.
             </summary>
-            <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsResponse.ErrorMessage">
+            <summary>
+                Gets an hopefully descriptive error message indicating what error occurred.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsResponse.Lyrics">
+            <summary>
+                Gets the lyrics of the requested song.
+            </summary>
         </member>
         <member name="T:Lavalink4NET.Lyrics.LyricsService">
             <summary>
@@ -3024,8 +3020,8 @@
                 thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the track cache time ( <see cref="P:Lavalink4NET.Rest.LavalinkRestOptions.TrackCacheTime"/>) is
-                equal or less than <see cref="F:System.TimeSpan.Zero"/>.
+                thrown if the track cache time ( <see cref="P:Lavalink4NET.Rest.RestClientOptions.CacheTime"/>) is equal
+                or less than <see cref="F:System.TimeSpan.Zero"/>.
             </exception>
         </member>
         <member name="M:Lavalink4NET.Rest.LavalinkRestClient.Dispose">
@@ -3083,15 +3079,6 @@
                 The options for a lavalink rest client ( <see cref="T:Lavalink4NET.Rest.ILavalinkRestClient"/>).
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Rest.LavalinkRestOptions.Compression">
-            <summary>
-                Gets or sets a value indicating whether HTTP payloads should be compressed.
-            </summary>
-            <remarks>
-                This property defaults to <see langword="true"/>. Note this property does not change
-                the behavior of <see cref="T:Lavalink4NET.LavalinkSocket"/>.
-            </remarks>
-        </member>
         <member name="P:Lavalink4NET.Rest.LavalinkRestOptions.DebugPayloads">
             <summary>
                 Gets or sets a value indicating whether payload I/O (including rest) should be logged
@@ -3111,22 +3098,6 @@
             </summary>
             <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
         </member>
-        <member name="P:Lavalink4NET.Rest.LavalinkRestOptions.TrackCacheTime">
-            <summary>
-                Gets or sets the time how long a track should be cached.
-            </summary>
-            <remarks>
-                Note higher time spans can cause more memory usage, but reduce the request number.
-            </remarks>
-            <remarks>This property defaults to <c>TimeSpan.FromMinutes(5)</c>.</remarks>
-        </member>
-        <member name="P:Lavalink4NET.Rest.LavalinkRestOptions.UserAgent">
-            <summary>
-                Gets or sets the user-agent for HTTP requests (use <see langword="null"/> to disable
-                the custom user-agent header).
-            </summary>
-            <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
-        </member>
         <member name="T:Lavalink4NET.Rest.PlaylistInfo">
             <summary>
                 The playlist info object for the track load response.
@@ -3141,6 +3112,39 @@
             <summary>
                 Gets the name of the playlist.
             </summary>
+        </member>
+        <member name="T:Lavalink4NET.Rest.RestClientOptions">
+            <summary>
+                An abstraction for the options for a RESTful HTTP client.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Rest.RestClientOptions.CacheTime">
+            <summary>
+                Gets or sets the time how long a request should be cached.
+            </summary>
+            <remarks>
+                Note higher time spans can cause more memory usage, but reduce the number of requests made.
+            </remarks>
+            <remarks>This property defaults to <c>TimeSpan.FromMinutes(5)</c>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Rest.RestClientOptions.Decompression">
+            <summary>
+                Gets or sets a value indicating whether the HTTP client accepts compressed payloads.
+            </summary>
+            <remarks>This property defaults to <see langword="true"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Rest.RestClientOptions.RestUri">
+            <summary>
+                Gets or sets the RESTful HTTP api endpoint.
+            </summary>
+            <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Rest.RestClientOptions.UserAgent">
+            <summary>
+                Gets or sets the user-agent for HTTP requests (use <see langword="null"/> to disable
+                the custom user-agent header).
+            </summary>
+            <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
         </member>
         <member name="T:Lavalink4NET.Rest.SearchMode">
             <summary>
