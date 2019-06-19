@@ -3,4 +3,5 @@ solution: src/Lavalink4NET.sln
 dotnet: 2.0
 mono: none
 script:
+ - cd src
  - dotnet restore
