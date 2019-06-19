@@ -33,6 +33,7 @@ namespace Lavalink4NET.Lyrics
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web;
+    using Lavalink4NET.Player;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -128,6 +129,30 @@ namespace Lavalink4NET.Lyrics
             _cache?.AddItem(key, response, DateTimeOffset.UtcNow + _cacheTime);
             return response;
         }
+
+        /// <summary>
+        ///     Gets the lyrics for a track asynchronously (cached).
+        /// </summary>
+        /// <param name="trackInfo">the track information to get the lyrics for</param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>the track found for the query</returns>
+        public Task<string> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
+            => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
+
+        /// <summary>
+        ///     Gets the lyrics for a track asynchronously (no caching).
+        /// </summary>
+        /// <param name="trackInfo">the track information to get the lyrics for</param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>the track found for the query</returns>
+        public Task<string> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
+            => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
         /// <summary>
         ///     Gets the lyrics for a track asynchronously (no caching).
