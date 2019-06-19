@@ -67,7 +67,8 @@ namespace Lavalink4NET.Cluster
         public static double CalculateScore(StatisticUpdateEventArgs statistics)
         {
             // no statistics retrieved for the node.
-            if (statistics is null)
+            if (statistics is null || statistics.Processor is null
+                || statistics.Memory is null || statistics.FrameStatistics is null)
             {
                 return 0d;
             }
