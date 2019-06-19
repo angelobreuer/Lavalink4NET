@@ -3,4 +3,4 @@ solution: src/Lavalink4NET.sln
 dotnet: 2.0
 mono: none
 script:
- - dotnet restore src -s "https://www.nuget.org/api/v3;https://www.myget.org/F/dsharpplus-nightly/api/v3/index.json"
+ - dotnet restore src -s "https://www.nuget.org/api/v3/index.json;https://www.myget.org/F/dsharpplus-nightly/api/v3/index.json"
