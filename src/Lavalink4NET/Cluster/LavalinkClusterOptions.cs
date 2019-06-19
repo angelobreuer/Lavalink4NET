@@ -42,5 +42,14 @@ namespace Lavalink4NET.Cluster
         ///     Gets or sets the cluster node options.
         /// </summary>
         public LavalinkNodeOptions[] Nodes { get; set; }
+
+        /// <summary>
+        ///     Gets or sets a value indicating whether players should be moved to a new node if a
+        ///     node disconnects accidentally.
+        /// </summary>
+        /// <remarks>
+        ///     This property defaults to <see langword="false"/>, because this feature is very experimental.
+        /// </remarks>
+        public bool StayOnline { get; set; } = false;
     }
 }

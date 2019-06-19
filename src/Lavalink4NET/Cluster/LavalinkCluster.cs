@@ -47,6 +47,7 @@ namespace Lavalink4NET.Cluster
         private readonly ILogger<Lavalink> _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
+        private readonly bool _stayOnline;
         private bool _initialized;
         private volatile int _nodeId;
 
@@ -67,7 +68,13 @@ namespace Lavalink4NET.Cluster
             _logger = logger;
             _cache = cache;
             _nodesLock = new object();
+            _stayOnline = options.StayOnline;
             _nodes = options.Nodes.Select(CreateNode).ToList();
+
+            if (logger != null && _stayOnline)
+            {
+                logger.LogWarning("The feature 'StayOnline' is very experimental. It is recommended to disable it.");
+            }
         }
 
         /// <summary>
@@ -326,8 +333,23 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnNodeDisconnectedAsync(NodeDisconnectedEventArgs eventArgs)
-            => NodeDisconnected.InvokeAsync(this, eventArgs);
+        protected virtual async Task OnNodeDisconnectedAsync(NodeDisconnectedEventArgs eventArgs)
+        {
+            // stay-online feature
+            if (_stayOnline && eventArgs.ByRemote)
+            {
+                var players = eventArgs.Node.GetPlayers<LavalinkPlayer>();
+
+                // move all players
+                var tasks = players.Select(player => eventArgs.Node.MovePlayerAsync(player, GetPreferredNode())).ToArray();
+
+                // await until all players were moved to a new node
+                await Task.WhenAll(tasks);
+            }
+
+            // invoke event
+            await NodeDisconnected.InvokeAsync(this, eventArgs);
+        }
 
         /// <summary>
         ///     Creates a new lavalink cluster node.
