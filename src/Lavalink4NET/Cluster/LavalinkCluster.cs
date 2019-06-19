@@ -32,7 +32,6 @@ namespace Lavalink4NET.Cluster
     using System.Linq;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
-    using Microsoft.Extensions.Logging;
     using Player;
     using Rest;
 
@@ -44,7 +43,7 @@ namespace Lavalink4NET.Cluster
         private readonly ILavalinkCache _cache;
         private readonly IDiscordClientWrapper _client;
         private readonly LoadBalacingStrategy _loadBalacingStrategy;
-        private readonly ILogger<Lavalink> _logger;
+        private readonly ILogger _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
         private readonly bool _stayOnline;
@@ -61,7 +60,7 @@ namespace Lavalink4NET.Cluster
         ///     a cache that is shared between the different lavalink rest clients. If the cache is
         ///     <see langword="null"/>, no cache will be used.
         /// </param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
+        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
         {
             _loadBalacingStrategy = options.LoadBalacingStrategy;
             _client = client;
@@ -340,7 +339,7 @@ namespace Lavalink4NET.Cluster
             // stay-online feature
             if (_stayOnline && eventArgs.ByRemote)
             {
-                _logger?.LogInformation("(Stay-Online) Node died! Moving players to a new node...");
+                _logger?.Log(this, "(Stay-Online) Node died! Moving players to a new node...", LogLevel.Warning);
 
                 var players = eventArgs.Node.GetPlayers<LavalinkPlayer>();
 
