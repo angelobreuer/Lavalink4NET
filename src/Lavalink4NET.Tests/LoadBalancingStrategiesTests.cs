@@ -1,13 +1,21 @@
-﻿using System;
-using Lavalink4NET.Cluster;
-using Lavalink4NET.Events;
-using Lavalink4NET.Statistics;
-using Xunit;
-
-namespace Lavalink4NET.Tests
+﻿namespace Lavalink4NET.Tests
 {
+    using System;
+    using Lavalink4NET.Cluster;
+    using Lavalink4NET.Events;
+    using Lavalink4NET.Statistics;
+    using Xunit;
+
+    /// <summary>
+    ///     Contains tests for load balancing strategies ( <see cref="LoadBalacingStrategies"/>).
+    /// </summary>
     public sealed class LoadBalancingStrategiesTests
     {
+        /// <summary>
+        ///     Tests the score balancing strategy calculation method (
+        ///     <see cref="LoadBalacingStrategies.CalculateScore(StatisticUpdateEventArgs)"/>) with
+        ///     good and bad statistics.
+        /// </summary>
         [Fact]
         public void TestScoreBalancingStrategy()
         {

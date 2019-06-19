@@ -4,8 +4,14 @@
     using Lavalink4NET.MemoryCache;
     using Xunit;
 
+    /// <summary>
+    ///     Contains tests for the <see cref="LavalinkCache"/> class.
+    /// </summary>
     public class MemoryCacheTests
     {
+        /// <summary>
+        ///     Tests the memory cache.
+        /// </summary>
         [Fact]
         public void TestMemoryCache()
         {
