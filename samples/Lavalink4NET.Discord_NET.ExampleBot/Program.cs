@@ -31,6 +31,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
     using System.Threading.Tasks;
     using Discord.Commands;
     using Discord.WebSocket;
+    using Example.CustomLogger;
     using Lavalink4NET.MemoryCache;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -97,6 +98,8 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             // Logging
             .AddLogging(configure => configure.AddConsole()
                 .SetMinimumLevel(LogLevel.Trace))
+
+            .AddSingleton<Lavalink4NET.ILogger, CustomLogger>()
 
             .BuildServiceProvider();
     }

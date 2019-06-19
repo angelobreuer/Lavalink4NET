@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.MemoryCache", "Lavalink4NET.MemoryCache\Lavalink4NET.MemoryCache.csproj", "{0A74B051-3BC6-424E-B5A1-30EF2FAC7CFA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.Discord_NET.ExampleBot.csproj", "{08572C8E-E4E7-45C9-A59D-B743AEB98FD9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{0A74B051-3BC6-424E-B5A1-30EF2FAC7CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A74B051-3BC6-424E-B5A1-30EF2FAC7CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A74B051-3BC6-424E-B5A1-30EF2FAC7CFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08572C8E-E4E7-45C9-A59D-B743AEB98FD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08572C8E-E4E7-45C9-A59D-B743AEB98FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08572C8E-E4E7-45C9-A59D-B743AEB98FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08572C8E-E4E7-45C9-A59D-B743AEB98FD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
