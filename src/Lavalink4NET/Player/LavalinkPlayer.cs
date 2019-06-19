@@ -257,6 +257,27 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Replays the current track asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the player is not connected to a voice channel
+        /// </exception>
+        public virtual Task ReplayAsync()
+        {
+            EnsureNotDestroyed();
+            EnsureConnected();
+
+            if (CurrentTrack == null || State == PlayerState.NotPlaying)
+            {
+                throw new InvalidOperationException("No track is playing.");
+            }
+
+            return PlayAsync(CurrentTrack, startTime: TimeSpan.Zero);
+        }
+
+        /// <summary>
         ///     Resumes the current playing track asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
@@ -427,6 +448,28 @@ namespace Lavalink4NET.Player
             return UpdateAsync();
         }
 
+        /// <summary>
+        ///     Sends the voice state and server data to the Lavalink Node if both is provided.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        internal async Task UpdateAsync()
+        {
+            if (_voiceServer == null || _voiceState == null)
+            {
+                // voice state or server is missing
+                return;
+            }
+
+            // send voice update payload
+            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
+                _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
+
+            State = PlayerState.NotPlaying;
+
+            // trigger event
+            await OnConnectedAsync(_voiceServer, _voiceState);
+        }
+
         internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
         {
             _lastPositionUpdate = positionUpdateTime;
@@ -458,28 +501,6 @@ namespace Lavalink4NET.Player
             {
                 throw new InvalidOperationException("The player is destroyed.");
             }
-        }
-
-        /// <summary>
-        ///     Sends the voice state and server data to the Lavalink Node if both is provided.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        internal async Task UpdateAsync()
-        {
-            if (_voiceServer == null || _voiceState == null)
-            {
-                // voice state or server is missing
-                return;
-            }
-
-            // send voice update payload
-            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
-                _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
-
-            State = PlayerState.NotPlaying;
-
-            // trigger event
-            await OnConnectedAsync(_voiceServer, _voiceState);
         }
     }
 }
