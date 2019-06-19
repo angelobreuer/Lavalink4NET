@@ -9,6 +9,7 @@ language: csharp
 solution: src/Lavalink4NET.sln
 mono: none
 script:
+ - export DOTNET_CLI_TELEMETRY_OPTOUT=1
  - sudo snap alias dotnet-sdk.dotnet dotnet
  - cd src
  - dotnet restore
