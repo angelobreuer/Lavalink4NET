@@ -35,7 +35,6 @@ namespace Lavalink4NET
     using System.Threading;
     using System.Threading.Tasks;
     using Events;
-    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Payloads;
     using Rest;
@@ -66,7 +65,7 @@ namespace Lavalink4NET
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
-        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger, ILavalinkCache cache = null)
+        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger, ILavalinkCache cache = null)
             : base(options, logger, cache)
         {
             Logger = logger;
@@ -78,7 +77,7 @@ namespace Lavalink4NET
                     throw new InvalidOperationException("The specified buffer size is zero or negative.");
                 }
 
-                Logger.LogWarning("The specified buffer size is zero or negative .. using 1048576 (1MiB).");
+                Logger.Log(this, "The specified buffer size is zero or negative .. using 1048576 (1MiB).", LogLevel.Warning);
                 options.BufferSize = 1024 * 1024; // 1 MiB buffer size
             }
 
@@ -125,7 +124,7 @@ namespace Lavalink4NET
         /// <summary>
         ///     Gets the logger.
         /// </summary>
-        public ILogger<Lavalink> Logger { get; }
+        public ILogger Logger { get; }
 
         /// <summary>
         ///     Closes the connection to the remote endpoint asynchronously.
@@ -186,7 +185,7 @@ namespace Lavalink4NET
             // add resume header
             if (_resume && _initialized)
             {
-                Logger?.LogInformation("Trying to resume Lavalink Session ... Key: {SessionKey}.", _resumeKey);
+                Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", _resumeKey), LogLevel.Debug);
                 _webSocket.Options.SetRequestHeader("Resume-Key", _resumeKey.ToString());
             }
 
@@ -202,14 +201,14 @@ namespace Lavalink4NET
                     throw;
                 }
 
-                Logger.LogError(ex, "Connection to Lavalink Node `{Uri}` failed!", _webSocketUri);
+                Logger.Log(this, string.Format("Connection to Lavalink Node `{0}` failed!", _webSocketUri), LogLevel.Error, ex);
                 return;
             }
 
             // replay payloads
             if (_queue.Count > 0)
             {
-                Logger?.LogInformation("Replaying {Count} payload(s)...", _queue.Count);
+                Logger?.Log(this, string.Format("Replaying {0} payload(s)...", _queue.Count), LogLevel.Debug);
 
                 // replay (FIFO)
                 while (_queue.TryDequeue(out var payload))
@@ -225,11 +224,11 @@ namespace Lavalink4NET
 
                 if (_resume && _initialized)
                 {
-                    Logger?.LogInformation("{Type} to Lavalink Node, Resume Key: {Key}!", type, _resumeKey);
+                    Logger?.Log(this, string.Format("{0} to Lavalink Node, Resume Key: {1}!", type, _resumeKey));
                 }
                 else
                 {
-                    Logger?.LogInformation("{Type} to Lavalink Node!", type);
+                    Logger?.Log(this, string.Format("{0} to Lavalink Node!", type));
                 }
             }
 
@@ -336,7 +335,7 @@ namespace Lavalink4NET
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning(ex, "Failed to send payload. Trying to reconnect to node...");
+                Logger?.Log(ex, "Failed to send payload. Trying to reconnect to node...");
 
                 // enqueue packet that failed to sent
                 _queue.Enqueue(payload);
@@ -349,7 +348,7 @@ namespace Lavalink4NET
 
             if (_ioDebug)
             {
-                Logger?.LogTrace("Sent payload `{Payload}` to {Uri}.", content, _webSocketUri);
+                Logger?.Log(this, string.Format("Sent payload `{0}` to {1}.", content, _webSocketUri), LogLevel.Trace);
             }
         }
 
@@ -416,7 +415,7 @@ namespace Lavalink4NET
                     return;
                 }
 
-                Logger?.LogWarning(ex, "Lavalink Node disconnected (without handshake, maybe connection loss or server crash)");
+                Logger?.Log(ex, "Lavalink Node disconnected (without handshake, maybe connection loss or server crash)");
                 await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, WebSocketCloseStatus.Empty, string.Empty, true));
 
                 _webSocket.Dispose();
@@ -427,7 +426,7 @@ namespace Lavalink4NET
             // check if the web socket received a close frame
             if (result.MessageType == WebSocketMessageType.Close)
             {
-                Logger?.LogWarning("Lavalink Node disconnected: {Status}, {Description}.", result.CloseStatus.Value, result.CloseStatusDescription);
+                Logger?.Log(this, string.Format("Lavalink Node disconnected: {0}, {1}.", result.CloseStatus.Value, result.CloseStatusDescription), LogLevel.Warning);
                 await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription, true));
 
                 _webSocket.Dispose();
@@ -454,7 +453,7 @@ namespace Lavalink4NET
 
             if (_ioDebug)
             {
-                Logger?.LogTrace("Received payload: `{Payload}` from: {Uri}.", content, _webSocketUri);
+                Logger?.Log(this, string.Format("Received payload: `{0}` from: {1}.", content, _webSocketUri), LogLevel.Trace);
             }
 
             // process data
@@ -465,7 +464,7 @@ namespace Lavalink4NET
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning(ex, "Received bad payload: {Content}.", content);
+                Logger?.Log(this, string.Format("Received bad payload: {0}.", content), LogLevel.Warning, ex);
                 await CloseAsync(WebSocketCloseStatus.InvalidPayloadData);
             }
         }
@@ -504,11 +503,11 @@ namespace Lavalink4NET
                     // reconnection give up
                     if (delay is null)
                     {
-                        Logger?.LogWarning("Reconnection failed! .. giving up.");
+                        Logger?.Log(this, "Reconnection failed! .. giving up.", LogLevel.Warning);
                         return;
                     }
 
-                    Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay.Value);
+                    Logger?.Log(this, string.Format("Waiting {0} before next reconnect attempt...", delay.Value), LogLevel.Debug);
                     await Task.Delay(delay.Value);
                 }
             }

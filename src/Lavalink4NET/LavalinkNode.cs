@@ -32,7 +32,6 @@ namespace Lavalink4NET
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
-    using Microsoft.Extensions.Logging;
     using Payloads;
     using Player;
 
@@ -50,7 +49,7 @@ namespace Lavalink4NET
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
+        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
             : base(options, client, logger, cache)
         {
             _discordClient = client;
@@ -264,7 +263,7 @@ namespace Lavalink4NET
             }
 
             // log
-            Logger?.LogInformation("Moved player for guild {GuildId} to new node.", player.GuildId);
+            Logger?.Log(this, string.Format("Moved player for guild {0} to new node.", player.GuildId), LogLevel.Debug);
         }
 
         /// <summary>
@@ -318,11 +317,11 @@ namespace Lavalink4NET
                 Players.Remove(payload.GuildId);
                 player.Dispose();
 
-                Logger?.LogWarning("Voice WebSocket was closed for player: {PlayerId}" +
-                    "\nClose Code: {CloseCode} ({CloseCodeInt}, Reason: {Reason}, By Remote: {ByRemote}",
+                Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
+                    "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
                     payload.GuildId, webSocketClosedEvent.CloseCode,
                     (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
-                    webSocketClosedEvent.ByRemote ? "Yes" : "No");
+                    webSocketClosedEvent.ByRemote ? "Yes" : "No"), LogLevel.Warning);
             }
 
             return Task.CompletedTask;

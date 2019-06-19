@@ -33,7 +33,6 @@ namespace Lavalink4NET.Rest
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Player;
 
@@ -53,7 +52,7 @@ namespace Lavalink4NET.Rest
         private readonly TimeSpan _cacheTime;
         private readonly bool _debugPayloads;
         private readonly HttpClient _httpClient;
-        private readonly ILogger<Lavalink> _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkRestClient"/> class.
@@ -68,7 +67,7 @@ namespace Lavalink4NET.Rest
         ///     thrown if the track cache time ( <see cref="LavalinkRestOptions.TrackCacheTime"/>) is
         ///     equal or less than <see cref="TimeSpan.Zero"/>.
         /// </exception>
-        public LavalinkRestClient(LavalinkRestOptions options, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
+        public LavalinkRestClient(LavalinkRestOptions options, ILogger logger = null, ILavalinkCache cache = null)
         {
             if (options is null)
             {
@@ -173,11 +172,11 @@ namespace Lavalink4NET.Rest
             // and caching is wanted (see: "noCache" method parameter)
             if (_cache != null && !noCache && _cache.TryGetItem<TrackLoadResponsePayload>("track-" + query, out var track))
             {
-                _logger?.LogDebug("Loaded track from cache `{Query}`.", query);
+                _logger?.Log(this, string.Format("Loaded track from cache `{0}`.", query), LogLevel.Debug);
                 return track;
             }
 
-            _logger?.LogDebug("Loading track '{Query}'...", query);
+            _logger?.Log(this, string.Format("Loading track '{0}'...", query), LogLevel.Debug);
 
             using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}"))
             {
@@ -187,7 +186,7 @@ namespace Lavalink4NET.Rest
 
                 if (_debugPayloads)
                 {
-                    _logger?.LogDebug("Got response for track load: `{Query}`: {Payload}.", query, responseContent);
+                    _logger?.Log(this, string.Format("Got response for track load: `{0}`: {1}.", query, responseContent), LogLevel.Debug);
                 }
 
                 var trackLoad = JsonConvert.DeserializeObject<TrackLoadResponsePayload>(responseContent);
@@ -215,7 +214,7 @@ namespace Lavalink4NET.Rest
 
             if (!response.Headers.TryGetValues(VersionHeaderName, out var values))
             {
-                _logger?.LogWarning("Expected header `{Header}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
+                _logger?.Log(this, string.Format("Expected header `{0}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName), LogLevel.Warning);
                 return;
             }
 
@@ -223,7 +222,7 @@ namespace Lavalink4NET.Rest
 
             if (!int.TryParse(rawVersion, out var version) || version <= 2)
             {
-                _logger?.LogWarning("Invalid version {Version}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
+                _logger?.Log(this, string.Format("Invalid version {0}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version), LogLevel.Warning);
             }
         }
     }
