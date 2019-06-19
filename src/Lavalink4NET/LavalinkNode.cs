@@ -245,6 +245,8 @@ namespace Lavalink4NET
             // remove the player from the current node
             Players.Remove(player.GuildId);
 
+            var wasPlaying = player.State == PlayerState.Playing;
+
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
 
@@ -253,6 +255,13 @@ namespace Lavalink4NET
 
             // resend voice update to the new node
             await player.UpdateAsync();
+
+            // play track if one is playing
+            if (wasPlaying)
+            {
+                // restart track
+                await player.PlayAsync(player.CurrentTrack);
+            }
 
             // log
             Logger?.LogInformation("Moved player for guild {GuildId} to new node.", player.GuildId);
