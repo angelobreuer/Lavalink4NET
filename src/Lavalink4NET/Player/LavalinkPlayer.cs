@@ -476,6 +476,8 @@ namespace Lavalink4NET.Player
             await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
 
+            State = PlayerState.NotPlaying;
+
             // trigger event
             await OnConnectedAsync(_voiceServer, _voiceState);
         }

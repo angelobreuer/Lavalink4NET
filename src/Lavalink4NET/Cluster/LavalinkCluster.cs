@@ -159,6 +159,7 @@ namespace Lavalink4NET.Cluster
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
+        /// <exception cref="InvalidOperationException">thrown if no nodes is available</exception>
         public LavalinkNode GetPreferredNode()
         {
             if (!_initialized)
@@ -170,6 +171,12 @@ namespace Lavalink4NET.Cluster
             {
                 // find a connected node
                 var nodes = _nodes.Where(s => s.IsConnected).ToArray();
+
+                // no nodes available
+                if (nodes.Length == 0)
+                {
+                    throw new InvalidOperationException("No node available.");
+                }
 
                 // get the preferred node by the load balancing strategy
                 var node = _loadBalacingStrategy(this, nodes);
@@ -338,6 +345,8 @@ namespace Lavalink4NET.Cluster
             // stay-online feature
             if (_stayOnline && eventArgs.ByRemote)
             {
+                _logger?.LogInformation("(Stay-Online) Node died! Moving players to a new node...");
+
                 var players = eventArgs.Node.GetPlayers<LavalinkPlayer>();
 
                 // move all players
