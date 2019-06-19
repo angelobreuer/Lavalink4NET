@@ -1,23 +1,28 @@
 <!-- Banner -->
 <img src="https://i.imgur.com/e1jv23h.png"/>
 
-<!-- Some space after logo -->
-<br />
-
 <!-- Center badges -->
 <p align="center">
 	
 <!-- CodeFactor.io Badge -->
 <a href="https://www.codefactor.io/repository/github/angelobreuer/lavalink4net">
-	<img src="https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge?style=for-the-badge" />	
+	<img alt="CodeFactor.io" src="https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge?style=for-the-badge" />	
 </a>
 
 <!-- Travis CI Badge -->
 <a href="https://travis-ci.org/angelobreuer/Lavalink4NET">
-	<img src="https://img.shields.io/travis/angelobreuer/Lavalink4NET.svg?style=for-the-badge" />	
+	<img alt="Travis CI" src="https://img.shields.io/travis/angelobreuer/Lavalink4NET.svg?style=for-the-badge" />	
 </a>	
-	
+
+<!-- GitHub issues Badge -->
+<a href="https://github.com/angelobreuer/Lavalink4NET/issues">
+	<img alt="GitHub issues" src="https://img.shields.io/github/issues/angelobreuer/Lavalink4NET.svg?style=for-the-badge">	
+</a>
+
 </p>
+
+<br />
+<br />
 
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/Frederikam/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
 
