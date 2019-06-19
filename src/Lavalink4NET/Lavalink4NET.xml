@@ -1425,6 +1425,93 @@
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
+        <member name="T:Lavalink4NET.Lyrics.LyricsOptions">
+            <summary>
+                The service options for the <see cref="T:Lavalink4NET.Lyrics.LyricsService"/> class.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.CacheTime">
+            <summary>
+                Gets or sets the time to cache the lyrics response.
+            </summary>
+            <remarks>This property defaults to <c>TimeSpan.FromMinutes(10)</c>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.Decompression">
+            <summary>
+                Gets or sets a value indicating whether HTTP payloads should be decompressed.
+            </summary>
+            <remarks>This property defaults to <see langword="true"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.Endpoint">
+            <summary>
+                Gets or sets the base endpoint of the Lyrics API service ("lyrics.ovh"). This
+                property can be useful when using a local lyrics.ovh API service.
+            </summary>
+            <remarks>
+                This property defaults to <c>"https://api.lyrics.ovh/v1/"</c>. Note this is an
+                absolute URI and can not be <see langword="null"/>.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.SuppressExceptions">
+            <summary>
+                Gets or sets a value indicating whether an exception should be thrown when a response
+                to the lyrics.ovh API service failed (returned with a non-2xx / success HTTP status
+                code). (For example the lyrics.ovh API service returns with a 404 Not Found, if the
+                lyrics for a song were not found.)
+            </summary>
+            <remarks>This property defaults to <see langword="true"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.Lyrics.LyricsOptions.UserAgent">
+            <summary>
+                Gets or sets the user agent (header) for requests to the lyrics.ovh API service. Use
+                <see langword="null"/> to disable adding the user agent header to the request.
+            </summary>
+            <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
+        </member>
+        <member name="T:Lavalink4NET.Lyrics.LyricsService">
+            <summary>
+                A service for retrieving song lyrics from the "https://lyrics.ovh" api.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.#ctor(Lavalink4NET.Lyrics.LyricsOptions,Lavalink4NET.ILavalinkCache)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Lyrics.LyricsService"/> class.
+            </summary>
+            <param name="options">the lyrics service options</param>
+            <param name="cache">the request cache</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.Dispose">
+            <summary>
+                Disposes the underlying HTTP client.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.GetLyricsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+                Gets the lyrics for a track asynchronously (cached).
+            </summary>
+            <param name="artist">the artist name (e.g. Coldplay)</param>
+            <param name="title">the title of the track (e.g. "Adventure of a Lifetime")</param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>the track found for the query</returns>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+                Gets the lyrics for a track asynchronously (no caching).
+            </summary>
+            <param name="artist">the artist name (e.g. Coldplay)</param>
+            <param name="title">the title of the track (e.g. "Adventure of a Lifetime")</param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>the track found for the query</returns>
+        </member>
         <member name="T:Lavalink4NET.Payloads.ConfigureResumingPayload">
             <summary>
                 The strongly-typed representation of a configure resuming payload which sent to the
@@ -2271,6 +2358,16 @@
             </exception>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.ReplayAsync">
+            <summary>
+                Replays the current track asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the player is not connected to a voice channel
+            </exception>
+        </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.ResumeAsync">
             <summary>
                 Resumes the current playing track asynchronously.
@@ -2359,6 +2456,12 @@
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.UpdateAsync">
+            <summary>
+                Sends the voice state and server data to the Lavalink Node if both is provided.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.EnsureConnected">
             <summary>
                 Throws an <see cref="T:System.InvalidOperationException"/> when the player is not connected to
@@ -2373,12 +2476,6 @@
                 Throws an <see cref="T:System.InvalidOperationException"/> when the player is destroyed.
             </summary>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
-        </member>
-        <member name="M:Lavalink4NET.Player.LavalinkPlayer.UpdateAsync">
-            <summary>
-                Sends the voice state and server data to the Lavalink Node if both is provided.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="T:Lavalink4NET.Player.LavalinkTrack">
             <summary>
