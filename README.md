@@ -1,11 +1,25 @@
-## Lavalink4NET
+<!-- Banner -->
+<img src="https://i.imgur.com/e1jv23h.png"/>
 
-[![CodeFactor](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge)](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net)
-[![Build Status](https://travis-ci.org/angelobreuer/Lavalink4NET.svg?branch=master)](https://travis-ci.org/angelobreuer/Lavalink4NET)
+<!-- Some space after logo -->
+<br />
+
+<!-- Center badges -->
+<p align="center">
+	
+<!-- CodeFactor.io Badge -->
+<a href="https://www.codefactor.io/repository/github/angelobreuer/lavalink4net">
+	<img src="https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge?style=for-the-badge" />	
+</a>
+
+<!-- Travis CI Badge -->
+<a href="https://travis-ci.org/angelobreuer/Lavalink4NET">
+	<img src="https://img.shields.io/travis/angelobreuer/Lavalink4NET.svg?style=for-the-badge" />	
+</a>	
+	
+</p>
 
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/Frederikam/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
-
-![Lavalink4NET Icon](https://imgur.com/DbTYXxY.png)
 
 ### Features
 - Asynchronous Interface
