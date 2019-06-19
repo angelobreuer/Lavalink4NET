@@ -65,7 +65,7 @@ namespace Lavalink4NET.Player
         ///     a task that represents the asynchronous operation
         ///     <para>the position in the track queue ( <c>0</c> = now playing)</para>
         /// </returns>
-        public virtual new Task<int> PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
+        public new virtual Task<int> PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
             TimeSpan? endTime = null, bool noReplace = false)
             => PlayAsync(track, true, startTime, endTime, noReplace);
 
