@@ -39,11 +39,11 @@ namespace Lavalink4NET.Player
     /// </summary>
     public class LavalinkPlayer : IDisposable
     {
+        internal VoiceServer _voiceServer;
+        internal VoiceState _voiceState;
         private readonly LavalinkSocket _lavalinkSocket;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
-        private VoiceServer _voiceServer;
-        private VoiceState _voiceState;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -119,6 +119,21 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Destroys the player asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public async Task DestroyAsync()
+        {
+            EnsureNotDestroyed();
+
+            // destroy player
+            State = PlayerState.Destroyed;
+
+            // send destroy payload
+            await _lavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
+        }
+
+        /// <summary>
         ///     Disconnects the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
@@ -145,13 +160,43 @@ namespace Lavalink4NET.Player
                 return;
             }
 
-            // destroy player
-            State = PlayerState.Destroyed;
-
             // Disconnect from voice channel and send destroy player payload to the lavalink node
-            Task.WhenAll(DisconnectAsync(), _lavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId)))
-                .GetAwaiter().GetResult();
+            _ = DestroyAsync();
+            _ = DisconnectAsync();
         }
+
+        /// <summary>
+        ///     Asynchronously triggered when the player has connected to a voice channel.
+        /// </summary>
+        /// <param name="voiceServer">the voice server connected to</param>
+        /// <param name="voiceState">the voice state</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track ends.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when an exception occurred while playing a track.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track got stuck.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => Task.CompletedTask;
 
         /// <summary>
         ///     Pauses the current playing track asynchronously.
@@ -412,56 +457,29 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Asynchronously triggered when the player has connected to a voice channel.
-        /// </summary>
-        /// <param name="voiceServer">the voice server connected to</param>
-        /// <param name="voiceState">the voice state</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when a track ends.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when an exception occurred while playing a track.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Asynchronously triggered when a track got stuck.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
         ///     Sends the voice state and server data to the Lavalink Node if both is provided.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
         private async Task UpdateAsync()
         {
-            if (_voiceServer == null || _voiceState == null)
+            if (_voiceServer != null && _voiceState != null)
             {
+                // voice update was already received completely
                 return;
             }
 
+            if (_voiceServer == null || _voiceState == null)
+            {
+                // voice state or server is missing
+                return;
+            }
+
+            // send voice update payload
             await _lavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
 
+            // trigger event
             await OnConnectedAsync(_voiceServer, _voiceState);
-
-            _voiceServer = null;
-            _voiceState = null;
         }
     }
 }
