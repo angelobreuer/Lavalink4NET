@@ -9,7 +9,7 @@
                 A set of lavalink nodes bound to a cluster usable for voice node balancing.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Lavalink},Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> class.
             </summary>
@@ -74,6 +74,7 @@
             <exception cref="T:System.InvalidOperationException">
                 thrown if the cluster has not been initialized.
             </exception>
+            <exception cref="T:System.InvalidOperationException">thrown if no nodes is available</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetServingNode(System.UInt64)">
             <summary>
@@ -209,7 +210,7 @@
                 A clustered lavalink node with additional information.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Lavalink},Lavalink4NET.ILavalinkCache,System.Int32)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache,System.Int32)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
             </summary>
@@ -1063,7 +1064,7 @@
                 Used for connecting to a single lavalink node.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Lavalink},Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
             </summary>
@@ -1287,7 +1288,7 @@
                 The socket for connecting to a lavalink node.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.LavalinkSocket.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Lavalink},Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.LavalinkSocket.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkSocket"/> class.
             </summary>
@@ -2915,7 +2916,7 @@
                 for more details.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.#ctor(Lavalink4NET.Rest.LavalinkRestOptions,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Lavalink},Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.#ctor(Lavalink4NET.Rest.LavalinkRestOptions,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Rest.LavalinkRestClient"/> class.
             </summary>
@@ -3308,7 +3309,7 @@
                 A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Microsoft.Extensions.Logging.ILogger{Lavalink4NET.Tracking.InactivityTrackingService})">
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.ILogger)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
             </summary>
@@ -3491,6 +3492,51 @@
         <member name="P:Lavalink4NET.Tracking.PlayerTrackingStatusUpdateEventArgs.TrackingStatus">
             <summary>
                 Gets the new tracking status of the player.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.ILogger">
+            <summary>
+                An interface for a logger provider.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.ILogger.Log(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
+            <summary>
+                Logs a message asynchronously.
+            </summary>
+            <param name="source">the source the message comes from (usually this)</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
+        </member>
+        <member name="T:Lavalink4NET.LogLevel">
+            <summary>
+                A set of different logging levels.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Information">
+            <summary>
+                Information, not critical, just for user information.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Error">
+            <summary>
+                Error, critical (application can continue)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Warning">
+            <summary>
+                Warning, not critical (a warning, but the application can continue without any
+                further problems)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Debug">
+            <summary>
+                Debug message, not critical (just for information / debugging)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Trace">
+            <summary>
+                Trace message, not critical (just for information / debugging)
             </summary>
         </member>
         <member name="T:Lavalink4NET.VoiceServer">

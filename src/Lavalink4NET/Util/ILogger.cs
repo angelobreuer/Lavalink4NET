@@ -10,7 +10,7 @@
         /// <summary>
         ///     Logs a message asynchronously.
         /// </summary>
-        /// <param name="source">the source the message comes from (usually <see cref="this"/>)</param>
+        /// <param name="source">the source the message comes from (usually this)</param>
         /// <param name="message">the message to log</param>
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
