@@ -1,6 +1,7 @@
 ## Lavalink4NET
 
 [![CodeFactor](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net/badge)](https://www.codefactor.io/repository/github/angelobreuer/lavalink4net)
+[![Build Status](https://travis-ci.org/angelobreuer/Lavalink4NET.svg?branch=master)](https://travis-ci.org/angelobreuer/Lavalink4NET)
 
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/Frederikam/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
 
