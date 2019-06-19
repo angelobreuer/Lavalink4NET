@@ -1,5 +1,5 @@
-/*
- *  File:   LavalinkRestOptions.cs
+﻿/*
+ *  File:   RestClientOptions.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,32 +25,41 @@
  *  THE SOFTWARE.
  */
 
+using System;
+
 namespace Lavalink4NET.Rest
 {
-    using System;
-
     /// <summary>
-    ///     The options for a lavalink rest client ( <see cref="ILavalinkRestClient"/>).
+    ///     An abstraction for the options for a RESTful HTTP client.
     /// </summary>
-    public class LavalinkRestOptions : RestClientOptions
+    public abstract class RestClientOptions
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
-        ///     to the logger (This should be only used for development)
+        ///     Gets or sets the time how long a request should be cached.
         /// </summary>
-        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-        public bool DebugPayloads { get; set; } = false;
+        /// <remarks>
+        ///     Note higher time spans can cause more memory usage, but reduce the number of requests made.
+        /// </remarks>
+        /// <remarks>This property defaults to <c>TimeSpan.FromMinutes(5)</c>.</remarks>
+        public TimeSpan CacheTime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node Password.
+        ///     Gets or sets a value indicating whether the HTTP client accepts compressed payloads.
         /// </summary>
-        /// <remarks>This property defaults to <c>"youshallnotpass"</c>.</remarks>
-        public string Password { get; set; } = "youshallnotpass";
+        /// <remarks>This property defaults to <see langword="true"/>.</remarks>
+        public bool Decompression { get; set; } = true;
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node restful HTTP api URI.
+        ///     Gets or sets the RESTful HTTP api endpoint.
         /// </summary>
         /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
-        public override string RestUri { get; set; } = "http://localhost:8080/";
+        public abstract string RestUri { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the user-agent for HTTP requests (use <see langword="null"/> to disable
+        ///     the custom user-agent header).
+        /// </summary>
+        /// <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
+        public string UserAgent { get; set; } = "Lavalink4NET";
     }
 }

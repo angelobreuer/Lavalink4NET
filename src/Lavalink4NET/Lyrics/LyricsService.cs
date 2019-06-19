@@ -83,7 +83,7 @@ namespace Lavalink4NET.Lyrics
             // initialize HTTP client
             _httpClient = new HttpClient(httpHandler)
             {
-                BaseAddress = new Uri(options.Endpoint)
+                BaseAddress = new Uri(options.RestUri)
             };
 
             // add user-agent request header

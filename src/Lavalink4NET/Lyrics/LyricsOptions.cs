@@ -27,25 +27,13 @@
 
 namespace Lavalink4NET.Lyrics
 {
-    using System;
+    using Lavalink4NET.Rest;
 
     /// <summary>
     ///     The service options for the <see cref="LyricsService"/> class.
     /// </summary>
-    public sealed class LyricsOptions
+    public sealed class LyricsOptions : RestClientOptions
     {
-        /// <summary>
-        ///     Gets or sets the time to cache the lyrics response.
-        /// </summary>
-        /// <remarks>This property defaults to <c>TimeSpan.FromMinutes(10)</c>.</remarks>
-        public TimeSpan CacheTime { get; set; } = TimeSpan.FromMinutes(10);
-
-        /// <summary>
-        ///     Gets or sets a value indicating whether HTTP payloads should be decompressed.
-        /// </summary>
-        /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-        public bool Decompression { get; set; } = true;
-
         /// <summary>
         ///     Gets or sets the base endpoint of the Lyrics API service ("lyrics.ovh"). This
         ///     property can be useful when using a local lyrics.ovh API service.
@@ -54,7 +42,7 @@ namespace Lavalink4NET.Lyrics
         ///     This property defaults to <c>"https://api.lyrics.ovh/v1/"</c>. Note this is an
         ///     absolute URI and can not be <see langword="null"/>.
         /// </remarks>
-        public string Endpoint { get; set; } = "https://api.lyrics.ovh/v1/";
+        public override string RestUri { get; set; } = "https://api.lyrics.ovh/v1/";
 
         /// <summary>
         ///     Gets or sets a value indicating whether an exception should be thrown when a response
@@ -64,12 +52,5 @@ namespace Lavalink4NET.Lyrics
         /// </summary>
         /// <remarks>This property defaults to <see langword="true"/>.</remarks>
         public bool SuppressExceptions { get; set; } = true;
-
-        /// <summary>
-        ///     Gets or sets the user agent (header) for requests to the lyrics.ovh API service. Use
-        ///     <see langword="null"/> to disable adding the user agent header to the request.
-        /// </summary>
-        /// <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
-        public string UserAgent { get; set; } = "Lavalink4NET";
     }
 }

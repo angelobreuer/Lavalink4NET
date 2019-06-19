@@ -64,8 +64,8 @@ namespace Lavalink4NET.Rest
         ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     thrown if the track cache time ( <see cref="LavalinkRestOptions.TrackCacheTime"/>) is
-        ///     equal or less than <see cref="TimeSpan.Zero"/>.
+        ///     thrown if the track cache time ( <see cref="RestClientOptions.CacheTime"/>) is equal
+        ///     or less than <see cref="TimeSpan.Zero"/>.
         /// </exception>
         public LavalinkRestClient(LavalinkRestOptions options, ILogger logger = null, ILavalinkCache cache = null)
         {
@@ -74,7 +74,7 @@ namespace Lavalink4NET.Rest
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (options.TrackCacheTime <= TimeSpan.Zero)
+            if (options.CacheTime <= TimeSpan.Zero)
             {
                 throw new InvalidOperationException("The track cache time is negative or zero. Please do not " +
                     "specify a cache in the constructor instead of using a zero cache time.");
@@ -84,7 +84,7 @@ namespace Lavalink4NET.Rest
             var httpHandler = new HttpClientHandler();
 
             // check if automatic decompression should be used
-            if (options.Compression)
+            if (options.Decompression)
             {
                 // setup compression
                 httpHandler.AutomaticDecompression = DecompressionMethods.GZip
@@ -106,7 +106,7 @@ namespace Lavalink4NET.Rest
 
             _logger = logger;
             _cache = cache;
-            _cacheTime = options.TrackCacheTime;
+            _cacheTime = options.CacheTime;
             _debugPayloads = options.DebugPayloads;
         }
 
