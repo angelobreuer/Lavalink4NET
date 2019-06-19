@@ -41,7 +41,6 @@ namespace Lavalink4NET.Player
     {
         internal VoiceServer _voiceServer;
         internal VoiceState _voiceState;
-        private readonly LavalinkSocket _lavalinkSocket;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
 
@@ -56,7 +55,7 @@ namespace Lavalink4NET.Player
             GuildId = guildId;
             Client = client;
 
-            _lavalinkSocket = lavalinkSocket;
+            LavalinkSocket = lavalinkSocket;
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
         }
@@ -105,6 +104,11 @@ namespace Lavalink4NET.Player
         public float Volume { get; private set; } = 1f;
 
         /// <summary>
+        ///     Gets the communication lavalink socket.
+        /// </summary>
+        internal LavalinkSocket LavalinkSocket { get; set; }
+
+        /// <summary>
         ///     Joins the voice channel specified by <paramref name="voiceChannelId"/> asynchronously.
         /// </summary>
         /// <param name="voiceChannelId">the voice channel identifier to join</param>
@@ -130,7 +134,7 @@ namespace Lavalink4NET.Player
             State = PlayerState.Destroyed;
 
             // send destroy payload
-            await _lavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
+            await LavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
         }
 
         /// <summary>
@@ -219,7 +223,7 @@ namespace Lavalink4NET.Player
                 throw new InvalidOperationException("The current playing track is not playing.");
             }
 
-            await _lavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, true));
+            await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, true));
             State = PlayerState.Paused;
         }
 
@@ -246,7 +250,7 @@ namespace Lavalink4NET.Player
 
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
 
-            await _lavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
+            await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
                 startTime, endTime, noReplace));
 
             State = PlayerState.Playing;
@@ -273,7 +277,7 @@ namespace Lavalink4NET.Player
                 throw new InvalidOperationException("There is no track paused.");
             }
 
-            await _lavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, false));
+            await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, false));
             State = PlayerState.Playing;
         }
 
@@ -298,7 +302,7 @@ namespace Lavalink4NET.Player
                 throw new InvalidOperationException("There is no track paused or playing.");
             }
 
-            return _lavalinkSocket.SendPayloadAsync(new PlayerSeekPayload(GuildId, position));
+            return LavalinkSocket.SendPayloadAsync(new PlayerSeekPayload(GuildId, position));
         }
 
         /// <summary>
@@ -342,7 +346,7 @@ namespace Lavalink4NET.Player
             }
 
             var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
-            await _lavalinkSocket.SendPayloadAsync(payload);
+            await LavalinkSocket.SendPayloadAsync(payload);
 
             Volume = volume;
         }
@@ -363,7 +367,7 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
-            await _lavalinkSocket.SendPayloadAsync(new PlayerStopPayload(GuildId));
+            await LavalinkSocket.SendPayloadAsync(new PlayerStopPayload(GuildId));
 
             if (disconnect)
             {
@@ -390,7 +394,7 @@ namespace Lavalink4NET.Player
                 bands = bands.Union(DefaultEqualizer, new EqualizerBandComparer());
             }
 
-            return _lavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
+            return LavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
         }
 
         /// <summary>
@@ -460,14 +464,8 @@ namespace Lavalink4NET.Player
         ///     Sends the voice state and server data to the Lavalink Node if both is provided.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        private async Task UpdateAsync()
+        internal async Task UpdateAsync()
         {
-            if (_voiceServer != null && _voiceState != null)
-            {
-                // voice update was already received completely
-                return;
-            }
-
             if (_voiceServer == null || _voiceState == null)
             {
                 // voice state or server is missing
@@ -475,7 +473,7 @@ namespace Lavalink4NET.Player
             }
 
             // send voice update payload
-            await _lavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
+            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
 
             // trigger event

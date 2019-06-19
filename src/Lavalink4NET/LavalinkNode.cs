@@ -193,6 +193,72 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Moves the specified <paramref name="player"/> to the specified
+        ///     <paramref name="node"/> asynchronously (while keeping its data and the same instance
+        ///     of the player).
+        /// </summary>
+        /// <param name="player">the player to move</param>
+        /// <param name="node">the node to move the player to</param>
+        /// <returns>a task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     thrown if the specified <paramref name="node"/> is the same as the player node.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     thrown if the specified <paramref name="player"/> is already served by the specified <paramref name="node"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     thrown if the specified <paramref name="node"/> does not serve the specified <paramref name="player"/>.
+        /// </exception>
+        public async Task MovePlayerAsync(LavalinkPlayer player, LavalinkNode node)
+        {
+            if (player is null)
+            {
+                throw new ArgumentNullException(nameof(player), "The player to move is null.");
+            }
+
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node), "The specified target node is null.");
+            }
+
+            if (node == this)
+            {
+                throw new ArgumentException("Can not move the player to the same node.", nameof(node));
+            }
+
+            if (player.LavalinkSocket == node)
+            {
+                throw new ArgumentException("The specified player is already served by the targeted node.");
+            }
+
+            if (!Players.Contains(new KeyValuePair<ulong, LavalinkPlayer>(player.GuildId, player)))
+            {
+                throw new ArgumentException("The specified player is not a player from the current node.", nameof(player));
+            }
+
+            // remove the player from the current node
+            Players.Remove(player.GuildId);
+
+            // destroy (NOT DISCONNECT) the player
+            await player.DestroyAsync();
+
+            // update the communication node
+            player.LavalinkSocket = node;
+
+            // resend voice update to the new node
+            await player.UpdateAsync();
+
+            // log
+            Logger?.LogInformation("Moved player for guild {GuildId} to new node.", player.GuildId);
+        }
+
+        /// <summary>
         ///     Handles an event payload asynchronously.
         /// </summary>
         /// <param name="payload">the payload</param>
