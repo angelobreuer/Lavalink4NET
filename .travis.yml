@@ -13,4 +13,4 @@ script:
  - cd src
  - dotnet restore
  - dotnet build
- - dotnet test Lavalink4NET.Tests/Lavalink4NET.Tests.csproj -f NETCoreApp2.0
+ - dotnet test Lavalink4NET.Tests/Lavalink4NET.Tests.csproj -f netcoreapp3.0
