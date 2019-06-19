@@ -492,18 +492,21 @@ namespace Lavalink4NET
                     // reconnect
                     await ConnectAsync();
 
-                    // add delay between reconnects
-                    var delay = _reconnectionStrategy(lostConnectionAt, attempt);
-
-                    // reconnection give up
-                    if (delay is null)
+                    if (!IsConnected)
                     {
-                        Logger?.LogWarning("Reconnection failed! .. giving up.");
-                        return;
-                    }
+                        // add delay between reconnects
+                        var delay = _reconnectionStrategy(lostConnectionAt, attempt);
 
-                    Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay.Value);
-                    await Task.Delay(delay.Value);
+                        // reconnection give up
+                        if (delay is null)
+                        {
+                            Logger?.LogWarning("Reconnection failed! .. giving up.");
+                            return;
+                        }
+
+                        Logger?.LogDebug("Waiting {Delay} before next reconnect attempt...", delay.Value);
+                        await Task.Delay(delay.Value);
+                    }
                 }
             }
         }
