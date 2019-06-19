@@ -1,21 +1,21 @@
-/* 
- *  File:   WebSocketClosedEvent.cs
+/*
+ *  File:   PlayerSeekPayload.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,39 +25,45 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads.Player
 {
-    using System.Net.WebSockets;
+    using System;
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     The strongly-typed representation of a web socket closed event received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
+    ///     serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public sealed class WebSocketClosedEvent : EventPayload
+    public sealed class PlayerSeekPayload
+       : IPayload, IPlayerPayload
     {
         /// <summary>
-        ///     Gets the event type.
+        ///     Initializes a new instance of the <see cref="PlayerSeekPayload"/> class.
         /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.WebSocketClosedEvent;
+        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+        /// <param name="position">the seek position</param>
+        public PlayerSeekPayload(ulong guildId, TimeSpan position)
+        {
+            GuildId = guildId.ToString();
+            Position = (int)position.TotalMilliseconds;
+        }
 
         /// <summary>
-        ///     Gets the web-socket close code.
+        ///     Gets the operation code for the payload.
         /// </summary>
-        [JsonRequired, JsonProperty("code")]
-        public WebSocketCloseStatus CloseCode { get; internal set; }
+        [JsonRequired, JsonProperty("op")]
+        public OpCode OpCode => OpCode.PlayerSeek;
 
         /// <summary>
-        ///     Gets the reason why the web-socket was closed.
+        ///     Gets the guild snowflake identifier the player update is for.
         /// </summary>
-        [JsonRequired, JsonProperty("reason")]
-        public string Reason { get; internal set; }
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; }
 
         /// <summary>
-        ///     Gets a value indicating whether the connection was closed by the remote (discord gateway).
+        ///     Gets a value indicating whether the player should be paused.
         /// </summary>
-        [JsonRequired, JsonProperty("byRemote")]
-        public bool ByRemote { get; internal set; }
+        [JsonRequired, JsonProperty("position")]
+        public int Position { get; internal set; }
     }
 }

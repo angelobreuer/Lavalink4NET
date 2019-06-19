@@ -32,7 +32,9 @@ namespace Lavalink4NET.Player
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
-    using Payloads;
+    using Lavalink4NET.Payloads.Events;
+    using Lavalink4NET.Payloads.Node;
+    using Lavalink4NET.Payloads.Player;
 
     /// <summary>
     ///     Controls a remote Lavalink Audio Player.

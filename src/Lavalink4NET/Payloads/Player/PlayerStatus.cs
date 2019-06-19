@@ -1,21 +1,21 @@
-/* 
- *  File:   TrackExceptionEvent.cs
+/*
+ *  File:   PlayerStatus.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,33 +25,38 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads.Player
 {
+    using System;
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     The strongly-typed representation of a track exception event received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     A wrapper for the player status object.
     /// </summary>
-    public sealed class TrackExceptionEvent
-          : EventPayload
+    public sealed class PlayerStatus
     {
         /// <summary>
-        ///     Gets the event type.
+        ///     Initializes a new instance of the <see cref="PlayerStatus"/> class.
         /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackException;
+        /// <param name="time">the time when the update was sent</param>
+        /// <param name="position">the track position in milliseconds</param>
+        [JsonConstructor]
+        public PlayerStatus(long time, int position)
+        {
+            UpdateTime = DateTimeOffset.FromUnixTimeMilliseconds(time);
+            Position = TimeSpan.FromMilliseconds(position);
+        }
 
         /// <summary>
-        ///     Gets the identifier of the track where the exception occurred.
+        ///     Gets the time when the position update was sent.
         /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        [JsonIgnore]
+        public DateTimeOffset UpdateTime { get; }
 
         /// <summary>
-        ///     Gets the error that occurred.
+        ///     Gets the track position (at the time the update was received, see: <see cref="UpdateTime"/>).
         /// </summary>
-        [JsonRequired, JsonProperty("error")]
-        public string Error { get; internal set; }
+        [JsonIgnore]
+        public TimeSpan Position { get; }
     }
 }

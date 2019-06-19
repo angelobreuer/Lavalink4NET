@@ -1,21 +1,21 @@
-/* 
- *  File:   PlayerStatus.cs
+/*
+ *  File:   PlayerUpdatePayload.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,38 +25,32 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET
+namespace Lavalink4NET.Payloads.Player
 {
-    using System;
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     A wrapper for the player status object.
+    ///     The strongly-typed representation of a player update payload received from the lavalink
+    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public sealed class PlayerStatus
+    public sealed class PlayerUpdatePayload : IPlayerPayload
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerStatus"/> class.
+        ///     Gets the operation code for the payload.
         /// </summary>
-        /// <param name="time">the time when the update was sent</param>
-        /// <param name="position">the track position in milliseconds</param>
-        [JsonConstructor]
-        public PlayerStatus(long time, int position)
-        {
-            UpdateTime = DateTimeOffset.FromUnixTimeMilliseconds(time);
-            Position = TimeSpan.FromMilliseconds(position);
-        }
+        [JsonRequired, JsonProperty("op")]
+        public OpCode OpCode => OpCode.PlayerUpdate;
 
         /// <summary>
-        ///     Gets the time when the position update was sent.
+        ///     Gets the guild snowflake identifier the player update is for.
         /// </summary>
-        [JsonIgnore]
-        public DateTimeOffset UpdateTime { get; }
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; }
 
         /// <summary>
-        ///     Gets the track position (at the time the update was received, see: <see cref="UpdateTime"/>).
+        ///     Gets the player status.
         /// </summary>
-        [JsonIgnore]
-        public TimeSpan Position { get; }
+        [JsonRequired, JsonProperty("state")]
+        public PlayerStatus Status { get; internal set; }
     }
 }

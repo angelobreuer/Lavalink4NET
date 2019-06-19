@@ -27,8 +27,6 @@
 
 namespace Lavalink4NET.Rest
 {
-    using System;
-
     /// <summary>
     ///     The options for a lavalink rest client ( <see cref="ILavalinkRestClient"/>).
     /// </summary>

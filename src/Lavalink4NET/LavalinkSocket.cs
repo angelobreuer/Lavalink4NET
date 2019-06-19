@@ -35,6 +35,7 @@ namespace Lavalink4NET
     using System.Threading;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Payloads.Node;
     using Newtonsoft.Json;
     using Payloads;
     using Rest;
