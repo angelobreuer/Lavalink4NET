@@ -70,11 +70,6 @@ namespace Lavalink4NET.Cluster
             _nodesLock = new object();
             _stayOnline = options.StayOnline;
             _nodes = options.Nodes.Select(CreateNode).ToList();
-
-            if (logger != null && _stayOnline)
-            {
-                logger.LogWarning("The feature 'StayOnline' is very experimental. It is recommended to disable it.");
-            }
         }
 
         /// <summary>
