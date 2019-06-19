@@ -1,6 +1,6 @@
 language: csharp
 solution: src/Lavalink4NET.sln
-dotnet: 2.0
+dotnet: 2.2
 mono: none
 script:
  - cd src
