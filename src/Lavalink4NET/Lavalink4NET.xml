@@ -1508,44 +1508,6 @@
             </param>
             <returns>the track found for the query</returns>
         </member>
-        <member name="T:Lavalink4NET.Payloads.ConfigureResumingPayload">
-            <summary>
-                The strongly-typed representation of a configure resuming payload which sent to the
-                lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.ConfigureResumingPayload.#ctor(System.String,System.Int32)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.ConfigureResumingPayload"/> class.
-            </summary>
-            <param name="key">the resuming key</param>
-            <param name="timeout">
-                the number of seconds after disconnecting before the session is closed anyways
-            </param>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.ConfigureResumingPayload.#ctor(System.Int32)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.ConfigureResumingPayload"/> class.
-            </summary>
-            <param name="timeout">
-                the number of seconds after disconnecting before the session is closed anyways
-            </param>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.ConfigureResumingPayload.OpCode">
-            <summary>
-                Gets the operation code for the payload.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.ConfigureResumingPayload.Key">
-            <summary>
-                Gets the resuming key.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.ConfigureResumingPayload.Timeout">
-            <summary>
-                Gets the number of seconds after disconnecting before the session is closed anyways.
-            </summary>
-        </member>
         <member name="T:Lavalink4NET.Payloads.EventPayload">
             <summary>
                 An abstract implementation of lavalink incoming server event payloads.
@@ -1564,6 +1526,136 @@
         <member name="P:Lavalink4NET.Payloads.EventPayload.GuildId">
             <summary>
                 Gets the id of the affected guild.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Events.TrackEndEvent">
+            <summary>
+                The strongly-typed representation of a track end event received from the lavalink node
+                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackEndEvent.Type">
+            <summary>
+                Gets the event type.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackEndEvent.TrackIdentifier">
+            <summary>
+                Gets the identifier of the track that has ended.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackEndEvent.Reason">
+            <summary>
+                Gets the reason why the track ended.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Events.TrackExceptionEvent">
+            <summary>
+                The strongly-typed representation of a track exception event received from the lavalink
+                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackExceptionEvent.Type">
+            <summary>
+                Gets the event type.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackExceptionEvent.TrackIdentifier">
+            <summary>
+                Gets the identifier of the track where the exception occurred.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackExceptionEvent.Error">
+            <summary>
+                Gets the error that occurred.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Events.TrackStuckEvent">
+            <summary>
+                The strongly-typed representation of a track stuck event received from the lavalink node
+                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackStuckEvent.Type">
+            <summary>
+                Gets the event type.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackStuckEvent.TrackIdentifier">
+            <summary>
+                Gets the identifier of the track that got stuck.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackStuckEvent.Threshold">
+            <summary>
+                Gets the threshold in milliseconds.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent">
+            <summary>
+                The update data for the voice server update that is sent to the lavalink server when it
+                was received from the discord gateway.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent.#ctor(System.String,System.UInt64,System.String)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent"/> class.
+            </summary>
+            <param name="token">the token for the voice connection</param>
+            <param name="guildId">the id of the guild the update is for</param>
+            <param name="endpoint">the endpoint of the voice server</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="token"/> is <see langword="null"/>
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="endpoint"/> is <see langword="null"/>
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent.#ctor(Lavalink4NET.VoiceServer)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent"/> class.
+            </summary>
+            <param name="voiceServer">the voice server</param>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent.Token">
+            <summary>
+                Gets the token for the voice connection.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent.GuildId">
+            <summary>
+                Gets the id of the guild the update is for
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent.Endpoint">
+            <summary>
+                Gets the endpoint of the voice server.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Events.WebSocketClosedEvent">
+            <summary>
+                The strongly-typed representation of a web socket closed event received from the lavalink
+                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.WebSocketClosedEvent.Type">
+            <summary>
+                Gets the event type.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.WebSocketClosedEvent.CloseCode">
+            <summary>
+                Gets the web-socket close code.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.WebSocketClosedEvent.Reason">
+            <summary>
+                Gets the reason why the web-socket was closed.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.WebSocketClosedEvent.ByRemote">
+            <summary>
+                Gets a value indicating whether the connection was closed by the remote (discord gateway).
             </summary>
         </member>
         <member name="T:Lavalink4NET.Payloads.EventType">
@@ -1609,6 +1701,126 @@
         <member name="P:Lavalink4NET.Payloads.IPlayerPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the payload is for.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Node.ConfigureResumingPayload">
+            <summary>
+                The strongly-typed representation of a configure resuming payload which sent to the
+                lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.#ctor(System.String,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Node.ConfigureResumingPayload"/> class.
+            </summary>
+            <param name="key">the resuming key</param>
+            <param name="timeout">
+                the number of seconds after disconnecting before the session is closed anyways
+            </param>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.#ctor(System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Node.ConfigureResumingPayload"/> class.
+            </summary>
+            <param name="timeout">
+                the number of seconds after disconnecting before the session is closed anyways
+            </param>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.OpCode">
+            <summary>
+                Gets the operation code for the payload.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.Key">
+            <summary>
+                Gets the resuming key.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.Timeout">
+            <summary>
+                Gets the number of seconds after disconnecting before the session is closed anyways.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Node.StatsUpdatePayload">
+            <summary>
+                The strongly-typed representation of a node statistics payload received from the lavalink
+                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.OpCode">
+            <summary>
+                Gets the operation code for the payload.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.Players">
+            <summary>
+                Gets the number of players the node is holding.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.PlayingPlayers">
+            <summary>
+                Gets the number of players that are currently playing using the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.Uptime">
+            <summary>
+                Gets the uptime from the node (how long the node is online).
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.Memory">
+            <summary>
+                Gets usage statistics for the memory of the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.Processor">
+            <summary>
+                Gets usage statistics for the processor of the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.FrameStatistics">
+            <summary>
+                Gets frame statistics of the node.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Node.VoiceUpdatePayload">
+            <summary>
+                The representation of a voice update lavalink payload.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Node.VoiceUpdatePayload.#ctor(System.UInt64,System.String,Lavalink4NET.Payloads.Events.VoiceServerUpdateEvent)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Node.VoiceUpdatePayload"/> class.
+            </summary>
+            <param name="guildId">the guild snowflake identifier the voice update is for</param>
+            <param name="sessionId">
+                the discord voice state session identifier received from the voice state update payload
+            </param>
+            <param name="voiceServerUpdateEvent">the voice server update event</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="sessionId"/> is <see langword="null"/>
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="voiceServerUpdateEvent"/> is <see langword="null"/>
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.VoiceUpdatePayload.OpCode">
+            <summary>
+                Gets the operation code for the payload.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.VoiceUpdatePayload.GuildId">
+            <summary>
+                Gets the guild snowflake identifier the voice update is for.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.VoiceUpdatePayload.SessionId">
+            <summary>
+                Gets the discord voice state session identifier received from the voice state update payload.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Node.VoiceUpdatePayload.VoiceServerUpdateEvent">
+            <summary>
+                Gets the voice server update event.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Payloads.OpCode">
@@ -1687,98 +1899,98 @@
             <param name="json">the json to deserialize to a payload</param>
             <returns>the deserialized payload</returns>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerDestroyPayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerDestroyPayload">
             <summary>
                 The strongly-typed representation of a player destroy payload sent to the lavalink node
                 (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerDestroyPayload.#ctor(System.UInt64)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerDestroyPayload.#ctor(System.UInt64)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerDestroyPayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerDestroyPayload"/> class.
             </summary>
             <param name="guildId">
                 the guild snowflake identifier where the player should be destroyed
             </param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerDestroyPayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerDestroyPayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerDestroyPayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerDestroyPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier where the player should be destroyed.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerEqualizerPayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload">
             <summary>
                 The strongly-typed representation of a player equalizer update payload sent to the
                 lavalink node (in serialized JSON format). For more reference see the lavalink client
                 implementation documentation https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerEqualizerPayload.#ctor(System.UInt64,Lavalink4NET.Player.EqualizerBand[])">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.#ctor(System.UInt64,Lavalink4NET.Player.EqualizerBand[])">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerEqualizerPayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload"/> class.
             </summary>
             <param name="guildId">
                 the guild snowflake identifier the player equalizer update is for
             </param>
             <param name="bands">the equalizer bands</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerEqualizerPayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerEqualizerPayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player equalizer update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerEqualizerPayload.Bands">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.Bands">
             <summary>
                 Gets the equalizer bands.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerPausePayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerPausePayload">
             <summary>
                 The strongly-typed representation of a player pause payload sent to the lavalink node (in
                 serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerPausePayload.#ctor(System.UInt64,System.Boolean)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerPausePayload.#ctor(System.UInt64,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerPausePayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerPausePayload"/> class.
             </summary>
             <param name="guildId">the guild snowflake identifier the voice update is for</param>
             <param name="pause">a value indicating whether the player should be paused</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPausePayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPausePayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPausePayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPausePayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPausePayload.Pause">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPausePayload.Pause">
             <summary>
                 Gets a value indicating whether the player should be paused.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerPlayPayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerPlayPayload">
             <summary>
                 The strongly-typed representation of a player play payload sent to the lavalink node (in
                 serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerPlayPayload.#ctor(System.UInt64,System.String,System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Boolean)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerPlayPayload.#ctor(System.UInt64,System.String,System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerPlayPayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerPlayPayload"/> class.
             </summary>
             <param name="guildId">the guild snowflake identifier the voice update is for</param>
             <param name="trackIdentifier">the track identifier that the player should play</param>
@@ -1792,368 +2004,156 @@
                 thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>
             </exception>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.TrackIdentifier">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.TrackIdentifier">
             <summary>
                 Gets the track identifier that the player should play.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.StartTime">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.StartTime">
             <summary>
                 Gets the track start position in milliseconds.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.EndTime">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.EndTime">
             <summary>
                 Gets the track end position in milliseconds.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerPlayPayload.NoReplace">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.NoReplace">
             <summary>
                 Gets a value indicating whether the track play should be ignored if the same track is
                 currently playing.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerSeekPayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerSeekPayload">
             <summary>
                 The strongly-typed representation of a player seek payload sent to the lavalink node (in
                 serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerSeekPayload.#ctor(System.UInt64,System.TimeSpan)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerSeekPayload.#ctor(System.UInt64,System.TimeSpan)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerSeekPayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerSeekPayload"/> class.
             </summary>
             <param name="guildId">the guild snowflake identifier the voice update is for</param>
             <param name="position">the seek position</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerSeekPayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerSeekPayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerSeekPayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerSeekPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerSeekPayload.Position">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerSeekPayload.Position">
             <summary>
                 Gets a value indicating whether the player should be paused.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerStopPayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerStatus">
+            <summary>
+                A wrapper for the player status object.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerStatus.#ctor(System.Int64,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerStatus"/> class.
+            </summary>
+            <param name="time">the time when the update was sent</param>
+            <param name="position">the track position in milliseconds</param>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerStatus.UpdateTime">
+            <summary>
+                Gets the time when the position update was sent.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerStatus.Position">
+            <summary>
+                Gets the track position (at the time the update was received, see: <see cref="P:Lavalink4NET.Payloads.Player.PlayerStatus.UpdateTime"/>).
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerStopPayload">
             <summary>
                 The strongly-typed representation of a player stop payload sent to the lavalink node (in
                 serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerStopPayload.#ctor(System.UInt64)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerStopPayload.#ctor(System.UInt64)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerStopPayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerStopPayload"/> class.
             </summary>
             <param name="guildId">the guild snowflake identifier the voice update is for</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerStopPayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerStopPayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerStopPayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerStopPayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerUpdatePayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerUpdatePayload">
             <summary>
                 The strongly-typed representation of a player update payload received from the lavalink
                 node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerUpdatePayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerUpdatePayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerUpdatePayload.Status">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.Status">
             <summary>
                 Gets the player status.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Payloads.PlayerVolumePayload">
+        <member name="T:Lavalink4NET.Payloads.Player.PlayerVolumePayload">
             <summary>
                 The strongly-typed representation of a player volume payload sent to the lavalink node
                 (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.PlayerVolumePayload.#ctor(System.UInt64,System.Int32)">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerVolumePayload.#ctor(System.UInt64,System.Int32)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.PlayerVolumePayload"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerVolumePayload"/> class.
             </summary>
             <param name="guildId">the guild snowflake identifier the voice update is for</param>
             <param name="volume">the player volume (0 - 1000)</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerVolumePayload.OpCode">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerVolumePayload.OpCode">
             <summary>
                 Gets the operation code for the payload.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerVolumePayload.GuildId">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerVolumePayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.PlayerVolumePayload.Volume">
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerVolumePayload.Volume">
             <summary>
                 Gets a value indicating whether the player should be paused.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.StatsUpdatePayload">
-            <summary>
-                The strongly-typed representation of a node statistics payload received from the lavalink
-                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.OpCode">
-            <summary>
-                Gets the operation code for the payload.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.Players">
-            <summary>
-                Gets the number of players the node is holding.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.PlayingPlayers">
-            <summary>
-                Gets the number of players that are currently playing using the node.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.Uptime">
-            <summary>
-                Gets the uptime from the node (how long the node is online).
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.Memory">
-            <summary>
-                Gets usage statistics for the memory of the node.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.Processor">
-            <summary>
-                Gets usage statistics for the processor of the node.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.StatsUpdatePayload.FrameStatistics">
-            <summary>
-                Gets frame statistics of the node.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.TrackEndEvent">
-            <summary>
-                The strongly-typed representation of a track end event received from the lavalink node
-                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackEndEvent.Type">
-            <summary>
-                Gets the event type.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackEndEvent.TrackIdentifier">
-            <summary>
-                Gets the identifier of the track that has ended.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackEndEvent.Reason">
-            <summary>
-                Gets the reason why the track ended.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.TrackExceptionEvent">
-            <summary>
-                The strongly-typed representation of a track exception event received from the lavalink
-                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackExceptionEvent.Type">
-            <summary>
-                Gets the event type.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackExceptionEvent.TrackIdentifier">
-            <summary>
-                Gets the identifier of the track where the exception occurred.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackExceptionEvent.Error">
-            <summary>
-                Gets the error that occurred.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.TrackStuckEvent">
-            <summary>
-                The strongly-typed representation of a track stuck event received from the lavalink node
-                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackStuckEvent.Type">
-            <summary>
-                Gets the event type.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackStuckEvent.TrackIdentifier">
-            <summary>
-                Gets the identifier of the track that got stuck.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.TrackStuckEvent.Threshold">
-            <summary>
-                Gets the threshold in milliseconds.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.VoiceServerUpdateEvent">
-            <summary>
-                The update data for the voice server update that is sent to the lavalink server when it
-                was received from the discord gateway.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.VoiceServerUpdateEvent.#ctor(System.String,System.UInt64,System.String)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.VoiceServerUpdateEvent"/> class.
-            </summary>
-            <param name="token">the token for the voice connection</param>
-            <param name="guildId">the id of the guild the update is for</param>
-            <param name="endpoint">the endpoint of the voice server</param>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="token"/> is <see langword="null"/>
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="endpoint"/> is <see langword="null"/>
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.VoiceServerUpdateEvent.#ctor(Lavalink4NET.VoiceServer)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.VoiceServerUpdateEvent"/> class.
-            </summary>
-            <param name="voiceServer">the voice server</param>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceServerUpdateEvent.Token">
-            <summary>
-                Gets the token for the voice connection.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceServerUpdateEvent.GuildId">
-            <summary>
-                Gets the id of the guild the update is for
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceServerUpdateEvent.Endpoint">
-            <summary>
-                Gets the endpoint of the voice server.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.VoiceUpdatePayload">
-            <summary>
-                The representation of a voice update lavalink payload.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.VoiceUpdatePayload.#ctor(System.UInt64,System.String,Lavalink4NET.Payloads.VoiceServerUpdateEvent)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.VoiceUpdatePayload"/> class.
-            </summary>
-            <param name="guildId">the guild snowflake identifier the voice update is for</param>
-            <param name="sessionId">
-                the discord voice state session identifier received from the voice state update payload
-            </param>
-            <param name="voiceServerUpdateEvent">the voice server update event</param>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="sessionId"/> is <see langword="null"/>
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="voiceServerUpdateEvent"/> is <see langword="null"/>
-            </exception>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceUpdatePayload.OpCode">
-            <summary>
-                Gets the operation code for the payload.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceUpdatePayload.GuildId">
-            <summary>
-                Gets the guild snowflake identifier the voice update is for.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceUpdatePayload.SessionId">
-            <summary>
-                Gets the discord voice state session identifier received from the voice state update payload.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.VoiceUpdatePayload.VoiceServerUpdateEvent">
-            <summary>
-                Gets the voice server update event.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.Payloads.WebSocketClosedEvent">
-            <summary>
-                The strongly-typed representation of a web socket closed event received from the lavalink
-                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.WebSocketClosedEvent.Type">
-            <summary>
-                Gets the event type.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.WebSocketClosedEvent.CloseCode">
-            <summary>
-                Gets the web-socket close code.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.WebSocketClosedEvent.Reason">
-            <summary>
-                Gets the reason why the web-socket was closed.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Payloads.WebSocketClosedEvent.ByRemote">
-            <summary>
-                Gets a value indicating whether the connection was closed by the remote (discord gateway).
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.PlayerStatus">
-            <summary>
-                A wrapper for the player status object.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.PlayerStatus.#ctor(System.Int64,System.Int32)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.PlayerStatus"/> class.
-            </summary>
-            <param name="time">the time when the update was sent</param>
-            <param name="position">the track position in milliseconds</param>
-        </member>
-        <member name="P:Lavalink4NET.PlayerStatus.UpdateTime">
-            <summary>
-                Gets the time when the position update was sent.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.PlayerStatus.Position">
-            <summary>
-                Gets the track position (at the time the update was received, see: <see cref="P:Lavalink4NET.PlayerStatus.UpdateTime"/>).
             </summary>
         </member>
         <member name="T:Lavalink4NET.Player.EqualizerBand">
