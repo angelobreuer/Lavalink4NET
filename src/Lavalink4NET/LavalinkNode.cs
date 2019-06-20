@@ -65,38 +65,6 @@ namespace Lavalink4NET
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
-        /// </summary>
-        /// <param name="options">the node options for connecting</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="logger">the logger</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger)
-            : this(options, client, logger, null)
-        {
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
-        /// </summary>
-        /// <param name="options">the node options for connecting</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="cache">an optional cache that caches track requests</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILavalinkCache cache)
-            : this(options, client, null, cache)
-        {
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
-        /// </summary>
-        /// <param name="options">the node options for connecting</param>
-        /// <param name="client">the discord client</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client)
-            : this(options, client, null, null)
-        {
-        }
-
-        /// <summary>
         ///     An asynchronous event which is triggered when a new statistics update was received
         ///     from the lavalink node.
         /// </summary>

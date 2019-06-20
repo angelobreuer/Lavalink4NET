@@ -61,7 +61,7 @@ namespace Lavalink4NET.Cluster
         ///     a cache that is shared between the different lavalink rest clients. If the cache is
         ///     <see langword="null"/>, no cache will be used.
         /// </param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger, ILavalinkCache cache)
+        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger, ILavalinkCache cache = null)
         {
             _loadBalacingStrategy = options.LoadBalacingStrategy;
             _client = client;
@@ -70,41 +70,6 @@ namespace Lavalink4NET.Cluster
             _nodesLock = new object();
             _stayOnline = options.StayOnline;
             _nodes = options.Nodes.Select(CreateNode).ToList();
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.
-        /// </summary>
-        /// <param name="options">the cluster options</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="logger">the logger</param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger)
-            : this(options, client, logger, null)
-        {
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.
-        /// </summary>
-        /// <param name="options">the cluster options</param>
-        /// <param name="client">the discord client</param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client)
-            : this(options, client, null, null)
-        {
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.
-        /// </summary>
-        /// <param name="options">the cluster options</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="cache">
-        ///     a cache that is shared between the different lavalink rest clients. If the cache is
-        ///     <see langword="null"/>, no cache will be used.
-        /// </param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILavalinkCache cache)
-            : this(options, client, null, cache)
-        {
         }
 
         /// <summary>
