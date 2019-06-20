@@ -10,27 +10,20 @@
     /// </summary>
     /// <remarks>
     ///     All actions done with this <see cref="IDiscordClientWrapper"/> will result in a
-    ///     <see cref="NotImplementedException"/> exception.
+    ///     <see cref="NotImplementedException"/> exception (except <see cref="VoiceServerUpdated"/>
+    ///     and <see cref="VoiceStateUpdated"/>)
     /// </remarks>
     internal class NullDiscordClientWrapper : IDiscordClientWrapper
     {
         /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.
         /// </summary>
-        public event AsyncEventHandler<VoiceServer> VoiceServerUpdated
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
+        public event AsyncEventHandler<VoiceServer> VoiceServerUpdated;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a user voice state was updated.
         /// </summary>
-        public event AsyncEventHandler<VoiceStateUpdateEventArgs> VoiceStateUpdated
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
+        public event AsyncEventHandler<VoiceStateUpdateEventArgs> VoiceStateUpdated;
 
         /// <summary>
         ///     Gets the current user snowflake identifier value.
