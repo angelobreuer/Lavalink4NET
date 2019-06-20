@@ -53,17 +53,14 @@ namespace Lavalink4NET.Events
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="frameStatistics"/> parameter is <see langword="null"/>.
-        /// </exception>
         public StatisticUpdateEventArgs(int players, int playingPlayers, TimeSpan uptime, MemoryStatistics memory, ProcessorStatistics processor, FrameStatistics frameStatistics)
         {
             Players = players;
             PlayingPlayers = playingPlayers;
             Uptime = uptime;
+            FrameStatistics = frameStatistics;
             Memory = memory ?? throw new ArgumentNullException(nameof(memory));
             Processor = processor ?? throw new ArgumentNullException(nameof(processor));
-            FrameStatistics = frameStatistics ?? throw new ArgumentNullException(nameof(frameStatistics));
         }
 
         /// <summary>
