@@ -9,17 +9,18 @@
                 A wrapper for the discord client from the "Discord.NET" discord client library. (https://github.com/discord-net/Discord.Net)
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.InitializeAsync">
-            <summary>
-                Awaits the initialization of the discord client asynchronously.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordShardedClient)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
             </summary>
             <param name="client">the sharded discord client</param>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordShardedClient,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
+            </summary>
+            <param name="client">the sharded discord client</param>
+            <param name="shards">the number of total shards</param>
         </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordSocketClient)">
             <summary>
@@ -65,6 +66,24 @@
                 Disposes the wrapper and unregisters all events attached to the discord client.
             </summary>
         </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
+            <summary>
+                Gets the snowflake identifier values of the users in the voice channel specified by
+                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
+            </summary>
+            <param name="guildId">the guild identifier snowflake where the channel is in</param>
+            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
+            <returns>
+                a task that represents the asynchronous operation
+                <para>the snowflake identifier values of the users in the voice channel</para>
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.InitializeAsync">
+            <summary>
+                Awaits the initialization of the discord client asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.SendVoiceUpdateAsync(System.UInt64,System.Nullable{System.UInt64},System.Boolean,System.Boolean)">
             <summary>
                 Sends a voice channel state update asynchronously.
@@ -77,18 +96,6 @@
             <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
             <param name="selfMute">a value indicating whether the bot user should be self muted</param>
             <returns>a task that represents the asynchronous operation</returns>
-        </member>
-        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
-            <summary>
-                Gets the snowflake identifier values of the users in the voice channel specified by
-                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
-            </summary>
-            <param name="guildId">the guild identifier snowflake where the channel is in</param>
-            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
-            <returns>
-                a task that represents the asynchronous operation
-                <para>the snowflake identifier values of the users in the voice channel</para>
-            </returns>
         </member>
         <member name="T:Lavalink4NET.Discord_NET.IAudioServiceExtensions">
             <summary>
