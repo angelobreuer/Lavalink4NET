@@ -34,8 +34,16 @@ namespace Lavalink4NET.Payloads
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
+    /// <summary>
+    ///     An utility class for converting lavalink payloads.
+    /// </summary>
     internal static class PayloadConverter
     {
+        /// <summary>
+        ///     Gets the implementation type for the specified <paramref name="eventType"/>.
+        /// </summary>
+        /// <param name="eventType">the type of the event</param>
+        /// <returns>the implementation type</returns>
         public static Type GetEventType(EventType eventType)
         {
             switch (eventType)
@@ -57,6 +65,11 @@ namespace Lavalink4NET.Payloads
             }
         }
 
+        /// <summary>
+        ///     Gets the implementation type for the specified <paramref name="opCode"/>.
+        /// </summary>
+        /// <param name="opCode">the operation code of the event</param>
+        /// <returns>the implementation type</returns>
         public static Type GetPayloadType(OpCode opCode)
         {
             switch (opCode)
