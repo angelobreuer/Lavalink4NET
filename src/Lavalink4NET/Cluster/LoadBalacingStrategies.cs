@@ -33,30 +33,30 @@ namespace Lavalink4NET.Cluster
     /// <summary>
     ///     Provides a set of load balancing strategies.
     /// </summary>
-    public static class LoadBalacingStrategies
+    public static class LoadBalancingStrategies
     {
         /// <summary>
         ///     The load-balancing strategy that uses the node that has the least-playing player.
         /// </summary>
-        public static LoadBalacingStrategy LeastPlayersStrategy { get; } = (cluster, nodes)
+        public static LoadBalancingStrategy LeastPlayersStrategy { get; } = (cluster, nodes)
             => nodes.OrderBy(s => s.Statistics?.PlayingPlayers ?? 0).First();
 
         /// <summary>
         ///     The load strategy favors the node that is less used (with the lowest system load).
         /// </summary>
-        public static LoadBalacingStrategy LoadStrategy { get; } = (cluster, nodes)
+        public static LoadBalancingStrategy LoadStrategy { get; } = (cluster, nodes)
             => nodes.OrderBy(s => s.Statistics?.Processor?.SystemLoad ?? 1f).First();
 
         /// <summary>
         ///     The round robin load balancing strategy favors the node that has not been used the longest.
         /// </summary>
-        public static LoadBalacingStrategy RoundRobinStrategy { get; } = (cluster, nodes)
+        public static LoadBalancingStrategy RoundRobinStrategy { get; } = (cluster, nodes)
             => nodes.OrderBy(s => s.LastUsage).First();
 
         /// <summary>
         ///     The score strategy favors the node that has the highest score (higher = better).
         /// </summary>
-        public static LoadBalacingStrategy ScoreStrategy { get; } = (cluster, nodes)
+        public static LoadBalancingStrategy ScoreStrategy { get; } = (cluster, nodes)
             => nodes.OrderByDescending(s => CalculateScore(s.Statistics)).First();
 
         /// <summary>

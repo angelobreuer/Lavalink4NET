@@ -35,8 +35,8 @@ namespace Lavalink4NET.Cluster
         /// <summary>
         ///     Gets or sets the load balancing strategy to use.
         /// </summary>
-        public LoadBalacingStrategy LoadBalacingStrategy { get; set; }
-            = LoadBalacingStrategies.ScoreStrategy;
+        public LoadBalancingStrategy LoadBalacingStrategy { get; set; }
+            = LoadBalancingStrategies.ScoreStrategy;
 
         /// <summary>
         ///     Gets or sets the cluster node options.

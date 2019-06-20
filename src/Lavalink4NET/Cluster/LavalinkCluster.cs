@@ -43,7 +43,7 @@ namespace Lavalink4NET.Cluster
     {
         private readonly ILavalinkCache _cache;
         private readonly IDiscordClientWrapper _client;
-        private readonly LoadBalacingStrategy _loadBalacingStrategy;
+        private readonly LoadBalancingStrategy _loadBalacingStrategy;
         private readonly ILogger _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
@@ -160,7 +160,8 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
-        ///     Gets the preferred node using the <see cref="LoadBalacingStrategy"/> specified in the options.
+        ///     Gets the preferred node using the <see cref="LoadBalancingStrategy"/> specified in
+        ///     the options.
         /// </summary>
         /// <returns>the next preferred node</returns>
         /// <exception cref="InvalidOperationException">
