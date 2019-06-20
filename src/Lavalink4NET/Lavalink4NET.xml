@@ -2323,7 +2323,14 @@
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.Dispose">
             <summary>
-                Destroys the player asynchronously.
+                Disposes the player.
+            </summary>
+            <remarks>This method simply fire-and-forgets <see cref="M:Lavalink4NET.Player.LavalinkPlayer.DisposeAsync"/></remarks>
+            <seealso cref="M:Lavalink4NET.Player.LavalinkPlayer.DisposeAsync"/>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.DisposeAsync">
+            <summary>
+                Disposes the player asynchronously.
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
         </member>

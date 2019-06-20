@@ -40,6 +40,9 @@ namespace Lavalink4NET.Player
     ///     Controls a remote Lavalink Audio Player.
     /// </summary>
     public class LavalinkPlayer : IDisposable
+#if NETCOREAPP3_0
+        , IAsyncDisposable
+#endif
     {
         internal VoiceServer _voiceServer;
         internal VoiceState _voiceState;
@@ -156,10 +159,22 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Destroys the player asynchronously.
+        ///     Disposes the player.
+        /// </summary>
+        /// <remarks>This method simply fire-and-forgets <see cref="DisposeAsync"/></remarks>
+        /// <seealso cref="DisposeAsync"/>
+        public void Dispose() => _ = DisposeAsync();
+
+        /// <summary>
+        ///     Disposes the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual void Dispose()
+#if NETCOREAPP2_1
+        public async ValueTask DisposeAsync()
+#else
+
+        public virtual async Task DisposeAsync()
+#endif
         {
             if (State == PlayerState.Destroyed)
             {
@@ -167,8 +182,7 @@ namespace Lavalink4NET.Player
             }
 
             // Disconnect from voice channel and send destroy player payload to the lavalink node
-            _ = DestroyAsync();
-            _ = DisconnectAsync();
+            await Task.WhenAll(DestroyAsync(), DisconnectAsync());
         }
 
         /// <summary>
