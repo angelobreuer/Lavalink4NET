@@ -177,6 +177,21 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Purges the track queue ( <see cref="QueuedTracks"/>).
+        /// </summary>
+        /// <returns>the number of tracks removed</returns>
+        public virtual int PurgeQueue()
+        {
+            // save number of enqueued tracks
+            var tracks = QueuedTracks.Count;
+
+            // clear track queue
+            QueuedTracks.Clear();
+
+            return tracks;
+        }
+
+        /// <summary>
         ///     Shuffles the <see cref="QueuedTracks"/>.
         /// </summary>
         public void Shuffle()
