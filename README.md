@@ -27,16 +27,16 @@
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/Frederikam/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
 
 ### Features
-- Asynchronous Interface
-- Node Clustering / Load Balancing
-- Extensible
-- Queueing / Voting-System
-- Track Decoding
-- Auto-Reconnect and Resuming
-- Optional Logging
-- Optional Request Caching
-- Optional Inactivity Tracking
-- Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
+- 🔌 Asynchronous Interface
+- ⚖️ Node Clustering / Load Balancing
+- ✳️ Extensible
+- 🗳️ Queueing / Voting-System
+- 🚰 Track Decoding
+- 🔄 Auto-Reconnect and Resuming
+- 📝 Optional Logging
+- ⚡ Optional Request Caching
+- ⏱️ Optional Inactivity Tracking
+- ➕ Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 ### NuGet
 - Download [Lavalink4NET Core ![NuGet - Lavalink4NET Core](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET/) 
