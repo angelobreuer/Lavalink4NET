@@ -20,6 +20,12 @@
                 a cache that is shared between the different lavalink rest clients. If the cache is
                 <see langword="null"/>, no cache will be used.
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.NodeConnected">
             <summary>
@@ -2264,6 +2270,12 @@
             <param name="disconnectOnStop">
                 a value indicating whether the player should stop after the track finished playing
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Player.LavalinkPlayer.DefaultEqualizer">
             <summary>
@@ -2677,6 +2689,12 @@
             <param name="disconnectOnStop">
                 a value indicating whether the player should stop after the track finished playing
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.IsLooping">
             <summary>
@@ -2899,6 +2917,12 @@
             <param name="disconnectOnStop">
                 a value indicating whether the player should stop after the track finished playing
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.GetVoteInfoAsync">
             <summary>

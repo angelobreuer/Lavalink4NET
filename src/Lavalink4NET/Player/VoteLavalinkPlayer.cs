@@ -60,6 +60,12 @@ namespace Lavalink4NET.Player
         /// <param name="disconnectOnStop">
         ///     a value indicating whether the player should stop after the track finished playing
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public VoteLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
             : base(lavalinkSocket, client, guildId, disconnectOnStop) => _skipVotes = new List<ulong>();
 
