@@ -289,6 +289,8 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
+            startTime ??= track.po
+
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
 
             await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,

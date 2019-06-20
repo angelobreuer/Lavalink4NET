@@ -227,6 +227,52 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Pushes a track between the current asynchronously.
+        /// </summary>
+        /// <param name="track">the track to push between the current</param>
+        /// <param name="push">
+        ///     a value indicating whether the track should only played when a track is playing currently.
+        /// </param>
+        /// <remarks>
+        ///     This will stop playing the current track and start playing the specified
+        ///     <paramref name="track"/> after the track is finished the track will restart at the
+        ///     stopped position. This can be useful for example soundboards (playing an air-horn or something).
+        /// </remarks>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is a value
+        ///     indicating whether the track was pushed between the current ( <see langword="true"/>)
+        ///     or the specified track was simply started ( <see langword="false"/>), because there
+        ///     is no track playing.
+        /// </returns>
+        public virtual async Task<bool> PushTrackAsync(LavalinkTrack track, bool push = false)
+        {
+            // star track immediately
+            if (State == PlayerState.NotPlaying)
+            {
+                if (push)
+                {
+                    return false;
+                }
+
+                await PlayAsync(track, enqueue: false);
+                return false;
+            }
+
+            // create clone and set starting position
+            var oldTrack = CurrentTrack.WithPosition(TrackPosition);
+
+            // enqueue old track with starting position
+            lock (_queueLock)
+            {
+                _queue.Add(oldTrack);
+            }
+
+            // push track
+            await PlayAsync(track, enqueue: false);
+            return true;
+        }
+
+        /// <summary>
         ///     Shuffles the track queue.
         /// </summary>
         public void Shuffle()
