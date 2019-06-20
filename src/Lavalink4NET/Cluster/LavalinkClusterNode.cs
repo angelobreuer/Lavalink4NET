@@ -30,7 +30,6 @@ namespace Lavalink4NET.Cluster
     using System;
     using System.Threading.Tasks;
     using Events;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     ///     A clustered lavalink node with additional information.
@@ -47,7 +46,7 @@ namespace Lavalink4NET.Cluster
         /// <param name="cache">an optional cache that caches track requests</param>
         /// <param name="id">the node number</param>
         public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-            ILogger<Lavalink> logger, ILavalinkCache cache, int id)
+            ILogger logger, ILavalinkCache cache, int id)
             : base(options, client, logger, cache)
         {
             Cluster = cluster;

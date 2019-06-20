@@ -1,5 +1,5 @@
 /*
- *  File:   LavalinkRestOptions.cs
+ *  File:   PlayerStopPayload.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,30 +25,34 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Payloads.Player
 {
+    using Newtonsoft.Json;
+
     /// <summary>
-    ///     The options for a lavalink rest client ( <see cref="ILavalinkRestClient"/>).
+    ///     The strongly-typed representation of a player stop payload sent to the lavalink node (in
+    ///     serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public class LavalinkRestOptions : RestClientOptions
+    public sealed class PlayerStopPayload
+         : IPayload, IPlayerPayload
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
-        ///     to the logger (This should be only used for development)
+        ///     Initializes a new instance of the <see cref="PlayerStopPayload"/> class.
         /// </summary>
-        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-        public bool DebugPayloads { get; set; } = false;
+        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+        public PlayerStopPayload(ulong guildId)
+            => GuildId = guildId.ToString();
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node Password.
+        ///     Gets the operation code for the payload.
         /// </summary>
-        /// <remarks>This property defaults to <c>"youshallnotpass"</c>.</remarks>
-        public string Password { get; set; } = "youshallnotpass";
+        [JsonRequired, JsonProperty("op")]
+        public OpCode OpCode => OpCode.PlayerStop;
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node restful HTTP api URI.
+        ///     Gets the guild snowflake identifier the player update is for.
         /// </summary>
-        /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
-        public override string RestUri { get; set; } = "http://localhost:8080/";
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; }
     }
 }

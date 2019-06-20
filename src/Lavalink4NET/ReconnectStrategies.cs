@@ -1,5 +1,5 @@
 ﻿/*
- *  File:   LavalinkClusterNode.cs
+ *  File:   ReconnectStrategies.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)

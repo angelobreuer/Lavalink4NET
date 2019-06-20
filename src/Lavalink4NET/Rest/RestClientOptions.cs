@@ -1,21 +1,21 @@
-/* 
- *  File:   PlayerSeekPayload.cs
+﻿/*
+ *  File:   RestClientOptions.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,45 +25,41 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Rest
 {
     using System;
-    using Newtonsoft.Json;
 
     /// <summary>
-    ///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
-    ///     serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     An abstraction for the options for a RESTful HTTP client.
     /// </summary>
-    public sealed class PlayerSeekPayload
-       : IPayload, IPlayerPayload
+    public abstract class RestClientOptions
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerSeekPayload"/> class.
+        ///     Gets or sets the time how long a request should be cached.
         /// </summary>
-        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-        /// <param name="position">the seek position</param>
-        public PlayerSeekPayload(ulong guildId, TimeSpan position)
-        {
-            GuildId = guildId.ToString();
-            Position = (int)position.TotalMilliseconds;
-        }
+        /// <remarks>
+        ///     Note higher time spans can cause more memory usage, but reduce the number of requests made.
+        /// </remarks>
+        /// <remarks>This property defaults to <c>TimeSpan.FromMinutes(5)</c>.</remarks>
+        public TimeSpan CacheTime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        ///     Gets the operation code for the payload.
+        ///     Gets or sets a value indicating whether the HTTP client accepts compressed payloads.
         /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerSeek;
+        /// <remarks>This property defaults to <see langword="true"/>.</remarks>
+        public bool Decompression { get; set; } = true;
 
         /// <summary>
-        ///     Gets the guild snowflake identifier the player update is for.
+        ///     Gets or sets the RESTful HTTP api endpoint.
         /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
+        /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
+        public abstract string RestUri { get; set; }
 
         /// <summary>
-        ///     Gets a value indicating whether the player should be paused.
+        ///     Gets or sets the user-agent for HTTP requests (use <see langword="null"/> to disable
+        ///     the custom user-agent header).
         /// </summary>
-        [JsonRequired, JsonProperty("position")]
-        public int Position { get; internal set; }
+        /// <remarks>This property defaults to <c>"Lavalink4NET"</c>.</remarks>
+        public string UserAgent { get; set; } = "Lavalink4NET";
     }
 }

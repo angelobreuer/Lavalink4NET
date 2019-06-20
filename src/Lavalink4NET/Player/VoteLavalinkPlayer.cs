@@ -57,8 +57,11 @@ namespace Lavalink4NET.Player
         /// <param name="lavalinkSocket">the lavalink socket</param>
         /// <param name="client">the discord client</param>
         /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        public VoteLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId)
-            : base(lavalinkSocket, client, guildId) => _skipVotes = new List<ulong>();
+        /// <param name="disconnectOnStop">
+        ///     a value indicating whether the player should stop after the track finished playing
+        /// </param>
+        public VoteLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
+            : base(lavalinkSocket, client, guildId, disconnectOnStop) => _skipVotes = new List<ulong>();
 
         /// <summary>
         ///     Gets the player skip vote info.

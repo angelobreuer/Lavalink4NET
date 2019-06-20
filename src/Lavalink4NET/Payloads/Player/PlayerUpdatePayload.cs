@@ -1,5 +1,5 @@
 /*
- *  File:   LavalinkRestOptions.cs
+ *  File:   PlayerUpdatePayload.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,30 +25,32 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Payloads.Player
 {
+    using Newtonsoft.Json;
+
     /// <summary>
-    ///     The options for a lavalink rest client ( <see cref="ILavalinkRestClient"/>).
+    ///     The strongly-typed representation of a player update payload received from the lavalink
+    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public class LavalinkRestOptions : RestClientOptions
+    public sealed class PlayerUpdatePayload : IPlayerPayload
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
-        ///     to the logger (This should be only used for development)
+        ///     Gets the operation code for the payload.
         /// </summary>
-        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-        public bool DebugPayloads { get; set; } = false;
+        [JsonRequired, JsonProperty("op")]
+        public OpCode OpCode => OpCode.PlayerUpdate;
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node Password.
+        ///     Gets the guild snowflake identifier the player update is for.
         /// </summary>
-        /// <remarks>This property defaults to <c>"youshallnotpass"</c>.</remarks>
-        public string Password { get; set; } = "youshallnotpass";
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; }
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node restful HTTP api URI.
+        ///     Gets the player status.
         /// </summary>
-        /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
-        public override string RestUri { get; set; } = "http://localhost:8080/";
+        [JsonRequired, JsonProperty("state")]
+        public PlayerStatus Status { get; internal set; }
     }
 }

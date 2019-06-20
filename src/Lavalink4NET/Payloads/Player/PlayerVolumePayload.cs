@@ -1,21 +1,21 @@
-/* 
- *  File:   TrackExceptionEvent.cs
+/*
+ *  File:   PlayerVolumePayload.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,33 +25,44 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads.Player
 {
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     The strongly-typed representation of a track exception event received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     The strongly-typed representation of a player volume payload sent to the lavalink node
+    ///     (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public sealed class TrackExceptionEvent
-          : EventPayload
+    public sealed class PlayerVolumePayload
+       : IPayload, IPlayerPayload
     {
         /// <summary>
-        ///     Gets the event type.
+        ///     Initializes a new instance of the <see cref="PlayerVolumePayload"/> class.
         /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackException;
+        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+        /// <param name="volume">the player volume (0 - 1000)</param>
+        public PlayerVolumePayload(ulong guildId, int volume = 100)
+        {
+            GuildId = guildId.ToString();
+            Volume = volume;
+        }
 
         /// <summary>
-        ///     Gets the identifier of the track where the exception occurred.
+        ///     Gets the operation code for the payload.
         /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        [JsonRequired, JsonProperty("op")]
+        public OpCode OpCode => OpCode.PlayerVolume;
 
         /// <summary>
-        ///     Gets the error that occurred.
+        ///     Gets the guild snowflake identifier the player update is for.
         /// </summary>
-        [JsonRequired, JsonProperty("error")]
-        public string Error { get; internal set; }
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the player should be paused.
+        /// </summary>
+        [JsonRequired, JsonProperty("volume")]
+        public int Volume { get; internal set; }
     }
 }

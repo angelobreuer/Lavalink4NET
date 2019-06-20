@@ -16,14 +16,14 @@
     <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\angel\source\repos\Lavalink4NET\Lavalink4NET.Discord_NET\Lavalink4NET.Discord_NET.xml</DocumentationFile>
+    <DocumentationFile>Lavalink4NET.Discord_NET.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

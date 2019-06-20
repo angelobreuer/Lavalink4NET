@@ -32,17 +32,25 @@ namespace Lavalink4NET.Player
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
-    using Payloads;
+    using Lavalink4NET.Payloads.Events;
+    using Lavalink4NET.Payloads.Node;
+    using Lavalink4NET.Payloads.Player;
 
     /// <summary>
     ///     Controls a remote Lavalink Audio Player.
     /// </summary>
-    public class LavalinkPlayer : IDisposable
+    public class LavalinkPlayer
+#if NETCOREAPP3_0
+        : IAsyncDisposable
+#else
+        : IDisposable
+#endif
     {
         internal VoiceServer _voiceServer;
         internal VoiceState _voiceState;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
+        private readonly bool _disconnectOnStop;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -50,12 +58,16 @@ namespace Lavalink4NET.Player
         /// <param name="lavalinkSocket">the lavalink socket</param>
         /// <param name="client">the discord client</param>
         /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId)
+        /// <param name="disconnectOnStop">
+        ///     a value indicating whether the player should stop after the track finished playing
+        /// </param>
+        public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
         {
             GuildId = guildId;
             Client = client;
 
             LavalinkSocket = lavalinkSocket;
+            _disconnectOnStop = disconnectOnStop;
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
         }
@@ -154,10 +166,23 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Destroys the player asynchronously.
+        ///     Disposes the player.
+        /// </summary>
+        /// <remarks>This method simply fire-and-forgets <see cref="DisposeAsync"/></remarks>
+        /// <seealso cref="DisposeAsync"/>
+        public void Dispose() => _ = DisposeAsync();
+
+        /// <summary>
+        ///     Disposes the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual void Dispose()
+#if NETCOREAPP3_0
+
+        public virtual async ValueTask DisposeAsync()
+#else
+
+        public virtual async Task DisposeAsync()
+#endif
         {
             if (State == PlayerState.Destroyed)
             {
@@ -165,8 +190,7 @@ namespace Lavalink4NET.Player
             }
 
             // Disconnect from voice channel and send destroy player payload to the lavalink node
-            _ = DestroyAsync();
-            _ = DisconnectAsync();
+            await Task.WhenAll(DestroyAsync(), DisconnectAsync());
         }
 
         /// <summary>
@@ -181,10 +205,21 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Asynchronously triggered when a track ends.
         /// </summary>
+        /// <remarks>
+        ///     When overriding this method without supering / base calling it, the disconnect on
+        ///     stop function will be prevent.
+        /// </remarks>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => Task.CompletedTask;
+        {
+            if (_disconnectOnStop)
+            {
+                return DisconnectAsync();
+            }
+
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         ///     Asynchronously triggered when an exception occurred while playing a track.
@@ -254,6 +289,27 @@ namespace Lavalink4NET.Player
                 startTime, endTime, noReplace));
 
             State = PlayerState.Playing;
+        }
+
+        /// <summary>
+        ///     Replays the current track asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the player is not connected to a voice channel
+        /// </exception>
+        public virtual Task ReplayAsync()
+        {
+            EnsureNotDestroyed();
+            EnsureConnected();
+
+            if (CurrentTrack == null || State == PlayerState.NotPlaying)
+            {
+                throw new InvalidOperationException("No track is playing.");
+            }
+
+            return PlayAsync(CurrentTrack, startTime: TimeSpan.Zero);
         }
 
         /// <summary>
@@ -427,6 +483,28 @@ namespace Lavalink4NET.Player
             return UpdateAsync();
         }
 
+        /// <summary>
+        ///     Sends the voice state and server data to the Lavalink Node if both is provided.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        internal async Task UpdateAsync()
+        {
+            if (_voiceServer == null || _voiceState == null)
+            {
+                // voice state or server is missing
+                return;
+            }
+
+            // send voice update payload
+            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
+                _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
+
+            State = PlayerState.NotPlaying;
+
+            // trigger event
+            await OnConnectedAsync(_voiceServer, _voiceState);
+        }
+
         internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
         {
             _lastPositionUpdate = positionUpdateTime;
@@ -458,26 +536,6 @@ namespace Lavalink4NET.Player
             {
                 throw new InvalidOperationException("The player is destroyed.");
             }
-        }
-
-        /// <summary>
-        ///     Sends the voice state and server data to the Lavalink Node if both is provided.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        internal async Task UpdateAsync()
-        {
-            if (_voiceServer == null || _voiceState == null)
-            {
-                // voice state or server is missing
-                return;
-            }
-
-            // send voice update payload
-            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
-                _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
-
-            // trigger event
-            await OnConnectedAsync(_voiceServer, _voiceState);
         }
     }
 }

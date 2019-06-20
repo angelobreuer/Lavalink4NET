@@ -1,13 +1,3 @@
-<!-- 
- This is the default license template.
- 
- File: Lavalink4NET.Discord_NET.xml
- Author: angel
- Copyright (c) 2019 angel
- 
- To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
- -->
-
 <?xml version="1.0"?>
 <doc>
     <assembly>
@@ -19,17 +9,18 @@
                 A wrapper for the discord client from the "Discord.NET" discord client library. (https://github.com/discord-net/Discord.Net)
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.InitializeAsync">
-            <summary>
-                Awaits the initialization of the discord client asynchronously.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordShardedClient)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
             </summary>
             <param name="client">the sharded discord client</param>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordShardedClient,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Discord_NET.DiscordClientWrapper"/> class.
+            </summary>
+            <param name="client">the sharded discord client</param>
+            <param name="shards">the number of total shards</param>
         </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.#ctor(Discord.WebSocket.DiscordSocketClient)">
             <summary>
@@ -75,6 +66,24 @@
                 Disposes the wrapper and unregisters all events attached to the discord client.
             </summary>
         </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
+            <summary>
+                Gets the snowflake identifier values of the users in the voice channel specified by
+                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
+            </summary>
+            <param name="guildId">the guild identifier snowflake where the channel is in</param>
+            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
+            <returns>
+                a task that represents the asynchronous operation
+                <para>the snowflake identifier values of the users in the voice channel</para>
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.InitializeAsync">
+            <summary>
+                Awaits the initialization of the discord client asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
         <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.SendVoiceUpdateAsync(System.UInt64,System.Nullable{System.UInt64},System.Boolean,System.Boolean)">
             <summary>
                 Sends a voice channel state update asynchronously.
@@ -88,16 +97,40 @@
             <param name="selfMute">a value indicating whether the bot user should be self muted</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.Discord_NET.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
+        <member name="T:Lavalink4NET.Discord_NET.IAudioServiceExtensions">
             <summary>
-                Gets the snowflake identifier values of the users in the voice channel specified by
-                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
+                A set of different extension methods for the <see cref="T:Lavalink4NET.IAudioService"/> class.
             </summary>
-            <param name="guildId">the guild identifier snowflake where the channel is in</param>
-            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.IAudioServiceExtensions.GetPlayer``1(Lavalink4NET.IAudioService,Discord.IGuild)">
+            <summary>
+                Gets the audio player for the specified <paramref name="guild"/>.
+            </summary>
+            <typeparam name="TPlayer">the type of the player to use</typeparam>
+            <param name="audioService">the audio service</param>
+            <param name="guild">the guild to get the player for</param>
+            <returns>the player for the guild</returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.IAudioServiceExtensions.HasPlayer(Lavalink4NET.IAudioService,Discord.IGuild)">
+            <summary>
+                Gets a value indicating whether a player is created for the specified <paramref name="guild"/>.
+            </summary>
+            <param name="audioService">the audio service</param>
+            <param name="guild">the guild to create the player for</param>
+            <returns>a value indicating whether a player is created for the specified <paramref name="guild"/></returns>
+        </member>
+        <member name="M:Lavalink4NET.Discord_NET.IAudioServiceExtensions.JoinAsync``1(Lavalink4NET.IAudioService,Discord.IVoiceChannel,System.Boolean,System.Boolean)">
+            <summary>
+                Joins the specified <paramref name="audioService"/> asynchronously.
+            </summary>
+            <typeparam name="TPlayer">the type of the player to create</typeparam>
+            <param name="audioService">the audio service</param>
+            <param name="voiceChannel">the voice channel to join</param>
+            <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+            <param name="selfMute">a value indicating whether the bot user should be self muted</param>
             <returns>
                 a task that represents the asynchronous operation
-                <para>the snowflake identifier values of the users in the voice channel</para>
+                <para>the audio player</para>
             </returns>
         </member>
     </members>

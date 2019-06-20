@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads.Player
 {
     using System;
     using Newtonsoft.Json;

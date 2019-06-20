@@ -1,5 +1,5 @@
 /*
- *  File:   LavalinkRestOptions.cs
+ *  File:   WebSocketClosedEvent.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,30 +25,39 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Payloads.Events
 {
+    using System.Net.WebSockets;
+    using Newtonsoft.Json;
+
     /// <summary>
-    ///     The options for a lavalink rest client ( <see cref="ILavalinkRestClient"/>).
+    ///     The strongly-typed representation of a web socket closed event received from the lavalink
+    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public class LavalinkRestOptions : RestClientOptions
+    public sealed class WebSocketClosedEvent : EventPayload
     {
         /// <summary>
-        ///     Gets or sets a value indicating whether payload I/O (including rest) should be logged
-        ///     to the logger (This should be only used for development)
+        ///     Gets the event type.
         /// </summary>
-        /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-        public bool DebugPayloads { get; set; } = false;
+        [JsonRequired, JsonProperty("type")]
+        public override EventType Type => EventType.WebSocketClosedEvent;
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node Password.
+        ///     Gets the web-socket close code.
         /// </summary>
-        /// <remarks>This property defaults to <c>"youshallnotpass"</c>.</remarks>
-        public string Password { get; set; } = "youshallnotpass";
+        [JsonRequired, JsonProperty("code")]
+        public WebSocketCloseStatus CloseCode { get; internal set; }
 
         /// <summary>
-        ///     Gets or sets the Lavalink Node restful HTTP api URI.
+        ///     Gets the reason why the web-socket was closed.
         /// </summary>
-        /// <remarks>This property defaults to <c>http://localhost:8080/</c>.</remarks>
-        public override string RestUri { get; set; } = "http://localhost:8080/";
+        [JsonRequired, JsonProperty("reason")]
+        public string Reason { get; internal set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the connection was closed by the remote (discord gateway).
+        /// </summary>
+        [JsonRequired, JsonProperty("byRemote")]
+        public bool ByRemote { get; internal set; }
     }
 }

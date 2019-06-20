@@ -32,7 +32,9 @@ namespace Lavalink4NET
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
-    using Microsoft.Extensions.Logging;
+    using Lavalink4NET.Payloads.Events;
+    using Lavalink4NET.Payloads.Node;
+    using Lavalink4NET.Payloads.Player;
     using Payloads;
     using Player;
 
@@ -50,12 +52,13 @@ namespace Lavalink4NET
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<Lavalink> logger = null, ILavalinkCache cache = null)
+        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
             : base(options, client, logger, cache)
         {
             _discordClient = client;
             Players = new Dictionary<ulong, LavalinkPlayer>();
 
+            _disconnectOnStop = options.DisconnectOnStop;
             _discordClient.VoiceServerUpdated += VoiceServerUpdated;
             _discordClient.VoiceStateUpdated += VoiceStateUpdated;
         }
@@ -85,6 +88,8 @@ namespace Lavalink4NET
         ///     Gets the player dictionary.
         /// </summary>
         protected IDictionary<ulong, LavalinkPlayer> Players { get; }
+
+        private readonly bool _disconnectOnStop;
 
         /// <summary>
         ///     Unregisters all events from the discord client and disposes the inner RESTful HTTP client.
@@ -181,7 +186,7 @@ namespace Lavalink4NET
             if (player == null)
             {
                 Players[guildId] = player = (TPlayer)Activator.CreateInstance(typeof(TPlayer),
-                    this, _discordClient, guildId);
+                    this, _discordClient, guildId, _disconnectOnStop);
             }
 
             if (!player.VoiceChannelId.HasValue || player.VoiceChannelId != voiceChannelId)
@@ -245,6 +250,8 @@ namespace Lavalink4NET
             // remove the player from the current node
             Players.Remove(player.GuildId);
 
+            var wasPlaying = player.State == PlayerState.Playing;
+
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
 
@@ -254,8 +261,15 @@ namespace Lavalink4NET
             // resend voice update to the new node
             await player.UpdateAsync();
 
+            // play track if one is playing
+            if (wasPlaying)
+            {
+                // restart track
+                await player.PlayAsync(player.CurrentTrack);
+            }
+
             // log
-            Logger?.LogInformation("Moved player for guild {GuildId} to new node.", player.GuildId);
+            Logger?.Log(this, string.Format("Moved player for guild {0} to new node.", player.GuildId), LogLevel.Debug);
         }
 
         /// <summary>
@@ -309,11 +323,11 @@ namespace Lavalink4NET
                 Players.Remove(payload.GuildId);
                 player.Dispose();
 
-                Logger?.LogWarning("Voice WebSocket was closed for player: {PlayerId}" +
-                    "\nClose Code: {CloseCode} ({CloseCodeInt}, Reason: {Reason}, By Remote: {ByRemote}",
+                Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
+                    "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
                     payload.GuildId, webSocketClosedEvent.CloseCode,
                     (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
-                    webSocketClosedEvent.ByRemote ? "Yes" : "No");
+                    webSocketClosedEvent.ByRemote ? "Yes" : "No"), LogLevel.Warning);
             }
 
             return Task.CompletedTask;

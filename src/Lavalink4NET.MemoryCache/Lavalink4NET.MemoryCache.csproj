@@ -6,6 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <LangVersion>7.1</LangVersion>
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       NOTE: This package only contains a wrapper for the System.Runtime.Caching.ObjectCache to enable request caching.
@@ -17,7 +18,7 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
