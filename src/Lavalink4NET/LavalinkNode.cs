@@ -355,7 +355,8 @@ namespace Lavalink4NET
                     "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
                     payload.GuildId, webSocketClosedEvent.CloseCode,
                     (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
-                    webSocketClosedEvent.ByRemote ? "Yes" : "No"), LogLevel.Warning);
+                    webSocketClosedEvent.ByRemote ? "Yes" : "No"),
+                    webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
             }
 
             return Task.CompletedTask;

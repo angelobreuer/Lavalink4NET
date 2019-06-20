@@ -230,7 +230,6 @@ namespace Lavalink4NET.Player
             {
                 return PlayAsync(CurrentTrack, false);
             }
-
             // tracks are enqueued
             else if (QueuedTracks.Count > 0)
             {
