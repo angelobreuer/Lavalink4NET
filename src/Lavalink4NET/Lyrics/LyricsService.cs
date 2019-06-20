@@ -113,9 +113,27 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the track found for the query</returns>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the track found
+        ///     for the query
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="artist"/> is blank.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="title"/> is blank.
+        /// </exception>
         public async Task<string> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(artist))
+            {
+                throw new ArgumentException("The specified artist cannot be blank.", nameof(artist));
+            }
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new ArgumentException("The specified title cannot be blank.", nameof(title));
+            }
             // the cache key
             var key = $"lyrics-{artist}-{title}";
 
@@ -138,7 +156,10 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the lyrics found for the query</returns>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the lyrics
+        ///     found for the query
+        /// </returns>
         public Task<string> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -150,7 +171,10 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the lyrics found for the query</returns>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the lyrics
+        ///     found for the query
+        /// </returns>
         public Task<string> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -163,7 +187,16 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the lyrics found for the query</returns>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the lyrics
+        ///     found for the query
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="artist"/> is blank.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="title"/> is blank.
+        /// </exception>
         public async Task<string> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

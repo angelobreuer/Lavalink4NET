@@ -41,16 +41,35 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="identifier">the track identifier</param>
         /// <param name="info">the track info</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="identifier"/> is blank.
+        /// </exception>
         public LavalinkTrack(string identifier, LavalinkTrackInfo info)
-            : this(info) => Identifier = identifier;
+            : this(info)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                throw new ArgumentException("The specified identifier can not be blank.", nameof(identifier));
+            }
+
+            Identifier = identifier;
+        }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkTrack"/> class.
         /// </summary>
         /// <param name="info">the track info</param>
+        /// <exception cref="ArgumentNullException">
+        ///     the specified <paramref name="info"/> can not be <see langword="null"/>.
+        /// </exception>
         [JsonConstructor]
         internal LavalinkTrack(LavalinkTrackInfo info)
         {
+            if (info is null)
+            {
+                throw new ArgumentNullException(nameof(info));
+            }
+
             Author = info.Author;
             Title = info.Title;
             Source = info.Source;

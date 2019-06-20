@@ -45,11 +45,30 @@ namespace Lavalink4NET.Cluster
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
         /// <param name="id">the node number</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="cluster"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
             ILogger logger, ILavalinkCache cache, int id)
             : base(options, client, logger, cache)
         {
-            Cluster = cluster;
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            Cluster = cluster ?? throw new ArgumentNullException(nameof(cluster));
             Identifier = "Cluster Node-" + id;
             LastUsage = DateTimeOffset.MinValue;
         }

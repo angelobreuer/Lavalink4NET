@@ -95,8 +95,16 @@ namespace Lavalink4NET.Payloads
         /// </summary>
         /// <param name="json">the json to deserialize to a payload</param>
         /// <returns>the deserialized payload</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="json"/> is blank.
+        /// </exception>
         public static IPayload ReadPayload(string json)
         {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                throw new ArgumentException("The specified JSON is blank.", nameof(json));
+            }
+
             var jObject = JsonConvert.DeserializeObject<JObject>(json);
 
             if (!jObject.TryGetValue("op", out var opCodeToken))

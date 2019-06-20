@@ -41,6 +41,12 @@ namespace Lavalink4NET.Events
         /// <param name="node">the node that connected</param>
         /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
         /// <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+        /// </exception>
         public NodeConnectedEventArgs(LavalinkClusterNode node, Uri uri, bool wasReconnect)
             : base(uri, wasReconnect) => Node = node ?? throw new ArgumentNullException(nameof(node));
 

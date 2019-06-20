@@ -46,6 +46,12 @@ namespace Lavalink4NET.Events
         /// <param name="byRemote">
         ///     a value indicating whether the connection was closed by the remote endpoint.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+        /// </exception>
         public NodeDisconnectedEventArgs(LavalinkClusterNode node, Uri uri, WebSocketCloseStatus closeStatus, string reason, bool byRemote)
             : base(uri, closeStatus, reason, byRemote) => Node = node ?? throw new ArgumentNullException(nameof(node));
 

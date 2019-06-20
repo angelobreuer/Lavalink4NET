@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   StatisticUpdateEventArgs.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,14 +47,23 @@ namespace Lavalink4NET.Events
         /// <param name="memory">the usage statistics for the memory of the node</param>
         /// <param name="processor">the usage statistics for the processor of the node</param>
         /// <param name="frameStatistics">the frame statistics of the node</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="memory"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="frameStatistics"/> parameter is <see langword="null"/>.
+        /// </exception>
         public StatisticUpdateEventArgs(int players, int playingPlayers, TimeSpan uptime, MemoryStatistics memory, ProcessorStatistics processor, FrameStatistics frameStatistics)
         {
             Players = players;
             PlayingPlayers = playingPlayers;
             Uptime = uptime;
-            Memory = memory;
-            Processor = processor;
-            FrameStatistics = frameStatistics;
+            Memory = memory ?? throw new ArgumentNullException(nameof(memory));
+            Processor = processor ?? throw new ArgumentNullException(nameof(processor));
+            FrameStatistics = frameStatistics ?? throw new ArgumentNullException(nameof(frameStatistics));
         }
 
         /// <summary>

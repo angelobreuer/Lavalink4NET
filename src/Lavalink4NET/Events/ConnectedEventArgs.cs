@@ -39,6 +39,9 @@ namespace Lavalink4NET.Events
         /// </summary>
         /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
         /// <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+        /// </exception>
         public ConnectedEventArgs(Uri uri, bool wasReconnect) : base(uri)
             => WasReconnect = wasReconnect;
 

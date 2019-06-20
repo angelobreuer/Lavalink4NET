@@ -53,10 +53,21 @@ namespace Lavalink4NET
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
             : base(options, client, logger, cache)
         {
-            _discordClient = client;
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _discordClient = client ?? throw new ArgumentNullException(nameof(client));
             Players = new Dictionary<ulong, LavalinkPlayer>();
 
             _disconnectOnStop = options.DisconnectOnStop;
