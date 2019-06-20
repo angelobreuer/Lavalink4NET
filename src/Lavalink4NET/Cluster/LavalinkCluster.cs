@@ -61,7 +61,7 @@ namespace Lavalink4NET.Cluster
         ///     a cache that is shared between the different lavalink rest clients. If the cache is
         ///     <see langword="null"/>, no cache will be used.
         /// </param>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger, ILavalinkCache cache = null)
+        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
         {
             _loadBalacingStrategy = options.LoadBalacingStrategy;
             _client = client;
