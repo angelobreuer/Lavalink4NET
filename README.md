@@ -1,5 +1,7 @@
 <!-- Banner -->
-<img src="https://i.imgur.com/e1jv23h.png"/>
+<a href="https://github.com/angelobreuer/Lavalink4NET/">
+	<img src="https://i.imgur.com/e1jv23h.png"/>
+</a>
 
 <!-- Center badges -->
 <p align="center">
