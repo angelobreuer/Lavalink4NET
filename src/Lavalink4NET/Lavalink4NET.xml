@@ -1281,6 +1281,16 @@
             </summary>
             <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
         </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.DisconnectOnStop">
+            <summary>
+                Gets or sets a value indicating whether the player should disconnect from the voice
+                channel its connected to after the track ended.
+            </summary>
+            <remarks>
+                This property defaults to <see langword="true"/>. This can be useful to set to
+                <see langword="false"/>, for example when using the InactivityTrackingService.
+            </remarks>
+        </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.ReconnectStrategy">
             <summary>
                 Gets or sets the reconnect strategy for reconnection.
@@ -2244,13 +2254,16 @@
                 Controls a remote Lavalink Audio Player.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Player.LavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64)">
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64,System.Boolean)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkPlayer"/> class.
             </summary>
             <param name="lavalinkSocket">the lavalink socket</param>
             <param name="client">the discord client</param>
             <param name="guildId">the identifier of the guild that is controlled by the player</param>
+            <param name="disconnectOnStop">
+                a value indicating whether the player should stop after the track finished playing
+            </param>
         </member>
         <member name="P:Lavalink4NET.Player.LavalinkPlayer.DefaultEqualizer">
             <summary>
@@ -2346,6 +2359,10 @@
             <summary>
                 Asynchronously triggered when a track ends.
             </summary>
+            <remarks>
+                When overriding this method without supering / base calling it, the disconnect on
+                stop function will be prevent.
+            </remarks>
             <param name="eventArgs">the track event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
@@ -2650,18 +2667,33 @@
                 A lavalink player with a queuing system.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64)">
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64,System.Boolean)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Player.QueuedLavalinkPlayer"/> class.
             </summary>
             <param name="lavalinkSocket">the lavalink socket</param>
             <param name="client">the discord client</param>
             <param name="guildId">the identifier of the guild that is controlled by the player</param>
+            <param name="disconnectOnStop">
+                a value indicating whether the player should stop after the track finished playing
+            </param>
         </member>
         <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.IsLooping">
             <summary>
                 Gets or sets a value indicating whether the current playing track should be looped.
             </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks">
+            <summary>
+                Gets the tracks in queue.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
+            <summary>
+                Asynchronously triggered when a track ends.
+            </summary>
+            <param name="eventArgs">the track event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PlayAsync(Lavalink4NET.Player.LavalinkTrack,System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Boolean)">
             <summary>
@@ -2699,12 +2731,18 @@
             </returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.Shuffle">
             <summary>
-                Asynchronously triggered when a track ends.
+                Shuffles the <see cref="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks"/>.
             </summary>
-            <param name="eventArgs">the track event arguments</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.SkipAsync(System.Int32)">
+            <summary>
+                Skips the current track asynchronously.
+            </summary>
+            <param name="count">the number of tracks to skip</param>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.StopAsync(System.Boolean)">
             <summary>
@@ -2713,19 +2751,6 @@
             <param name="disconnect">
                 a value indicating whether the connection to the voice server should be closed
             </param>
-            <returns>a task that represents the asynchronous operation</returns>
-            <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
-        </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks">
-            <summary>
-                Gets the tracks in queue.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.SkipAsync(System.Int32)">
-            <summary>
-                Skips the current track asynchronously.
-            </summary>
-            <param name="count">the number of tracks to skip</param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
@@ -2773,47 +2798,6 @@
             <summary>
                 A stream from a HTTP URL (mp3, flac, wav, WebM, MP4/M4A, OGG, AAC, M3U or PLS).
             </summary>
-        </member>
-        <member name="T:Lavalink4NET.Player.StreamProviderUtil">
-            <summary>
-                An utility class for detecting the stream provider for a lavaplayer URI.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.Player.StreamProviderUtil.GetStreamProvider(System.String)">
-            <summary>
-                Gets the stream provider that has the characters for the specified <paramref name="uri"/>.
-            </summary>
-            <param name="uri">the uri</param>
-            <returns>the stream provider</returns>
-            <exception cref="T:System.ArgumentException">
-                thrown if the specified <paramref name="uri"/> is blank.
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Player.StreamProviderUtil.IsHttpStreamUrl(System.String)">
-            <summary>
-                Gets a value indicating whether the specified <paramref name="path"/> is a HTTP
-                stream URL supported by lavaplayer.
-            </summary>
-            <param name="path">the URI path ( <see cref="P:System.Uri.AbsolutePath"/>)</param>
-            <returns>
-                a value indicating whether the specified <paramref name="path"/> is a HTTP stream URL
-                supported by lavaplayer
-            </returns>
-        </member>
-        <member name="M:Lavalink4NET.Player.StreamProviderUtil.GetStreamProvider(System.String,System.String)">
-            <summary>
-                Gets the stream provider that has the characters for the specified
-                <paramref name="host"/> and <paramref name="path"/>.
-            </summary>
-            <param name="host">the host (e.g. www.youtube.com)</param>
-            <param name="path">the watch (e.g. /watch?v=[...])</param>
-            <returns>the stream provider</returns>
-            <exception cref="T:System.ArgumentException">
-                thrown if the specified <paramref name="host"/> is blank.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="path"/> is <see langword="null"/>.
-            </exception>
         </member>
         <member name="T:Lavalink4NET.Player.TrackEndReason">
             <summary>
@@ -2905,13 +2889,16 @@
             <param name="eventArgs">the track event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64)">
+        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.#ctor(Lavalink4NET.LavalinkSocket,Lavalink4NET.IDiscordClientWrapper,System.UInt64,System.Boolean)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Player.VoteLavalinkPlayer"/> class.
             </summary>
             <param name="lavalinkSocket">the lavalink socket</param>
             <param name="client">the discord client</param>
             <param name="guildId">the identifier of the guild that is controlled by the player</param>
+            <param name="disconnectOnStop">
+                a value indicating whether the player should stop after the track finished playing
+            </param>
         </member>
         <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.GetVoteInfoAsync">
             <summary>
@@ -3716,6 +3703,47 @@
             <summary>
                 Trace message, not critical (just for information / debugging)
             </summary>
+        </member>
+        <member name="T:Lavalink4NET.Util.StreamProviderUtil">
+            <summary>
+                An utility class for detecting the stream provider for a lavaplayer URI.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Util.StreamProviderUtil.GetStreamProvider(System.String)">
+            <summary>
+                Gets the stream provider that has the characters for the specified <paramref name="uri"/>.
+            </summary>
+            <param name="uri">the uri</param>
+            <returns>the stream provider</returns>
+            <exception cref="T:System.ArgumentException">
+                thrown if the specified <paramref name="uri"/> is blank.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Util.StreamProviderUtil.IsHttpStreamUrl(System.String)">
+            <summary>
+                Gets a value indicating whether the specified <paramref name="path"/> is a HTTP
+                stream URL supported by lavaplayer.
+            </summary>
+            <param name="path">the URI path ( <see cref="P:System.Uri.AbsolutePath"/>)</param>
+            <returns>
+                a value indicating whether the specified <paramref name="path"/> is a HTTP stream URL
+                supported by lavaplayer
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Util.StreamProviderUtil.GetStreamProvider(System.String,System.String)">
+            <summary>
+                Gets the stream provider that has the characters for the specified
+                <paramref name="host"/> and <paramref name="path"/>.
+            </summary>
+            <param name="host">the host (e.g. www.youtube.com)</param>
+            <param name="path">the watch (e.g. /watch?v=[...])</param>
+            <returns>the stream provider</returns>
+            <exception cref="T:System.ArgumentException">
+                thrown if the specified <paramref name="host"/> is blank.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="path"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="T:Lavalink4NET.VoiceServer">
             <summary>
