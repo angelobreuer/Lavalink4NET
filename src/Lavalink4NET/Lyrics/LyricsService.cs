@@ -50,6 +50,18 @@ namespace Lavalink4NET.Lyrics
         ///     Initializes a new instance of the <see cref="LyricsService"/> class.
         /// </summary>
         /// <param name="options">the lyrics service options</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+        /// </exception>
+        public LyricsService(LyricsOptions options)
+            : this(options, null)
+        {
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LyricsService"/> class.
+        /// </summary>
+        /// <param name="options">the lyrics service options</param>
         /// <param name="cache">the request cache</param>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
