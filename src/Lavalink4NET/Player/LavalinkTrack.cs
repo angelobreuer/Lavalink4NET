@@ -125,12 +125,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Gets the start position of the track.
-        /// </summary>
-        [JsonIgnore]
-        public TimeSpan Position { get; private set; }
-
-        /// <summary>
         ///     Gets the name of the track author.
         /// </summary>
         [JsonIgnore]
@@ -159,6 +153,12 @@ namespace Lavalink4NET.Player
         /// </summary>
         [JsonIgnore]
         public bool IsSeekable { get; }
+
+        /// <summary>
+        ///     Gets the start position of the track.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan Position { get; private set; }
 
         /// <summary>
         ///     Gets the stream provider (e.g. YouTube).
@@ -191,5 +191,17 @@ namespace Lavalink4NET.Player
         public LavalinkTrack Clone()
             => new LavalinkTrack(Identifier, Author, Duration, IsLiveStream,
                 IsSeekable, Source, Title, TrackIdentifier, Provider);
+
+        /// <summary>
+        ///     Clones the current track and sets the starting position to the specified <paramref name="position"/>.
+        /// </summary>
+        /// <param name="position">the starting position</param>
+        /// <returns>the cloned <see cref="LavalinkTrack"/> instance</returns>
+        public LavalinkTrack WithPosition(TimeSpan position)
+        {
+            var clone = Clone();
+            clone.Position = position;
+            return clone;
+        }
     }
 }
