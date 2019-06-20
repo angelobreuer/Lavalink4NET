@@ -289,7 +289,7 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
-            startTime ??= track.po
+            startTime = startTime ?? track.Position;
 
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
 
