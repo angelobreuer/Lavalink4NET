@@ -41,7 +41,12 @@ namespace Lavalink4NET
     /// <summary>
     ///     Used for connecting to a single lavalink node.
     /// </summary>
-    public class LavalinkNode : LavalinkSocket, IDisposable, IAudioService
+    public class LavalinkNode : LavalinkSocket, IAudioService,
+#if NETCOREAPP3_0
+        IAsyncDisposable
+#else
+        IDisposable
+#endif
     {
         private readonly bool _disconnectOnStop;
         private readonly IDiscordClientWrapper _discordClient;
@@ -102,15 +107,9 @@ namespace Lavalink4NET
         protected IDictionary<ulong, LavalinkPlayer> Players { get; }
 
         /// <summary>
-        ///     Unregisters all events from the discord client and disposes the inner RESTful HTTP client.
+        ///     Fire and forgets <see cref="DisposeAsync"/>.
         /// </summary>
-        public override void Dispose()
-        {
-            _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
-            _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
-
-            base.Dispose();
-        }
+        public override void Dispose() => _ = DisposeAsync();
 
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
@@ -531,6 +530,27 @@ namespace Lavalink4NET
 
             // add player to the new node
             node.Players.Add(player.GuildId, player);
+        }
+
+        /// <summary>
+        ///     Disposes the node asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+#if NETCOREAPP3_0
+        public virtual async ValueTask DisposeAsync()
+#else
+
+        public virtual async Task DisposeAsync()
+#endif
+        {
+            _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
+            _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
+
+            base.Dispose();
+
+            // dispose all players
+            await Task.WhenAll(Players.Values.Select(async s => await s.DisposeAsync()).ToArray());
+            Players.Clear();
         }
     }
 }

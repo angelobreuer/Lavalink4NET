@@ -126,6 +126,7 @@ namespace Lavalink4NET.Cluster
             lock (_nodesLock)
             {
                 _nodes.ForEach(s => s.Dispose());
+                _nodes.Clear();
             }
         }
 
