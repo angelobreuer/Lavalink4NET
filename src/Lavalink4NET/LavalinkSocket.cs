@@ -407,7 +407,7 @@ namespace Lavalink4NET
 
             try
             {
-                result = await _webSocket.ReceiveAsync(_receiveBuffer, CancellationToken.None);
+                result = await _webSocket.ReceiveAsync(_receiveBuffer, _cancellationTokenSource.Token);
             }
             catch (WebSocketException ex)
             {
