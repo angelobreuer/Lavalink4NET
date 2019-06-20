@@ -21,6 +21,32 @@
                 <see langword="null"/>, no cache will be used.
             </param>
         </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> class.
+            </summary>
+            <param name="options">the cluster options</param>
+            <param name="client">the discord client</param>
+            <param name="logger">the logger</param>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> class.
+            </summary>
+            <param name="options">the cluster options</param>
+            <param name="client">the discord client</param>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILavalinkCache)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> class.
+            </summary>
+            <param name="options">the cluster options</param>
+            <param name="client">the discord client</param>
+            <param name="cache">
+                a cache that is shared between the different lavalink rest clients. If the cache is
+                <see langword="null"/>, no cache will be used.
+            </param>
+        </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.NodeConnected">
             <summary>
                 An asynchronous event triggered when a node connected.
@@ -1083,6 +1109,29 @@
             <param name="logger">the logger</param>
             <param name="cache">an optional cache that caches track requests</param>
         </member>
+        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
+            </summary>
+            <param name="options">the node options for connecting</param>
+            <param name="client">the discord client</param>
+            <param name="logger">the logger</param>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILavalinkCache)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
+            </summary>
+            <param name="options">the node options for connecting</param>
+            <param name="client">the discord client</param>
+            <param name="cache">an optional cache that caches track requests</param>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
+            </summary>
+            <param name="options">the node options for connecting</param>
+            <param name="client">the discord client</param>
+        </member>
         <member name="E:Lavalink4NET.LavalinkNode.StatisticsUpdated">
             <summary>
                 An asynchronous event which is triggered when a new statistics update was received
@@ -1488,6 +1537,15 @@
             <summary>
                 A service for retrieving song lyrics from the "https://lyrics.ovh" api.
             </summary>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.#ctor(Lavalink4NET.Lyrics.LyricsOptions)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Lyrics.LyricsService"/> class.
+            </summary>
+            <param name="options">the lyrics service options</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.#ctor(Lavalink4NET.Lyrics.LyricsOptions,Lavalink4NET.ILavalinkCache)">
             <summary>
@@ -3473,6 +3531,23 @@
             <summary>
                 A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
             </summary>
+        </member>
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
+            </summary>
+            <param name="audioService">the audio service where the players should be tracked</param>
+            <param name="clientWrapper">the discord client wrapper</param>
+            <param name="options">the tracking options</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="clientWrapper"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.ILogger)">
             <summary>

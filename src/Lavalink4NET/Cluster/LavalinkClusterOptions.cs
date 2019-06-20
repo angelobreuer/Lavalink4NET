@@ -42,6 +42,7 @@ namespace Lavalink4NET.Cluster
         ///     Gets or sets the cluster node options.
         /// </summary>
         public LavalinkNodeOptions[] Nodes { get; set; }
+            = new LavalinkNodeOptions[0];
 
         /// <summary>
         ///     Gets or sets a value indicating whether players should be moved to a new node if a
