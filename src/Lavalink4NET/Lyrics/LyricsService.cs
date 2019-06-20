@@ -138,7 +138,7 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the track found for the query</returns>
+        /// <returns>the lyrics found for the query</returns>
         public Task<string> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -150,7 +150,7 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the track found for the query</returns>
+        /// <returns>the lyrics found for the query</returns>
         public Task<string> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -163,7 +163,7 @@ namespace Lavalink4NET.Lyrics
         ///     a cancellation token that can be used by other objects or threads to receive notice
         ///     of cancellation.
         /// </param>
-        /// <returns>the track found for the query</returns>
+        /// <returns>the lyrics found for the query</returns>
         public async Task<string> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

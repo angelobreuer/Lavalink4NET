@@ -32,6 +32,7 @@ namespace Lavalink4NET.Rest
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Player;
@@ -124,9 +125,16 @@ namespace Lavalink4NET.Rest
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
-        /// <returns>the track found for the query</returns>
-        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
-            => (await GetTracksAsync(query, mode, noCache))?.FirstOrDefault();
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the track found
+        ///     for the specified <paramref name="query"/>
+        /// </returns>
+        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
+            => (await GetTracksAsync(query, mode, noCache, cancellationToken))?.FirstOrDefault();
 
         /// <summary>
         ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
@@ -137,9 +145,16 @@ namespace Lavalink4NET.Rest
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
-        /// <returns>the tracks found for the query</returns>
-        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
-            => (await LoadTracksAsync(query, mode, noCache))?.Tracks;
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result are the tracks
+        ///     found for the specified <paramref name="query"/>
+        /// </returns>
+        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
+            => (await LoadTracksAsync(query, mode, noCache, cancellationToken))?.Tracks;
 
         /// <summary>
         ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.
@@ -150,11 +165,18 @@ namespace Lavalink4NET.Rest
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation <param>the request response</param>
+        ///     a task that represents the asynchronous operation. The task result is the request
+        ///     response for the specified <paramref name="query"/>.
         /// </returns>
-        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
+        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!(query.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
                 && query.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -178,7 +200,7 @@ namespace Lavalink4NET.Rest
 
             _logger?.Log(this, string.Format("Loading track '{0}'...", query), LogLevel.Debug);
 
-            using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}"))
+            using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}", cancellationToken))
             {
                 VerifyResponse(response);
 
