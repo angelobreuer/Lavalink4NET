@@ -196,6 +196,12 @@ namespace Lavalink4NET.Player
         /// </summary>
         public void Shuffle()
         {
+            // no shuffle needed
+            if (QueuedTracks.Count <= 1)
+            {
+                return;
+            }
+
             // shuffle tracks
             var shuffledTracks = QueuedTracks
                 .OrderBy(s => new Guid())
