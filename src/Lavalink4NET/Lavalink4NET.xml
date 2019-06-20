@@ -2045,6 +2045,25 @@
                 An event was emitted.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Payloads.PayloadConverter">
+            <summary>
+                An utility class for converting lavalink payloads.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.PayloadConverter.GetEventType(Lavalink4NET.Payloads.EventType)">
+            <summary>
+                Gets the implementation type for the specified <paramref name="eventType"/>.
+            </summary>
+            <param name="eventType">the type of the event</param>
+            <returns>the implementation type</returns>
+        </member>
+        <member name="M:Lavalink4NET.Payloads.PayloadConverter.GetPayloadType(Lavalink4NET.Payloads.OpCode)">
+            <summary>
+                Gets the implementation type for the specified <paramref name="opCode"/>.
+            </summary>
+            <param name="opCode">the operation code of the event</param>
+            <returns>the implementation type</returns>
+        </member>
         <member name="M:Lavalink4NET.Payloads.PayloadConverter.ReadPayload(System.String)">
             <summary>
                 Reads a lavalink payload from the specified json.
