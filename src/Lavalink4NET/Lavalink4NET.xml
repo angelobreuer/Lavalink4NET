@@ -2815,12 +2815,17 @@
                 thrown if the specified <paramref name="client"/> is <see langword="null"/>.
             </exception>
         </member>
+        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.EnqueuedTracks">
+            <summary>
+                Gets the number of enqueued tracks.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.IsLooping">
             <summary>
                 Gets or sets a value indicating whether the current playing track should be looped.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks">
+        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.Tracks">
             <summary>
                 Gets the tracks in queue.
             </summary>
@@ -2878,13 +2883,13 @@
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PurgeQueue">
             <summary>
-                Purges the track queue ( <see cref="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks"/>).
+                Purges the track queue.
             </summary>
             <returns>the number of tracks removed</returns>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.Shuffle">
             <summary>
-                Shuffles the <see cref="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks"/>.
+                Shuffles the track queue.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.SkipAsync(System.Int32)">
