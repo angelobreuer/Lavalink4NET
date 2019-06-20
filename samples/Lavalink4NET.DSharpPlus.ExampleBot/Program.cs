@@ -77,7 +77,7 @@ namespace Lavalink4NET.DSharpPlus.ExampleBot
                     }
                 },
 
-                LoadBalacingStrategy = LoadBalacingStrategies.RoundRobinStrategy
+                LoadBalacingStrategy = LoadBalancingStrategies.RoundRobinStrategy
             })
 
             // Request Caching for Lavalink

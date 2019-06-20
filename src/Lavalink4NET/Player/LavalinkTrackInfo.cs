@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Player
 {
     using System;
+    using Lavalink4NET.Util;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -42,24 +43,9 @@ namespace Lavalink4NET.Player
         public string Author { get; internal set; }
 
         /// <summary>
-        ///     Gets the title of the track.
-        /// </summary>
-        [JsonRequired, JsonProperty("title")]
-        public string Title { get; internal set; }
-
-        /// <summary>
-        ///     Gets the track source.
-        /// </summary>
-        [JsonRequired, JsonProperty("uri")]
-        public string Source { get; internal set; }
-
-        [JsonRequired, JsonProperty("length")]
-        internal long RawDuration { set => Duration = value == long.MaxValue ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(value); }
-
-        /// <summary>
         ///     Gets the duration of the track.
         /// </summary>
-        [JsonIgnore]
+        [JsonProperty("length"), JsonConverter(typeof(TimeSpanConverter))]
         public TimeSpan Duration { get; internal set; }
 
         /// <summary>
@@ -73,6 +59,24 @@ namespace Lavalink4NET.Player
         /// </summary>
         [JsonRequired, JsonProperty("isSeekable")]
         public bool IsSeekable { get; internal set; }
+
+        /// <summary>
+        ///     Gets the start position of the track.
+        /// </summary>
+        [JsonProperty("position"), JsonConverter(typeof(TimeSpanConverter))]
+        public TimeSpan Position { get; internal set; }
+
+        /// <summary>
+        ///     Gets the track source.
+        /// </summary>
+        [JsonRequired, JsonProperty("uri")]
+        public string Source { get; internal set; }
+
+        /// <summary>
+        ///     Gets the title of the track.
+        /// </summary>
+        [JsonRequired, JsonProperty("title")]
+        public string Title { get; internal set; }
 
         /// <summary>
         ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).

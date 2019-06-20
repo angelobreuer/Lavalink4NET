@@ -63,8 +63,16 @@ namespace Lavalink4NET.Decoding
         /// <param name="verify">a value indicating whether the track header should be verified</param>
         /// <returns>the decoded track info</returns>
         /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+        /// </exception>
         public static LavalinkTrackInfo DecodeTrackInfo(byte[] buffer, bool verify = true)
         {
+            if (buffer is null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
             using (var memoryStream = new MemoryStream(buffer))
             using (var reader = new DataInputReader(memoryStream))
             {
@@ -97,8 +105,16 @@ namespace Lavalink4NET.Decoding
         /// <param name="length">the length of raw binary data</param>
         /// <param name="verify">a value indicating whether the track header should be verified</param>
         /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="reader"/> is <see langword="null"/>.
+        /// </exception>
         private static void ReadHeader(DataInputReader reader, int length, bool verify = true)
         {
+            if (reader is null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
             // the header is four bytes long, subtract
             length -= 4;
 

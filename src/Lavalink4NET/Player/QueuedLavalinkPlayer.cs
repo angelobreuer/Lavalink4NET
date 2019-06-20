@@ -39,6 +39,8 @@ namespace Lavalink4NET.Player
     public class QueuedLavalinkPlayer : LavalinkPlayer
     {
         private readonly bool _disconnectOnStop;
+        private readonly List<LavalinkTrack> _queue;
+        private readonly object _queueLock;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
@@ -49,11 +51,32 @@ namespace Lavalink4NET.Player
         /// <param name="disconnectOnStop">
         ///     a value indicating whether the player should stop after the track finished playing
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public QueuedLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
             : base(lavalinkSocket, client, guildId, false /* this player handles this on itself */)
         {
-            QueuedTracks = new Queue<LavalinkTrack>();
+            _queue = new List<LavalinkTrack>();
             _disconnectOnStop = disconnectOnStop;
+            _queueLock = new object();
+        }
+
+        /// <summary>
+        ///     Gets the number of enqueued tracks.
+        /// </summary>
+        public int EnqueuedTracks
+        {
+            get
+            {
+                lock (_queueLock)
+                {
+                    return _queue.Count;
+                }
+            }
         }
 
         /// <summary>
@@ -64,7 +87,16 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the tracks in queue.
         /// </summary>
-        public Queue<LavalinkTrack> QueuedTracks { get; }
+        public IReadOnlyList<LavalinkTrack> Tracks
+        {
+            get
+            {
+                lock (_queueLock)
+                {
+                    return _queue.ToList().AsReadOnly();
+                }
+            }
+        }
 
         /// <summary>
         ///     Asynchronously triggered when a track ends.
@@ -125,14 +157,20 @@ namespace Lavalink4NET.Player
 
             if (enqueue && State == PlayerState.Playing)
             {
-                QueuedTracks.Enqueue(track);
+                lock (_queueLock)
+                {
+                    _queue.Add(track);
+                }
 
                 if (State == PlayerState.NotPlaying)
                 {
                     await SkipAsync();
                 }
 
-                return QueuedTracks.Count;
+                lock (_queueLock)
+                {
+                    return _queue.Count;
+                }
             }
 
             await base.PlayAsync(track, startTime, endTime, noReplace);
@@ -140,20 +178,123 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Shuffles the <see cref="QueuedTracks"/>.
+        ///     Plays the specified <paramref name="track"/> at the top of the queue asynchronously.
+        /// </summary>
+        /// <param name="track">the track to play</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        public virtual async Task PlayTopAsync(LavalinkTrack track)
+        {
+            EnsureNotDestroyed();
+
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            // play track if none is playing
+            if (State == PlayerState.NotPlaying)
+            {
+                await PlayAsync(track, enqueue: false);
+            }
+            // the player is currently playing a track, enqueue the track at top
+            else
+            {
+                lock (_queueLock)
+                {
+                    // prepend track
+                    _queue.Insert(0, track);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Purges the track queue.
+        /// </summary>
+        /// <returns>the number of tracks removed</returns>
+        public virtual int PurgeQueue()
+        {
+            lock (_queueLock)
+            {
+                // save number of enqueued tracks
+                var tracks = _queue.Count;
+
+                // clear track queue
+                _queue.Clear();
+
+                return tracks;
+            }
+        }
+
+        /// <summary>
+        ///     Pushes a track between the current asynchronously.
+        /// </summary>
+        /// <param name="track">the track to push between the current</param>
+        /// <param name="push">
+        ///     a value indicating whether the track should only played when a track is playing currently.
+        /// </param>
+        /// <remarks>
+        ///     Note: This feature is experimental. This will stop playing the current track and
+        ///     start playing the specified <paramref name="track"/> after the track is finished the
+        ///     track will restart at the stopped position. This can be useful for example
+        ///     soundboards (playing an air-horn or something).
+        /// </remarks>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is a value
+        ///     indicating whether the track was pushed between the current ( <see langword="true"/>)
+        ///     or the specified track was simply started ( <see langword="false"/>), because there
+        ///     is no track playing.
+        /// </returns>
+        public virtual async Task<bool> PushTrackAsync(LavalinkTrack track, bool push = false)
+        {
+            // star track immediately
+            if (State == PlayerState.NotPlaying)
+            {
+                if (push)
+                {
+                    return false;
+                }
+
+                await PlayAsync(track, enqueue: false);
+                return false;
+            }
+
+            // create clone and set starting position
+            var oldTrack = CurrentTrack.WithPosition(TrackPosition);
+
+            // enqueue old track with starting position
+            lock (_queueLock)
+            {
+                _queue.Add(oldTrack);
+            }
+
+            // push track
+            await PlayAsync(track, enqueue: false);
+            return true;
+        }
+
+        /// <summary>
+        ///     Shuffles the track queue.
         /// </summary>
         public void Shuffle()
         {
-            // shuffle tracks
-            var shuffledTracks = QueuedTracks
-                .OrderBy(s => new Guid())
-                .ToArray();
+            lock (_queueLock)
+            {
+                // no shuffle needed
+                if (_queue.Count <= 1)
+                {
+                    return;
+                }
 
-            // clear old tracks
-            QueuedTracks.Clear();
+                // shuffle tracks
+                var shuffledTracks = _queue
+                    .OrderBy(s => new Guid())
+                    .ToArray();
 
-            // re-add shuffled tracks to queue
-            Array.ForEach(shuffledTracks, QueuedTracks.Enqueue);
+                // clear old tracks and add the shuffled
+                _queue.Clear();
+                _queue.AddRange(shuffledTracks);
+            }
         }
 
         /// <summary>
@@ -178,18 +319,25 @@ namespace Lavalink4NET.Player
             {
                 return PlayAsync(CurrentTrack, false);
             }
-
             // tracks are enqueued
-            else if (QueuedTracks.Count > 0)
+            else if (EnqueuedTracks > 0)
             {
                 LavalinkTrack track = null;
 
                 while (count-- > 0)
                 {
-                    if (!QueuedTracks.TryDequeue(out track))
+                    // no more tracks in queue
+                    if (EnqueuedTracks < 1)
                     {
                         // no tracks found
                         return DisconnectAsync();
+                    }
+
+                    lock (_queueLock)
+                    {
+                        // dequeue track
+                        track = _queue[0];
+                        _queue.RemoveAt(0);
                     }
                 }
 
@@ -215,7 +363,7 @@ namespace Lavalink4NET.Player
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
         public override Task StopAsync(bool disconnect = false)
         {
-            QueuedTracks.Clear();
+            PurgeQueue();
             return base.StopAsync(disconnect);
         }
     }

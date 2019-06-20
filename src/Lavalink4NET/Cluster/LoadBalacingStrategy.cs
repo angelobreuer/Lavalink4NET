@@ -35,5 +35,5 @@ namespace Lavalink4NET.Cluster
     /// <param name="cluster">the cluster</param>
     /// <param name="nodes">the nodes</param>
     /// <returns>the preferred node</returns>
-    public delegate LavalinkClusterNode LoadBalacingStrategy(LavalinkCluster cluster, IReadOnlyCollection<LavalinkClusterNode> nodes);
+    public delegate LavalinkClusterNode LoadBalancingStrategy(LavalinkCluster cluster, IReadOnlyCollection<LavalinkClusterNode> nodes);
 }

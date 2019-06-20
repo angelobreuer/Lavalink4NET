@@ -43,7 +43,7 @@ namespace Lavalink4NET.Cluster
     {
         private readonly ILavalinkCache _cache;
         private readonly IDiscordClientWrapper _client;
-        private readonly LoadBalacingStrategy _loadBalacingStrategy;
+        private readonly LoadBalancingStrategy _loadBalacingStrategy;
         private readonly ILogger _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
@@ -61,10 +61,22 @@ namespace Lavalink4NET.Cluster
         ///     a cache that is shared between the different lavalink rest clients. If the cache is
         ///     <see langword="null"/>, no cache will be used.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
         {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+
             _loadBalacingStrategy = options.LoadBalacingStrategy;
-            _client = client;
             _logger = logger;
             _cache = cache;
             _nodesLock = new object();
@@ -114,6 +126,7 @@ namespace Lavalink4NET.Cluster
             lock (_nodesLock)
             {
                 _nodes.ForEach(s => s.Dispose());
+                _nodes.Clear();
             }
         }
 
@@ -148,7 +161,8 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
-        ///     Gets the preferred node using the <see cref="LoadBalacingStrategy"/> specified in the options.
+        ///     Gets the preferred node using the <see cref="LoadBalancingStrategy"/> specified in
+        ///     the options.
         /// </summary>
         /// <returns>the next preferred node</returns>
         /// <exception cref="InvalidOperationException">

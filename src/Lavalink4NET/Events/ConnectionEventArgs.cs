@@ -38,6 +38,10 @@ namespace Lavalink4NET.Events
         ///     Initializes a new instance of the <see cref="ConnectionEventArgs"/> class.
         /// </summary>
         /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+        /// </exception>
+        /// w
         public ConnectionEventArgs(Uri uri)
             => Uri = uri ?? throw new ArgumentNullException(nameof(uri));
 

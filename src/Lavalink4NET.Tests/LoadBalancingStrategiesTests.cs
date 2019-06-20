@@ -7,13 +7,13 @@
     using Xunit;
 
     /// <summary>
-    ///     Contains tests for load balancing strategies ( <see cref="LoadBalacingStrategies"/>).
+    ///     Contains tests for load balancing strategies ( <see cref="LoadBalancingStrategies"/>).
     /// </summary>
     public sealed class LoadBalancingStrategiesTests
     {
         /// <summary>
         ///     Tests the score balancing strategy calculation method (
-        ///     <see cref="LoadBalacingStrategies.CalculateScore(StatisticUpdateEventArgs)"/>) with
+        ///     <see cref="LoadBalancingStrategies.CalculateScore(StatisticUpdateEventArgs)"/>) with
         ///     good and bad statistics.
         /// </summary>
         [Fact]
@@ -29,8 +29,8 @@
                 new ProcessorStatistics { Cores = 54, NodeLoad = 20, SystemLoad = 30 },
                 new FrameStatistics { AverageDeficitFrames = 0, AverageFramesSent = 10000, AverageNulledFrames = 0 });
 
-            var badScore = LoadBalacingStrategies.CalculateScore(badNode);
-            var goodScore = LoadBalacingStrategies.CalculateScore(goodNode);
+            var badScore = LoadBalancingStrategies.CalculateScore(badNode);
+            var goodScore = LoadBalancingStrategies.CalculateScore(goodNode);
 
             Assert.True(badScore < goodScore, $"bad score ({badScore}) < good score ({goodScore})");
         }

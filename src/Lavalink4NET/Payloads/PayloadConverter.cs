@@ -34,8 +34,16 @@ namespace Lavalink4NET.Payloads
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
+    /// <summary>
+    ///     An utility class for converting lavalink payloads.
+    /// </summary>
     internal static class PayloadConverter
     {
+        /// <summary>
+        ///     Gets the implementation type for the specified <paramref name="eventType"/>.
+        /// </summary>
+        /// <param name="eventType">the type of the event</param>
+        /// <returns>the implementation type</returns>
         public static Type GetEventType(EventType eventType)
         {
             switch (eventType)
@@ -57,6 +65,11 @@ namespace Lavalink4NET.Payloads
             }
         }
 
+        /// <summary>
+        ///     Gets the implementation type for the specified <paramref name="opCode"/>.
+        /// </summary>
+        /// <param name="opCode">the operation code of the event</param>
+        /// <returns>the implementation type</returns>
         public static Type GetPayloadType(OpCode opCode)
         {
             switch (opCode)
@@ -95,8 +108,16 @@ namespace Lavalink4NET.Payloads
         /// </summary>
         /// <param name="json">the json to deserialize to a payload</param>
         /// <returns>the deserialized payload</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="json"/> is blank.
+        /// </exception>
         public static IPayload ReadPayload(string json)
         {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                throw new ArgumentException("The specified JSON is blank.", nameof(json));
+            }
+
             var jObject = JsonConvert.DeserializeObject<JObject>(json);
 
             if (!jObject.TryGetValue("op", out var opCodeToken))

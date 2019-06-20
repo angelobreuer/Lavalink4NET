@@ -61,12 +61,18 @@ namespace Lavalink4NET.Player
         /// <param name="disconnectOnStop">
         ///     a value indicating whether the player should stop after the track finished playing
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
         {
             GuildId = guildId;
-            Client = client;
+            LavalinkSocket = lavalinkSocket ?? throw new ArgumentNullException(nameof(lavalinkSocket));
+            Client = client ?? throw new ArgumentNullException(nameof(client));
 
-            LavalinkSocket = lavalinkSocket;
             _disconnectOnStop = disconnectOnStop;
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
@@ -283,6 +289,8 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
+            startTime = startTime ?? track.Position;
+
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
 
             await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
@@ -498,8 +506,6 @@ namespace Lavalink4NET.Player
             // send voice update payload
             await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
-
-            State = PlayerState.NotPlaying;
 
             // trigger event
             await OnConnectedAsync(_voiceServer, _voiceState);

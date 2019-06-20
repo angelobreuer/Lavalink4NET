@@ -332,7 +332,7 @@ namespace Lavalink4NET
                 var length = Encoding.UTF8.GetBytes(content, 0, content.Length, pooledBuffer, 0);
 
                 // send the payload
-                await _webSocket.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, CancellationToken.None);
+                await _webSocket.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
             }
             catch (Exception ex)
             {

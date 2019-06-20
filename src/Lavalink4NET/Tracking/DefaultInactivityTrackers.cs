@@ -55,6 +55,6 @@ namespace Lavalink4NET.Tracking
         ///     "inactive" when the player is not playing a track.
         /// </summary>
         public static InactivityTracker ChannelInactivityTracker { get; } = (player, _)
-            => Task.FromResult(player.State != Player.PlayerState.NotPlaying);
+            => Task.FromResult(player.State == Player.PlayerState.NotPlaying);
     }
 }

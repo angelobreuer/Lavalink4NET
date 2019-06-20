@@ -180,8 +180,10 @@ namespace Lavalink4NET.Rest
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!(query.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
-                && query.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase)))
+            var isUrl = query.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
+                || query.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase);
+
+            if (!isUrl)
             {
                 if (mode == SearchMode.SoundCloud)
                 {
