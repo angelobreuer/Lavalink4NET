@@ -43,6 +43,7 @@ namespace Lavalink4NET
     /// </summary>
     public class LavalinkNode : LavalinkSocket, IDisposable, IAudioService
     {
+        private readonly bool _disconnectOnStop;
         private readonly IDiscordClientWrapper _discordClient;
 
         /// <summary>
@@ -88,8 +89,6 @@ namespace Lavalink4NET
         ///     Gets the player dictionary.
         /// </summary>
         protected IDictionary<ulong, LavalinkPlayer> Players { get; }
-
-        private readonly bool _disconnectOnStop;
 
         /// <summary>
         ///     Unregisters all events from the discord client and disposes the inner RESTful HTTP client.

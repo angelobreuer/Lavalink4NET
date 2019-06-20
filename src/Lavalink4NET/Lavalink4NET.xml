@@ -3474,6 +3474,23 @@
                 A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
             </summary>
         </member>
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
+            </summary>
+            <param name="audioService">the audio service where the players should be tracked</param>
+            <param name="clientWrapper">the discord client wrapper</param>
+            <param name="options">the tracking options</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="clientWrapper"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> is <see langword="null"/>.
+            </exception>
+        </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.ILogger)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
