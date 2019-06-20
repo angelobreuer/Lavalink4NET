@@ -1182,7 +1182,7 @@
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.Dispose">
             <summary>
-                Unregisters all events from the discord client and disposes the inner RESTful HTTP client.
+                Fire and forgets <see cref="M:Lavalink4NET.LavalinkNode.DisposeAsync"/>.
             </summary>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.GetPlayer``1(System.UInt64)">
@@ -1345,6 +1345,12 @@
             </summary>
             <param name="sender">the event sender (unused here)</param>
             <param name="args">the event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.DisposeAsync">
+            <summary>
+                Disposes the node asynchronously.
+            </summary>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="T:Lavalink4NET.LavalinkNodeOptions">
