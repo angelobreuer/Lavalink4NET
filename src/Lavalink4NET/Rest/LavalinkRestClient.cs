@@ -133,7 +133,8 @@ namespace Lavalink4NET.Rest
         ///     a task that represents the asynchronous operation. The task result is the track found
         ///     for the specified <paramref name="query"/>
         /// </returns>
-        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
+        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
             => (await GetTracksAsync(query, mode, noCache, cancellationToken))?.FirstOrDefault();
 
         /// <summary>
@@ -153,7 +154,8 @@ namespace Lavalink4NET.Rest
         ///     a task that represents the asynchronous operation. The task result are the tracks
         ///     found for the specified <paramref name="query"/>
         /// </returns>
-        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
             => (await LoadTracksAsync(query, mode, noCache, cancellationToken))?.Tracks;
 
         /// <summary>
@@ -173,7 +175,8 @@ namespace Lavalink4NET.Rest
         ///     a task that represents the asynchronous operation. The task result is the request
         ///     response for the specified <paramref name="query"/>.
         /// </returns>
-        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false, CancellationToken cancellationToken = default)
+        public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

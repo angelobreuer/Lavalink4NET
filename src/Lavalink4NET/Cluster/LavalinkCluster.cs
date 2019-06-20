@@ -30,6 +30,7 @@ namespace Lavalink4NET.Cluster
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
     using Player;
@@ -211,16 +212,21 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="query">the track search query</param>
         /// <param name="mode">the track search mode</param>
-        /// <returns>the track found for the query</returns>
         /// <param name="noCache">
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
-        public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
-            => GetPreferredNode().GetTrackAsync(query, mode, noCache);
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result is the track found
+        ///     for the specified <paramref name="query"/>
+        /// </returns>
+        public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
+            => GetPreferredNode().GetTrackAsync(query, mode, noCache, cancellationToken);
 
         /// <summary>
         ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
@@ -231,12 +237,17 @@ namespace Lavalink4NET.Cluster
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
-        /// <returns>the tracks found for the query</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
-        public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
-            => GetPreferredNode().GetTracksAsync(query, mode, noCache);
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation. The task result are the tracks
+        ///     found for the specified <paramref name="query"/>
+        /// </returns>
+        public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
+            => GetPreferredNode().GetTracksAsync(query, mode, noCache, cancellationToken);
 
         /// <summary>
         ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
@@ -294,14 +305,17 @@ namespace Lavalink4NET.Cluster
         ///     a value indicating whether the track should be returned from cache, if it is cached.
         ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
         /// </param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token that can be used by other objects or threads to receive notice
+        ///     of cancellation.
+        /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation <param>the request response</param>
+        ///     a task that represents the asynchronous operation. The task result is the request
+        ///     response for the specified <paramref name="query"/>.
         /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
-        public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None, bool noCache = false)
-            => GetPreferredNode().LoadTracksAsync(query, mode, noCache);
+        public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
+            bool noCache = false, CancellationToken cancellationToken = default)
+            => GetPreferredNode().LoadTracksAsync(query, mode, noCache, cancellationToken);
 
         /// <summary>
         ///     An internal callback when a cluster node connected to the cluster asynchronously.

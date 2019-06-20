@@ -87,22 +87,26 @@
                 thrown if the cluster has not been initialized.
             </exception>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the track for the specified <paramref name="query"/> asynchronously.
             </summary>
             <param name="query">the track search query</param>
             <param name="mode">the track search mode</param>
-            <returns>the track found for the query</returns>
             <param name="noCache">
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the track found
+                for the specified <paramref name="query"/>
+            </returns>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the tracks for the specified <paramref name="query"/> asynchronously.
             </summary>
@@ -112,10 +116,14 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <returns>the tracks found for the query</returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result are the tracks
+                found for the specified <paramref name="query"/>
+            </returns>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.HasPlayer(System.UInt64)">
             <summary>
@@ -151,7 +159,7 @@
                 thrown if the cluster has not been initialized.
             </exception>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Loads the tracks specified by the <paramref name="query"/> asynchronously.
             </summary>
@@ -161,12 +169,14 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
             <returns>
-                a task that represents the asynchronous operation <param>the request response</param>
+                a task that represents the asynchronous operation. The task result is the request
+                response for the specified <paramref name="query"/>.
             </returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.NodeConnectedAsync(Lavalink4NET.Cluster.LavalinkClusterNode,Lavalink4NET.Events.ConnectedEventArgs)">
             <summary>
@@ -1496,6 +1506,28 @@
             </param>
             <returns>the track found for the query</returns>
         </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.GetLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
+            <summary>
+                Gets the lyrics for a track asynchronously (cached).
+            </summary>
+            <param name="trackInfo">the track information to get the lyrics for</param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>the lyrics found for the query</returns>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
+            <summary>
+                Gets the lyrics for a track asynchronously (no caching).
+            </summary>
+            <param name="trackInfo">the track information to get the lyrics for</param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>the lyrics found for the query</returns>
+        </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(System.String,System.String,System.Threading.CancellationToken)">
             <summary>
                 Gets the lyrics for a track asynchronously (no caching).
@@ -1506,7 +1538,7 @@
                 a cancellation token that can be used by other objects or threads to receive notice
                 of cancellation.
             </param>
-            <returns>the track found for the query</returns>
+            <returns>the lyrics found for the query</returns>
         </member>
         <member name="T:Lavalink4NET.Payloads.EventPayload">
             <summary>
@@ -2959,7 +2991,7 @@
                 An interface for a lavalink rest client, that can load tracks from a node.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the track for the specified <paramref name="query"/> asynchronously.
             </summary>
@@ -2969,9 +3001,16 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <returns>the track found for the query</returns>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the track found
+                for the specified <paramref name="query"/>
+            </returns>
         </member>
-        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the tracks for the specified <paramref name="query"/> asynchronously.
             </summary>
@@ -2981,9 +3020,16 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <returns>the tracks found for the query</returns>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result are the tracks
+                found for the specified <paramref name="query"/>
+            </returns>
         </member>
-        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Loads the tracks specified by the <paramref name="query"/> asynchronously.
             </summary>
@@ -2993,8 +3039,13 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
             <returns>
-                a task that represents the asynchronous operation <param>the request response</param>
+                a task that represents the asynchronous operation. The task result is the request
+                response for the specified <paramref name="query"/>.
             </returns>
         </member>
         <member name="T:Lavalink4NET.Rest.LavalinkRestClient">
@@ -3029,7 +3080,7 @@
                 Disposes the inner HTTP client.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the track for the specified <paramref name="query"/> asynchronously.
             </summary>
@@ -3039,9 +3090,16 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <returns>the track found for the query</returns>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the track found
+                for the specified <paramref name="query"/>
+            </returns>
         </member>
-        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Gets the tracks for the specified <paramref name="query"/> asynchronously.
             </summary>
@@ -3051,9 +3109,16 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
-            <returns>the tracks found for the query</returns>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
+            <returns>
+                a task that represents the asynchronous operation. The task result are the tracks
+                found for the specified <paramref name="query"/>
+            </returns>
         </member>
-        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean)">
+        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Loads the tracks specified by the <paramref name="query"/> asynchronously.
             </summary>
@@ -3063,8 +3128,13 @@
                 a value indicating whether the track should be returned from cache, if it is cached.
                 Note this parameter does only take any effect is a cache provider is specified in constructor.
             </param>
+            <param name="cancellationToken">
+                a cancellation token that can be used by other objects or threads to receive notice
+                of cancellation.
+            </param>
             <returns>
-                a task that represents the asynchronous operation <param>the request response</param>
+                a task that represents the asynchronous operation. The task result is the request
+                response for the specified <paramref name="query"/>.
             </returns>
         </member>
         <member name="M:Lavalink4NET.Rest.LavalinkRestClient.VerifyResponse(System.Net.Http.HttpResponseMessage)">
