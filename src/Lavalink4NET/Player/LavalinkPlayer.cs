@@ -173,7 +173,7 @@ namespace Lavalink4NET.Player
         /// <returns>a task that represents the asynchronous operation</returns>
 #if NETCOREAPP3_0
 
-        public async ValueTask DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
 #else
 
         public virtual async Task DisposeAsync()
