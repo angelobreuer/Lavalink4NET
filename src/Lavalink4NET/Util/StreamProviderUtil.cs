@@ -25,9 +25,10 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Util
 {
     using System;
+    using Lavalink4NET.Player;
 
     /// <summary>
     ///     An utility class for detecting the stream provider for a lavaplayer URI.

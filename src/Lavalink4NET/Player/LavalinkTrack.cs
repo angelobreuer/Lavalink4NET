@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Player
 {
     using System;
+    using Lavalink4NET.Util;
     using Newtonsoft.Json;
 
     /// <summary>
