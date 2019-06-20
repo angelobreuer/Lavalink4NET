@@ -48,6 +48,16 @@ namespace Lavalink4NET
         public int BufferSize { get; set; } = 1024 * 1024;
 
         /// <summary>
+        ///     Gets or sets a value indicating whether the player should disconnect from the voice
+        ///     channel its connected to after the track ended.
+        /// </summary>
+        /// <remarks>
+        ///     This property defaults to <see langword="true"/>. This can be useful to set to
+        ///     <see langword="false"/>, for example when using the InactivityTrackingService.
+        /// </remarks>
+        public bool DisconnectOnStop { get; set; } = true;
+
+        /// <summary>
         ///     Gets or sets the reconnect strategy for reconnection.
         /// </summary>
         /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>

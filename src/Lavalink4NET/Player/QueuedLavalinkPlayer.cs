@@ -37,19 +37,48 @@ namespace Lavalink4NET.Player
     /// </summary>
     public class QueuedLavalinkPlayer : LavalinkPlayer
     {
+        private readonly bool _disconnectOnStop;
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
         /// </summary>
         /// <param name="lavalinkSocket">the lavalink socket</param>
         /// <param name="client">the discord client</param>
         /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        public QueuedLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId)
-            : base(lavalinkSocket, client, guildId) => QueuedTracks = new Queue<LavalinkTrack>();
+        /// <param name="disconnectOnStop">
+        ///     a value indicating whether the player should stop after the track finished playing
+        /// </param>
+        public QueuedLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
+            : base(lavalinkSocket, client, guildId, false /* this player handles this on itself */)
+        {
+            QueuedTracks = new Queue<LavalinkTrack>();
+            _disconnectOnStop = disconnectOnStop;
+        }
 
         /// <summary>
         ///     Gets or sets a value indicating whether the current playing track should be looped.
         /// </summary>
         public bool IsLooping { get; set; }
+
+        /// <summary>
+        ///     Gets the tracks in queue.
+        /// </summary>
+        public Queue<LavalinkTrack> QueuedTracks { get; }
+
+        /// <summary>
+        ///     Asynchronously triggered when a track ends.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public override async Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+        {
+            if (eventArgs.MayStartNext)
+            {
+                await SkipAsync();
+            }
+
+            await base.OnTrackEndAsync(eventArgs);
+        }
 
         /// <summary>
         ///     Plays the specified <paramref name="track"/> asynchronously.
@@ -110,40 +139,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Asynchronously triggered when a track ends.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public override async Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-        {
-            if (eventArgs.MayStartNext)
-            {
-                await SkipAsync();
-            }
-
-            await base.OnTrackEndAsync(eventArgs);
-        }
-
-        /// <summary>
-        ///     Stops playing the current track asynchronously.
-        /// </summary>
-        /// <param name="disconnect">
-        ///     a value indicating whether the connection to the voice server should be closed
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public override Task StopAsync(bool disconnect = false)
-        {
-            QueuedTracks.Clear();
-            return base.StopAsync(disconnect);
-        }
-
-        /// <summary>
-        ///     Gets the tracks in queue.
-        /// </summary>
-        public Queue<LavalinkTrack> QueuedTracks { get; }
-
-        /// <summary>
         ///     Skips the current track asynchronously.
         /// </summary>
         /// <param name="count">the number of tracks to skip</param>
@@ -183,11 +178,27 @@ namespace Lavalink4NET.Player
                 // a track to play was found, dequeue and play
                 return PlayAsync(track, false);
             }
-            // no tracks queued, disconnect
-            else
+            // no tracks queued, disconnect if wanted
+            else if (_disconnectOnStop)
             {
                 return DisconnectAsync();
             }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        ///     Stops playing the current track asynchronously.
+        /// </summary>
+        /// <param name="disconnect">
+        ///     a value indicating whether the connection to the voice server should be closed
+        /// </param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        public override Task StopAsync(bool disconnect = false)
+        {
+            QueuedTracks.Clear();
+            return base.StopAsync(disconnect);
         }
     }
 }

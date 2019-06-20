@@ -50,6 +50,7 @@ namespace Lavalink4NET.Player
         internal VoiceState _voiceState;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
+        private readonly bool _disconnectOnStop;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -57,12 +58,16 @@ namespace Lavalink4NET.Player
         /// <param name="lavalinkSocket">the lavalink socket</param>
         /// <param name="client">the discord client</param>
         /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId)
+        /// <param name="disconnectOnStop">
+        ///     a value indicating whether the player should stop after the track finished playing
+        /// </param>
+        public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
         {
             GuildId = guildId;
             Client = client;
 
             LavalinkSocket = lavalinkSocket;
+            _disconnectOnStop = disconnectOnStop;
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
         }
@@ -200,10 +205,21 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Asynchronously triggered when a track ends.
         /// </summary>
+        /// <remarks>
+        ///     When overriding this method without supering / base calling it, the disconnect on
+        ///     stop function will be prevent.
+        /// </remarks>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => Task.CompletedTask;
+        {
+            if (_disconnectOnStop)
+            {
+                return DisconnectAsync();
+            }
+
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         ///     Asynchronously triggered when an exception occurred while playing a track.
