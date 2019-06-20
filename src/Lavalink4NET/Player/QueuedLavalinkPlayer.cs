@@ -29,6 +29,7 @@ namespace Lavalink4NET.Player
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
 
@@ -136,6 +137,23 @@ namespace Lavalink4NET.Player
 
             await base.PlayAsync(track, startTime, endTime, noReplace);
             return 0;
+        }
+
+        /// <summary>
+        ///     Shuffles the <see cref="QueuedTracks"/>.
+        /// </summary>
+        public void Shuffle()
+        {
+            // shuffle tracks
+            var shuffledTracks = QueuedTracks
+                .OrderBy(s => new Guid())
+                .ToArray();
+
+            // clear old tracks
+            QueuedTracks.Clear();
+
+            // re-add shuffled tracks to queue
+            Array.ForEach(shuffledTracks, QueuedTracks.Enqueue);
         }
 
         /// <summary>
