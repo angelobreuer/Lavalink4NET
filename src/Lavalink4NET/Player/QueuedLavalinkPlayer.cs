@@ -146,6 +146,37 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
+        ///     Plays the specified <paramref name="track"/> at the top of the queue asynchronously.
+        /// </summary>
+        /// <param name="track">the track to play</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        public virtual async Task PlayTopAsync(LavalinkTrack track)
+        {
+            EnsureNotDestroyed();
+
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
+            // get tracks prepended with the track
+            var tracks = QueuedTracks.Prepend(track).ToArray();
+
+            // clear all tracks
+            QueuedTracks.Clear();
+
+            // enqueue tracks
+            Array.ForEach(tracks, QueuedTracks.Enqueue);
+
+            // play track if none is playing
+            if (State == PlayerState.NotPlaying && QueuedTracks.Count > 0)
+            {
+                await PlayAsync(QueuedTracks.Dequeue(), enqueue: false);
+            }
+        }
+
+        /// <summary>
         ///     Shuffles the <see cref="QueuedTracks"/>.
         /// </summary>
         public void Shuffle()
