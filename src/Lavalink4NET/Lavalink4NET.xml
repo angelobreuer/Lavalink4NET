@@ -2961,9 +2961,10 @@
                 a value indicating whether the track should only played when a track is playing currently.
             </param>
             <remarks>
-                This will stop playing the current track and start playing the specified
-                <paramref name="track"/> after the track is finished the track will restart at the
-                stopped position. This can be useful for example soundboards (playing an air-horn or something).
+                Note: This feature is experimental. This will stop playing the current track and
+                start playing the specified <paramref name="track"/> after the track is finished the
+                track will restart at the stopped position. This can be useful for example
+                soundboards (playing an air-horn or something).
             </remarks>
             <returns>
                 a task that represents the asynchronous operation. The task result is a value
