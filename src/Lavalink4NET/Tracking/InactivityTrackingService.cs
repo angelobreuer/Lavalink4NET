@@ -66,7 +66,7 @@ namespace Lavalink4NET.Tracking
         ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
         /// </exception>
         public InactivityTrackingService(IAudioService audioService, IDiscordClientWrapper clientWrapper,
-            InactivityTrackingOptions options, ILogger logger)
+            InactivityTrackingOptions options, ILogger logger = null)
         {
             _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
             _clientWrapper = clientWrapper ?? throw new ArgumentNullException(nameof(clientWrapper));
