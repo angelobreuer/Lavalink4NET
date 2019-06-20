@@ -39,9 +39,11 @@ namespace Lavalink4NET.Player
     /// <summary>
     ///     Controls a remote Lavalink Audio Player.
     /// </summary>
-    public class LavalinkPlayer : IDisposable
+    public class LavalinkPlayer
 #if NETCOREAPP3_0
-        , IAsyncDisposable
+        : IAsyncDisposable
+#else
+        : IDisposable
 #endif
     {
         internal VoiceServer _voiceServer;
@@ -169,7 +171,8 @@ namespace Lavalink4NET.Player
         ///     Disposes the player asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
-#if NETCOREAPP2_1
+#if NETCOREAPP3_0
+
         public async ValueTask DisposeAsync()
 #else
 
