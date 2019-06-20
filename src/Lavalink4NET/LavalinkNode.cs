@@ -197,6 +197,39 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
+        /// </summary>
+        /// <param name="node">the node to move the players to</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     thrown if the specified <paramref name="node"/> is the same as the player node.
+        /// </exception>
+        public async Task MoveAllPlayersAsync(LavalinkNode node)
+        {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node), "The specified target node is null.");
+            }
+
+            if (node == this)
+            {
+                throw new ArgumentException("Can not move the player to the same node.", nameof(node));
+            }
+
+            var players = Players.ToArray();
+            Players.Clear();
+
+            // await until all players were moved to the new node
+            await Task.WhenAll(players.Select(player => MovePlayerInternalAsync(player.Value, node)));
+
+            // log
+            Logger?.Log(this, string.Format("Moved {0} player(s) to a new node.", players.Length), LogLevel.Debug);
+        }
+
+        /// <summary>
         ///     Moves the specified <paramref name="player"/> to the specified
         ///     <paramref name="node"/> asynchronously (while keeping its data and the same instance
         ///     of the player).
@@ -249,23 +282,8 @@ namespace Lavalink4NET
             // remove the player from the current node
             Players.Remove(player.GuildId);
 
-            var wasPlaying = player.State == PlayerState.Playing;
-
-            // destroy (NOT DISCONNECT) the player
-            await player.DestroyAsync();
-
-            // update the communication node
-            player.LavalinkSocket = node;
-
-            // resend voice update to the new node
-            await player.UpdateAsync();
-
-            // play track if one is playing
-            if (wasPlaying)
-            {
-                // restart track
-                await player.PlayAsync(player.CurrentTrack);
-            }
+            // move player
+            await MovePlayerInternalAsync(player, node);
 
             // log
             Logger?.Log(this, string.Format("Moved player for guild {0} to new node.", player.GuildId), LogLevel.Debug);
@@ -477,6 +495,30 @@ namespace Lavalink4NET
             {
                 await player.UpdateAsync(args.VoiceState);
             }
+        }
+
+        private async Task MovePlayerInternalAsync(LavalinkPlayer player, LavalinkNode node)
+        {
+            var wasPlaying = player.State == PlayerState.Playing;
+
+            // destroy (NOT DISCONNECT) the player
+            await player.DestroyAsync();
+
+            // update the communication node
+            player.LavalinkSocket = node;
+
+            // resend voice update to the new node
+            await player.UpdateAsync();
+
+            // play track if one is playing
+            if (wasPlaying)
+            {
+                // restart track
+                await player.PlayAsync(player.CurrentTrack);
+            }
+
+            // add player to the new node
+            node.Players.Add(player.GuildId, player);
         }
     }
 }
