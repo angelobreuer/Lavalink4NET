@@ -39,7 +39,7 @@ namespace Lavalink4NET.Player
     public class QueuedLavalinkPlayer : LavalinkPlayer
     {
         private readonly bool _disconnectOnStop;
-        private readonly Queue<LavalinkTrack> _queue;
+        private readonly List<LavalinkTrack> _queue;
         private readonly object _queueLock;
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Lavalink4NET.Player
         public QueuedLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
             : base(lavalinkSocket, client, guildId, false /* this player handles this on itself */)
         {
-            _queue = new Queue<LavalinkTrack>();
+            _queue = new List<LavalinkTrack>();
             _disconnectOnStop = disconnectOnStop;
             _queueLock = new object();
         }
@@ -159,7 +159,7 @@ namespace Lavalink4NET.Player
             {
                 lock (_queueLock)
                 {
-                    _queue.Enqueue(track);
+                    _queue.Add(track);
                 }
 
                 if (State == PlayerState.NotPlaying)
@@ -202,14 +202,8 @@ namespace Lavalink4NET.Player
             {
                 lock (_queueLock)
                 {
-                    // get tracks prepended with the track
-                    var tracks = _queue.Prepend(track).ToArray();
-
-                    // clear all tracks
-                    _queue.Clear();
-
-                    // enqueue tracks
-                    Array.ForEach(tracks, _queue.Enqueue);
+                    // prepend track
+                    _queue.Insert(0, track);
                 }
             }
         }
@@ -250,11 +244,9 @@ namespace Lavalink4NET.Player
                     .OrderBy(s => new Guid())
                     .ToArray();
 
-                // clear old tracks
+                // clear old tracks and add the shuffled
                 _queue.Clear();
-
-                // re-add shuffled tracks to queue
-                Array.ForEach(shuffledTracks, _queue.Enqueue);
+                _queue.AddRange(shuffledTracks);
             }
         }
 
@@ -297,7 +289,8 @@ namespace Lavalink4NET.Player
                     lock (_queueLock)
                     {
                         // dequeue track
-                        track = _queue.Dequeue();
+                        track = _queue[0];
+                        _queue.RemoveAt(0);
                     }
                 }
 
