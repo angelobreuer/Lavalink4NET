@@ -23,9 +23,9 @@
 
 <br/>
 
-<!-- Travis CI Badge -->
+<!-- Travis CI (master) Badge -->
 <a href="https://travis-ci.org/angelobreuer/Lavalink4NET">
-	<img alt="Travis CI" src="https://img.shields.io/travis/angelobreuer/Lavalink4NET.svg?style=for-the-badge" />	
+	<img alt="Travis CI" src="https://img.shields.io/travis/angelobreuer/Lavalink4NET/master.svg?style=for-the-badge" />	
 </a>	
 
 
