@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   DiscordClientWrapper.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,29 +40,10 @@ namespace Lavalink4NET.Discord_NET
     /// </summary>
     public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
+        private static readonly MethodInfo _disconnectMethod = typeof(SocketGuild)
+            .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+
         private readonly BaseSocketClient _baseSocketClient;
-
-        /// <summary>
-        ///     Awaits the initialization of the discord client asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task InitializeAsync()
-        {
-            var startTime = DateTimeOffset.UtcNow;
-
-            // await until current user arrived
-            while (_baseSocketClient.CurrentUser == null)
-            {
-                await Task.Delay(10);
-
-                // timeout exceeded
-                if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
-                {
-                    throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
-                        "the discord client, before initializing the discord wrapper!");
-                }
-            }
-        }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
@@ -70,6 +51,16 @@ namespace Lavalink4NET.Discord_NET
         /// <param name="client">the sharded discord client</param>
         public DiscordClientWrapper(DiscordShardedClient client)
             : this(client, client.Shards.Count)
+        {
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
+        /// </summary>
+        /// <param name="client">the sharded discord client</param>
+        /// <param name="shards">the number of total shards</param>
+        public DiscordClientWrapper(DiscordShardedClient client, int shards)
+            : this(client as BaseSocketClient, shards)
         {
         }
 
@@ -136,8 +127,48 @@ namespace Lavalink4NET.Discord_NET
             _baseSocketClient.UserVoiceStateUpdated -= OnVoiceStateUpdated;
         }
 
-        private static readonly MethodInfo _disconnectMethod = typeof(SocketGuild)
-            .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+        /// <summary>
+        ///     Gets the snowflake identifier values of the users in the voice channel specified by
+        ///     <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
+        /// </summary>
+        /// <param name="guildId">the guild identifier snowflake where the channel is in</param>
+        /// <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation
+        ///     <para>the snowflake identifier values of the users in the voice channel</para>
+        /// </returns>
+        public Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
+        {
+            var guild = _baseSocketClient.GetGuild(guildId)
+               ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
+
+            var channel = guild.GetVoiceChannel(voiceChannelId)
+                ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
+
+            return Task.FromResult(channel.Users.Select(s => s.Id));
+        }
+
+        /// <summary>
+        ///     Awaits the initialization of the discord client asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public async Task InitializeAsync()
+        {
+            var startTime = DateTimeOffset.UtcNow;
+
+            // await until current user arrived
+            while (_baseSocketClient.CurrentUser == null)
+            {
+                await Task.Delay(10);
+
+                // timeout exceeded
+                if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
+                {
+                    throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
+                        "the discord client, before initializing the discord wrapper!");
+                }
+            }
+        }
 
         /// <summary>
         ///     Sends a voice channel state update asynchronously.
@@ -179,27 +210,6 @@ namespace Lavalink4NET.Discord_NET
             var voiceState = new VoiceState(socketVoiceState.VoiceChannel?.Id, guildId, socketVoiceState.VoiceSessionId);
             var args = new VoiceStateUpdateEventArgs(user.Id, voiceState, oldVoiceState);
             return VoiceStateUpdated.InvokeAsync(this, args);
-        }
-
-        /// <summary>
-        ///     Gets the snowflake identifier values of the users in the voice channel specified by
-        ///     <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
-        /// </summary>
-        /// <param name="guildId">the guild identifier snowflake where the channel is in</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the snowflake identifier values of the users in the voice channel</para>
-        /// </returns>
-        public Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
-        {
-            var guild = _baseSocketClient.GetGuild(guildId)
-               ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
-
-            var channel = guild.GetVoiceChannel(voiceChannelId)
-                ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
-
-            return Task.FromResult(channel.Users.Select(s => s.Id));
         }
     }
 }
