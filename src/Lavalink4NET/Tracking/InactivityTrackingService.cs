@@ -55,26 +55,6 @@ namespace Lavalink4NET.Tracking
         /// <param name="audioService">the audio service where the players should be tracked</param>
         /// <param name="clientWrapper">the discord client wrapper</param>
         /// <param name="options">the tracking options</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="clientWrapper"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
-        /// </exception>
-        public InactivityTrackingService(IAudioService audioService, IDiscordClientWrapper clientWrapper, InactivityTrackingOptions options)
-            : this(audioService, clientWrapper, options, null)
-        {
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="InactivityTrackingService"/> class.
-        /// </summary>
-        /// <param name="audioService">the audio service where the players should be tracked</param>
-        /// <param name="clientWrapper">the discord client wrapper</param>
-        /// <param name="options">the tracking options</param>
         /// <param name="logger">the optional logger</param>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
@@ -86,7 +66,7 @@ namespace Lavalink4NET.Tracking
         ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
         /// </exception>
         public InactivityTrackingService(IAudioService audioService, IDiscordClientWrapper clientWrapper,
-            InactivityTrackingOptions options, ILogger logger)
+            InactivityTrackingOptions options, ILogger logger = null)
         {
             _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
             _clientWrapper = clientWrapper ?? throw new ArgumentNullException(nameof(clientWrapper));
