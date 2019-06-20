@@ -74,7 +74,8 @@
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPreferredNode">
             <summary>
-                Gets the preferred node using the <see cref="T:Lavalink4NET.Cluster.LoadBalacingStrategy"/> specified in the options.
+                Gets the preferred node using the <see cref="T:Lavalink4NET.Cluster.LoadBalancingStrategy"/> specified in
+                the options.
             </summary>
             <returns>the next preferred node</returns>
             <exception cref="T:System.InvalidOperationException">
@@ -236,6 +237,15 @@
             <param name="logger">the logger</param>
             <param name="cache">an optional cache that caches track requests</param>
             <param name="id">the node number</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="cluster"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.Cluster">
             <summary>
@@ -302,39 +312,39 @@
                 This property defaults to <see langword="false"/>, because this feature is very experimental.
             </remarks>
         </member>
-        <member name="T:Lavalink4NET.Cluster.LoadBalacingStrategies">
+        <member name="T:Lavalink4NET.Cluster.LoadBalancingStrategies">
             <summary>
                 Provides a set of load balancing strategies.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.LeastPlayersStrategy">
+        <member name="P:Lavalink4NET.Cluster.LoadBalancingStrategies.LeastPlayersStrategy">
             <summary>
                 The load-balancing strategy that uses the node that has the least-playing player.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.LoadStrategy">
+        <member name="P:Lavalink4NET.Cluster.LoadBalancingStrategies.LoadStrategy">
             <summary>
                 The load strategy favors the node that is less used (with the lowest system load).
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.RoundRobinStrategy">
+        <member name="P:Lavalink4NET.Cluster.LoadBalancingStrategies.RoundRobinStrategy">
             <summary>
                 The round robin load balancing strategy favors the node that has not been used the longest.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LoadBalacingStrategies.ScoreStrategy">
+        <member name="P:Lavalink4NET.Cluster.LoadBalancingStrategies.ScoreStrategy">
             <summary>
                 The score strategy favors the node that has the highest score (higher = better).
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LoadBalacingStrategies.CalculateScore(Lavalink4NET.Events.StatisticUpdateEventArgs)">
+        <member name="M:Lavalink4NET.Cluster.LoadBalancingStrategies.CalculateScore(Lavalink4NET.Events.StatisticUpdateEventArgs)">
             <summary>
                 Calculates the node score.
             </summary>
             <param name="statistics">the node statistics</param>
             <returns>the score for the node (higher = better)</returns>
         </member>
-        <member name="T:Lavalink4NET.Cluster.LoadBalacingStrategy">
+        <member name="T:Lavalink4NET.Cluster.LoadBalancingStrategy">
             <summary>
                 Gets a suitable node using the load balancing strategy.
             </summary>
@@ -356,6 +366,9 @@
             <param name="leaveOpen">
                 a value indicating whether the stream should be left open when disposing
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="baseStream"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Decoding.DataInputReader.BaseStream">
             <summary>
@@ -495,6 +508,9 @@
             <param name="data">the data to convert</param>
             <param name="source">the source endianness</param>
             <param name="target">the target endianness</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="data"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="T:Lavalink4NET.Decoding.Endianness">
             <summary>
@@ -542,6 +558,9 @@
             <param name="verify">a value indicating whether the track header should be verified</param>
             <returns>the decoded track info</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the track header is invalid</exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.TrackDecoder.ReadHeader(Lavalink4NET.Decoding.DataInputReader,System.Int32,System.Boolean)">
             <summary>
@@ -551,6 +570,9 @@
             <param name="length">the length of raw binary data</param>
             <param name="verify">a value indicating whether the track header should be verified</param>
             <exception cref="T:System.InvalidOperationException">thrown if the track header is invalid</exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="reader"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="T:Lavalink4NET.Events.AsyncEventExtensions">
             <summary>
@@ -623,6 +645,9 @@
             </summary>
             <param name="uri">the URI connect / reconnected / disconnected from / to</param>
             <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.ConnectedEventArgs.WasReconnect">
             <summary>
@@ -639,6 +664,10 @@
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Events.ConnectionEventArgs"/> class.
             </summary>
             <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
+            w
         </member>
         <member name="P:Lavalink4NET.Events.ConnectionEventArgs.Uri">
             <summary>
@@ -660,6 +689,9 @@
             <param name="byRemote">
                 a value indicating whether the connection was closed by the remote endpoint.
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.DisconnectedEventArgs.CloseStatus">
             <summary>
@@ -688,6 +720,12 @@
             <param name="node">the node that connected</param>
             <param name="uri">the URI connect / reconnected / disconnected from / to</param>
             <param name="wasReconnect">a value indicating whether the connect was a reconnect</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Events.NodeConnectedEventArgs.#ctor(Lavalink4NET.Cluster.LavalinkClusterNode,Lavalink4NET.Events.ConnectedEventArgs)">
             <summary>
@@ -717,6 +755,12 @@
             <param name="byRemote">
                 a value indicating whether the connection was closed by the remote endpoint.
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Events.NodeDisconnectedEventArgs.#ctor(Lavalink4NET.Cluster.LavalinkClusterNode,Lavalink4NET.Events.DisconnectedEventArgs)">
             <summary>
@@ -740,6 +784,9 @@
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PayloadReceivedEventArgs"/> class.
             </summary>
             <param name="payload">the payload that was received</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.PayloadReceivedEventArgs.Payload">
             <summary>
@@ -763,6 +810,15 @@
             <param name="memory">the usage statistics for the memory of the node</param>
             <param name="processor">the usage statistics for the processor of the node</param>
             <param name="frameStatistics">the frame statistics of the node</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="memory"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="frameStatistics"/> parameter is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.Players">
             <summary>
@@ -915,6 +971,12 @@
             <param name="userId">the user snowflake identifier the update is for</param>
             <param name="voiceState">the new user voice state</param>
             <param name="oldVoiceState">the old user voice state</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.VoiceStateUpdateEventArgs.UserId">
             <summary>
@@ -1088,6 +1150,12 @@
             <param name="client">the discord client</param>
             <param name="logger">the logger</param>
             <param name="cache">an optional cache that caches track requests</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="E:Lavalink4NET.LavalinkNode.StatisticsUpdated">
             <summary>
@@ -1172,6 +1240,19 @@
                 thrown when a player was already created for the guild specified by
                 <paramref name="guildId"/>, but the requested player type (
                 <typeparamref name="TPlayer"/>) differs from the created one.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.MoveAllPlayersAsync(Lavalink4NET.LavalinkNode)">
+            <summary>
+                Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
+            </summary>
+            <param name="node">the node to move the players to</param>
+            <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                thrown if the specified <paramref name="node"/> is the same as the player node.
             </exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.MovePlayerAsync(Lavalink4NET.Player.LavalinkPlayer,Lavalink4NET.LavalinkNode)">
@@ -1520,7 +1601,16 @@
                 a cancellation token that can be used by other objects or threads to receive notice
                 of cancellation.
             </param>
-            <returns>the track found for the query</returns>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the track found
+                for the query
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="artist"/> is blank.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="title"/> is blank.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.GetLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
             <summary>
@@ -1531,7 +1621,10 @@
                 a cancellation token that can be used by other objects or threads to receive notice
                 of cancellation.
             </param>
-            <returns>the lyrics found for the query</returns>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the lyrics
+                found for the query
+            </returns>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
             <summary>
@@ -1542,7 +1635,10 @@
                 a cancellation token that can be used by other objects or threads to receive notice
                 of cancellation.
             </param>
-            <returns>the lyrics found for the query</returns>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the lyrics
+                found for the query
+            </returns>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(System.String,System.String,System.Threading.CancellationToken)">
             <summary>
@@ -1554,7 +1650,16 @@
                 a cancellation token that can be used by other objects or threads to receive notice
                 of cancellation.
             </param>
-            <returns>the lyrics found for the query</returns>
+            <returns>
+                a task that represents the asynchronous operation. The task result is the lyrics
+                found for the query
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="artist"/> is blank.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="title"/> is blank.
+            </exception>
         </member>
         <member name="T:Lavalink4NET.Payloads.EventPayload">
             <summary>
@@ -1946,6 +2051,9 @@
             </summary>
             <param name="json">the json to deserialize to a payload</param>
             <returns>the deserialized payload</returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="json"/> is blank.
+            </exception>
         </member>
         <member name="T:Lavalink4NET.Payloads.Player.PlayerDestroyPayload">
             <summary>
@@ -2552,12 +2660,18 @@
             </summary>
             <param name="identifier">the track identifier</param>
             <param name="info">the track info</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="identifier"/> is blank.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkTrack.#ctor(Lavalink4NET.Player.LavalinkTrackInfo)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkTrack"/> class.
             </summary>
             <param name="info">the track info</param>
+            <exception cref="T:System.ArgumentNullException">
+                the specified <paramref name="info"/> can not be <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Player.LavalinkTrack.Author">
             <summary>
@@ -2614,16 +2728,6 @@
                 Gets the name of the track author.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Title">
-            <summary>
-                Gets the title of the track.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Source">
-            <summary>
-                Gets the track source.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Duration">
             <summary>
                 Gets the duration of the track.
@@ -2637,6 +2741,21 @@
         <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.IsSeekable">
             <summary>
                 Gets a value indicating whether the track is seek-able.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Position">
+            <summary>
+                Gets the start position of the track.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Source">
+            <summary>
+                Gets the track source.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Title">
+            <summary>
+                Gets the title of the track.
             </summary>
         </member>
         <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.TrackIdentifier">
@@ -2748,6 +2867,20 @@
                 <para>the position in the track queue ( <c>0</c> = now playing)</para>
             </returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PlayTopAsync(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Plays the specified <paramref name="track"/> at the top of the queue asynchronously.
+            </summary>
+            <param name="track">the track to play</param>
+            <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PurgeQueue">
+            <summary>
+                Purges the track queue ( <see cref="P:Lavalink4NET.Player.QueuedLavalinkPlayer.QueuedTracks"/>).
+            </summary>
+            <returns>the number of tracks removed</returns>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.Shuffle">
             <summary>
@@ -2961,6 +3094,9 @@
             <param name="totalUsers">
                 the total number of users in the voice channel (the bot is excluded)
             </param>
+            <exception cref="T:System.ArgumentNullException">
+                the specified <paramref name="votes"/> can not be <see langword="null"/>.
+            </exception>
         </member>
         <member name="P:Lavalink4NET.Player.VoteSkipInfo.Percentage">
             <summary>
@@ -3498,23 +3634,6 @@
                 A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
-            </summary>
-            <param name="audioService">the audio service where the players should be tracked</param>
-            <param name="clientWrapper">the discord client wrapper</param>
-            <param name="options">the tracking options</param>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="clientWrapper"/> is <see langword="null"/>.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="options"/> is <see langword="null"/>.
-            </exception>
-        </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.ILogger)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
@@ -3785,6 +3904,33 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="path"/> is <see langword="null"/>.
             </exception>
+        </member>
+        <member name="T:Lavalink4NET.Util.TimeSpanConverter">
+            <summary>
+                A Json.Net JSON converter between a milliseconds <see cref="T:System.Double"/> and a <see cref="T:System.TimeSpan"/>.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Util.TimeSpanConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.TimeSpan,System.Boolean,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+                Reads the JSON representation of the object.
+            </summary>
+            <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader"/> to read from.</param>
+            <param name="objectType">Type of the object.</param>
+            <param name="existingValue">
+                The existing value of object being read. If there is no existing value then null will
+                be used.
+            </param>
+            <param name="hasExistingValue">The existing value has a value.</param>
+            <param name="serializer">The calling serializer.</param>
+            <returns>The object value.</returns>
+        </member>
+        <member name="M:Lavalink4NET.Util.TimeSpanConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.TimeSpan,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+                Writes the JSON representation of the object.
+            </summary>
+            <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param>
+            <param name="value">The value.</param>
+            <param name="serializer">The calling serializer.</param>
         </member>
         <member name="T:Lavalink4NET.VoiceServer">
             <summary>

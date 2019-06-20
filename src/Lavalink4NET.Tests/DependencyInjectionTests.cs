@@ -7,8 +7,14 @@
     using Microsoft.Extensions.DependencyInjection;
     using Xunit;
 
+    /// <summary>
+    ///     Tests the ability for dependency injection for various classes.
+    /// </summary>
     public sealed class DependencyInjectionTests
     {
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkCluster"/>.
+        /// </summary>
         [Fact]
         public void TestLavalinkClusterDI()
         {
@@ -22,6 +28,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkCluster"/> with an
+        ///     <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkClusterDIWithCache()
         {
@@ -36,6 +46,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkCluster"/> with an
+        ///     <see cref="ILavalinkCache"/> service and <see cref="ILogger"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkClusterDIWithCacheAndLogger()
         {
@@ -51,6 +65,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkCluster"/> with an
+        ///     <see cref="ILogger"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkClusterDIWithLogger()
         {
@@ -65,6 +83,9 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkNode"/>.
+        /// </summary>
         [Fact]
         public void TestLavalinkNodeDI()
         {
@@ -78,6 +99,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkNode"/> with an
+        ///     <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkNodeDIWithCache()
         {
@@ -92,6 +117,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkNode"/> with an
+        ///     <see cref="ILogger"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkNodeDIWithLogger()
         {
@@ -106,6 +135,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkNode"/> with an
+        ///     <see cref="ILogger"/> service and an <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkNodeDIWithLoggerAndCache()
         {
@@ -121,6 +154,9 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkRestClient"/>.
+        /// </summary>
         [Fact]
         public void TestLavalinkRestClientDI()
         {
@@ -133,6 +169,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkRestClient"/> with
+        ///     an <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkRestClientDIWithCache()
         {
@@ -146,6 +186,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkRestClient"/> with
+        ///     an <see cref="ILogger"/> service and an <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkRestClientDIWithCacheAndLogger()
         {
@@ -160,6 +204,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LavalinkRestClient"/> with
+        ///     an <see cref="ILogger"/> service.
+        /// </summary>
         [Fact]
         public void TestLavalinkRestClientDIWithLogger()
         {
@@ -173,6 +221,10 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LyricsService"/> with an
+        ///     <see cref="ILavalinkCache"/> service.
+        /// </summary>
         [Fact]
         public void TestLyricsServiceDI()
         {
@@ -185,6 +237,9 @@
             }
         }
 
+        /// <summary>
+        ///     Tests the ability for dependency injection for <see cref="LyricsService"/>.
+        /// </summary>
         [Fact]
         public void TestLyricsServiceDIWithCache()
         {
