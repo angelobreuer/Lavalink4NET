@@ -104,6 +104,12 @@ namespace Lavalink4NET
         public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
 
         /// <summary>
+        ///     Gets the last received node statistics; or <see langword="null"/> if no statistics
+        ///     are available for the node.
+        /// </summary>
+        public NodeStatistics Statistics { get; private set; }
+
+        /// <summary>
         ///     Gets the player dictionary.
         /// </summary>
         protected IDictionary<ulong, LavalinkPlayer> Players { get; }
@@ -112,6 +118,27 @@ namespace Lavalink4NET
         ///     Fire and forgets <see cref="DisposeAsync"/>.
         /// </summary>
         public override void Dispose() => _ = DisposeAsync();
+
+        /// <summary>
+        ///     Disposes the node asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+#if NETCOREAPP3_0
+        public virtual async ValueTask DisposeAsync()
+#else
+
+        public virtual async Task DisposeAsync()
+#endif
+        {
+            _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
+            _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
+
+            base.Dispose();
+
+            // dispose all players
+            await Task.WhenAll(Players.Values.Select(async s => await s.DisposeAsync()).ToArray());
+            Players.Clear();
+        }
 
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
@@ -386,12 +413,10 @@ namespace Lavalink4NET
             // statistics update received
             if (payload is StatsUpdatePayload statsUpdate)
             {
-                var statistics = new NodeStatistics(statsUpdate.Players, statsUpdate.PlayingPlayers,
+                Statistics = new NodeStatistics(statsUpdate.Players, statsUpdate.PlayingPlayers,
                     statsUpdate.Uptime, statsUpdate.Memory, statsUpdate.Processor, statsUpdate.FrameStatistics);
 
-                var eventArgs = new NodeStatisticsUpdateEventArgs(statistics);
-
-                await OnStatisticsUpdateAsync(eventArgs);
+                await OnStatisticsUpdateAsync(new NodeStatisticsUpdateEventArgs(Statistics));
             }
 
             await base.OnPayloadReceived(payload);
@@ -534,27 +559,6 @@ namespace Lavalink4NET
 
             // add player to the new node
             node.Players.TryAdd(player.GuildId, player);
-        }
-
-        /// <summary>
-        ///     Disposes the node asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-#if NETCOREAPP3_0
-        public virtual async ValueTask DisposeAsync()
-#else
-
-        public virtual async Task DisposeAsync()
-#endif
-        {
-            _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
-            _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
-
-            base.Dispose();
-
-            // dispose all players
-            await Task.WhenAll(Players.Values.Select(async s => await s.DisposeAsync()).ToArray());
-            Players.Clear();
         }
     }
 }

@@ -90,11 +90,6 @@ namespace Lavalink4NET.Cluster
         public DateTimeOffset LastUsage { get; internal set; }
 
         /// <summary>
-        ///     Gets the node statistics (may be <see langword="null"/>).
-        /// </summary>
-        public NodeStatistics Statistics { get; private set; }
-
-        /// <summary>
         ///     Triggers the <see cref="LavalinkSocket.Connected"/> event asynchronously.
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
@@ -109,16 +104,5 @@ namespace Lavalink4NET.Cluster
         /// <returns>a task that represents the asynchronously operation.</returns>
         protected override Task OnDisconnectedAsync(DisconnectedEventArgs eventArgs)
             => Task.WhenAll(base.OnDisconnectedAsync(eventArgs), Cluster.NodeDisconnectedAsync(this, eventArgs));
-
-        /// <summary>
-        ///     Invokes the <see cref="LavalinkNode.StatisticsUpdated"/> event asynchronously.
-        /// </summary>
-        /// <param name="eventArgs">the event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        protected override Task OnStatisticsUpdateAsync(NodeStatisticsUpdateEventArgs eventArgs)
-        {
-            Statistics = eventArgs.Statistics;
-            return base.OnStatisticsUpdateAsync(eventArgs);
-        }
     }
 }
