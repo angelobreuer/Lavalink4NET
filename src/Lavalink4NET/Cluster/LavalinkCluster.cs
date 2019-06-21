@@ -295,6 +295,11 @@ namespace Lavalink4NET.Cluster
         /// <returns>a task that represents the asynchronous operation</returns>
         public async Task InitializeAsync()
         {
+            if (_initialized)
+            {
+                return;
+            }
+
             await Task.WhenAll(_nodes.Select(s => s.InitializeAsync()));
 
             _initialized = true;
