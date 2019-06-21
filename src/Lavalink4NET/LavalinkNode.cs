@@ -28,6 +28,7 @@
 namespace Lavalink4NET
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -73,7 +74,7 @@ namespace Lavalink4NET
             }
 
             _discordClient = client ?? throw new ArgumentNullException(nameof(client));
-            Players = new Dictionary<ulong, LavalinkPlayer>();
+            Players = new ConcurrentDictionary<ulong, LavalinkPlayer>();
 
             _disconnectOnStop = options.DisconnectOnStop;
             _discordClient.VoiceServerUpdated += VoiceServerUpdated;
@@ -529,7 +530,7 @@ namespace Lavalink4NET
             }
 
             // add player to the new node
-            node.Players.Add(player.GuildId, player);
+            node.Players.TryAdd(player.GuildId, player);
         }
 
         /// <summary>
