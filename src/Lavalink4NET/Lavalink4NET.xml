@@ -1346,7 +1346,7 @@
             <summary>
                 Gets or sets the buffer size when receiving payloads from a lavalink node.
             </summary>
-            <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
+            <remarks>This property defaults to <c>1024</c> (1 KiB)</remarks>
         </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.DisconnectOnStop">
             <summary>
