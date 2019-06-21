@@ -5,8 +5,14 @@
     using Lavalink4NET.Player;
     using Xunit;
 
+    /// <summary>
+    ///     Contains tests for <see cref="LavalinkQueue"/>.
+    /// </summary>
     public sealed class LavalinkQueueTests
     {
+        /// <summary>
+        ///     A sample dummy track.
+        /// </summary>
         private static readonly LavalinkTrack DummyTrack = new LavalinkTrack("A", new LavalinkTrackInfo
         {
             Author = "John Doe",
@@ -15,6 +21,9 @@
             TrackIdentifier = "abc"
         });
 
+        /// <summary>
+        ///     A sample dummy track.
+        /// </summary>
         private static readonly LavalinkTrack DummyTrack2 = new LavalinkTrack("A", new LavalinkTrackInfo
         {
             Author = "Maria Doe",
@@ -23,6 +32,9 @@
             TrackIdentifier = "abcd"
         });
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Contains(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestContains()
         {
@@ -36,6 +48,9 @@
             Assert.Contains(DummyTrack, queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Dequeue"/>.
+        /// </summary>
         [Fact]
         public void TestDequeue()
         {
@@ -50,6 +65,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Distinct"/>.
+        /// </summary>
         [Fact]
         public void TestDistinct()
         {
@@ -72,6 +90,9 @@
             Assert.Single(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.IndexOf(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestIndexOf()
         {
@@ -86,6 +107,9 @@
             Assert.Equal(0, queue.IndexOf(DummyTrack));
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Insert(int, LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestInsert()
         {
@@ -97,6 +121,9 @@
             Assert.Equal(0, queue.IndexOf(DummyTrack));
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Add(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestNullAdd()
         {
@@ -106,6 +133,9 @@
             Assert.Throws<ArgumentNullException>(() => queue.Add(null));
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Contains(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestNullContains()
         {
@@ -115,6 +145,9 @@
             Assert.Throws<ArgumentNullException>(() => queue.Contains(null));
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Add(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestQueueAdd()
         {
@@ -136,6 +169,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Clear"/>.
+        /// </summary>
         [Fact]
         public void TestQueueClear()
         {
@@ -158,6 +194,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.IsEmpty"/>.
+        /// </summary>
         [Fact]
         public void TestQueueEmpty()
         {
@@ -167,6 +206,9 @@
             Assert.True(queue.IsEmpty);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.IndexOf(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestQueueIndexGetSet()
         {
@@ -182,6 +224,9 @@
             Assert.Throws<ArgumentNullException>(() => queue[0] = null);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Tracks"/>.
+        /// </summary>
         [Fact]
         public void TestQueueTracksGet()
         {
@@ -200,6 +245,9 @@
             Assert.NotSame(queue.Tracks, tracks);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Tracks"/>.
+        /// </summary>
         [Fact]
         public void TestQueueTracksSet()
         {
@@ -216,6 +264,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.IsReadOnly"/>.
+        /// </summary>
         [Fact]
         public void TestReadableEmpty()
         {
@@ -224,6 +275,9 @@
             Assert.True(queue.IsReadOnly);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Remove(LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestRemove()
         {
@@ -237,6 +291,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.RemoveAll(Predicate{LavalinkTrack})"/>.
+        /// </summary>
         [Fact]
         public void TestRemoveAll()
         {
@@ -252,6 +309,9 @@
             Assert.Empty(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.RemoveAt(int)"/>.
+        /// </summary>
         [Fact]
         public void TestRemoveAt()
         {
@@ -268,19 +328,24 @@
             Assert.Single(queue);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.Shuffle"/>.
+        /// </summary>
         [Fact]
         public void TestShuffle()
         {
             var queue = new LavalinkQueue();
             Assert.Empty(queue);
 
-            queue.Add(DummyTrack);
             queue.Shuffle();
-            queue.Add(DummyTrack2);
-            queue.Add(DummyTrack);
-            queue.Add(DummyTrack2);
 
-            Assert.Equal(4, queue.Count);
+            for (var i = 0; i < 10; i++)
+            {
+                queue.Add(DummyTrack);
+                queue.Add(DummyTrack2);
+            }
+
+            Assert.Equal(20, queue.Count);
             Assert.Equal(DummyTrack, queue[0]);
             Assert.Equal(DummyTrack2, queue[1]);
             Assert.Equal(DummyTrack, queue[2]);
@@ -294,6 +359,9 @@
                 || queue[3] != DummyTrack2);
         }
 
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.TryDequeue(out LavalinkTrack)"/>.
+        /// </summary>
         [Fact]
         public void TestTryDequeue()
         {
