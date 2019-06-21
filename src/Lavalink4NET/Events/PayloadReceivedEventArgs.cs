@@ -40,15 +40,32 @@ namespace Lavalink4NET.Events
         ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
         /// </summary>
         /// <param name="payload">the payload that was received</param>
+        /// <param name="rawJson">the raw JSON object content of the payload</param>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
         /// </exception>
-        public PayloadReceivedEventArgs(IPayload payload)
-            => Payload = payload ?? throw new ArgumentNullException(nameof(payload));
+        /// <exception cref="ArgumentException">
+        ///     the specified <paramref name="rawJson"/> is blank.
+        /// </exception>
+        public PayloadReceivedEventArgs(IPayload payload, string rawJson)
+        {
+            if (string.IsNullOrWhiteSpace(rawJson))
+            {
+                throw new ArgumentException("message", nameof(rawJson));
+            }
+
+            Payload = payload ?? throw new ArgumentNullException(nameof(payload));
+            RawJson = rawJson;
+        }
 
         /// <summary>
         ///     Gets the payload that was received.
         /// </summary>
         public IPayload Payload { get; }
+
+        /// <summary>
+        ///     Gets the raw JSON object content of the payload.
+        /// </summary>
+        public string RawJson { get; }
     }
 }

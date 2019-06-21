@@ -388,10 +388,10 @@ namespace Lavalink4NET
         ///     Invokes the <see cref="PayloadReceived"/> event asynchronously. (Can be override for
         ///     event catching)
         /// </summary>
-        /// <param name="payload">the received payload</param>
+        /// <param name="eventArgs">the event arguments for the event</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnPayloadReceived(IPayload payload)
-            => PayloadReceived.InvokeAsync(this, new PayloadReceivedEventArgs(payload));
+        protected virtual Task OnPayloadReceived(PayloadReceivedEventArgs eventArgs)
+            => PayloadReceived.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Processes an incoming payload asynchronously.
@@ -461,7 +461,8 @@ namespace Lavalink4NET
             try
             {
                 var payload = PayloadConverter.ReadPayload(content);
-                await OnPayloadReceived(payload);
+                var eventArgs = new PayloadReceivedEventArgs(payload, content);
+                await OnPayloadReceived(eventArgs);
             }
             catch (Exception ex)
             {
