@@ -795,18 +795,27 @@
                 The event arguments for the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/> event.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Events.PayloadReceivedEventArgs.#ctor(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.Events.PayloadReceivedEventArgs.#ctor(Lavalink4NET.Payloads.IPayload,System.String)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PayloadReceivedEventArgs"/> class.
             </summary>
             <param name="payload">the payload that was received</param>
+            <param name="rawJson">the raw JSON object content of the payload</param>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                the specified <paramref name="rawJson"/> is blank.
             </exception>
         </member>
         <member name="P:Lavalink4NET.Events.PayloadReceivedEventArgs.Payload">
             <summary>
                 Gets the payload that was received.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.PayloadReceivedEventArgs.RawJson">
+            <summary>
+                Gets the raw JSON object content of the payload.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Events.TrackEndEventArgs">
@@ -1258,12 +1267,12 @@
             <param name="payload">the payload</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.OnPayloadReceived(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.LavalinkNode.OnPayloadReceived(Lavalink4NET.Events.PayloadReceivedEventArgs)">
             <summary>
                 Processes the payload and invokes the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/>
                 event asynchronously. (Can be override for event catching)
             </summary>
-            <param name="payload">the received payload</param>
+            <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnPlayerPayloadReceived(Lavalink4NET.Payloads.IPlayerPayload)">
@@ -1479,12 +1488,12 @@
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronously operation.</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkSocket.OnPayloadReceived(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.LavalinkSocket.OnPayloadReceived(Lavalink4NET.Events.PayloadReceivedEventArgs)">
             <summary>
                 Invokes the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/> event asynchronously. (Can be override for
                 event catching)
             </summary>
-            <param name="payload">the received payload</param>
+            <param name="eventArgs">the event arguments for the event</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.ProcessNextPayload">

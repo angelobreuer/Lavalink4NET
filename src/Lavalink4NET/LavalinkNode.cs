@@ -394,10 +394,12 @@ namespace Lavalink4NET
         ///     Processes the payload and invokes the <see cref="LavalinkSocket.PayloadReceived"/>
         ///     event asynchronously. (Can be override for event catching)
         /// </summary>
-        /// <param name="payload">the received payload</param>
+        /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected override async Task OnPayloadReceived(IPayload payload)
+        protected override async Task OnPayloadReceived(PayloadReceivedEventArgs eventArgs)
         {
+            var payload = eventArgs.Payload;
+
             // received an event
             if (payload is EventPayload eventPayload)
             {
@@ -419,7 +421,7 @@ namespace Lavalink4NET
                 await OnStatisticsUpdateAsync(new NodeStatisticsUpdateEventArgs(Statistics));
             }
 
-            await base.OnPayloadReceived(payload);
+            await base.OnPayloadReceived(eventArgs);
         }
 
         /// <summary>
