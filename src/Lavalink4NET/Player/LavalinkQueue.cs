@@ -53,7 +53,7 @@
         /// <remarks>
         ///     This property is thread-safe, so it can be used from multiple threads at once safely.
         /// </remarks>
-        public bool IsReadOnly => false;
+        public bool IsReadOnly => true;
 
         /// <summary>
         ///     Gets or sets the enqueued tracks.
@@ -105,6 +105,12 @@
 
             set
             {
+                // a track can not be null
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
                 lock (_syncRoot)
                 {
                     _list[index] = value;
@@ -119,8 +125,16 @@
         ///     This method is thread-safe, so it can be used from multiple threads at once safely.
         /// </remarks>
         /// <param name="track">the track to add</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+        /// </exception>
         public void Add(LavalinkTrack track)
         {
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
             lock (_syncRoot)
             {
                 _list.Add(track);
@@ -170,6 +184,11 @@
         /// </returns>
         public bool Contains(LavalinkTrack track)
         {
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
             lock (_syncRoot)
             {
                 return _list.Contains(track);
@@ -285,8 +304,16 @@
         /// </remarks>
         /// <param name="track">the track to locate</param>
         /// <returns>the zero-based index of the specified <paramref name="track"/></returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+        /// </exception>
         public int IndexOf(LavalinkTrack track)
         {
+            if (track is null)
+            {
+                throw new ArgumentNullException(nameof(track));
+            }
+
             lock (_syncRoot)
             {
                 return _list.IndexOf(track);
