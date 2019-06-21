@@ -2648,6 +2648,216 @@
             </summary>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
+        <member name="T:Lavalink4NET.Player.LavalinkQueue">
+            <summary>
+                A thread-safe queue for <see cref="T:Lavalink4NET.Player.LavalinkTrack"/>.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkQueue"/> class.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Count">
+            <summary>
+                Gets the number of queued tracks.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.IsEmpty">
+            <summary>
+                Gets a value indicating whether the queue is empty.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.IsReadOnly">
+            <summary>
+                Gets a value indicating whether the queue is read-only.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Tracks">
+            <summary>
+                Gets or sets the enqueued tracks.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Item(System.Int32)">
+            <summary>
+                Gets or sets the track at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This indexer property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the zero-based position</param>
+            <returns>the track at the specified <paramref name="index"/></returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Add(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Adds a track at the end of the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to add</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Clear">
+            <summary>
+                Clears all tracks from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the number of tracks removed</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#Generic#ICollection{Lavalink4NET#Player#LavalinkTrack}#Clear">
+            <summary>
+                Clears the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Contains(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Gets a value indicating whether the specified <paramref name="track"/> is in the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to find</param>
+            <returns>
+                a value indicating whether the specified <paramref name="track"/> is in the queue
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.CopyTo(Lavalink4NET.Player.LavalinkTrack[],System.Int32)">
+            <summary>
+                Copies all tracks to the specified <paramref name="array"/> at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="array">the array to the tracks to</param>
+            <param name="index">the zero-based writing start index</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Dequeue">
+            <summary>
+                Dequeues a track using the FIFO method.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the dequeued track</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if no tracks were in the queue
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Distinct">
+            <summary>
+                Deletes all duplicate tracks from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.GetEnumerator">
+            <summary>
+                Gets the track enumerator.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the track enumerator</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+                Gets the track enumerator.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the track enumerator</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.IndexOf(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Gets the zero-based index of the specified <paramref name="track"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to locate</param>
+            <returns>the zero-based index of the specified <paramref name="track"/></returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Insert(System.Int32,Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Inserts the specified <paramref name="track"/> at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the zero-based index to insert (e.g. 0 = top)</param>
+            <param name="track">the track to insert</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Remove(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Tries to remove the specified <paramref name="track"/> from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to remove</param>
+            <returns>
+                a value indicating whether the track was found and removed from the queue
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveAll(System.Predicate{Lavalink4NET.Player.LavalinkTrack})">
+            <summary>
+                Removes all tracks that matches the specified <paramref name="predicate"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="predicate">the track predicate</param>
+            <returns>the number of tracks removed</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveAt(System.Int32)">
+            <summary>
+                Removes a track at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the index to remove the track</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Shuffle">
+            <summary>
+                Shuffles / mixes all tracks in the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.TryDequeue(Lavalink4NET.Player.LavalinkTrack@)">
+            <summary>
+                Tries to dequeue a track using the FIFO method.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the dequeued track; or default is the result is <see langword="false"/>.</param>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if no tracks were in the queue
+            </exception>
+            <returns>a value indicating whether a track was dequeued.</returns>
+        </member>
         <member name="T:Lavalink4NET.Player.LavalinkTrack">
             <summary>
                 The information of a lavalink track.
@@ -2863,19 +3073,14 @@
                 thrown if the specified <paramref name="client"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.EnqueuedTracks">
-            <summary>
-                Gets the number of enqueued tracks.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.IsLooping">
             <summary>
                 Gets or sets a value indicating whether the current playing track should be looped.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.Tracks">
+        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.Queue">
             <summary>
-                Gets the tracks in queue.
+                Gets the track queue.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
@@ -2929,12 +3134,6 @@
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PurgeQueue">
-            <summary>
-                Purges the track queue.
-            </summary>
-            <returns>the number of tracks removed</returns>
-        </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PushTrackAsync(Lavalink4NET.Player.LavalinkTrack,System.Boolean)">
             <summary>
                 Pushes a track between the current asynchronously.
@@ -2955,11 +3154,6 @@
                 or the specified track was simply started ( <see langword="false"/>), because there
                 is no track playing.
             </returns>
-        </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.Shuffle">
-            <summary>
-                Shuffles the track queue.
-            </summary>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.SkipAsync(System.Int32)">
             <summary>
