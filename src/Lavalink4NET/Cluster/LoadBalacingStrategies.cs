@@ -101,8 +101,9 @@ namespace Lavalink4NET.Cluster
             // statistics.FrameStatistics.AverageDeficitFrames (0.5x) lower = better
             IncludeFactor(-statistics.FrameStatistics.AverageDeficitFrames, .5d);
 
-            // statistics.FrameStatistics.AverageNulledFrames (0.5x) lower = better
-            IncludeFactor(-statistics.FrameStatistics.AverageNulledFrames, .5d);
+            // statistics.FrameStatistics.AverageNulledFrames (0.7x) lower = better (nulled frames
+            // are worser than deficit)
+            IncludeFactor(-statistics.FrameStatistics.AverageNulledFrames, .7d);
 
             // calculate average of weight
             return totalWeight / factors;
