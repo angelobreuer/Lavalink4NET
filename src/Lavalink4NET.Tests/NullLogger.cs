@@ -9,7 +9,7 @@
     ///     All actions done with this <see cref="ILogger"/> will result in a
     ///     <see cref="NotImplementedException"/> exception.
     /// </remarks>
-    internal class NullLogger : ILogger
+    internal sealed class NullLogger : ILogger
     {
         /// <summary>
         ///     Logs a message asynchronously.
