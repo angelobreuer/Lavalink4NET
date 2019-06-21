@@ -28,7 +28,6 @@
 namespace Lavalink4NET.Cluster
 {
     using System.Linq;
-    using Lavalink4NET.Events;
     using Lavalink4NET.Statistics;
 
     /// <summary>
