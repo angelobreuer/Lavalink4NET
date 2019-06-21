@@ -34,8 +34,16 @@ namespace Lavalink4NET.Player
     /// <summary>
     ///     The information store for a lavalink track.
     /// </summary>
-    public class LavalinkTrackInfo
+    public sealed class LavalinkTrackInfo
     {
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LavalinkTrackInfo"/> class.
+        /// </summary>
+        [JsonConstructor]
+        internal LavalinkTrackInfo()
+        {
+        }
+
         /// <summary>
         ///     Gets the name of the track author.
         /// </summary>
