@@ -30,6 +30,7 @@ namespace Lavalink4NET.Cluster
     using System;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Statistics;
 
     /// <summary>
     ///     A clustered lavalink node with additional information.
@@ -91,7 +92,7 @@ namespace Lavalink4NET.Cluster
         /// <summary>
         ///     Gets the node statistics (may be <see langword="null"/>).
         /// </summary>
-        public StatisticUpdateEventArgs Statistics { get; private set; }
+        public NodeStatistics Statistics { get; private set; }
 
         /// <summary>
         ///     Triggers the <see cref="LavalinkSocket.Connected"/> event asynchronously.
@@ -114,9 +115,9 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected override Task OnStatisticsUpdateAsync(StatisticUpdateEventArgs eventArgs)
+        protected override Task OnStatisticsUpdateAsync(NodeStatisticsUpdateEventArgs eventArgs)
         {
-            Statistics = eventArgs;
+            Statistics = eventArgs.Statistics;
             return base.OnStatisticsUpdateAsync(eventArgs);
         }
     }

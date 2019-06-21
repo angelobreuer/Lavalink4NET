@@ -36,6 +36,7 @@ namespace Lavalink4NET
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
+    using Lavalink4NET.Statistics;
     using Payloads;
     using Player;
 
@@ -85,7 +86,7 @@ namespace Lavalink4NET
         ///     An asynchronous event which is triggered when a new statistics update was received
         ///     from the lavalink node.
         /// </summary>
-        public event AsyncEventHandler<StatisticUpdateEventArgs> StatisticsUpdated;
+        public event AsyncEventHandler<NodeStatisticsUpdateEventArgs> StatisticsUpdated;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a track ended.
@@ -385,8 +386,10 @@ namespace Lavalink4NET
             // statistics update received
             if (payload is StatsUpdatePayload statsUpdate)
             {
-                var eventArgs = new StatisticUpdateEventArgs(statsUpdate.Players, statsUpdate.PlayingPlayers,
+                var statistics = new NodeStatistics(statsUpdate.Players, statsUpdate.PlayingPlayers,
                     statsUpdate.Uptime, statsUpdate.Memory, statsUpdate.Processor, statsUpdate.FrameStatistics);
+
+                var eventArgs = new NodeStatisticsUpdateEventArgs(statistics);
 
                 await OnStatisticsUpdateAsync(eventArgs);
             }
@@ -419,7 +422,7 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnStatisticsUpdateAsync(StatisticUpdateEventArgs eventArgs)
+        protected virtual Task OnStatisticsUpdateAsync(NodeStatisticsUpdateEventArgs eventArgs)
             => StatisticsUpdated.InvokeAsync(this, eventArgs);
 
         /// <summary>

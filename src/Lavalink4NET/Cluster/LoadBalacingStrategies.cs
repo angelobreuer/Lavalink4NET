@@ -29,6 +29,7 @@ namespace Lavalink4NET.Cluster
 {
     using System.Linq;
     using Lavalink4NET.Events;
+    using Lavalink4NET.Statistics;
 
     /// <summary>
     ///     Provides a set of load balancing strategies.
@@ -64,7 +65,7 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="statistics">the node statistics</param>
         /// <returns>the score for the node (higher = better)</returns>
-        public static double CalculateScore(StatisticUpdateEventArgs statistics)
+        public static double CalculateScore(NodeStatistics statistics)
         {
             // no statistics retrieved for the node.
             if (statistics is null || statistics.Processor is null
