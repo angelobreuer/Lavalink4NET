@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.MemoryCache", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Tests", "Lavalink4NET.Tests\Lavalink4NET.Tests.csproj", "{C5360CAD-5276-48B2-832E-665015793D91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus.ExampleBot", "..\samples\Lavalink4NET.DSharpPlus.ExampleBot\Lavalink4NET.DSharpPlus.ExampleBot.csproj", "{1918FBAE-4D73-4320-97A6-7F6B155B3DB8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,10 +39,6 @@ Global
 		{C5360CAD-5276-48B2-832E-665015793D91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5360CAD-5276-48B2-832E-665015793D91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5360CAD-5276-48B2-832E-665015793D91}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1918FBAE-4D73-4320-97A6-7F6B155B3DB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1918FBAE-4D73-4320-97A6-7F6B155B3DB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1918FBAE-4D73-4320-97A6-7F6B155B3DB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1918FBAE-4D73-4320-97A6-7F6B155B3DB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
