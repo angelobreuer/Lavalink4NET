@@ -2708,6 +2708,21 @@
                 This method is thread-safe, so it can be used from multiple threads at once safely.
             </remarks>
             <param name="track">the track to add</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.AddRange(System.Collections.Generic.IEnumerable{Lavalink4NET.Player.LavalinkTrack})">
+            <summary>
+                Adds all specified <paramref name="tracks"/> to the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="tracks">the tracks to enqueue</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="tracks"/> enumerable is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.Clear">
             <summary>
@@ -2795,6 +2810,9 @@
             </remarks>
             <param name="track">the track to locate</param>
             <returns>the zero-based index of the specified <paramref name="track"/></returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.Insert(System.Int32,Lavalink4NET.Player.LavalinkTrack)">
             <summary>
@@ -2836,6 +2854,16 @@
                 This method is thread-safe, so it can be used from multiple threads at once safely.
             </remarks>
             <param name="index">the index to remove the track</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveRange(System.Int32,System.Int32)">
+            <summary>
+                Removes all <paramref name="count"/> tracks from the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the start index (zero-based)</param>
+            <param name="count">the number of tracks to remove</param>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.Shuffle">
             <summary>
@@ -2979,6 +3007,11 @@
         <member name="T:Lavalink4NET.Player.LavalinkTrackInfo">
             <summary>
                 The information store for a lavalink track.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkTrackInfo.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkTrackInfo"/> class.
             </summary>
         </member>
         <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Author">
