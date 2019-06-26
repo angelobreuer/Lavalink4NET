@@ -142,6 +142,29 @@
         }
 
         /// <summary>
+        ///     Adds all specified <paramref name="tracks"/> to the queue.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
+        /// </remarks>
+        /// <param name="tracks">the tracks to enqueue</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="tracks"/> enumerable is <see langword="null"/>.
+        /// </exception>
+        public void AddRange(IEnumerable<LavalinkTrack> tracks)
+        {
+            if (tracks is null)
+            {
+                throw new ArgumentNullException(nameof(tracks));
+            }
+
+            lock (_syncRoot)
+            {
+                _list.AddRange(tracks);
+            }
+        }
+
+        /// <summary>
         ///     Clears all tracks from the queue.
         /// </summary>
         /// <remarks>
@@ -382,6 +405,22 @@
             lock (_syncRoot)
             {
                 _list.RemoveAt(index);
+            }
+        }
+
+        /// <summary>
+        ///     Removes all <paramref name="count"/> tracks from the specified <paramref name="index"/>.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
+        /// </remarks>
+        /// <param name="index">the start index (zero-based)</param>
+        /// <param name="count">the number of tracks to remove</param>
+        public void RemoveRange(int index, int count)
+        {
+            lock (_syncRoot)
+            {
+                _list.RemoveRange(index, count);
             }
         }
 
