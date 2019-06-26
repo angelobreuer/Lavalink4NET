@@ -117,6 +117,11 @@ namespace Lavalink4NET
         public event AsyncEventHandler<PayloadReceivedEventArgs> PayloadReceived;
 
         /// <summary>
+        ///     An asynchronous event which is triggered when a new reconnection attempt is made.
+        /// </summary>
+        public event AsyncEventHandler<ReconnectAttemptEventArgs> ReconnectAttempt;
+
+        /// <summary>
         ///     Gets a value indicating whether the client is connected to the lavalink node.
         /// </summary>
         public bool IsConnected => _webSocket != null
@@ -488,7 +493,7 @@ namespace Lavalink4NET
                 var lostConnectionAt = DateTimeOffset.UtcNow;
 
                 // try reconnect
-                for (var attempt = 0; !_cancellationTokenSource.IsCancellationRequested; attempt++)
+                for (var attempt = 1; !_cancellationTokenSource.IsCancellationRequested; attempt++)
                 {
                     // reconnect
                     await ConnectAsync();
