@@ -818,6 +818,39 @@
                 Gets the raw JSON object content of the payload.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Events.ReconnectAttemptEventArgs">
+            <summary>
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.ReconnectAttemptEventArgs.#ctor(System.Uri,System.Int32,Lavalink4NET.ReconnectStrategy)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.ReconnectAttemptEventArgs"/> class.
+            </summary>
+            <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+            <param name="attempt">the number of reconnect attempts already made (1 = first)</param>
+            <param name="strategy">the reconnect strategy used</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="strategy"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.CancelReconnect">
+            <summary>
+                Gets or sets a value indicating whether the reconnect attempt should be canceled.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.Attempt">
+            <summary>
+                Gets the number of reconnect attempts already made (1 = first).
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.Strategy">
+            <summary>
+                Gets the reconnect strategy used.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Events.TrackEndEventArgs">
             <summary>
                 The event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.TrackEnd"/> event.
@@ -1400,6 +1433,11 @@
                 lavalink node.
             </summary>
         </member>
+        <member name="E:Lavalink4NET.LavalinkSocket.ReconnectAttempt">
+            <summary>
+                An asynchronous event which is triggered when a new reconnection attempt is made.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.LavalinkSocket.IsConnected">
             <summary>
                 Gets a value indicating whether the client is connected to the lavalink node.
@@ -1495,6 +1533,13 @@
             </summary>
             <param name="eventArgs">the event arguments for the event</param>
             <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkSocket.OnReconnectAttemptAsync(Lavalink4NET.Events.ReconnectAttemptEventArgs)">
+            <summary>
+                Triggers the <see cref="E:Lavalink4NET.LavalinkSocket.ReconnectAttempt"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments</param>
+            <returns>a task that represents the asynchronously operation.</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.ProcessNextPayload">
             <summary>
