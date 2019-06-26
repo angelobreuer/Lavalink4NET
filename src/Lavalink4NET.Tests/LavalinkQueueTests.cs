@@ -33,6 +33,22 @@
         });
 
         /// <summary>
+        ///     Tests <see cref="LavalinkQueue.AddRange(IEnumerable{LavalinkTrack})"/>
+        /// </summary>
+        [Fact]
+        public void TestAddRange()
+        {
+            var queue = new LavalinkQueue();
+            Assert.Empty(queue);
+
+            queue.AddRange(new List<LavalinkTrack> { DummyTrack, DummyTrack2 });
+
+            Assert.NotEmpty(queue);
+            Assert.Same(DummyTrack, queue[0]);
+            Assert.Same(DummyTrack2, queue[1]);
+        }
+
+        /// <summary>
         ///     Tests <see cref="LavalinkQueue.Contains(LavalinkTrack)"/>.
         /// </summary>
         [Fact]
@@ -326,6 +342,30 @@
             queue.RemoveAt(0);
 
             Assert.Single(queue);
+        }
+
+        /// <summary>
+        ///     Tests <see cref="LavalinkQueue.RemoveRange(int, int)"/>
+        /// </summary>
+        [Fact]
+        public void TestRemoveRange()
+        {
+            var queue = new LavalinkQueue();
+
+            Assert.Empty(queue);
+
+            queue.Add(DummyTrack);
+            queue.Add(DummyTrack);
+            queue.Add(DummyTrack2);
+            queue.Add(DummyTrack2);
+
+            Assert.NotEmpty(queue);
+
+            queue.RemoveRange(1, 2);
+
+            Assert.NotEmpty(queue);
+            Assert.Same(DummyTrack, queue[0]);
+            Assert.Same(DummyTrack2, queue[1]);
         }
 
         /// <summary>
