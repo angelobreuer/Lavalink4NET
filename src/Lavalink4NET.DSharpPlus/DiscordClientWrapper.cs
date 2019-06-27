@@ -57,28 +57,6 @@ namespace Lavalink4NET.DSharpPlus
         }
 
         /// <summary>
-        ///     Awaits the initialization of the discord client asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task InitializeAsync()
-        {
-            var startTime = DateTimeOffset.UtcNow;
-
-            // await until current user arrived
-            while (_client.CurrentUser == null)
-            {
-                await Task.Delay(10);
-
-                // timeout exceeded
-                if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
-                {
-                    throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
-                        "the discord client, before initializing the discord wrapper!");
-                }
-            }
-        }
-
-        /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.
         /// </summary>
         public event Events.AsyncEventHandler<VoiceServer> VoiceServerUpdated;
@@ -129,6 +107,28 @@ namespace Lavalink4NET.DSharpPlus
         }
 
         /// <summary>
+        ///     Awaits the initialization of the discord client asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public async Task InitializeAsync()
+        {
+            var startTime = DateTimeOffset.UtcNow;
+
+            // await until current user arrived
+            while (_client.CurrentUser == null)
+            {
+                await Task.Delay(10);
+
+                // timeout exceeded
+                if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
+                {
+                    throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
+                        "the discord client, before initializing the discord wrapper!");
+                }
+            }
+        }
+
+        /// <summary>
         ///     Sends a voice channel state update asynchronously.
         /// </summary>
         /// <param name="guildId">the guild snowflake identifier</param>
@@ -152,12 +152,22 @@ namespace Lavalink4NET.DSharpPlus
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        ///     The asynchronous callback when a voice server update was received.
+        /// </summary>
+        /// <param name="voiceServer">the voice server data</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
         private Task OnVoiceServerUpdated(VoiceServerUpdateEventArgs voiceServer)
         {
             var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.GetVoiceToken(), voiceServer.Endpoint);
             return VoiceServerUpdated.InvokeAsync(this, args);
         }
 
+        /// <summary>
+        ///     The asynchronous callback when a voice state update was received.
+        /// </summary>
+        /// <param name="voiceServer">the voice state data</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
         private Task OnVoiceStateUpdated(global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
         {
             var sessionId = eventArgs.GetSessionId();

@@ -25,10 +25,10 @@
  *  THE SOFTWARE.
  */
 
-using Newtonsoft.Json;
-
 namespace Lavalink4NET.DSharpPlus
 {
+    using Newtonsoft.Json;
+
     internal sealed class VoiceStateUpdatePayload
     {
         public VoiceStateUpdatePayload(ulong guildId, ulong? channelId, bool isSelfMuted = false, bool isSelfDeafened = false)
