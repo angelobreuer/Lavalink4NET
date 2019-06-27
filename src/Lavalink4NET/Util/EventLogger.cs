@@ -32,7 +32,7 @@ namespace Lavalink4NET.Util
     /// <summary>
     ///     A logger implementation for a logger that logs the messages to an event.
     /// </summary>
-    public sealed class EventLogger : ILogger
+    public class EventLogger : ILogger
     {
         /// <summary>
         ///     An event that is triggered when a message is logged.
@@ -47,6 +47,13 @@ namespace Lavalink4NET.Util
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
         public void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
-            => LogMessage?.Invoke(this, new LogMessageEventArgs(source, message, level, exception));
+            => OnLogMessage(new LogMessageEventArgs(source, message, level, exception));
+
+        /// <summary>
+        ///     Triggers the <see cref="LogMessage"/> event.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        protected virtual void OnLogMessage(LogMessageEventArgs eventArgs)
+            => LogMessage?.Invoke(this, eventArgs);
     }
 }

@@ -4202,50 +4202,64 @@
                 Gets the new tracking status of the player.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.ILogger">
+        <member name="T:Lavalink4NET.Util.EventLogger">
             <summary>
-                An interface for a logger provider.
+                A logger implementation for a logger that logs the messages to an event.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.ILogger.Log(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
+        <member name="E:Lavalink4NET.Util.EventLogger.LogMessage">
             <summary>
-                Logs a message asynchronously.
+                An event that is triggered when a message is logged.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Util.EventLogger.Log(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
+            <summary>
+                Logs a message.
             </summary>
             <param name="source">the source the message comes from (usually this)</param>
             <param name="message">the message to log</param>
             <param name="level">the logging level / the severity of the message</param>
             <param name="exception">an optional exception that occurred</param>
         </member>
-        <member name="T:Lavalink4NET.LogLevel">
+        <member name="M:Lavalink4NET.Util.EventLogger.OnLogMessage(Lavalink4NET.Util.LogMessageEventArgs)">
             <summary>
-                A set of different logging levels.
+                Triggers the <see cref="E:Lavalink4NET.Util.EventLogger.LogMessage"/> event.
+            </summary>
+            <param name="eventArgs">the event arguments</param>
+        </member>
+        <member name="T:Lavalink4NET.Util.LogMessageEventArgs">
+            <summary>
+                The event arguments for the <see cref="E:Lavalink4NET.Util.EventLogger.LogMessage"/> event.
             </summary>
         </member>
-        <member name="F:Lavalink4NET.LogLevel.Information">
+        <member name="P:Lavalink4NET.Util.LogMessageEventArgs.Source">
+             <summary>
+            Gets the source the message comes from.
+             </summary>
+        </member>
+        <member name="P:Lavalink4NET.Util.LogMessageEventArgs.Message">
             <summary>
-                Information, not critical, just for user information.
+                Gets the message to log.
             </summary>
         </member>
-        <member name="F:Lavalink4NET.LogLevel.Error">
+        <member name="P:Lavalink4NET.Util.LogMessageEventArgs.Level">
             <summary>
-                Error, critical (application can continue)
+                Gets the logging level / the severity of the message.
             </summary>
         </member>
-        <member name="F:Lavalink4NET.LogLevel.Warning">
+        <member name="P:Lavalink4NET.Util.LogMessageEventArgs.Exception">
             <summary>
-                Warning, not critical (a warning, but the application can continue without any
-                further problems)
+                Gets an optional exception that occurred.
             </summary>
         </member>
-        <member name="F:Lavalink4NET.LogLevel.Debug">
+        <member name="M:Lavalink4NET.Util.LogMessageEventArgs.#ctor(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
             <summary>
-                Debug message, not critical (just for information / debugging)
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Util.LogMessageEventArgs"/> class.
             </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Trace">
-            <summary>
-                Trace message, not critical (just for information / debugging)
-            </summary>
+            <param name="source">the source the message comes from</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
         </member>
         <member name="T:Lavalink4NET.Util.StreamProviderUtil">
             <summary>
@@ -4314,6 +4328,51 @@
             <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param>
             <param name="value">The value.</param>
             <param name="serializer">The calling serializer.</param>
+        </member>
+        <member name="T:Lavalink4NET.ILogger">
+            <summary>
+                An interface for a logger provider.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.ILogger.Log(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
+            <summary>
+                Logs a message.
+            </summary>
+            <param name="source">the source the message comes from (usually this)</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
+        </member>
+        <member name="T:Lavalink4NET.LogLevel">
+            <summary>
+                A set of different logging levels.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Information">
+            <summary>
+                Information, not critical, just for user information.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Error">
+            <summary>
+                Error, critical (application can continue)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Warning">
+            <summary>
+                Warning, not critical (a warning, but the application can continue without any
+                further problems)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Debug">
+            <summary>
+                Debug message, not critical (just for information / debugging)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.LogLevel.Trace">
+            <summary>
+                Trace message, not critical (just for information / debugging)
+            </summary>
         </member>
         <member name="T:Lavalink4NET.VoiceServer">
             <summary>
