@@ -1,5 +1,5 @@
 ﻿/*
- *  File:   ILogger.cs
+ *  File:   LogMessageEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,22 +25,48 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET
+namespace Lavalink4NET.Util
 {
     using System;
 
     /// <summary>
-    ///     An interface for a logger provider.
+    ///     The event arguments for the <see cref="EventLogger.LogMessage"/> event.
     /// </summary>
-    public interface ILogger
+    public sealed class LogMessageEventArgs : EventArgs
     {
         /// <summary>
-        ///     Logs a message.
+        ///Gets the source the message comes from.
         /// </summary>
-        /// <param name="source">the source the message comes from (usually this)</param>
+        public object Source { get; }
+
+        /// <summary>
+        ///     Gets the message to log.
+        /// </summary>
+        public string Message { get; }
+
+        /// <summary>
+        ///     Gets the logging level / the severity of the message.
+        /// </summary>
+        public LogLevel Level { get; }
+
+        /// <summary>
+        ///     Gets an optional exception that occurred.
+        /// </summary>
+        public Exception Exception { get; }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LogMessageEventArgs"/> class.
+        /// </summary>
+        /// <param name="source">the source the message comes from</param>
         /// <param name="message">the message to log</param>
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
-        void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null);
+        public LogMessageEventArgs(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
+        {
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Level = level;
+            Exception = exception;
+        }
     }
 }
