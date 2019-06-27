@@ -33,6 +33,7 @@ namespace Lavalink4NET.Tracking
     using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
+    using Lavalink4NET.Logging;
     using Lavalink4NET.Player;
 
     /// <summary>

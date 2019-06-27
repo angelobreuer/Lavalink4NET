@@ -1,5 +1,5 @@
 ﻿/*
- *  File:   EventLogger.cs
+ *  File:   ILogger.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,20 +25,15 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Util
+namespace Lavalink4NET.Logging
 {
     using System;
 
     /// <summary>
-    ///     A logger implementation for a logger that logs the messages to an event.
+    ///     An interface for a logger provider.
     /// </summary>
-    public class EventLogger : ILogger
+    public interface ILogger
     {
-        /// <summary>
-        ///     An event that is triggered when a message is logged.
-        /// </summary>
-        public event EventHandler<LogMessageEventArgs> LogMessage;
-
         /// <summary>
         ///     Logs a message.
         /// </summary>
@@ -46,14 +41,6 @@ namespace Lavalink4NET.Util
         /// <param name="message">the message to log</param>
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
-        public void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
-            => OnLogMessage(new LogMessageEventArgs(source, message, level, exception));
-
-        /// <summary>
-        ///     Triggers the <see cref="LogMessage"/> event.
-        /// </summary>
-        /// <param name="eventArgs">the event arguments</param>
-        protected virtual void OnLogMessage(LogMessageEventArgs eventArgs)
-            => LogMessage?.Invoke(this, eventArgs);
+        void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null);
     }
 }

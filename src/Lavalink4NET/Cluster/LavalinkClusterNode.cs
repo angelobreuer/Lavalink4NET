@@ -30,6 +30,7 @@ namespace Lavalink4NET.Cluster
     using System;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Logging;
 
     /// <summary>
     ///     A clustered lavalink node with additional information.

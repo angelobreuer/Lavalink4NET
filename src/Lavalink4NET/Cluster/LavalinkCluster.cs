@@ -33,6 +33,7 @@ namespace Lavalink4NET.Cluster
     using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
+    using Lavalink4NET.Logging;
     using Player;
     using Rest;
 

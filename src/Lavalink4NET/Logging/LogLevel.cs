@@ -1,5 +1,5 @@
 ﻿/*
- *  File:   LogMessageEventArgs.cs
+ *  File:   LogLevel.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,48 +25,37 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Util
+namespace Lavalink4NET.Logging
 {
-    using System;
-
     /// <summary>
-    ///     The event arguments for the <see cref="EventLogger.LogMessage"/> event.
+    ///     A set of different logging levels.
     /// </summary>
-    public sealed class LogMessageEventArgs : EventArgs
+    public enum LogLevel
     {
         /// <summary>
-        ///Gets the source the message comes from.
+        ///     Information, not critical, just for user information.
         /// </summary>
-        public object Source { get; }
+        Information,
 
         /// <summary>
-        ///     Gets the message to log.
+        ///     Error, critical (application can continue)
         /// </summary>
-        public string Message { get; }
+        Error,
 
         /// <summary>
-        ///     Gets the logging level / the severity of the message.
+        ///     Warning, not critical (a warning, but the application can continue without any
+        ///     further problems)
         /// </summary>
-        public LogLevel Level { get; }
+        Warning,
 
         /// <summary>
-        ///     Gets an optional exception that occurred.
+        ///     Debug message, not critical (just for information / debugging)
         /// </summary>
-        public Exception Exception { get; }
+        Debug,
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="LogMessageEventArgs"/> class.
+        ///     Trace message, not critical (just for information / debugging)
         /// </summary>
-        /// <param name="source">the source the message comes from</param>
-        /// <param name="message">the message to log</param>
-        /// <param name="level">the logging level / the severity of the message</param>
-        /// <param name="exception">an optional exception that occurred</param>
-        public LogMessageEventArgs(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
-        {
-            Source = source ?? throw new ArgumentNullException(nameof(source));
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-            Level = level;
-            Exception = exception;
-        }
+        Trace
     }
 }

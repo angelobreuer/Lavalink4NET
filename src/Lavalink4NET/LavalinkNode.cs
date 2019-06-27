@@ -33,6 +33,7 @@ namespace Lavalink4NET
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Logging;
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
