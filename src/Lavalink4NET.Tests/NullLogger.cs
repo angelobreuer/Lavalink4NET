@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Tests
 {
     using System;
+    using Lavalink4NET.Logging;
 
     /// <summary>
     ///     An dummy <see cref="ILogger"/> implementation.
