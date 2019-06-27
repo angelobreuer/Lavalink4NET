@@ -597,23 +597,6 @@
             <param name="eventArgs">the event parameters</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.Events.AsyncEventExtensions.WaitOneAsync``1(Lavalink4NET.Events.AsyncEventHandler{``0},System.Predicate{``0})">
-            <summary>
-                Waits until an asynchronous event is triggered.
-            </summary>
-            <typeparam name="TEventArgs">the type of event parameters</typeparam>
-            <param name="eventHandler">the asynchronous event handler</param>
-            <param name="predicate">the predicate to check the event parameters</param>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
-        <member name="M:Lavalink4NET.Events.AsyncEventExtensions.WaitOneAsync(Lavalink4NET.Events.AsyncEventHandler,System.Predicate{System.EventArgs})">
-            <summary>
-                Waits until an asynchronous event is triggered and returns its result.
-            </summary>
-            <param name="eventHandler">the asynchronous event handler</param>
-            <param name="predicate">the predicate to check the event parameters</param>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="T:Lavalink4NET.Events.AsyncEventHandler`1">
             <summary>
                 An asynchronous event handler.
