@@ -31,10 +31,9 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
     using System.Threading.Tasks;
     using Discord.Commands;
     using Discord.WebSocket;
-    using Example.CustomLogger;
+    using Lavalink4NET.Logging;
     using Lavalink4NET.MemoryCache;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     ///     Contains the main entry point.
@@ -55,19 +54,34 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             using (var serviceProvider = ConfigureServices())
             {
                 var bot = serviceProvider.GetRequiredService<ExampleBot>();
-                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
                 var audio = serviceProvider.GetRequiredService<IAudioService>();
+                var logger = serviceProvider.GetRequiredService<ILogger>() as EventLogger;
+                logger.LogMessage += Log;
 
                 await bot.StartAsync();
                 await audio.InitializeAsync();
 
-                logger.LogInformation("Example Bot is running. Press [Q] to stop.");
+                logger.Log(bot, "Example Bot is running. Press [Q] to stop.");
 
                 while (Console.ReadKey(true).Key != ConsoleKey.Q)
                 {
                 }
 
                 await bot.StopAsync();
+            }
+        }
+
+        private static void Log(object sender, LogMessageEventArgs args)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write($"[{args.Source.GetType().Name} {args.Level}] ");
+
+            Console.ResetColor();
+            Console.WriteLine(args.Message);
+
+            if (args.Exception != null)
+            {
+                Console.WriteLine(args.Exception);
             }
         }
 
@@ -86,6 +100,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             // Lavalink
             .AddSingleton<IAudioService, LavalinkNode>()
             .AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>()
+            .AddSingleton<ILogger, EventLogger>()
 
             .AddSingleton(new LavalinkNodeOptions
             {
@@ -94,12 +109,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
 
             // Request Caching for Lavalink
             .AddSingleton<ILavalinkCache, LavalinkCache>()
-
-            // Logging
-            .AddLogging(configure => configure.AddConsole()
-                .SetMinimumLevel(LogLevel.Trace))
-
-            .AddSingleton<Lavalink4NET.ILogger, CustomLogger>()
 
             .BuildServiceProvider();
     }

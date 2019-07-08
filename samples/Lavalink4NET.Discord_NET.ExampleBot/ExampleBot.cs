@@ -1,21 +1,21 @@
-/* 
+/*
  *  File:   ExampleBot.cs
  *  Author: Angelo Breuer
- *  
+ *
  *  The MIT License (MIT)
- *  
+ *
  *  Copyright (c) Angelo Breuer 2019
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +34,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
     using Discord.Commands;
     using Discord.WebSocket;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     ///     The main class for controlling the bot.
@@ -42,9 +41,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
     public sealed class ExampleBot : IDisposable
     {
         private readonly DiscordSocketClient _client;
-        private readonly ILogger<CommandService> _commandLogger;
         private readonly CommandService _commandService;
-        private readonly ILogger<ExampleBot> _logger;
         private readonly IServiceProvider _provider;
 
         /// <summary>
@@ -55,10 +52,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         {
             _client = provider.GetRequiredService<DiscordSocketClient>();
             _commandService = provider.GetRequiredService<CommandService>();
-            _logger = provider.GetRequiredService<ILogger<ExampleBot>>();
-            _commandLogger = provider.GetRequiredService<ILogger<CommandService>>();
             _client.MessageReceived += MessageReceived;
-            _commandService.Log += Log;
             _provider = provider;
         }
 
@@ -76,8 +70,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
             await _client.LoginAsync(TokenType.Bot, "" /* Your Bot Token */);
             await _client.StartAsync();
 
-            _logger.LogInformation($"Bot Identity: {_client.CurrentUser.Username}#{_client.CurrentUser.DiscriminatorValue}.");
-
             await _commandService.AddModulesAsync(GetType().Assembly, _provider);
         }
 
@@ -88,18 +80,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot
         public async Task StopAsync()
         {
             await _client.StopAsync();
-        }
-
-        private Task Log(LogMessage message)
-        {
-            if (message.Exception is CommandException commandException)
-            {
-                _commandLogger.LogWarning(commandException.GetBaseException(), $"{commandException.GetBaseException().GetType()} was " +
-                    $"thrown while executing {commandException.Command.Aliases.First()} " +
-                    $"in {commandException.Context.Channel} by {commandException.Context.User}.");
-            }
-
-            return Task.CompletedTask;
         }
 
         private async Task MessageReceived(SocketMessage rawMessage)
