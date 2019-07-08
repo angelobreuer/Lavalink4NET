@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Tests
 {
     using System;
+    using Lavalink4NET.Logging;
 
     /// <summary>
     ///     An dummy <see cref="ILogger"/> implementation.
@@ -9,7 +10,7 @@
     ///     All actions done with this <see cref="ILogger"/> will result in a
     ///     <see cref="NotImplementedException"/> exception.
     /// </remarks>
-    internal class NullLogger : ILogger
+    internal sealed class NullLogger : ILogger
     {
         /// <summary>
         ///     Logs a message asynchronously.

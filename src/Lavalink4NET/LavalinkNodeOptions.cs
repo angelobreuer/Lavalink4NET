@@ -44,8 +44,8 @@ namespace Lavalink4NET
         /// <summary>
         ///     Gets or sets the buffer size when receiving payloads from a lavalink node.
         /// </summary>
-        /// <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
-        public int BufferSize { get; set; } = 1024 * 1024;
+        /// <remarks>This property defaults to <c>1024</c> (1 KiB)</remarks>
+        public int BufferSize { get; set; } = 1024;
 
         /// <summary>
         ///     Gets or sets a value indicating whether the player should disconnect from the voice

@@ -21,7 +21,21 @@
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
         public override TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
-            => TimeSpan.FromMilliseconds(double.Parse(reader.Value.ToString()));
+        {
+            if (!long.TryParse(reader.Value.ToString(), out var value) || value < 0)
+            {
+                // could not parse or time is negative
+                return TimeSpan.Zero;
+            }
+
+            // infinite time
+            if (value == long.MaxValue)
+            {
+                return TimeSpan.MaxValue;
+            }
+
+            return TimeSpan.FromMilliseconds(value);
+        }
 
         /// <summary>
         ///     Writes the JSON representation of the object.

@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Tests
 {
     using Lavalink4NET.Cluster;
+    using Lavalink4NET.Logging;
     using Lavalink4NET.Lyrics;
     using Lavalink4NET.MemoryCache;
     using Lavalink4NET.Rest;

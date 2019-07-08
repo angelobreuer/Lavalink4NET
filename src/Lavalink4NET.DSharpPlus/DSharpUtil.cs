@@ -32,24 +32,51 @@ namespace Lavalink4NET.DSharpPlus
     using global::DSharpPlus.EventArgs;
     using global::DSharpPlus.Net.WebSocket;
 
+    /// <summary>
+    ///     An utility for getting internal / private fields from DSharpPlus WebSocket Gateway Payloads.
+    /// </summary>
     public static class DSharpUtil
     {
-        private static readonly PropertyInfo _voiceTokenProperty = typeof(VoiceServerUpdateEventArgs)
-            .GetProperty("VoiceToken", BindingFlags.NonPublic | BindingFlags.Instance);
-
-        public static string GetVoiceToken(this VoiceServerUpdateEventArgs voiceServerUpdateEventArgs)
-            => (string)_voiceTokenProperty.GetValue(voiceServerUpdateEventArgs);
-
+        /// <summary>
+        ///     The internal "SessionId" property info in <see cref="VoiceStateUpdateEventArgs"/>.
+        /// </summary>
+        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/EventArgs/VoiceStateUpdateEventArgs.cs#L38
         private static readonly PropertyInfo _sessionIdProperty = typeof(VoiceStateUpdateEventArgs)
             .GetProperty("SessionId", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        public static string GetSessionId(this VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
-            => (string)_sessionIdProperty.GetValue(voiceStateUpdateEventArgs);
+        /// <summary>
+        ///     The internal "VoiceToken" property info in <see cref="VoiceServerUpdateEventArgs"/>.
+        /// </summary>
+        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/EventArgs/VoiceServerUpdateEventArgs.cs#L24
+        private static readonly PropertyInfo _voiceTokenProperty = typeof(VoiceServerUpdateEventArgs)
+            .GetProperty("VoiceToken", BindingFlags.NonPublic | BindingFlags.Instance);
 
+        /// <summary>
+        ///     The internal "_webSocketClient" field info in <see cref="value"/>.
+        /// </summary>
         // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/DiscordClient.cs#L39
         private static readonly FieldInfo _webSocketClientField = typeof(DiscordClient)
             .GetField("_webSocketClient", BindingFlags.NonPublic | BindingFlags.Instance);
 
+        /// <summary>
+        ///     Gets the internal "SessionId" property value of the specified <paramref name="voiceStateUpdateEventArgs"/>.
+        /// </summary>
+        /// <param name="voiceStateUpdateEventArgs">the instance</param>
+        /// <returns>the "SessionId" value</returns>
+        public static string GetSessionId(this VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
+            => (string)_sessionIdProperty.GetValue(voiceStateUpdateEventArgs);
+
+        /// <summary>
+        ///     Gets the "VoiceToken" property value of the specified <paramref name="voiceServerUpdateEventArgs"/>.
+        /// </summary>
+        /// <param name="voiceServerUpdateEventArgs">the instance</param>
+        /// <returns>the "VoiceToken" value</returns>
+        public static string GetVoiceToken(this VoiceServerUpdateEventArgs voiceServerUpdateEventArgs)
+            => (string)_voiceTokenProperty.GetValue(voiceServerUpdateEventArgs);
+
+        /// <summary>
+        ///     Gets the internal "_webSocketClient" field value of the specified <paramref name="client"/>.
+        /// </summary>
         public static BaseWebSocketClient GetWebSocketClient(this DiscordClient client)
             => (BaseWebSocketClient)_webSocketClientField.GetValue(client);
     }

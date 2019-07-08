@@ -13,7 +13,7 @@
     ///     <see cref="NotImplementedException"/> exception (except <see cref="VoiceServerUpdated"/>
     ///     and <see cref="VoiceStateUpdated"/>)
     /// </remarks>
-    internal class NullDiscordClientWrapper : IDiscordClientWrapper
+    internal sealed class NullDiscordClientWrapper : IDiscordClientWrapper
     {
         /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.

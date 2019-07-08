@@ -9,7 +9,7 @@
                 A set of lavalink nodes bound to a cluster usable for voice node balancing.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.#ctor(Lavalink4NET.Cluster.LavalinkClusterOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> class.
             </summary>
@@ -36,6 +36,15 @@
             <summary>
                 An asynchronous event triggered when a node disconnected.
             </summary>
+        </member>
+        <member name="P:Lavalink4NET.Cluster.LavalinkCluster.StayOnline">
+            <summary>
+                Gets or sets a value indicating whether stay-online should be enabled for the cluster.
+            </summary>
+            <remarks>
+                When this option is enabled, the cluster will try to move the players of a
+                disconnected node to a new.
+            </remarks>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.AddNodeAsync(Lavalink4NET.LavalinkNodeOptions)">
             <summary>
@@ -227,7 +236,7 @@
                 A clustered lavalink node with additional information.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache,System.Int32)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache,System.Int32)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
             </summary>
@@ -262,11 +271,6 @@
                 Gets the coordinated universal time (UTC) point of the last usage of the node.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.Statistics">
-            <summary>
-                Gets the node statistics (may be <see langword="null"/>).
-            </summary>
-        </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnConnectedAsync(Lavalink4NET.Events.ConnectedEventArgs)">
             <summary>
                 Triggers the <see cref="E:Lavalink4NET.LavalinkSocket.Connected"/> event asynchronously.
@@ -280,13 +284,6 @@
             </summary>
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronously operation.</returns>
-        </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnStatisticsUpdateAsync(Lavalink4NET.Events.StatisticUpdateEventArgs)">
-            <summary>
-                Invokes the <see cref="E:Lavalink4NET.LavalinkNode.StatisticsUpdated"/> event asynchronously.
-            </summary>
-            <param name="eventArgs">the event arguments</param>
-            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="T:Lavalink4NET.Cluster.LavalinkClusterOptions">
             <summary>
@@ -337,7 +334,7 @@
                 The score strategy favors the node that has the highest score (higher = better).
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LoadBalancingStrategies.CalculateScore(Lavalink4NET.Events.StatisticUpdateEventArgs)">
+        <member name="M:Lavalink4NET.Cluster.LoadBalancingStrategies.CalculateScore(Lavalink4NET.Statistics.NodeStatistics)">
             <summary>
                 Calculates the node score.
             </summary>
@@ -600,23 +597,6 @@
             <param name="eventArgs">the event parameters</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.Events.AsyncEventExtensions.WaitOneAsync``1(Lavalink4NET.Events.AsyncEventHandler{``0},System.Predicate{``0})">
-            <summary>
-                Waits until an asynchronous event is triggered.
-            </summary>
-            <typeparam name="TEventArgs">the type of event parameters</typeparam>
-            <param name="eventHandler">the asynchronous event handler</param>
-            <param name="predicate">the predicate to check the event parameters</param>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
-        <member name="M:Lavalink4NET.Events.AsyncEventExtensions.WaitOneAsync(Lavalink4NET.Events.AsyncEventHandler,System.Predicate{System.EventArgs})">
-            <summary>
-                Waits until an asynchronous event is triggered and returns its result.
-            </summary>
-            <param name="eventHandler">the asynchronous event handler</param>
-            <param name="predicate">the predicate to check the event parameters</param>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="T:Lavalink4NET.Events.AsyncEventHandler`1">
             <summary>
                 An asynchronous event handler.
@@ -774,18 +754,41 @@
                 Gets the node that disconnected.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Events.NodeStatisticsUpdateEventArgs">
+            <summary>
+                The event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.StatisticsUpdated"/> event.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.NodeStatisticsUpdateEventArgs.#ctor(Lavalink4NET.Statistics.NodeStatistics)">
+            <summary>
+                Initializes a new instance of the No
+            </summary>
+            <param name="statistics">the statistics for the node</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="statistics"/> parameter is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.NodeStatisticsUpdateEventArgs.Statistics">
+            <summary>
+                Gets the statistics for the node.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Events.PayloadReceivedEventArgs">
             <summary>
                 The event arguments for the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/> event.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Events.PayloadReceivedEventArgs.#ctor(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.Events.PayloadReceivedEventArgs.#ctor(Lavalink4NET.Payloads.IPayload,System.String)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PayloadReceivedEventArgs"/> class.
             </summary>
             <param name="payload">the payload that was received</param>
+            <param name="rawJson">the raw JSON object content of the payload</param>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                the specified <paramref name="rawJson"/> is blank.
             </exception>
         </member>
         <member name="P:Lavalink4NET.Events.PayloadReceivedEventArgs.Payload">
@@ -793,58 +796,42 @@
                 Gets the payload that was received.
             </summary>
         </member>
-        <member name="T:Lavalink4NET.Events.StatisticUpdateEventArgs">
+        <member name="P:Lavalink4NET.Events.PayloadReceivedEventArgs.RawJson">
             <summary>
-                The event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.StatisticsUpdated"/> event.
+                Gets the raw JSON object content of the payload.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Events.StatisticUpdateEventArgs.#ctor(System.Int32,System.Int32,System.TimeSpan,Lavalink4NET.Statistics.MemoryStatistics,Lavalink4NET.Statistics.ProcessorStatistics,Lavalink4NET.Statistics.FrameStatistics)">
+        <member name="T:Lavalink4NET.Events.ReconnectAttemptEventArgs">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.StatisticUpdateEventArgs"/> class.
             </summary>
-            <param name="players">the number of players the node is holding</param>
-            <param name="playingPlayers">
-                the number of players that are currently playing using the node
-            </param>
-            <param name="uptime">the uptime from the node (how long the node is online)</param>
-            <param name="memory">the usage statistics for the memory of the node</param>
-            <param name="processor">the usage statistics for the processor of the node</param>
-            <param name="frameStatistics">the frame statistics of the node</param>
+        </member>
+        <member name="M:Lavalink4NET.Events.ReconnectAttemptEventArgs.#ctor(System.Uri,System.Int32,Lavalink4NET.ReconnectStrategy)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.ReconnectAttemptEventArgs"/> class.
+            </summary>
+            <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+            <param name="attempt">the number of reconnect attempts already made (1 = first)</param>
+            <param name="strategy">the reconnect strategy used</param>
             <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="memory"/> parameter is <see langword="null"/>.
+                thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
             </exception>
             <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
+                thrown if the specified <paramref name="strategy"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.Players">
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.CancelReconnect">
             <summary>
-                Gets the number of players the node is holding.
+                Gets or sets a value indicating whether the reconnect attempt should be canceled.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.PlayingPlayers">
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.Attempt">
             <summary>
-                Gets the number of players that are currently playing using the node.
+                Gets the number of reconnect attempts already made (1 = first).
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.Uptime">
+        <member name="P:Lavalink4NET.Events.ReconnectAttemptEventArgs.Strategy">
             <summary>
-                Gets the uptime from the node (how long the node is online).
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.Memory">
-            <summary>
-                Gets the usage statistics for the memory of the node.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.Processor">
-            <summary>
-                Gets the usage statistics for the processor of the node.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Events.StatisticUpdateEventArgs.FrameStatistics">
-            <summary>
-                Gets the frame statistics of the node.
+                Gets the reconnect strategy used.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Events.TrackEndEventArgs">
@@ -1139,7 +1126,7 @@
                 Used for connecting to a single lavalink node.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.LavalinkNode.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
             </summary>
@@ -1175,6 +1162,12 @@
                 An asynchronous event which is triggered when a track got stuck.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.LavalinkNode.Statistics">
+            <summary>
+                Gets the last received node statistics; or <see langword="null"/> if no statistics
+                are available for the node.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.LavalinkNode.Players">
             <summary>
                 Gets the player dictionary.
@@ -1184,6 +1177,12 @@
             <summary>
                 Fire and forgets <see cref="M:Lavalink4NET.LavalinkNode.DisposeAsync"/>.
             </summary>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.DisposeAsync">
+            <summary>
+                Disposes the node asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.GetPlayer``1(System.UInt64)">
             <summary>
@@ -1284,12 +1283,12 @@
             <param name="payload">the payload</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.OnPayloadReceived(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.LavalinkNode.OnPayloadReceived(Lavalink4NET.Events.PayloadReceivedEventArgs)">
             <summary>
                 Processes the payload and invokes the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/>
                 event asynchronously. (Can be override for event catching)
             </summary>
-            <param name="payload">the received payload</param>
+            <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnPlayerPayloadReceived(Lavalink4NET.Payloads.IPlayerPayload)">
@@ -1299,7 +1298,7 @@
             <param name="payload">the payload</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.OnStatisticsUpdateAsync(Lavalink4NET.Events.StatisticUpdateEventArgs)">
+        <member name="M:Lavalink4NET.LavalinkNode.OnStatisticsUpdateAsync(Lavalink4NET.Events.NodeStatisticsUpdateEventArgs)">
             <summary>
                 Invokes the <see cref="E:Lavalink4NET.LavalinkNode.StatisticsUpdated"/> event asynchronously. (Can be override
                 for event catching)
@@ -1347,12 +1346,6 @@
             <param name="args">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkNode.DisposeAsync">
-            <summary>
-                Disposes the node asynchronously.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="T:Lavalink4NET.LavalinkNodeOptions">
             <summary>
                 The required options used to connect to a lavalink node.
@@ -1369,7 +1362,7 @@
             <summary>
                 Gets or sets the buffer size when receiving payloads from a lavalink node.
             </summary>
-            <remarks>This property defaults to <c>1048576</c> (1 MiB)</remarks>
+            <remarks>This property defaults to <c>1024</c> (1 KiB)</remarks>
         </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.DisconnectOnStop">
             <summary>
@@ -1398,7 +1391,7 @@
                 The socket for connecting to a lavalink node.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.LavalinkSocket.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.LavalinkSocket.#ctor(Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkSocket"/> class.
             </summary>
@@ -1421,6 +1414,11 @@
             <summary>
                 An asynchronous event which is triggered when a payload was received from the
                 lavalink node.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.LavalinkSocket.ReconnectAttempt">
+            <summary>
+                An asynchronous event which is triggered when a new reconnection attempt is made.
             </summary>
         </member>
         <member name="P:Lavalink4NET.LavalinkSocket.IsConnected">
@@ -1511,13 +1509,20 @@
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronously operation.</returns>
         </member>
-        <member name="M:Lavalink4NET.LavalinkSocket.OnPayloadReceived(Lavalink4NET.Payloads.IPayload)">
+        <member name="M:Lavalink4NET.LavalinkSocket.OnPayloadReceived(Lavalink4NET.Events.PayloadReceivedEventArgs)">
             <summary>
                 Invokes the <see cref="E:Lavalink4NET.LavalinkSocket.PayloadReceived"/> event asynchronously. (Can be override for
                 event catching)
             </summary>
-            <param name="payload">the received payload</param>
+            <param name="eventArgs">the event arguments for the event</param>
             <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkSocket.OnReconnectAttemptAsync(Lavalink4NET.Events.ReconnectAttemptEventArgs)">
+            <summary>
+                Triggers the <see cref="E:Lavalink4NET.LavalinkSocket.ReconnectAttempt"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments</param>
+            <returns>a task that represents the asynchronously operation.</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.ProcessNextPayload">
             <summary>
@@ -1534,6 +1539,110 @@
                 Runs the receive / reconnect life cycle asynchronously.
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="T:Lavalink4NET.Logging.EventLogger">
+            <summary>
+                A logger implementation for a logger that logs the messages to an event.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.Logging.EventLogger.LogMessage">
+            <summary>
+                An event that is triggered when a message is logged.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Logging.EventLogger.Log(System.Object,System.String,Lavalink4NET.Logging.LogLevel,System.Exception)">
+            <summary>
+                Logs a message.
+            </summary>
+            <param name="source">the source the message comes from (usually this)</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
+        </member>
+        <member name="M:Lavalink4NET.Logging.EventLogger.OnLogMessage(Lavalink4NET.Logging.LogMessageEventArgs)">
+            <summary>
+                Triggers the <see cref="E:Lavalink4NET.Logging.EventLogger.LogMessage"/> event.
+            </summary>
+            <param name="eventArgs">the event arguments</param>
+        </member>
+        <member name="T:Lavalink4NET.Logging.ILogger">
+            <summary>
+                An interface for a logger provider.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Logging.ILogger.Log(System.Object,System.String,Lavalink4NET.Logging.LogLevel,System.Exception)">
+            <summary>
+                Logs a message.
+            </summary>
+            <param name="source">the source the message comes from (usually this)</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
+        </member>
+        <member name="T:Lavalink4NET.Logging.LogLevel">
+            <summary>
+                A set of different logging levels.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Logging.LogLevel.Information">
+            <summary>
+                Information, not critical, just for user information.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Logging.LogLevel.Error">
+            <summary>
+                Error, critical (application can continue)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Logging.LogLevel.Warning">
+            <summary>
+                Warning, not critical (a warning, but the application can continue without any
+                further problems)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Logging.LogLevel.Debug">
+            <summary>
+                Debug message, not critical (just for information / debugging)
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Logging.LogLevel.Trace">
+            <summary>
+                Trace message, not critical (just for information / debugging)
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Logging.LogMessageEventArgs">
+            <summary>
+                The event arguments for the <see cref="E:Lavalink4NET.Logging.EventLogger.LogMessage"/> event.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Logging.LogMessageEventArgs.Source">
+             <summary>
+            Gets the source the message comes from.
+             </summary>
+        </member>
+        <member name="P:Lavalink4NET.Logging.LogMessageEventArgs.Message">
+            <summary>
+                Gets the message to log.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Logging.LogMessageEventArgs.Level">
+            <summary>
+                Gets the logging level / the severity of the message.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Logging.LogMessageEventArgs.Exception">
+            <summary>
+                Gets an optional exception that occurred.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Logging.LogMessageEventArgs.#ctor(System.Object,System.String,Lavalink4NET.Logging.LogLevel,System.Exception)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Logging.LogMessageEventArgs"/> class.
+            </summary>
+            <param name="source">the source the message comes from</param>
+            <param name="message">the message to log</param>
+            <param name="level">the logging level / the severity of the message</param>
+            <param name="exception">an optional exception that occurred</param>
         </member>
         <member name="T:Lavalink4NET.Lyrics.LyricsOptions">
             <summary>
@@ -2671,6 +2780,244 @@
             </summary>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
+        <member name="T:Lavalink4NET.Player.LavalinkQueue">
+            <summary>
+                A thread-safe queue for <see cref="T:Lavalink4NET.Player.LavalinkTrack"/>.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkQueue"/> class.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Count">
+            <summary>
+                Gets the number of queued tracks.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.IsEmpty">
+            <summary>
+                Gets a value indicating whether the queue is empty.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.IsReadOnly">
+            <summary>
+                Gets a value indicating whether the queue is read-only.
+            </summary>
+            <remarks>
+                This property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Tracks">
+            <summary>
+                Gets or sets the enqueued tracks.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.Player.LavalinkQueue.Item(System.Int32)">
+            <summary>
+                Gets or sets the track at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This indexer property is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the zero-based position</param>
+            <returns>the track at the specified <paramref name="index"/></returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Add(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Adds a track at the end of the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to add</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.AddRange(System.Collections.Generic.IEnumerable{Lavalink4NET.Player.LavalinkTrack})">
+            <summary>
+                Adds all specified <paramref name="tracks"/> to the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="tracks">the tracks to enqueue</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="tracks"/> enumerable is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Clear">
+            <summary>
+                Clears all tracks from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the number of tracks removed</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#Generic#ICollection{Lavalink4NET#Player#LavalinkTrack}#Clear">
+            <summary>
+                Clears the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Contains(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Gets a value indicating whether the specified <paramref name="track"/> is in the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to find</param>
+            <returns>
+                a value indicating whether the specified <paramref name="track"/> is in the queue
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.CopyTo(Lavalink4NET.Player.LavalinkTrack[],System.Int32)">
+            <summary>
+                Copies all tracks to the specified <paramref name="array"/> at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="array">the array to the tracks to</param>
+            <param name="index">the zero-based writing start index</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Dequeue">
+            <summary>
+                Dequeues a track using the FIFO method.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the dequeued track</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if no tracks were in the queue
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Distinct">
+            <summary>
+                Deletes all duplicate tracks from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.GetEnumerator">
+            <summary>
+                Gets the track enumerator.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the track enumerator</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+                Gets the track enumerator.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the track enumerator</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.IndexOf(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Gets the zero-based index of the specified <paramref name="track"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to locate</param>
+            <returns>the zero-based index of the specified <paramref name="track"/></returns>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="track"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Insert(System.Int32,Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Inserts the specified <paramref name="track"/> at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the zero-based index to insert (e.g. 0 = top)</param>
+            <param name="track">the track to insert</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Remove(Lavalink4NET.Player.LavalinkTrack)">
+            <summary>
+                Tries to remove the specified <paramref name="track"/> from the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the track to remove</param>
+            <returns>
+                a value indicating whether the track was found and removed from the queue
+            </returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveAll(System.Predicate{Lavalink4NET.Player.LavalinkTrack})">
+            <summary>
+                Removes all tracks that matches the specified <paramref name="predicate"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="predicate">the track predicate</param>
+            <returns>the number of tracks removed</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveAt(System.Int32)">
+            <summary>
+                Removes a track at the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the index to remove the track</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.RemoveRange(System.Int32,System.Int32)">
+            <summary>
+                Removes all <paramref name="count"/> tracks from the specified <paramref name="index"/>.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="index">the start index (zero-based)</param>
+            <param name="count">the number of tracks to remove</param>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.Shuffle">
+            <summary>
+                Shuffles / mixes all tracks in the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.TryDequeue(Lavalink4NET.Player.LavalinkTrack@)">
+            <summary>
+                Tries to dequeue a track using the FIFO method.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <param name="track">the dequeued track; or default is the result is <see langword="false"/>.</param>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if no tracks were in the queue
+            </exception>
+            <returns>a value indicating whether a track was dequeued.</returns>
+        </member>
         <member name="T:Lavalink4NET.Player.LavalinkTrack">
             <summary>
                 The information of a lavalink track.
@@ -2794,6 +3141,11 @@
                 The information store for a lavalink track.
             </summary>
         </member>
+        <member name="M:Lavalink4NET.Player.LavalinkTrackInfo.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.LavalinkTrackInfo"/> class.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Player.LavalinkTrackInfo.Author">
             <summary>
                 Gets the name of the track author.
@@ -2886,19 +3238,14 @@
                 thrown if the specified <paramref name="client"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.EnqueuedTracks">
-            <summary>
-                Gets the number of enqueued tracks.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.IsLooping">
             <summary>
                 Gets or sets a value indicating whether the current playing track should be looped.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.Tracks">
+        <member name="P:Lavalink4NET.Player.QueuedLavalinkPlayer.Queue">
             <summary>
-                Gets the tracks in queue.
+                Gets the track queue.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
@@ -2952,12 +3299,6 @@
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PurgeQueue">
-            <summary>
-                Purges the track queue.
-            </summary>
-            <returns>the number of tracks removed</returns>
-        </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.PushTrackAsync(Lavalink4NET.Player.LavalinkTrack,System.Boolean)">
             <summary>
                 Pushes a track between the current asynchronously.
@@ -2978,11 +3319,6 @@
                 or the specified track was simply started ( <see langword="false"/>), because there
                 is no track playing.
             </returns>
-        </member>
-        <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.Shuffle">
-            <summary>
-                Shuffles the track queue.
-            </summary>
         </member>
         <member name="M:Lavalink4NET.Player.QueuedLavalinkPlayer.SkipAsync(System.Int32)">
             <summary>
@@ -3311,7 +3647,7 @@
                 for more details.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.#ctor(Lavalink4NET.Rest.LavalinkRestOptions,Lavalink4NET.ILogger,Lavalink4NET.ILavalinkCache)">
+        <member name="M:Lavalink4NET.Rest.LavalinkRestClient.#ctor(Lavalink4NET.Rest.LavalinkRestOptions,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Rest.LavalinkRestClient"/> class.
             </summary>
@@ -3618,6 +3954,60 @@
                 The reservable RAM memory in bytes.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Statistics.NodeStatistics">
+            <summary>
+                The statistics for a <see cref="T:Lavalink4NET.LavalinkNode"/>.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Statistics.NodeStatistics.#ctor(System.Int32,System.Int32,System.TimeSpan,Lavalink4NET.Statistics.MemoryStatistics,Lavalink4NET.Statistics.ProcessorStatistics,Lavalink4NET.Statistics.FrameStatistics)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Statistics.NodeStatistics"/> class.
+            </summary>
+            <param name="players">the number of players the node is holding</param>
+            <param name="playingPlayers">
+                the number of players that are currently playing using the node
+            </param>
+            <param name="uptime">the uptime from the node (how long the node is online)</param>
+            <param name="memory">the usage statistics for the memory of the node</param>
+            <param name="processor">the usage statistics for the processor of the node</param>
+            <param name="frameStatistics">the frame statistics of the node</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="memory"/> parameter is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.Players">
+            <summary>
+                Gets the number of players the node is holding.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.PlayingPlayers">
+            <summary>
+                Gets the number of players that are currently playing using the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.Uptime">
+            <summary>
+                Gets the uptime from the node (how long the node is online).
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.Memory">
+            <summary>
+                Gets the usage statistics for the memory of the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.Processor">
+            <summary>
+                Gets the usage statistics for the processor of the node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Statistics.NodeStatistics.FrameStatistics">
+            <summary>
+                Gets the frame statistics of the node.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Statistics.ProcessorStatistics">
             <summary>
                 A wrapper for the statistics.processor object in the statistics update from the lavalink server.
@@ -3731,7 +4121,7 @@
                 A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.ILogger)">
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.#ctor(Lavalink4NET.IAudioService,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Tracking.InactivityTrackingOptions,Lavalink4NET.Logging.ILogger)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> class.
             </summary>
@@ -3914,51 +4304,6 @@
         <member name="P:Lavalink4NET.Tracking.PlayerTrackingStatusUpdateEventArgs.TrackingStatus">
             <summary>
                 Gets the new tracking status of the player.
-            </summary>
-        </member>
-        <member name="T:Lavalink4NET.ILogger">
-            <summary>
-                An interface for a logger provider.
-            </summary>
-        </member>
-        <member name="M:Lavalink4NET.ILogger.Log(System.Object,System.String,Lavalink4NET.LogLevel,System.Exception)">
-            <summary>
-                Logs a message asynchronously.
-            </summary>
-            <param name="source">the source the message comes from (usually this)</param>
-            <param name="message">the message to log</param>
-            <param name="level">the logging level / the severity of the message</param>
-            <param name="exception">an optional exception that occurred</param>
-        </member>
-        <member name="T:Lavalink4NET.LogLevel">
-            <summary>
-                A set of different logging levels.
-            </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Information">
-            <summary>
-                Information, not critical, just for user information.
-            </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Error">
-            <summary>
-                Error, critical (application can continue)
-            </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Warning">
-            <summary>
-                Warning, not critical (a warning, but the application can continue without any
-                further problems)
-            </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Debug">
-            <summary>
-                Debug message, not critical (just for information / debugging)
-            </summary>
-        </member>
-        <member name="F:Lavalink4NET.LogLevel.Trace">
-            <summary>
-                Trace message, not critical (just for information / debugging)
             </summary>
         </member>
         <member name="T:Lavalink4NET.Util.StreamProviderUtil">

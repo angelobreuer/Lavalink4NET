@@ -1,5 +1,5 @@
 ﻿/*
- *  File:   ReconnectStrategy.cs
+ *  File:   LogLevel.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,18 +25,37 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET
+namespace Lavalink4NET.Logging
 {
-    using System;
-
     /// <summary>
-    ///     The delegate for a reconnection strategy.
+    ///     A set of different logging levels.
     /// </summary>
-    /// <param name="start">the time when the reconnection started / the connection was lost</param>
-    /// <param name="tries">the number of tries to reconnect (one-based)</param>
-    /// <returns>
-    ///     the time to wait to the next reconnect; or <see langword="null"/> if it is wanted to give
-    ///     up reconnecting to the node.
-    /// </returns>
-    public delegate TimeSpan? ReconnectStrategy(DateTimeOffset start, int tries);
+    public enum LogLevel
+    {
+        /// <summary>
+        ///     Information, not critical, just for user information.
+        /// </summary>
+        Information,
+
+        /// <summary>
+        ///     Error, critical (application can continue)
+        /// </summary>
+        Error,
+
+        /// <summary>
+        ///     Warning, not critical (a warning, but the application can continue without any
+        ///     further problems)
+        /// </summary>
+        Warning,
+
+        /// <summary>
+        ///     Debug message, not critical (just for information / debugging)
+        /// </summary>
+        Debug,
+
+        /// <summary>
+        ///     Trace message, not critical (just for information / debugging)
+        /// </summary>
+        Trace
+    }
 }

@@ -33,6 +33,7 @@ namespace Lavalink4NET.Cluster
     using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
+    using Lavalink4NET.Logging;
     using Player;
     using Rest;
 
@@ -47,7 +48,6 @@ namespace Lavalink4NET.Cluster
         private readonly ILogger _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
-        private readonly bool _stayOnline;
         private bool _initialized;
         private volatile int _nodeId;
 
@@ -80,7 +80,7 @@ namespace Lavalink4NET.Cluster
             _logger = logger;
             _cache = cache;
             _nodesLock = new object();
-            _stayOnline = options.StayOnline;
+            StayOnline = options.StayOnline;
             _nodes = options.Nodes.Select(CreateNode).ToList();
         }
 
@@ -93,6 +93,15 @@ namespace Lavalink4NET.Cluster
         ///     An asynchronous event triggered when a node disconnected.
         /// </summary>
         public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
+
+        /// <summary>
+        ///     Gets or sets a value indicating whether stay-online should be enabled for the cluster.
+        /// </summary>
+        /// <remarks>
+        ///     When this option is enabled, the cluster will try to move the players of a
+        ///     disconnected node to a new.
+        /// </remarks>
+        public bool StayOnline { get; set; }
 
         /// <summary>
         ///     Dynamically adds a node to the cluster asynchronously.
@@ -287,6 +296,11 @@ namespace Lavalink4NET.Cluster
         /// <returns>a task that represents the asynchronous operation</returns>
         public async Task InitializeAsync()
         {
+            if (_initialized)
+            {
+                return;
+            }
+
             await Task.WhenAll(_nodes.Select(s => s.InitializeAsync()));
 
             _initialized = true;
@@ -365,7 +379,7 @@ namespace Lavalink4NET.Cluster
         protected virtual async Task OnNodeDisconnectedAsync(NodeDisconnectedEventArgs eventArgs)
         {
             // stay-online feature
-            if (_stayOnline && eventArgs.ByRemote)
+            if (StayOnline && eventArgs.ByRemote)
             {
                 _logger?.Log(this, "(Stay-Online) Node died! Moving players to a new node...", LogLevel.Warning);
 

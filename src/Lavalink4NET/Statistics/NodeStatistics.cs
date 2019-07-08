@@ -1,5 +1,5 @@
 /*
- *  File:   StatisticUpdateEventArgs.cs
+ *  File:   NodeStatistics.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,19 +25,17 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Events
+namespace Lavalink4NET.Statistics
 {
     using System;
-    using Statistics;
 
     /// <summary>
-    ///     The event arguments for the <see cref="LavalinkNode.StatisticsUpdated"/> event.
+    ///     The statistics for a <see cref="LavalinkNode"/>.
     /// </summary>
-    public sealed class StatisticUpdateEventArgs
-        : EventArgs
+    public sealed class NodeStatistics
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="StatisticUpdateEventArgs"/> class.
+        ///     Initializes a new instance of the <see cref="NodeStatistics"/> class.
         /// </summary>
         /// <param name="players">the number of players the node is holding</param>
         /// <param name="playingPlayers">
@@ -53,7 +51,8 @@ namespace Lavalink4NET.Events
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="processor"/> parameter is <see langword="null"/>.
         /// </exception>
-        public StatisticUpdateEventArgs(int players, int playingPlayers, TimeSpan uptime, MemoryStatistics memory, ProcessorStatistics processor, FrameStatistics frameStatistics)
+        public NodeStatistics(int players, int playingPlayers, TimeSpan uptime, MemoryStatistics memory,
+            ProcessorStatistics processor, FrameStatistics frameStatistics)
         {
             Players = players;
             PlayingPlayers = playingPlayers;

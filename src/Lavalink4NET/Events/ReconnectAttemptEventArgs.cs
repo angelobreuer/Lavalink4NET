@@ -1,5 +1,5 @@
-/*
- *  File:   PayloadReceivedEventArgs.cs
+﻿/*
+ *  File:   ReconnectAttemptEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -28,44 +28,42 @@
 namespace Lavalink4NET.Events
 {
     using System;
-    using Payloads;
 
     /// <summary>
-    ///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
     /// </summary>
-    public sealed class PayloadReceivedEventArgs
-        : EventArgs
+    public sealed class ReconnectAttemptEventArgs : ConnectionEventArgs
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
+        ///     Initializes a new instance of the <see cref="ReconnectAttemptEventArgs"/> class.
         /// </summary>
-        /// <param name="payload">the payload that was received</param>
-        /// <param name="rawJson">the raw JSON object content of the payload</param>
+        /// <param name="uri">the URI connect / reconnected / disconnected from / to</param>
+        /// <param name="attempt">the number of reconnect attempts already made (1 = first)</param>
+        /// <param name="strategy">the reconnect strategy used</param>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+        ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     the specified <paramref name="rawJson"/> is blank.
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="strategy"/> is <see langword="null"/>.
         /// </exception>
-        public PayloadReceivedEventArgs(IPayload payload, string rawJson)
+        public ReconnectAttemptEventArgs(Uri uri, int attempt, ReconnectStrategy strategy) : base(uri)
         {
-            if (string.IsNullOrWhiteSpace(rawJson))
-            {
-                throw new ArgumentException("message", nameof(rawJson));
-            }
-
-            Payload = payload ?? throw new ArgumentNullException(nameof(payload));
-            RawJson = rawJson;
+            Attempt = attempt;
+            Strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
         }
 
         /// <summary>
-        ///     Gets the payload that was received.
+        ///     Gets or sets a value indicating whether the reconnect attempt should be canceled.
         /// </summary>
-        public IPayload Payload { get; }
+        public bool CancelReconnect { get; set; }
 
         /// <summary>
-        ///     Gets the raw JSON object content of the payload.
+        ///     Gets the number of reconnect attempts already made (1 = first).
         /// </summary>
-        public string RawJson { get; }
+        public int Attempt { get; }
+
+        /// <summary>
+        ///     Gets the reconnect strategy used.
+        /// </summary>
+        public ReconnectStrategy Strategy { get; }
     }
 }

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.MemoryCache", "Lavalink4NET.MemoryCache\Lavalink4NET.MemoryCache.csproj", "{0A74B051-3BC6-424E-B5A1-30EF2FAC7CFA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Tests", "Lavalink4NET.Tests\Lavalink4NET.Tests.csproj", "{C5360CAD-5276-48B2-832E-665015793D91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Tests", "Lavalink4NET.Tests\Lavalink4NET.Tests.csproj", "{C5360CAD-5276-48B2-832E-665015793D91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

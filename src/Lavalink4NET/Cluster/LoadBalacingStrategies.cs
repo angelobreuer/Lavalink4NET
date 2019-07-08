@@ -28,7 +28,7 @@
 namespace Lavalink4NET.Cluster
 {
     using System.Linq;
-    using Lavalink4NET.Events;
+    using Lavalink4NET.Statistics;
 
     /// <summary>
     ///     Provides a set of load balancing strategies.
@@ -64,7 +64,7 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="statistics">the node statistics</param>
         /// <returns>the score for the node (higher = better)</returns>
-        public static double CalculateScore(StatisticUpdateEventArgs statistics)
+        public static double CalculateScore(NodeStatistics statistics)
         {
             // no statistics retrieved for the node.
             if (statistics is null || statistics.Processor is null
@@ -101,8 +101,9 @@ namespace Lavalink4NET.Cluster
             // statistics.FrameStatistics.AverageDeficitFrames (0.5x) lower = better
             IncludeFactor(-statistics.FrameStatistics.AverageDeficitFrames, .5d);
 
-            // statistics.FrameStatistics.AverageNulledFrames (0.5x) lower = better
-            IncludeFactor(-statistics.FrameStatistics.AverageNulledFrames, .5d);
+            // statistics.FrameStatistics.AverageNulledFrames (0.7x) lower = better (nulled frames
+            // are worser than deficit)
+            IncludeFactor(-statistics.FrameStatistics.AverageNulledFrames, .7d);
 
             // calculate average of weight
             return totalWeight / factors;

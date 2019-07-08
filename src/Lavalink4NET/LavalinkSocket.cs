@@ -35,6 +35,7 @@ namespace Lavalink4NET
     using System.Threading;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Logging;
     using Lavalink4NET.Payloads.Node;
     using Newtonsoft.Json;
     using Payloads;
@@ -115,6 +116,11 @@ namespace Lavalink4NET
         ///     lavalink node.
         /// </summary>
         public event AsyncEventHandler<PayloadReceivedEventArgs> PayloadReceived;
+
+        /// <summary>
+        ///     An asynchronous event which is triggered when a new reconnection attempt is made.
+        /// </summary>
+        public event AsyncEventHandler<ReconnectAttemptEventArgs> ReconnectAttempt;
 
         /// <summary>
         ///     Gets a value indicating whether the client is connected to the lavalink node.
@@ -388,10 +394,18 @@ namespace Lavalink4NET
         ///     Invokes the <see cref="PayloadReceived"/> event asynchronously. (Can be override for
         ///     event catching)
         /// </summary>
-        /// <param name="payload">the received payload</param>
+        /// <param name="eventArgs">the event arguments for the event</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnPayloadReceived(IPayload payload)
-            => PayloadReceived.InvokeAsync(this, new PayloadReceivedEventArgs(payload));
+        protected virtual Task OnPayloadReceived(PayloadReceivedEventArgs eventArgs)
+            => PayloadReceived.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Triggers the <see cref="ReconnectAttempt"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected virtual Task OnReconnectAttemptAsync(ReconnectAttemptEventArgs eventArgs)
+            => ReconnectAttempt.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Processes an incoming payload asynchronously.
@@ -461,7 +475,8 @@ namespace Lavalink4NET
             try
             {
                 var payload = PayloadConverter.ReadPayload(content);
-                await OnPayloadReceived(payload);
+                var eventArgs = new PayloadReceivedEventArgs(payload, content);
+                await OnPayloadReceived(eventArgs);
             }
             catch (Exception ex)
             {
@@ -487,7 +502,7 @@ namespace Lavalink4NET
                 var lostConnectionAt = DateTimeOffset.UtcNow;
 
                 // try reconnect
-                for (var attempt = 0; !_cancellationTokenSource.IsCancellationRequested; attempt++)
+                for (var attempt = 1; !_cancellationTokenSource.IsCancellationRequested; attempt++)
                 {
                     // reconnect
                     await ConnectAsync();
@@ -495,6 +510,16 @@ namespace Lavalink4NET
                     if (IsConnected)
                     {
                         // reconnection successful
+                        return;
+                    }
+
+                    var eventArgs = new ReconnectAttemptEventArgs(_webSocketUri, attempt, _reconnectionStrategy);
+                    await OnReconnectAttemptAsync(eventArgs);
+
+                    // give up
+                    if (eventArgs.CancelReconnect)
+                    {
+                        Logger?.Log(this, "Reconnection aborted due event.");
                         return;
                     }
 

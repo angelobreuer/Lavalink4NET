@@ -1,5 +1,5 @@
-/*
- *  File:   PayloadReceivedEventArgs.cs
+﻿/*
+ *  File:   EventLogger.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,47 +25,35 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Events
+namespace Lavalink4NET.Logging
 {
     using System;
-    using Payloads;
 
     /// <summary>
-    ///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
+    ///     A logger implementation for a logger that logs the messages to an event.
     /// </summary>
-    public sealed class PayloadReceivedEventArgs
-        : EventArgs
+    public class EventLogger : ILogger
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
+        ///     An event that is triggered when a message is logged.
         /// </summary>
-        /// <param name="payload">the payload that was received</param>
-        /// <param name="rawJson">the raw JSON object content of the payload</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     the specified <paramref name="rawJson"/> is blank.
-        /// </exception>
-        public PayloadReceivedEventArgs(IPayload payload, string rawJson)
-        {
-            if (string.IsNullOrWhiteSpace(rawJson))
-            {
-                throw new ArgumentException("message", nameof(rawJson));
-            }
-
-            Payload = payload ?? throw new ArgumentNullException(nameof(payload));
-            RawJson = rawJson;
-        }
+        public event EventHandler<LogMessageEventArgs> LogMessage;
 
         /// <summary>
-        ///     Gets the payload that was received.
+        ///     Logs a message.
         /// </summary>
-        public IPayload Payload { get; }
+        /// <param name="source">the source the message comes from (usually this)</param>
+        /// <param name="message">the message to log</param>
+        /// <param name="level">the logging level / the severity of the message</param>
+        /// <param name="exception">an optional exception that occurred</param>
+        public void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
+            => OnLogMessage(new LogMessageEventArgs(source, message, level, exception));
 
         /// <summary>
-        ///     Gets the raw JSON object content of the payload.
+        ///     Triggers the <see cref="LogMessage"/> event.
         /// </summary>
-        public string RawJson { get; }
+        /// <param name="eventArgs">the event arguments</param>
+        protected virtual void OnLogMessage(LogMessageEventArgs eventArgs)
+            => LogMessage?.Invoke(this, eventArgs);
     }
 }

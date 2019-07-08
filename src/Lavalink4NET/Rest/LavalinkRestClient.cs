@@ -34,6 +34,7 @@ namespace Lavalink4NET.Rest
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Lavalink4NET.Logging;
     using Newtonsoft.Json;
     using Player;
 

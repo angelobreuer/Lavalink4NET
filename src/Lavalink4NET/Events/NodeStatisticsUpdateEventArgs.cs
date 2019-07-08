@@ -1,5 +1,5 @@
-/*
- *  File:   PayloadReceivedEventArgs.cs
+﻿/*
+ *  File:   NodeStatisticsUpdateEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -28,44 +28,26 @@
 namespace Lavalink4NET.Events
 {
     using System;
-    using Payloads;
+    using Lavalink4NET.Statistics;
 
     /// <summary>
-    ///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
+    ///     The event arguments for the <see cref="LavalinkNode.StatisticsUpdated"/> event.
     /// </summary>
-    public sealed class PayloadReceivedEventArgs
-        : EventArgs
+    public sealed class NodeStatisticsUpdateEventArgs : EventArgs
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
+        ///     Initializes a new instance of the No
         /// </summary>
-        /// <param name="payload">the payload that was received</param>
-        /// <param name="rawJson">the raw JSON object content of the payload</param>
+        /// <param name="statistics">the statistics for the node</param>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+        ///     thrown if the specified <paramref name="statistics"/> parameter is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     the specified <paramref name="rawJson"/> is blank.
-        /// </exception>
-        public PayloadReceivedEventArgs(IPayload payload, string rawJson)
-        {
-            if (string.IsNullOrWhiteSpace(rawJson))
-            {
-                throw new ArgumentException("message", nameof(rawJson));
-            }
-
-            Payload = payload ?? throw new ArgumentNullException(nameof(payload));
-            RawJson = rawJson;
-        }
+        public NodeStatisticsUpdateEventArgs(NodeStatistics statistics)
+            => Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
 
         /// <summary>
-        ///     Gets the payload that was received.
+        ///     Gets the statistics for the node.
         /// </summary>
-        public IPayload Payload { get; }
-
-        /// <summary>
-        ///     Gets the raw JSON object content of the payload.
-        /// </summary>
-        public string RawJson { get; }
+        public NodeStatistics Statistics { get; }
     }
 }

@@ -57,58 +57,5 @@ namespace Lavalink4NET.Events
         /// <returns>a task that represents the asynchronous operation</returns>
         public static Task InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs> eventHandler, object sender, TEventArgs eventArgs)
             => eventHandler?.Invoke(sender, eventArgs) ?? Task.CompletedTask;
-
-        /// <summary>
-        ///     Waits until an asynchronous event is triggered.
-        /// </summary>
-        /// <typeparam name="TEventArgs">the type of event parameters</typeparam>
-        /// <param name="eventHandler">the asynchronous event handler</param>
-        /// <param name="predicate">the predicate to check the event parameters</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public static Task<(object sender, TEventArgs args)> WaitOneAsync<TEventArgs>(this AsyncEventHandler<TEventArgs> eventHandler, Predicate<TEventArgs> predicate = null)
-        {
-            var completionSource = new TaskCompletionSource<(object sender, TEventArgs eventArgs)>();
-
-            Task Callback(object sender, TEventArgs eventArgs)
-            {
-                if (predicate?.Invoke(eventArgs) ?? true)
-                {
-                    eventHandler -= Callback;
-                    completionSource.SetResult((sender, eventArgs));
-                }
-
-                return Task.CompletedTask;
-            }
-
-            eventHandler += Callback;
-
-            return completionSource.Task;
-        }
-
-        /// <summary>
-        ///     Waits until an asynchronous event is triggered and returns its result.
-        /// </summary>
-        /// <param name="eventHandler">the asynchronous event handler</param>
-        /// <param name="predicate">the predicate to check the event parameters</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public static Task<(object sender, EventArgs args)> WaitOneAsync(this AsyncEventHandler eventHandler, Predicate<EventArgs> predicate = null)
-        {
-            var completionSource = new TaskCompletionSource<(object sender, EventArgs eventArgs)>();
-
-            Task Callback(object sender, EventArgs eventArgs)
-            {
-                if (predicate?.Invoke(eventArgs) ?? true)
-                {
-                    eventHandler -= Callback;
-                    completionSource.SetResult((sender, eventArgs));
-                }
-
-                return Task.CompletedTask;
-            }
-
-            eventHandler += Callback;
-
-            return completionSource.Task;
-        }
     }
 }
