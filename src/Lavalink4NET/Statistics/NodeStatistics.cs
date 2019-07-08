@@ -65,7 +65,6 @@ namespace Lavalink4NET.Statistics
         /// <summary>
         ///     Gets the number of players the node is holding.
         /// </summary>
-
         public int Players { get; internal set; }
 
         /// <summary>
