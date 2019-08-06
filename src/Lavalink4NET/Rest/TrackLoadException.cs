@@ -45,9 +45,6 @@ namespace Lavalink4NET.Rest
         ///     the exception severity; 'COMMON' indicates that the exception is not from Lavalink itself.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="friendlyMessage"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="severity"/> is <see langword="null"/>.
         /// </exception>
         /// <remarks>
@@ -59,11 +56,6 @@ namespace Lavalink4NET.Rest
         public TrackLoadException(string friendlyMessage, string severity)
             : base(friendlyMessage)
         {
-            if (friendlyMessage is null)
-            {
-                throw new ArgumentNullException(nameof(friendlyMessage));
-            }
-
             Severity = severity ?? throw new ArgumentNullException(nameof(severity));
         }
 
