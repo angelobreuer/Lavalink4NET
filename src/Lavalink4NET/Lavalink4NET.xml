@@ -3837,9 +3837,6 @@
                 the exception severity; 'COMMON' indicates that the exception is not from Lavalink itself.
             </param>
             <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="friendlyMessage"/> is <see langword="null"/>.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="severity"/> is <see langword="null"/>.
             </exception>
             <remarks>
