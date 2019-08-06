@@ -1,5 +1,5 @@
 # Build worker image (VM template)
-image: Visual Studio 2019
+image: ubuntu
 
 # Start builds on tags only
 skip_non_tags: true
