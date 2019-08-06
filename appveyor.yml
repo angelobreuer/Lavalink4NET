@@ -18,5 +18,5 @@ build:
   parallel: true
   project: src/Lavalink4NET.sln
   publish_nuget: true
-  public_nuget_symbols: true
+  publish_nuget_symbols: true
   verbosity: detailed
