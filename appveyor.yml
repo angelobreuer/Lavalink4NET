@@ -1,0 +1,38 @@
+# Build worker image (VM template)
+image: ubuntu
+
+# Maximum number of concurrent jobs for the project
+max_jobs: 3
+
+# Build with Release configuration
+configuration: Release
+
+# Deployment
+deploy:
+  # NuGet Deployment
+  - provider: NuGet
+    api_key:
+      secure: BEn1eXLxc62JPTXUFl0RuSwflB10IeiJuVCvUrjjWUSV6ZvVMth4xuHyLPMZCuVk
+    skip_symbols: false
+    artifact: /.*\.nupkg/
+
+  # GitHub Release Deployment
+  - provider: GitHub
+    release: v$(appveyor_build_version)
+    description: 'Automated AppVeyor deployment'
+    auth_token:
+      secure: MgLx/AxMRG7E0GkPw36xBBD81pAD2Qqm5pBR3UsUVDJNzx8Fm2p8rOIJQ8PCJ7pC
+    prerelease: false
+    draft: false
+    artifact: /.*\.nupkg/
+    on:
+      branch: master
+      APPVEYOR_REPO_TAG: true
+
+# Build Settings
+build:
+  parallel: true
+  project: src/Lavalink4NET.sln
+  publish_nuget: true
+  publish_nuget_symbols: true
+  verbosity: minimal
