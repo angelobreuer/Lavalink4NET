@@ -44,12 +44,7 @@ namespace Lavalink4NET
     /// <summary>
     ///     Used for connecting to a single lavalink node.
     /// </summary>
-    public class LavalinkNode : LavalinkSocket, IAudioService,
-#if NETCOREAPP3_0
-        IAsyncDisposable
-#else
-        IDisposable
-#endif
+    public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable
     {
         private readonly bool _disconnectOnStop;
         private readonly IDiscordClientWrapper _discordClient;
@@ -116,28 +111,23 @@ namespace Lavalink4NET
         protected IDictionary<ulong, LavalinkPlayer> Players { get; }
 
         /// <summary>
-        ///     Fire and forgets <see cref="DisposeAsync"/>.
+        ///     Disposes the node.
         /// </summary>
-        public override void Dispose() => _ = DisposeAsync();
-
-        /// <summary>
-        ///     Disposes the node asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-#if NETCOREAPP3_0
-        public virtual async ValueTask DisposeAsync()
-#else
-
-        public virtual async Task DisposeAsync()
-#endif
+        public override void Dispose()
         {
+            // call base handling
+            base.Dispose();
+
+            // unregister event listeners
             _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
             _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
 
-            base.Dispose();
-
             // dispose all players
-            await Task.WhenAll(Players.Values.Select(async s => await s.DisposeAsync()).ToArray());
+            foreach (var player in Players)
+            {
+                player.Value.Dispose();
+            }
+
             Players.Clear();
         }
 
