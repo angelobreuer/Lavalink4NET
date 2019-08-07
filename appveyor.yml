@@ -35,4 +35,4 @@ build:
   project: src/Lavalink4NET.sln
   publish_nuget: true
   publish_nuget_symbols: true
-  verbosity: detailed
+  verbosity: minimal
