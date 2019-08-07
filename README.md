@@ -23,15 +23,15 @@
 
 <br/>
 
-<!-- Travis CI (master) Badge -->
-<a href="https://travis-ci.org/angelobreuer/Lavalink4NET">
+<!-- AppVeyor CI (master) Badge -->
+<a href="https://ci.appveyor.com/project/angelobreuer/lavalink4net">
 	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/Lavalink4NET?style=for-the-badge">
 </a>	
 
 
-<!-- Travis CI (Development) Badge -->
+<!-- AppVeyor CI (Development) Badge -->
 <a href="https://github.com/angelobreuer/Lavalink4NET/tree/dev">
-	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/Lavalink4NET/dev?style=for-the-badge">
+	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/Lavalink4NET/dev?label=development&style=for-the-badge">
 </a>
 
 </p>
