@@ -2,7 +2,7 @@
 image: ubuntu
 
 # Maximum number of concurrent jobs for the project
-max_jobs: 1
+max_jobs: 3
 
 # Build with Release configuration
 configuration: Release
@@ -19,7 +19,7 @@ deploy:
   # GitHub Release Deployment
   - provider: GitHub
     release: v$(appveyor_build_version)
-    description: 'Automate AppVeyor deployment'
+    description: 'Automated AppVeyor deployment'
     auth_token:
       secure: MgLx/AxMRG7E0GkPw36xBBD81pAD2Qqm5pBR3UsUVDJNzx8Fm2p8rOIJQ8PCJ7pC
     prerelease: false
