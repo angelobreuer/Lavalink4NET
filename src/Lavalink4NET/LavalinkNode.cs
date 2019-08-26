@@ -551,7 +551,7 @@ namespace Lavalink4NET
             }
 
             // add player to the new node
-            node.Players.TryAdd(player.GuildId, player);
+            node.Players[player.GuildId] = player;
         }
     }
 }
