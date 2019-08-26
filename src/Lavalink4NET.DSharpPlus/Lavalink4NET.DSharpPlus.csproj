@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
@@ -16,7 +16,7 @@
     <Company>Angelo Breuer</Company>
     <Copyright>Angelo Breuer</Copyright>
     <Product>Lavalink4NET</Product>
-    <Version>1.4.1</Version>
+    <Version>1.4.2</Version>
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       Integration with DSharpPlus Library.

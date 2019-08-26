@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Lavalink4NET.Discord.NET</PackageId>
     <Authors>Angelo Breuer</Authors>
     <Company>Angelo Breuer</Company>
@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.4.1</Version>
+    <Version>1.4.2</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>

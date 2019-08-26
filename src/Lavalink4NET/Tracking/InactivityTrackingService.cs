@@ -211,8 +211,11 @@ namespace Lavalink4NET.Tracking
                 if (await IsInactiveAsync(player))
                 {
                     // add the player to tracking list
-                    if (_players.TryAdd(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay))
+                    if (!_players.ContainsKey(player.GuildId))
                     {
+                        // mark as tracked
+                        _players.Add(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay);
+
                         _logger.Log(this, string.Format("Tracked player {0} as inactive.", player.GuildId), LogLevel.Debug);
 
                         // trigger event

@@ -218,9 +218,9 @@ namespace Lavalink4NET
                 Logger?.Log(this, string.Format("Replaying {0} payload(s)...", _queue.Count), LogLevel.Debug);
 
                 // replay (FIFO)
-                while (_queue.TryDequeue(out var payload))
+                while (_queue.Count > 0)
                 {
-                    await SendPayloadAsync(payload);
+                    await SendPayloadAsync(_queue.Dequeue());
                 }
             }
 
@@ -421,7 +421,7 @@ namespace Lavalink4NET
 
             try
             {
-                result = await _webSocket.ReceiveAsync(_receiveBuffer, _cancellationTokenSource.Token);
+                result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(_receiveBuffer, 0, _receiveBuffer.Length), _cancellationTokenSource.Token);
             }
             catch (WebSocketException ex)
             {
