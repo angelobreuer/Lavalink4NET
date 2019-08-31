@@ -79,6 +79,9 @@
             queue.Add(DummyTrack2);
 
             Assert.Equal(DummyTrack, queue.Dequeue());
+            Assert.Single(queue);
+
+            Assert.Equal(DummyTrack2, queue.Dequeue());
             Assert.Empty(queue);
         }
 
