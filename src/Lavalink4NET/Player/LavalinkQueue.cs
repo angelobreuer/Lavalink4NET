@@ -253,8 +253,8 @@
                     throw new InvalidOperationException("No tracks in to dequeue.");
                 }
 
-                var track = _list[Count - 1];
-                _list.RemoveAt(Count - 1);
+                var track = _list[0];
+                _list.RemoveAt(0);
                 return track;
             }
         }
