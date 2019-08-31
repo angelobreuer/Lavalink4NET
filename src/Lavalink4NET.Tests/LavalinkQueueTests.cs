@@ -76,6 +76,7 @@
             Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
 
             queue.Add(DummyTrack);
+            queue.Add(DummyTrack2);
 
             Assert.Equal(DummyTrack, queue.Dequeue());
             Assert.Empty(queue);
