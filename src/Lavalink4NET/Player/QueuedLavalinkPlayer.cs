@@ -127,19 +127,20 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
+            // check if the track should be enqueued (if a track is already playing)
             if (enqueue && State == PlayerState.Playing)
             {
+                // add the track to the queue
                 Queue.Add(track);
 
-                if (State == PlayerState.NotPlaying)
-                {
-                    await SkipAsync();
-                }
-
+                // return track queue position
                 return Queue.Count;
             }
 
+            // play the track immediately
             await base.PlayAsync(track, startTime, endTime, noReplace);
+
+            // 0 = now playing
             return 0;
         }
 
