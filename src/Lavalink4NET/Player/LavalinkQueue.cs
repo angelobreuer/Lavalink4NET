@@ -472,8 +472,8 @@
                     return false;
                 }
 
-                track = _list[Count - 1];
-                _list.RemoveAt(Count - 1);
+                track = _list[0];
+                _list.RemoveAt(0);
                 return true;
             }
         }

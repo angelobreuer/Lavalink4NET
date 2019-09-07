@@ -416,9 +416,19 @@
             Assert.Equal(default, track);
 
             queue.Add(DummyTrack);
+            queue.Add(DummyTrack2);
 
             Assert.True(queue.TryDequeue(out track));
             Assert.Same(DummyTrack, track);
+
+            Assert.Single(queue);
+
+            Assert.True(queue.TryDequeue(out track));
+            Assert.Same(DummyTrack2, track);
+
+            Assert.Empty(queue);
+            Assert.False(queue.TryDequeue(out track));
+            Assert.Equal(default, track);
         }
     }
 }
