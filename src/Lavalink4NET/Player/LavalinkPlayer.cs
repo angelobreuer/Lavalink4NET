@@ -204,6 +204,11 @@ namespace Lavalink4NET.Player
             {
                 return DisconnectAsync();
             }
+            else
+            {
+                // The track ended, set to not playing
+                State = PlayerState.NotPlaying;
+            }
 
             return Task.CompletedTask;
         }
