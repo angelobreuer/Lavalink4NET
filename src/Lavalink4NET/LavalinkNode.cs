@@ -510,20 +510,20 @@ namespace Lavalink4NET
             }
 
             // connect to a voice channel
-            if (args.OldVoiceState.VoiceChannelId == null && args.VoiceState.VoiceChannelId != null)
+            if (args.OldVoiceState?.VoiceChannelId == null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
             }
 
             // disconnect from a voice channel
-            else if (args.OldVoiceState.VoiceChannelId != null && args.VoiceState.VoiceChannelId == null)
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId == null)
             {
                 player.Dispose();
                 Players.Remove(guildId);
             }
 
             // reconnected to a voice channel
-            else if (args.OldVoiceState.VoiceChannelId != null && args.VoiceState.VoiceChannelId != null
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null
                 && args.OldVoiceState.VoiceChannelId == args.VoiceState.VoiceChannelId)
             {
                 await player.UpdateAsync(args.VoiceState);

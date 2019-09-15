@@ -50,8 +50,8 @@ namespace Lavalink4NET.Events
         public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState, VoiceState oldVoiceState)
         {
             UserId = userId;
-            VoiceState = voiceState ?? throw new ArgumentNullException(nameof(voiceState));
-            OldVoiceState = oldVoiceState ?? throw new ArgumentNullException(nameof(oldVoiceState));
+            VoiceState = voiceState;
+            OldVoiceState = oldVoiceState;
         }
 
         /// <summary>
