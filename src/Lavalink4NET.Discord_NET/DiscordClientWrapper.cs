@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Discord_NET
+namespace Lavalink4NET.DiscordNet
 {
     using System;
     using System.Collections.Generic;

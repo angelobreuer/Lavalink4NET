@@ -20,6 +20,8 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
+    <RootNamespace>Lavalink4NET.DiscordNet</RootNamespace>
+    <AssemblyName>Lavalink4NET.DiscordNet</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
