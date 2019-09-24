@@ -15,6 +15,8 @@
     /// </remarks>
     internal sealed class NullDiscordClientWrapper : IDiscordClientWrapper
     {
+#pragma warning disable CS0067
+
         /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.
         /// </summary>
@@ -24,6 +26,8 @@
         ///     An asynchronous event which is triggered when a user voice state was updated.
         /// </summary>
         public event AsyncEventHandler<VoiceStateUpdateEventArgs> VoiceStateUpdated;
+
+#pragma warning restore CS0067
 
         /// <summary>
         ///     Gets the current user snowflake identifier value.
