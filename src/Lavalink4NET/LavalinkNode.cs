@@ -504,6 +504,7 @@ namespace Lavalink4NET
 
             var guildId = args.VoiceState?.GuildId ?? args.OldVoiceState.GuildId;
 
+            // try getting affected player
             if (!Players.TryGetValue(guildId, out var player))
             {
                 return;
@@ -518,6 +519,7 @@ namespace Lavalink4NET
             // disconnect from a voice channel
             else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId == null)
             {
+                // dispose the player
                 player.Dispose();
                 Players.Remove(guildId);
             }
