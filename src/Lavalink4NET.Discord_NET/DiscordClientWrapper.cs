@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Discord_NET
+namespace Lavalink4NET.DiscordNet
 {
     using System;
     using System.Collections.Generic;
@@ -157,7 +157,7 @@ namespace Lavalink4NET.Discord_NET
             var startTime = DateTimeOffset.UtcNow;
 
             // await until current user arrived
-            while (_baseSocketClient.CurrentUser == null)
+            while (_baseSocketClient.CurrentUser is null)
             {
                 await Task.Delay(10);
 
@@ -205,11 +205,15 @@ namespace Lavalink4NET.Discord_NET
 
         private Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState oldSocketVoiceState, SocketVoiceState socketVoiceState)
         {
-            var guildId = socketVoiceState.VoiceChannel?.Guild?.Id ?? oldSocketVoiceState.VoiceChannel.Guild.Id;
-            var oldVoiceState = new VoiceState(oldSocketVoiceState.VoiceChannel?.Id, guildId, oldSocketVoiceState.VoiceSessionId);
-            var voiceState = new VoiceState(socketVoiceState.VoiceChannel?.Id, guildId, socketVoiceState.VoiceSessionId);
-            var args = new VoiceStateUpdateEventArgs(user.Id, voiceState, oldVoiceState);
-            return VoiceStateUpdated.InvokeAsync(this, args);
+            // create voice states
+            var oldVoiceState = oldSocketVoiceState.VoiceChannel is null ? null : new VoiceState(
+                oldSocketVoiceState.VoiceChannel.Id, oldSocketVoiceState.VoiceChannel.Guild.Id, oldSocketVoiceState.VoiceSessionId);
+
+            var voiceState = socketVoiceState.VoiceChannel is null ? null : new VoiceState(
+                socketVoiceState.VoiceChannel.Id, socketVoiceState.VoiceChannel.Guild.Id, socketVoiceState.VoiceSessionId);
+
+            // invoke event
+            return VoiceStateUpdated.InvokeAsync(this, new VoiceStateUpdateEventArgs(user.Id, voiceState, oldVoiceState));
         }
     }
 }

@@ -1,5 +1,5 @@
-/*
- *  File:   VoiceStateUpdateEventArgs.cs
+﻿/*
+ *  File:   PlayerDisconnectedEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -28,45 +28,38 @@
 namespace Lavalink4NET.Events
 {
     using System;
+    using Lavalink4NET.Player;
 
     /// <summary>
-    ///     Represents the event arguments for the
-    ///     <see cref="IDiscordClientWrapper.VoiceStateUpdated"/> event.
+    ///     Event arguments for the <see cref="LavalinkNode.PlayerDisconnected"/> event.
     /// </summary>
-    public sealed class VoiceStateUpdateEventArgs
+    public sealed class PlayerDisconnectedEventArgs : PlayerEventArgs
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="VoiceStateUpdateEventArgs"/> class.
+        ///     Initializes a new instance of the <see cref="PlayerDisconnectedEventArgs"/> class.
         /// </summary>
-        /// <param name="userId">the user snowflake identifier the update is for</param>
-        /// <param name="voiceState">the new user voice state</param>
-        /// <param name="oldVoiceState">the old user voice state</param>
+        /// <param name="player">the affected player</param>
+        /// <param name="voiceChannelId">
+        ///     the snowflake identifier of the voice channel disconnected from
+        /// </param>
+        /// <param name="disconnectCause">the reason why the player disconnected</param>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
+        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
-        /// </exception>
-        public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState, VoiceState oldVoiceState)
+        public PlayerDisconnectedEventArgs(LavalinkPlayer player, ulong voiceChannelId, PlayerDisconnectCause disconnectCause) : base(player)
         {
-            UserId = userId;
-            VoiceState = voiceState;
-            OldVoiceState = oldVoiceState;
+            VoiceChannelId = voiceChannelId;
+            DisconnectCause = disconnectCause;
         }
 
         /// <summary>
-        ///     Gets the user snowflake identifier the update is for.
+        ///     Gets the reason why the player disconnected.
         /// </summary>
-        public ulong UserId { get; }
+        public PlayerDisconnectCause DisconnectCause { get; }
 
         /// <summary>
-        ///     Gets the new user voice state.
+        ///     Gets the snowflake identifier of the voice channel disconnected from.
         /// </summary>
-        public VoiceState VoiceState { get; }
-
-        /// <summary>
-        ///     Gets the old user voice state.
-        /// </summary>
-        public VoiceState OldVoiceState { get; }
+        public ulong VoiceChannelId { get; }
     }
 }

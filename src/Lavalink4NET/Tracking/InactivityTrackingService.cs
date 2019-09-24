@@ -245,7 +245,7 @@ namespace Lavalink4NET.Tracking
                     var trackedPlayer = _audioService.GetPlayer<LavalinkPlayer>(player.Key);
 
                     // player does not exists, remove it from the tracking list and continue.
-                    if (trackedPlayer == null)
+                    if (trackedPlayer is null)
                     {
                         // remove from tracking list
                         await UntrackPlayerAsync(trackedPlayer);
@@ -302,7 +302,7 @@ namespace Lavalink4NET.Tracking
         /// </exception>
         public void StopTracking()
         {
-            if (_timer == null)
+            if (_timer is null)
             {
                 throw new InvalidOperationException("Not tracking.");
             }

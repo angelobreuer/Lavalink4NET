@@ -31,6 +31,7 @@ namespace Lavalink4NET
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Events;
     using Lavalink4NET.Logging;
@@ -77,6 +78,16 @@ namespace Lavalink4NET
             _discordClient.VoiceServerUpdated += VoiceServerUpdated;
             _discordClient.VoiceStateUpdated += VoiceStateUpdated;
         }
+
+        /// <summary>
+        ///     Asynchronous event which is dispatched when a player connected to a voice channel.
+        /// </summary>
+        public event AsyncEventHandler<PlayerConnectedEventArgs> PlayerConnected;
+
+        /// <summary>
+        ///     Asynchronous event which is dispatched when a player disconnected from a voice channel.
+        /// </summary>
+        public event AsyncEventHandler<PlayerDisconnectedEventArgs> PlayerDisconnected;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a new statistics update was received
@@ -172,6 +183,14 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Gets the audio player for the specified <paramref name="guildId"/>.
+        /// </summary>
+        /// <param name="guildId">the guild identifier to get the player for</param>
+        /// <returns>the player for the guild</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LavalinkPlayer GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
+
+        /// <summary>
         ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
         /// </summary>
         /// <typeparam name="TPlayer">
@@ -212,7 +231,7 @@ namespace Lavalink4NET
         {
             var player = GetPlayer<TPlayer>(guildId);
 
-            if (player == null)
+            if (player is null)
             {
                 Players[guildId] = player = (TPlayer)Activator.CreateInstance(typeof(TPlayer),
                     this, _discordClient, guildId, _disconnectOnStop);
@@ -225,6 +244,21 @@ namespace Lavalink4NET
 
             return player;
         }
+
+        /// <summary>
+        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
+        /// </summary>
+        /// <param name="guildId">the guild snowflake identifier</param>
+        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
+        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation
+        ///     <para>the audio player</para>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <summary>
         ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
@@ -320,15 +354,23 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Notifies a player disconnect asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected internal override Task NotifyDisconnectAsync(PlayerDisconnectedEventArgs eventArgs)
+            => OnPlayerDisconnectedAsync(eventArgs);
+
+        /// <summary>
         ///     Handles an event payload asynchronously.
         /// </summary>
         /// <param name="payload">the payload</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnEventReceived(EventPayload payload)
+        protected virtual async Task OnEventReceived(EventPayload payload)
         {
             if (!Players.TryGetValue(payload.GuildId, out var player))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // a track ended
@@ -338,7 +380,7 @@ namespace Lavalink4NET
                     trackEndEvent.TrackIdentifier,
                     trackEndEvent.Reason);
 
-                return Task.WhenAll(OnTrackEndAsync(args),
+                await Task.WhenAll(OnTrackEndAsync(args),
                     player.OnTrackEndAsync(args));
             }
 
@@ -349,7 +391,7 @@ namespace Lavalink4NET
                     trackExceptionEvent.TrackIdentifier,
                     trackExceptionEvent.Error);
 
-                return Task.WhenAll(OnTrackExceptionAsync(args),
+                await Task.WhenAll(OnTrackExceptionAsync(args),
                     player.OnTrackExceptionAsync(args));
             }
 
@@ -360,13 +402,14 @@ namespace Lavalink4NET
                     trackStuckEvent.TrackIdentifier,
                     trackStuckEvent.Threshold);
 
-                return Task.WhenAll(OnTrackStuckAsync(args),
+                await Task.WhenAll(OnTrackStuckAsync(args),
                     player.OnTrackStuckAsync(args));
             }
 
             // the voice web socket was closed
             if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
+                await player.DisconnectAsync(PlayerDisconnectCause.WebSocketClosed);
                 Players.Remove(payload.GuildId);
                 player.Dispose();
 
@@ -377,8 +420,6 @@ namespace Lavalink4NET
                     webSocketClosedEvent.ByRemote ? "Yes" : "No"),
                     webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -414,6 +455,22 @@ namespace Lavalink4NET
 
             await base.OnPayloadReceived(eventArgs);
         }
+
+        /// <summary>
+        ///     Dispatches the <see cref="PlayerConnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnPlayerConnectedAsync(PlayerConnectedEventArgs eventArgs)
+            => PlayerConnected.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Dispatches the <see cref="PlayerDisconnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnPlayerDisconnectedAsync(PlayerDisconnectedEventArgs eventArgs)
+            => PlayerDisconnected.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Handles a player payload asynchronously.
@@ -479,7 +536,7 @@ namespace Lavalink4NET
         {
             var player = GetPlayer<LavalinkPlayer>(voiceServer.GuildId);
 
-            if (player == null)
+            if (player is null)
             {
                 return Task.CompletedTask;
             }
@@ -504,26 +561,30 @@ namespace Lavalink4NET
 
             var guildId = args.VoiceState?.GuildId ?? args.OldVoiceState.GuildId;
 
+            // try getting affected player
             if (!Players.TryGetValue(guildId, out var player))
             {
                 return;
             }
 
             // connect to a voice channel
-            if (args.OldVoiceState.VoiceChannelId == null && args.VoiceState.VoiceChannelId != null)
+            if (args.OldVoiceState?.VoiceChannelId is null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
+                await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, args.VoiceState.VoiceChannelId.Value));
             }
 
             // disconnect from a voice channel
-            else if (args.OldVoiceState.VoiceChannelId != null && args.VoiceState.VoiceChannelId == null)
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId is null)
             {
+                // dispose the player
+                await player.DisconnectAsync(PlayerDisconnectCause.Disconnected);
                 player.Dispose();
                 Players.Remove(guildId);
             }
 
             // reconnected to a voice channel
-            else if (args.OldVoiceState.VoiceChannelId != null && args.VoiceState.VoiceChannelId != null
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null
                 && args.OldVoiceState.VoiceChannelId == args.VoiceState.VoiceChannelId)
             {
                 await player.UpdateAsync(args.VoiceState);

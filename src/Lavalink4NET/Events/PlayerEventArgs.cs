@@ -1,5 +1,5 @@
-/*
- *  File:   VoiceStateUpdateEventArgs.cs
+﻿/*
+ *  File:   PlayerEventArgs.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -28,45 +28,26 @@
 namespace Lavalink4NET.Events
 {
     using System;
+    using Lavalink4NET.Player;
 
     /// <summary>
-    ///     Represents the event arguments for the
-    ///     <see cref="IDiscordClientWrapper.VoiceStateUpdated"/> event.
+    ///     Abstraction for event arguments where a player is affected.
     /// </summary>
-    public sealed class VoiceStateUpdateEventArgs
+    public abstract class PlayerEventArgs : EventArgs
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="VoiceStateUpdateEventArgs"/> class.
+        ///     Initializes a new instance of the <see cref="PlayerEventArgs"/> class.
         /// </summary>
-        /// <param name="userId">the user snowflake identifier the update is for</param>
-        /// <param name="voiceState">the new user voice state</param>
-        /// <param name="oldVoiceState">the old user voice state</param>
+        /// <param name="player">the affected player</param>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
+        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
-        /// </exception>
-        public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState, VoiceState oldVoiceState)
-        {
-            UserId = userId;
-            VoiceState = voiceState;
-            OldVoiceState = oldVoiceState;
-        }
+        protected PlayerEventArgs(LavalinkPlayer player)
+            => Player = player ?? throw new ArgumentNullException(nameof(player));
 
         /// <summary>
-        ///     Gets the user snowflake identifier the update is for.
+        ///     Gets the affected player.
         /// </summary>
-        public ulong UserId { get; }
-
-        /// <summary>
-        ///     Gets the new user voice state.
-        /// </summary>
-        public VoiceState VoiceState { get; }
-
-        /// <summary>
-        ///     Gets the old user voice state.
-        /// </summary>
-        public VoiceState OldVoiceState { get; }
+        public LavalinkPlayer Player { get; }
     }
 }

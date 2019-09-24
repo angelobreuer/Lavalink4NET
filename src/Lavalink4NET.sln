@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET", "Lavalink4NET\Lavalink4NET.csproj", "{77596045-43F5-43CD-BE95-0F14EC8C0CED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET", "Lavalink4NET.Discord_NET\Lavalink4NET.Discord_NET.csproj", "{713C73DD-09E4-4FE8-ADE3-493DAABB025B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DiscordNet", "Lavalink4NET.Discord_NET\Lavalink4NET.DiscordNet.csproj", "{713C73DD-09E4-4FE8-ADE3-493DAABB025B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus", "Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj", "{3A39C12E-7FE0-406B-A369-73DC91C4DD5B}"
 EndProject

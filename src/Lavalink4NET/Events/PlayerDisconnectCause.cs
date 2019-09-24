@@ -1,5 +1,5 @@
-/*
- *  File:   VoiceStateUpdateEventArgs.cs
+﻿/*
+ *  File:   PlayerDisconnectCause.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -27,46 +27,30 @@
 
 namespace Lavalink4NET.Events
 {
-    using System;
-
     /// <summary>
-    ///     Represents the event arguments for the
-    ///     <see cref="IDiscordClientWrapper.VoiceStateUpdated"/> event.
+    ///     A set of possible player disconnection causes.
     /// </summary>
-    public sealed class VoiceStateUpdateEventArgs
+    public enum PlayerDisconnectCause : byte
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="VoiceStateUpdateEventArgs"/> class.
+        ///     Denotes that the player was stopped and disconnected (needs
+        ///     <see cref="LavalinkNodeOptions.DisconnectOnStop"/> enabled).
         /// </summary>
-        /// <param name="userId">the user snowflake identifier the update is for</param>
-        /// <param name="voiceState">the new user voice state</param>
-        /// <param name="oldVoiceState">the old user voice state</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
-        /// </exception>
-        public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState, VoiceState oldVoiceState)
-        {
-            UserId = userId;
-            VoiceState = voiceState;
-            OldVoiceState = oldVoiceState;
-        }
+        Stop,
 
         /// <summary>
-        ///     Gets the user snowflake identifier the update is for.
+        ///     Denotes that the player was disconnected due disposal.
         /// </summary>
-        public ulong UserId { get; }
+        Dispose,
 
         /// <summary>
-        ///     Gets the new user voice state.
+        ///     Denotes that the player was disconnected normally.
         /// </summary>
-        public VoiceState VoiceState { get; }
+        Disconnected,
 
         /// <summary>
-        ///     Gets the old user voice state.
+        ///     Denotes that the player was disconnected because the lavalink socket was closed.
         /// </summary>
-        public VoiceState OldVoiceState { get; }
+        WebSocketClosed
     }
 }

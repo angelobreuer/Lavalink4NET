@@ -74,7 +74,7 @@ namespace Lavalink4NET
 
             if (options.BufferSize <= 0)
             {
-                if (Logger == null)
+                if (Logger is null)
                 {
                     throw new InvalidOperationException("The specified buffer size is zero or negative.");
                 }
@@ -146,7 +146,7 @@ namespace Lavalink4NET
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (_webSocket == null)
+            if (_webSocket is null)
             {
                 throw new InvalidOperationException("Connection not open.");
             }
@@ -203,7 +203,7 @@ namespace Lavalink4NET
             }
             catch (Exception ex)
             {
-                if (Logger == null)
+                if (Logger is null)
                 {
                     throw;
                 }
@@ -358,6 +358,14 @@ namespace Lavalink4NET
                 Logger?.Log(this, string.Format("Sent payload `{0}` to {1}.", content, _webSocketUri), LogLevel.Trace);
             }
         }
+
+        /// <summary>
+        ///     Notifies a player disconnect asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected internal virtual Task NotifyDisconnectAsync(PlayerDisconnectedEventArgs eventArgs)
+            => Task.CompletedTask;
 
         /// <summary>
         ///     Ensures that the socket is initialized.
