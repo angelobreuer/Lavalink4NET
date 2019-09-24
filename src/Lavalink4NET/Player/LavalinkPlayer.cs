@@ -43,9 +43,9 @@ namespace Lavalink4NET.Player
     {
         internal VoiceServer _voiceServer;
         internal VoiceState _voiceState;
+        private readonly bool _disconnectOnStop;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
-        private readonly bool _disconnectOnStop;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -117,6 +117,11 @@ namespace Lavalink4NET.Player
         public float Volume { get; private set; } = 1f;
 
         /// <summary>
+        ///     Gets or sets the reason why the player disconnected.
+        /// </summary>
+        internal PlayerDisconnectCause DisconnectCause { get; set; }
+
+        /// <summary>
         ///     Gets the communication lavalink socket.
         /// </summary>
         internal LavalinkSocket LavalinkSocket { get; set; }
@@ -157,13 +162,10 @@ namespace Lavalink4NET.Player
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
         /// </exception>
-        public virtual async Task DisconnectAsync()
+        public virtual Task DisconnectAsync()
         {
             EnsureConnected();
-
-            await Client.SendVoiceUpdateAsync(GuildId, null);
-            VoiceChannelId = null;
-            State = PlayerState.NotConnected;
+            return DisconnectAsync(PlayerDisconnectCause.Stop);
         }
 
         /// <summary>
@@ -177,7 +179,8 @@ namespace Lavalink4NET.Player
             }
 
             // Disconnect from voice channel and send destroy player payload to the lavalink node
-            Task.WaitAll(DestroyAsync(), DisconnectAsync());
+            DisconnectAsync(PlayerDisconnectCause.Dispose).Wait();
+            DestroyAsync().Wait();
         }
 
         /// <summary>
@@ -420,7 +423,7 @@ namespace Lavalink4NET.Player
 
             if (disconnect)
             {
-                await DisconnectAsync();
+                await DisconnectAsync(PlayerDisconnectCause.Stop);
             }
         }
 
@@ -444,6 +447,34 @@ namespace Lavalink4NET.Player
             }
 
             return LavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
+        }
+
+        /// <summary>
+        ///     Disconnects the player asynchronously.
+        /// </summary>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        internal async Task DisconnectAsync(PlayerDisconnectCause disconnectCause)
+        {
+            if (State == PlayerState.NotConnected)
+            {
+                return;
+            }
+
+            // keep old channel in memory
+            var channel = VoiceChannelId;
+
+            // disconnect from channel
+            await Client.SendVoiceUpdateAsync(GuildId, null);
+            VoiceChannelId = null;
+            State = PlayerState.NotConnected;
+
+            // only trigger event if disconnected from a channel
+            if (channel.HasValue)
+            {
+                // notify disconnect
+                await LavalinkSocket.NotifyDisconnectAsync(
+                    new PlayerDisconnectedEventArgs(this, channel.Value, disconnectCause));
+            }
         }
 
         /// <summary>

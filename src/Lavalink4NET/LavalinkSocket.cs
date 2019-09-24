@@ -360,6 +360,14 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Notifies a player disconnect asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected internal virtual Task NotifyDisconnectAsync(PlayerDisconnectedEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
         ///     Ensures that the socket is initialized.
         /// </summary>
         /// <exception cref="InvalidOperationException">

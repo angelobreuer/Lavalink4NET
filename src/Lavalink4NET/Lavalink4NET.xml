@@ -801,6 +801,101 @@
                 Gets the raw JSON object content of the payload.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Events.PlayerConnectedEventArgs">
+            <summary>
+                Event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.PlayerConnected"/> event.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.PlayerConnectedEventArgs.#ctor(Lavalink4NET.Player.LavalinkPlayer,System.UInt64)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PlayerConnectedEventArgs"/> class.
+            </summary>
+            <param name="player">the affected player</param>
+            <param name="voiceChannelId">
+                the snowflake identifier of the voice channel connected to
+            </param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerConnectedEventArgs.VoiceChannelId">
+            <summary>
+                Gets the snowflake identifier of the voice channel connected to.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Events.PlayerDisconnectCause">
+            <summary>
+                A set of possible player disconnection causes.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Events.PlayerDisconnectCause.Stop">
+            <summary>
+                Denotes that the player was stopped and disconnected (needs
+                <see cref="P:Lavalink4NET.LavalinkNodeOptions.DisconnectOnStop"/> enabled).
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Events.PlayerDisconnectCause.Dispose">
+            <summary>
+                Denotes that the player was disconnected due disposal.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Events.PlayerDisconnectCause.Disconnected">
+            <summary>
+                Denotes that the player was disconnected normally.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Events.PlayerDisconnectCause.WebSocketClosed">
+            <summary>
+                Denotes that the player was disconnected because the lavalink socket was closed.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Events.PlayerDisconnectedEventArgs">
+            <summary>
+                Event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.PlayerDisconnected"/> event.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.PlayerDisconnectedEventArgs.#ctor(Lavalink4NET.Player.LavalinkPlayer,System.UInt64,Lavalink4NET.Events.PlayerDisconnectCause)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PlayerDisconnectedEventArgs"/> class.
+            </summary>
+            <param name="player">the affected player</param>
+            <param name="voiceChannelId">
+                the snowflake identifier of the voice channel disconnected from
+            </param>
+            <param name="disconnectCause">the reason why the player disconnected</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerDisconnectedEventArgs.DisconnectCause">
+            <summary>
+                Gets the reason why the player disconnected.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerDisconnectedEventArgs.VoiceChannelId">
+            <summary>
+                Gets the snowflake identifier of the voice channel disconnected from.
+            </summary>
+        </member>
+        <member name="T:Lavalink4NET.Events.PlayerEventArgs">
+            <summary>
+                Abstraction for event arguments where a player is affected.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.PlayerEventArgs.#ctor(Lavalink4NET.Player.LavalinkPlayer)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PlayerEventArgs"/> class.
+            </summary>
+            <param name="player">the affected player</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerEventArgs.Player">
+            <summary>
+                Gets the affected player.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Events.ReconnectAttemptEventArgs">
             <summary>
             </summary>
@@ -1141,6 +1236,16 @@
                 thrown if the specified <paramref name="client"/> is <see langword="null"/>.
             </exception>
         </member>
+        <member name="E:Lavalink4NET.LavalinkNode.PlayerConnected">
+            <summary>
+                Asynchronous event which is dispatched when a player connected to a voice channel.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.LavalinkNode.PlayerDisconnected">
+            <summary>
+                Asynchronous event which is dispatched when a player disconnected from a voice channel.
+            </summary>
+        </member>
         <member name="E:Lavalink4NET.LavalinkNode.StatisticsUpdated">
             <summary>
                 An asynchronous event which is triggered when a new statistics update was received
@@ -1270,6 +1375,13 @@
                 thrown if the specified <paramref name="node"/> does not serve the specified <paramref name="player"/>.
             </exception>
         </member>
+        <member name="M:Lavalink4NET.LavalinkNode.NotifyDisconnectAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
+            <summary>
+                Notifies a player disconnect asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
+            <returns>a task that represents the asynchronously operation.</returns>
+        </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnEventReceived(Lavalink4NET.Payloads.EventPayload)">
             <summary>
                 Handles an event payload asynchronously.
@@ -1283,6 +1395,20 @@
                 event asynchronously. (Can be override for event catching)
             </summary>
             <param name="eventArgs">the event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.OnPlayerConnectedAsync(Lavalink4NET.Events.PlayerConnectedEventArgs)">
+            <summary>
+                Dispatches the <see cref="E:Lavalink4NET.LavalinkNode.PlayerConnected"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.OnPlayerDisconnectedAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
+            <summary>
+                Dispatches the <see cref="E:Lavalink4NET.LavalinkNode.PlayerDisconnected"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnPlayerPayloadReceived(Lavalink4NET.Payloads.IPlayerPayload)">
@@ -1479,6 +1605,13 @@
                 thrown if the node socket has not been initialized. (Call
                 <see cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkSocket.NotifyDisconnectAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
+            <summary>
+                Notifies a player disconnect asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
+            <returns>a task that represents the asynchronously operation.</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.EnsureInitialized">
             <summary>
@@ -2550,6 +2683,11 @@
                 Gets the current player volume.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Player.LavalinkPlayer.DisconnectCause">
+            <summary>
+                Gets or sets the reason why the player disconnected.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Player.LavalinkPlayer.LavalinkSocket">
             <summary>
                 Gets the communication lavalink socket.
@@ -2726,6 +2864,12 @@
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.DisconnectAsync(Lavalink4NET.Events.PlayerDisconnectCause)">
+            <summary>
+                Disconnects the player asynchronously.
+            </summary>
+            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.UpdateAsync(Lavalink4NET.VoiceServer)">
             <summary>

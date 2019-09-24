@@ -79,6 +79,16 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Asynchronous event which is dispatched when a player connected to a voice channel.
+        /// </summary>
+        public event AsyncEventHandler<PlayerConnectedEventArgs> PlayerConnected;
+
+        /// <summary>
+        ///     Asynchronous event which is dispatched when a player disconnected from a voice channel.
+        /// </summary>
+        public event AsyncEventHandler<PlayerDisconnectedEventArgs> PlayerDisconnected;
+
+        /// <summary>
         ///     An asynchronous event which is triggered when a new statistics update was received
         ///     from the lavalink node.
         /// </summary>
@@ -320,15 +330,23 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Notifies a player disconnect asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronously operation.</returns>
+        protected internal override Task NotifyDisconnectAsync(PlayerDisconnectedEventArgs eventArgs)
+            => OnPlayerDisconnectedAsync(eventArgs);
+
+        /// <summary>
         ///     Handles an event payload asynchronously.
         /// </summary>
         /// <param name="payload">the payload</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        protected virtual Task OnEventReceived(EventPayload payload)
+        protected virtual async Task OnEventReceived(EventPayload payload)
         {
             if (!Players.TryGetValue(payload.GuildId, out var player))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // a track ended
@@ -338,7 +356,7 @@ namespace Lavalink4NET
                     trackEndEvent.TrackIdentifier,
                     trackEndEvent.Reason);
 
-                return Task.WhenAll(OnTrackEndAsync(args),
+                await Task.WhenAll(OnTrackEndAsync(args),
                     player.OnTrackEndAsync(args));
             }
 
@@ -349,7 +367,7 @@ namespace Lavalink4NET
                     trackExceptionEvent.TrackIdentifier,
                     trackExceptionEvent.Error);
 
-                return Task.WhenAll(OnTrackExceptionAsync(args),
+                await Task.WhenAll(OnTrackExceptionAsync(args),
                     player.OnTrackExceptionAsync(args));
             }
 
@@ -360,13 +378,14 @@ namespace Lavalink4NET
                     trackStuckEvent.TrackIdentifier,
                     trackStuckEvent.Threshold);
 
-                return Task.WhenAll(OnTrackStuckAsync(args),
+                await Task.WhenAll(OnTrackStuckAsync(args),
                     player.OnTrackStuckAsync(args));
             }
 
             // the voice web socket was closed
             if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
+                await player.DisconnectAsync(PlayerDisconnectCause.WebSocketClosed);
                 Players.Remove(payload.GuildId);
                 player.Dispose();
 
@@ -377,8 +396,6 @@ namespace Lavalink4NET
                     webSocketClosedEvent.ByRemote ? "Yes" : "No"),
                     webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -414,6 +431,22 @@ namespace Lavalink4NET
 
             await base.OnPayloadReceived(eventArgs);
         }
+
+        /// <summary>
+        ///     Dispatches the <see cref="PlayerConnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnPlayerConnectedAsync(PlayerConnectedEventArgs eventArgs)
+            => PlayerConnected.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Dispatches the <see cref="PlayerDisconnected"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnPlayerDisconnectedAsync(PlayerDisconnectedEventArgs eventArgs)
+            => PlayerDisconnected.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Handles a player payload asynchronously.
@@ -514,12 +547,14 @@ namespace Lavalink4NET
             if (args.OldVoiceState?.VoiceChannelId == null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
+                await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, args.VoiceState.VoiceChannelId.Value));
             }
 
             // disconnect from a voice channel
             else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId == null)
             {
                 // dispose the player
+                await player.DisconnectAsync(PlayerDisconnectCause.Disconnected);
                 player.Dispose();
                 Players.Remove(guildId);
             }
