@@ -29,6 +29,7 @@ namespace Lavalink4NET.DSharpPlus
 {
     using System.Reflection;
     using global::DSharpPlus;
+    using global::DSharpPlus.Entities;
     using global::DSharpPlus.EventArgs;
     using global::DSharpPlus.Net.WebSocket;
 
@@ -38,10 +39,10 @@ namespace Lavalink4NET.DSharpPlus
     public static class DSharpUtil
     {
         /// <summary>
-        ///     The internal "SessionId" property info in <see cref="VoiceStateUpdateEventArgs"/>.
+        ///     The internal "SessionId" property info in <see cref="DiscordVoiceState"/>.
         /// </summary>
-        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/EventArgs/VoiceStateUpdateEventArgs.cs#L38
-        private static readonly PropertyInfo _sessionIdProperty = typeof(VoiceStateUpdateEventArgs)
+        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/Entities/DiscordVoiceState.cs#L70
+        private static readonly PropertyInfo _sessionIdProperty = typeof(DiscordVoiceState)
             .GetProperty("SessionId", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
@@ -59,12 +60,12 @@ namespace Lavalink4NET.DSharpPlus
             .GetField("_webSocketClient", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
-        ///     Gets the internal "SessionId" property value of the specified <paramref name="voiceStateUpdateEventArgs"/>.
+        ///     Gets the internal "SessionId" property value of the specified <paramref name="voiceState"/>.
         /// </summary>
-        /// <param name="voiceStateUpdateEventArgs">the instance</param>
+        /// <param name="voiceState">the instance</param>
         /// <returns>the "SessionId" value</returns>
-        public static string GetSessionId(this VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
-            => (string)_sessionIdProperty.GetValue(voiceStateUpdateEventArgs);
+        public static string GetSessionId(this DiscordVoiceState voiceState)
+            => (string)_sessionIdProperty.GetValue(voiceState);
 
         /// <summary>
         ///     Gets the "VoiceToken" property value of the specified <paramref name="voiceServerUpdateEventArgs"/>.

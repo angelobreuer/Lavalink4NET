@@ -170,12 +170,16 @@ namespace Lavalink4NET.DSharpPlus
         /// <returns>a task that represents the asynchronous operation</returns>
         private Task OnVoiceStateUpdated(global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
         {
-            var sessionId = eventArgs.GetSessionId();
-            var guildId = eventArgs.Before?.Channel?.Guild?.Id ?? eventArgs.After.Channel.Guild.Id;
-            var oldVoiceState = new VoiceState(eventArgs.Before?.Channel?.Id, guildId, sessionId);
-            var voiceState = new VoiceState(eventArgs.After.Channel?.Id, guildId, sessionId);
-            var args = new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState, oldVoiceState);
-            return VoiceStateUpdated.InvokeAsync(this, args);
+            // create voice states
+            var oldVoiceState = eventArgs.Before?.Channel is null ? null : new VoiceState(
+                eventArgs.Before.Channel.Id, eventArgs.Before.Guild.Id, eventArgs.Before.GetSessionId());
+
+            var voiceState = eventArgs.After?.Channel is null ? null : new VoiceState(
+                eventArgs.After.Channel.Id, eventArgs.After.Guild.Id, eventArgs.After.GetSessionId());
+
+            // invoke event
+            return VoiceStateUpdated.InvokeAsync(this,
+                new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState, oldVoiceState));
         }
     }
 }
