@@ -47,6 +47,13 @@ namespace Lavalink4NET
         TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer;
 
         /// <summary>
+        ///     Gets the audio player for the specified <paramref name="guildId"/>.
+        /// </summary>
+        /// <param name="guildId">the guild identifier to get the player for</param>
+        /// <returns>the player for the guild</returns>
+        LavalinkPlayer GetPlayer(ulong guildId);
+
+        /// <summary>
         ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
         /// </summary>
         /// <typeparam name="TPlayer">
@@ -84,5 +91,18 @@ namespace Lavalink4NET
         /// </returns>
         Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
              where TPlayer : LavalinkPlayer;
+
+        /// <summary>
+        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
+        /// </summary>
+        /// <param name="guildId">the guild snowflake identifier</param>
+        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
+        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation
+        ///     <para>the audio player</para>
+        /// </returns>
+        Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false);
     }
 }

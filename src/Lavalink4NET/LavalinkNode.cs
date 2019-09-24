@@ -31,6 +31,7 @@ namespace Lavalink4NET
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Events;
     using Lavalink4NET.Logging;
@@ -182,6 +183,14 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Gets the audio player for the specified <paramref name="guildId"/>.
+        /// </summary>
+        /// <param name="guildId">the guild identifier to get the player for</param>
+        /// <returns>the player for the guild</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LavalinkPlayer GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
+
+        /// <summary>
         ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
         /// </summary>
         /// <typeparam name="TPlayer">
@@ -235,6 +244,21 @@ namespace Lavalink4NET
 
             return player;
         }
+
+        /// <summary>
+        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
+        /// </summary>
+        /// <param name="guildId">the guild snowflake identifier</param>
+        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
+        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation
+        ///     <para>the audio player</para>
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <summary>
         ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
