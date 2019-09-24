@@ -222,7 +222,7 @@ namespace Lavalink4NET
         {
             var player = GetPlayer<TPlayer>(guildId);
 
-            if (player == null)
+            if (player is null)
             {
                 Players[guildId] = player = (TPlayer)Activator.CreateInstance(typeof(TPlayer),
                     this, _discordClient, guildId, _disconnectOnStop);
@@ -512,7 +512,7 @@ namespace Lavalink4NET
         {
             var player = GetPlayer<LavalinkPlayer>(voiceServer.GuildId);
 
-            if (player == null)
+            if (player is null)
             {
                 return Task.CompletedTask;
             }
@@ -544,14 +544,14 @@ namespace Lavalink4NET
             }
 
             // connect to a voice channel
-            if (args.OldVoiceState?.VoiceChannelId == null && args.VoiceState?.VoiceChannelId != null)
+            if (args.OldVoiceState?.VoiceChannelId is null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
                 await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, args.VoiceState.VoiceChannelId.Value));
             }
 
             // disconnect from a voice channel
-            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId == null)
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId is null)
             {
                 // dispose the player
                 await player.DisconnectAsync(PlayerDisconnectCause.Disconnected);

@@ -103,7 +103,7 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the current track position.
         /// </summary>
-        public TimeSpan TrackPosition => CurrentTrack == null ? TimeSpan.Zero :
+        public TimeSpan TrackPosition => CurrentTrack is null ? TimeSpan.Zero :
             DateTimeOffset.UtcNow - _lastPositionUpdate + _position;
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
             EnsureConnected();
 
-            if (CurrentTrack == null || State == PlayerState.NotPlaying)
+            if (CurrentTrack is null || State == PlayerState.NotPlaying)
             {
                 throw new InvalidOperationException("No track is playing.");
             }
@@ -513,7 +513,7 @@ namespace Lavalink4NET.Player
         /// <returns>a task that represents the asynchronous operation</returns>
         internal async Task UpdateAsync()
         {
-            if (_voiceServer == null || _voiceState == null)
+            if (_voiceServer is null || _voiceState is null)
             {
                 // voice state or server is missing
                 return;

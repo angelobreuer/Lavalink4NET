@@ -115,7 +115,7 @@ namespace Lavalink4NET.DSharpPlus
             var startTime = DateTimeOffset.UtcNow;
 
             // await until current user arrived
-            while (_client.CurrentUser == null)
+            while (_client.CurrentUser is null)
             {
                 await Task.Delay(10);
 

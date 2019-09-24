@@ -157,7 +157,7 @@ namespace Lavalink4NET.Discord_NET
             var startTime = DateTimeOffset.UtcNow;
 
             // await until current user arrived
-            while (_baseSocketClient.CurrentUser == null)
+            while (_baseSocketClient.CurrentUser is null)
             {
                 await Task.Delay(10);
 
