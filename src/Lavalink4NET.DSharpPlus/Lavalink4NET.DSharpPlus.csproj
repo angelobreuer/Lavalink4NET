@@ -21,10 +21,11 @@
       A Lavalink wrapper for playing music using a discord bot.
       Integration with DSharpPlus Library.
     </Description>
-    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00614" />
+    <DocumentationFile>Lavalink4NET.DSharpPlus.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00614" />
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 </Project>
