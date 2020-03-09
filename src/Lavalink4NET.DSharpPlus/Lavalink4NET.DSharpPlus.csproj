@@ -16,16 +16,13 @@
     <Company>Angelo Breuer</Company>
     <Copyright>Angelo Breuer</Copyright>
     <Product>Lavalink4NET</Product>
-    <Version>1.4.6</Version>
+    <Version>1.4.7</Version>
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       Integration with DSharpPlus Library.
     </Description>
-  </PropertyGroup>
-
-  <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00614" />
-  </ItemGroup>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
