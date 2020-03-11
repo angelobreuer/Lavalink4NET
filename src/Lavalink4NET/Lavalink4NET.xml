@@ -3872,8 +3872,8 @@
                 of cancellation.
             </param>
             <returns>
-                a task that represents the asynchronous operation. The task result is the track found
-                for the specified <paramref name="query"/>
+                a task that represents the asynchronous operation. The task result is the track
+                found for the specified <paramref name="query"/>
             </returns>
         </member>
         <member name="M:Lavalink4NET.Rest.LavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
