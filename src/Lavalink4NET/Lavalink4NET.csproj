@@ -12,11 +12,11 @@
       A Lavalink wrapper for playing music using a discord bot.
       NOTE: This package is only for implementing own Discord clients. Use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus
     </Description>
-    <Copyright>Angelo Breuer 2019</Copyright>
+    <Copyright>Angelo Breuer 2020</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
     <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
-    <Version>1.4.7</Version>
+    <Version>1.4.8</Version>
     <PackageProjectUrl />
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>

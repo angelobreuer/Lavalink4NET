@@ -98,7 +98,7 @@ namespace Lavalink4NET.Rest
 
             // initialize HTTP client
             _httpClient = new HttpClient(httpHandler) { BaseAddress = new Uri(options.RestUri) };
-            _httpClient.DefaultRequestHeaders.Add("Authorization", options.Password);
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", options.Password);
 
             // add user-agent request header
             if (!string.IsNullOrWhiteSpace(options.UserAgent))
@@ -131,8 +131,8 @@ namespace Lavalink4NET.Rest
         ///     of cancellation.
         /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the track found
-        ///     for the specified <paramref name="query"/>
+        ///     a task that represents the asynchronous operation. The task result is the track
+        ///     found for the specified <paramref name="query"/>
         /// </returns>
         public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)

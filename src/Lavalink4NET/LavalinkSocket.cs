@@ -518,7 +518,7 @@ namespace Lavalink4NET
                     if (IsConnected)
                     {
                         // reconnection successful
-                        return;
+                        break;
                     }
 
                     var eventArgs = new ReconnectAttemptEventArgs(_webSocketUri, attempt, _reconnectionStrategy);

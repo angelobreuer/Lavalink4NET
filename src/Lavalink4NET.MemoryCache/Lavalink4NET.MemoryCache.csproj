@@ -13,12 +13,12 @@
     </Description>
     <Authors>Angelo Breuer</Authors>
     <Product>Lavalink4NET</Product>
-    <Copyright>Angelo Breuer 2019</Copyright>
+    <Copyright>Angelo Breuer 2020</Copyright>
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
-    <Version>1.4.7</Version>
+    <Version>1.4.8</Version>
     <DocumentationFile>Lavalink4NET.MemoryCache.xml</DocumentationFile>
   </PropertyGroup>
 
