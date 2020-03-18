@@ -96,6 +96,20 @@ namespace Lavalink4NET.Cluster
         public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
 
         /// <summary>
+        ///     Gets all nodes.
+        /// </summary>
+        public IReadOnlyList<LavalinkClusterNode> Nodes
+        {
+            get
+            {
+                lock (_nodesLock)
+                {
+                    return _nodes.ToArray();
+                }
+            }
+        }
+
+        /// <summary>
         ///     Gets or sets a value indicating whether stay-online should be enabled for the cluster.
         /// </summary>
         /// <remarks>
@@ -253,8 +267,8 @@ namespace Lavalink4NET.Cluster
         ///     of cancellation.
         /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the track found
-        ///     for the specified <paramref name="query"/>
+        ///     a task that represents the asynchronous operation. The task result is the track
+        ///     found for the specified <paramref name="query"/>
         /// </returns>
         public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
@@ -287,7 +301,9 @@ namespace Lavalink4NET.Cluster
         /// <param name="guildId">
         ///     the snowflake identifier of the guild to create the player for
         /// </param>
-        /// <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+        /// <returns>
+        ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
+        /// </returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
@@ -410,7 +426,7 @@ namespace Lavalink4NET.Cluster
                 var players = eventArgs.Node.GetPlayers<LavalinkPlayer>();
 
                 // move all players
-                var tasks = players.Select(player => eventArgs.Node.MovePlayerAsync(player, GetPreferredNode())).ToArray();
+                var tasks = players.Select(player => MovePlayerToNewNodeAsync(eventArgs.Node, player)).ToArray();
 
                 // await until all players were moved to a new node
                 await Task.WhenAll(tasks);
@@ -427,5 +443,23 @@ namespace Lavalink4NET.Cluster
         /// <returns>the created node</returns>
         private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
             => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _cache, _nodeId++);
+
+        private async Task MovePlayerToNewNodeAsync(LavalinkNode sourceNode, LavalinkPlayer player)
+        {
+            if (player is null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
+            if (!Nodes.Any(s => s.IsConnected))
+            {
+                _logger.Log(this, $"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
+                return;
+            }
+
+            // move node
+            var node = GetPreferredNode();
+            await sourceNode.MovePlayerAsync(player, node);
+        }
     }
 }

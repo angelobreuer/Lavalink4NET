@@ -149,13 +149,13 @@ namespace Lavalink4NET
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
         /// <exception cref="InvalidOperationException">
-        ///     thrown when a player was already created for the guild specified by
-        ///     <paramref name="guildId"/>, but the requested player type (
-        ///     <typeparamref name="TPlayer"/>) differs from the created one.
+        ///     thrown when a player was already created for the guild specified by <paramref
+        ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
+        ///     differs from the created one.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     thrown if the node socket has not been initialized. (Call
-        ///     <see cref="LavalinkSocket.InitializeAsync"/> before sending payloads)
+        ///     thrown if the node socket has not been initialized. (Call <see
+        ///     cref="LavalinkSocket.InitializeAsync"/> before sending payloads)
         /// </exception>
         public TPlayer GetPlayer<TPlayer>(ulong guildId)
             where TPlayer : LavalinkPlayer
@@ -206,7 +206,9 @@ namespace Lavalink4NET
         /// <param name="guildId">
         ///     the snowflake identifier of the guild to create the player for
         /// </param>
-        /// <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+        /// <returns>
+        ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
+        /// </returns>
         public bool HasPlayer(ulong guildId) => Players.ContainsKey(guildId);
 
         /// <summary>
@@ -222,9 +224,9 @@ namespace Lavalink4NET
         ///     <para>the audio player</para>
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        ///     thrown when a player was already created for the guild specified by
-        ///     <paramref name="guildId"/>, but the requested player type (
-        ///     <typeparamref name="TPlayer"/>) differs from the created one.
+        ///     thrown when a player was already created for the guild specified by <paramref
+        ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
+        ///     differs from the created one.
         /// </exception>
         public async Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
             where TPlayer : LavalinkPlayer
@@ -294,9 +296,8 @@ namespace Lavalink4NET
         }
 
         /// <summary>
-        ///     Moves the specified <paramref name="player"/> to the specified
-        ///     <paramref name="node"/> asynchronously (while keeping its data and the same instance
-        ///     of the player).
+        ///     Moves the specified <paramref name="player"/> to the specified <paramref
+        ///     name="node"/> asynchronously (while keeping its data and the same instance of the player).
         /// </summary>
         /// <param name="player">the player to move</param>
         /// <param name="node">the node to move the player to</param>
@@ -311,10 +312,12 @@ namespace Lavalink4NET
         ///     thrown if the specified <paramref name="node"/> is the same as the player node.
         /// </exception>
         /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="player"/> is already served by the specified <paramref name="node"/>.
+        ///     thrown if the specified <paramref name="player"/> is already served by the specified
+        ///     <paramref name="node"/>.
         /// </exception>
         /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="node"/> does not serve the specified <paramref name="player"/>.
+        ///     thrown if the specified <paramref name="node"/> does not serve the specified
+        ///     <paramref name="player"/>.
         /// </exception>
         public async Task MovePlayerAsync(LavalinkPlayer player, LavalinkNode node)
         {
@@ -518,7 +521,8 @@ namespace Lavalink4NET
             => TrackException.InvokeAsync(this, eventArgs);
 
         /// <summary>
-        ///     Invokes the <see cref="TrackStuck"/> event asynchronously. (Can be override for event catching)
+        ///     Invokes the <see cref="TrackStuck"/> event asynchronously. (Can be override for
+        ///     event catching)
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
@@ -594,6 +598,7 @@ namespace Lavalink4NET
         private async Task MovePlayerInternalAsync(LavalinkPlayer player, LavalinkNode node)
         {
             var wasPlaying = player.State == PlayerState.Playing;
+            var trackPosition = player.TrackPosition;
 
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
@@ -608,7 +613,7 @@ namespace Lavalink4NET
             if (wasPlaying)
             {
                 // restart track
-                await player.PlayAsync(player.CurrentTrack);
+                await player.PlayAsync(player.CurrentTrack, trackPosition);
             }
 
             // add player to the new node

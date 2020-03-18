@@ -37,6 +37,11 @@
                 An asynchronous event triggered when a node disconnected.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Cluster.LavalinkCluster.Nodes">
+            <summary>
+                Gets all nodes.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkCluster.StayOnline">
             <summary>
                 Gets or sets a value indicating whether stay-online should be enabled for the cluster.
@@ -125,8 +130,8 @@
                 of cancellation.
             </param>
             <returns>
-                a task that represents the asynchronous operation. The task result is the track found
-                for the specified <paramref name="query"/>
+                a task that represents the asynchronous operation. The task result is the track
+                found for the specified <paramref name="query"/>
             </returns>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
@@ -155,7 +160,9 @@
             <param name="guildId">
                 the snowflake identifier of the guild to create the player for
             </param>
-            <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+            <returns>
+                a value indicating whether a player is created for the specified <paramref name="guildId"/>
+            </returns>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the cluster has not been initialized.
             </exception>
@@ -2919,8 +2926,8 @@
             </summary>
             <param name="bands">the bands</param>
             <param name="reset">
-                a value indicating whether the equalizer bands should be overridden (
-                <see langword="false"/>) or replaced ( <see langword="true"/>).
+                a value indicating whether the equalizer bands should be overridden ( <see
+                langword="false"/>) or replaced ( <see langword="true"/>).
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
@@ -2957,8 +2964,8 @@
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.EnsureConnected">
             <summary>
-                Throws an <see cref="T:System.InvalidOperationException"/> when the player is not connected to
-                a voice channel.
+                Throws an <see cref="T:System.InvalidOperationException"/> when the player is not connected
+                to a voice channel.
             </summary>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the player is not connected to a voice channel

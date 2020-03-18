@@ -432,8 +432,8 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="bands">the bands</param>
         /// <param name="reset">
-        ///     a value indicating whether the equalizer bands should be overridden (
-        ///     <see langword="false"/>) or replaced ( <see langword="true"/>).
+        ///     a value indicating whether the equalizer bands should be overridden ( <see
+        ///     langword="false"/>) or replaced ( <see langword="true"/>).
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
@@ -523,6 +523,8 @@ namespace Lavalink4NET.Player
             await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
 
+            State = PlayerState.NotPlaying;
+
             // trigger event
             await OnConnectedAsync(_voiceServer, _voiceState);
         }
@@ -534,8 +536,8 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected to
-        ///     a voice channel.
+        ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected
+        ///     to a voice channel.
         /// </summary>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
