@@ -16,7 +16,7 @@
     <Company>Angelo Breuer</Company>
     <Copyright>Angelo Breuer 2020</Copyright>
     <Product>Lavalink4NET</Product>
-    <Version>1.4.8</Version>
+    <Version>1.4.10</Version>
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       Integration with DSharpPlus Library.

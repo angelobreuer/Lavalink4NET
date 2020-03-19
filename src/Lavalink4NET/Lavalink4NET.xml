@@ -37,6 +37,16 @@
                 An asynchronous event triggered when a node disconnected.
             </summary>
         </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.PlayerMoved">
+            <summary>
+                Asynchronous event which is dispatched when a player was moved.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Cluster.LavalinkCluster.Nodes">
+            <summary>
+                Gets all nodes.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkCluster.StayOnline">
             <summary>
                 Gets or sets a value indicating whether stay-online should be enabled for the cluster.
@@ -125,8 +135,8 @@
                 of cancellation.
             </param>
             <returns>
-                a task that represents the asynchronous operation. The task result is the track found
-                for the specified <paramref name="query"/>
+                a task that represents the asynchronous operation. The task result is the track
+                found for the specified <paramref name="query"/>
             </returns>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
@@ -155,7 +165,9 @@
             <param name="guildId">
                 the snowflake identifier of the guild to create the player for
             </param>
-            <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+            <returns>
+                a value indicating whether a player is created for the specified <paramref name="guildId"/>
+            </returns>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the cluster has not been initialized.
             </exception>
@@ -242,6 +254,13 @@
                 Triggers the <see cref="E:Lavalink4NET.Cluster.LavalinkCluster.NodeDisconnected"/> event asynchronously.
             </summary>
             <param name="eventArgs">the event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.OnPlayerMovedAsync(Lavalink4NET.Events.PlayerMovedEventArgs)">
+            <summary>
+                Dispatches the <see cref="E:Lavalink4NET.Cluster.LavalinkCluster.PlayerMoved"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.CreateNode(Lavalink4NET.LavalinkNodeOptions)">
@@ -916,6 +935,49 @@
                 Gets the affected player.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Events.PlayerMovedEventArgs">
+            <summary>
+                The <see cref="T:System.EventArgs"/> for the <see cref="E:Lavalink4NET.Cluster.LavalinkCluster.PlayerMoved"/> event.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Events.PlayerMovedEventArgs.#ctor(Lavalink4NET.LavalinkNode,Lavalink4NET.LavalinkNode,Lavalink4NET.Player.LavalinkPlayer)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.PlayerMovedEventArgs"/> class.
+            </summary>
+            <param name="node">the node the player was dropped from</param>
+            <param name="targetNode">
+                the node the player was moved to; if <see langword="null"/> the player was not moved
+                to a new node, because no node was available
+            </param>
+            <param name="player">the player that was dropped</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="node"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerMovedEventArgs.CouldBeMoved">
+            <summary>
+                Gets a value indicating whether the player could be moved to another node.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerMovedEventArgs.Node">
+            <summary>
+                Gets the node the player was dropped from.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerMovedEventArgs.Player">
+            <summary>
+                Gets the player that was dropped.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Events.PlayerMovedEventArgs.TargetNode">
+            <summary>
+                Gets the node the player was moved to; if <see langword="null"/> the player was not
+                moved to a new node, because no node was available.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Events.ReconnectAttemptEventArgs">
             <summary>
             </summary>
@@ -1331,13 +1393,13 @@
             <param name="guildId">the guild identifier to get the player for</param>
             <returns>the player for the guild</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown when a player was already created for the guild specified by
-                <paramref name="guildId"/>, but the requested player type (
-                <typeparamref name="TPlayer"/>) differs from the created one.
+                thrown when a player was already created for the guild specified by <paramref
+                name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
+                differs from the created one.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the node socket has not been initialized. (Call
-                <see cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
+                thrown if the node socket has not been initialized. (Call <see
+                cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.GetPlayer(System.UInt64)">
@@ -1363,7 +1425,9 @@
             <param name="guildId">
                 the snowflake identifier of the guild to create the player for
             </param>
-            <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+            <returns>
+                a value indicating whether a player is created for the specified <paramref name="guildId"/>
+            </returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.JoinAsync``1(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
             <summary>
@@ -1379,9 +1443,9 @@
                 <para>the audio player</para>
             </returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown when a player was already created for the guild specified by
-                <paramref name="guildId"/>, but the requested player type (
-                <typeparamref name="TPlayer"/>) differs from the created one.
+                thrown when a player was already created for the guild specified by <paramref
+                name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
+                differs from the created one.
             </exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.JoinAsync(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
@@ -1412,9 +1476,8 @@
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.MovePlayerAsync(Lavalink4NET.Player.LavalinkPlayer,Lavalink4NET.LavalinkNode)">
             <summary>
-                Moves the specified <paramref name="player"/> to the specified
-                <paramref name="node"/> asynchronously (while keeping its data and the same instance
-                of the player).
+                Moves the specified <paramref name="player"/> to the specified <paramref
+                name="node"/> asynchronously (while keeping its data and the same instance of the player).
             </summary>
             <param name="player">the player to move</param>
             <param name="node">the node to move the player to</param>
@@ -1429,10 +1492,12 @@
                 thrown if the specified <paramref name="node"/> is the same as the player node.
             </exception>
             <exception cref="T:System.ArgumentException">
-                thrown if the specified <paramref name="player"/> is already served by the specified <paramref name="node"/>.
+                thrown if the specified <paramref name="player"/> is already served by the specified
+                <paramref name="node"/>.
             </exception>
             <exception cref="T:System.ArgumentException">
-                thrown if the specified <paramref name="node"/> does not serve the specified <paramref name="player"/>.
+                thrown if the specified <paramref name="node"/> does not serve the specified
+                <paramref name="player"/>.
             </exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.NotifyDisconnectAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
@@ -1503,7 +1568,8 @@
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnTrackStuckAsync(Lavalink4NET.Events.TrackStuckEventArgs)">
             <summary>
-                Invokes the <see cref="E:Lavalink4NET.LavalinkNode.TrackStuck"/> event asynchronously. (Can be override for event catching)
+                Invokes the <see cref="E:Lavalink4NET.LavalinkNode.TrackStuck"/> event asynchronously. (Can be override for
+                event catching)
             </summary>
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
@@ -2919,8 +2985,8 @@
             </summary>
             <param name="bands">the bands</param>
             <param name="reset">
-                a value indicating whether the equalizer bands should be overridden (
-                <see langword="false"/>) or replaced ( <see langword="true"/>).
+                a value indicating whether the equalizer bands should be overridden ( <see
+                langword="false"/>) or replaced ( <see langword="true"/>).
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
@@ -2957,8 +3023,8 @@
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.EnsureConnected">
             <summary>
-                Throws an <see cref="T:System.InvalidOperationException"/> when the player is not connected to
-                a voice channel.
+                Throws an <see cref="T:System.InvalidOperationException"/> when the player is not connected
+                to a voice channel.
             </summary>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the player is not connected to a voice channel
