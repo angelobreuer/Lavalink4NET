@@ -96,6 +96,11 @@ namespace Lavalink4NET.Cluster
         public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
 
         /// <summary>
+        ///     Asynchronous event which is dispatched when a player was moved.
+        /// </summary>
+        public event AsyncEventHandler<PlayerMovedEventArgs> PlayerMoved;
+
+        /// <summary>
         ///     Gets all nodes.
         /// </summary>
         public IReadOnlyList<LavalinkClusterNode> Nodes
@@ -437,6 +442,14 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
+        ///     Dispatches the <see cref="PlayerMoved"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnPlayerMovedAsync(PlayerMovedEventArgs eventArgs)
+            => PlayerMoved.InvokeAsync(this, eventArgs);
+
+        /// <summary>
         ///     Creates a new lavalink cluster node.
         /// </summary>
         /// <param name="nodeOptions">the node options</param>
@@ -454,12 +467,18 @@ namespace Lavalink4NET.Cluster
             if (!Nodes.Any(s => s.IsConnected))
             {
                 _logger.Log(this, $"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
+
+                // invoke event
+                await OnPlayerMovedAsync(new PlayerMovedEventArgs(sourceNode, null, player));
                 return;
             }
 
             // move node
-            var node = GetPreferredNode();
-            await sourceNode.MovePlayerAsync(player, node);
+            var targetNode = GetPreferredNode();
+            await sourceNode.MovePlayerAsync(player, targetNode);
+
+            // invoke event
+            await OnPlayerMovedAsync(new PlayerMovedEventArgs(sourceNode, targetNode, player));
         }
     }
 }
