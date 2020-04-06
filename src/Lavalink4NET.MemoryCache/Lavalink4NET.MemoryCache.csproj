@@ -18,7 +18,7 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
-    <Version>1.4.10</Version>
+    <Version>1.4.11</Version>
     <DocumentationFile>Lavalink4NET.MemoryCache.xml</DocumentationFile>
   </PropertyGroup>
 
