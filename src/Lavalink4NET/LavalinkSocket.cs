@@ -102,6 +102,7 @@ namespace Lavalink4NET
             _overflowBuffer = new StringBuilder();
             _resume = options.AllowResuming;
             _ioDebug = options.DebugPayloads;
+            _sessionTimeout = options.SessionTimeout;
             _queue = new Queue<IPayload>();
             _reconnectionStrategy = options.ReconnectStrategy;
             _cancellationTokenSource = new CancellationTokenSource();
