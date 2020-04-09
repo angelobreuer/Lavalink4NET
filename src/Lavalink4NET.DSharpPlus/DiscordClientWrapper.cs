@@ -139,7 +139,7 @@ namespace Lavalink4NET.DSharpPlus
         /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
         /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+        public async Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
         {
             var payload = new JObject();
             var data = new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf);
@@ -148,8 +148,7 @@ namespace Lavalink4NET.DSharpPlus
             payload.Add("d", JObject.FromObject(data));
 
             var message = JsonConvert.SerializeObject(payload, Formatting.None);
-            _client.GetWebSocketClient().SendMessage(message);
-            return Task.CompletedTask;
+            await _client.GetWebSocketClient().SendMessageAsync(message);
         }
 
         /// <summary>
