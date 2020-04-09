@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,6 @@ namespace Lavalink4NET
         private readonly byte[] _receiveBuffer;
         private readonly ReconnectStrategy _reconnectionStrategy;
         private readonly bool _resume;
-        private readonly Guid _resumeKey;
         private readonly Uri _webSocketUri;
         private volatile bool _initialized;
         private ClientWebSocket _webSocket;
@@ -95,10 +94,10 @@ namespace Lavalink4NET
             _overflowBuffer = new StringBuilder();
             _resume = options.AllowResuming;
             _ioDebug = options.DebugPayloads;
-            _resumeKey = Guid.NewGuid();
             _queue = new Queue<IPayload>();
             _reconnectionStrategy = options.ReconnectStrategy;
             _cancellationTokenSource = new CancellationTokenSource();
+            ResumeKey = Guid.NewGuid().ToString("N");
         }
 
         /// <summary>
@@ -132,6 +131,11 @@ namespace Lavalink4NET
         ///     Gets the logger.
         /// </summary>
         public ILogger Logger { get; }
+
+        /// <summary>
+        ///     Gets the resume key.
+        /// </summary>
+        public string ResumeKey { get; }
 
         /// <summary>
         ///     Closes the connection to the remote endpoint asynchronously.
@@ -192,8 +196,8 @@ namespace Lavalink4NET
             // add resume header
             if (_resume && _initialized)
             {
-                Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", _resumeKey), LogLevel.Debug);
-                _webSocket.Options.SetRequestHeader("Resume-Key", _resumeKey.ToString());
+                Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", ResumeKey), LogLevel.Debug);
+                _webSocket.Options.SetRequestHeader("Resume-Key", ResumeKey);
             }
 
             try
@@ -231,7 +235,7 @@ namespace Lavalink4NET
 
                 if (_resume && _initialized)
                 {
-                    Logger?.Log(this, string.Format("{0} to Lavalink Node, Resume Key: {1}!", type, _resumeKey));
+                    Logger?.Log(this, string.Format("{0} to Lavalink Node, Resume Key: {1}!", type, ResumeKey));
                 }
                 else
                 {
@@ -248,7 +252,7 @@ namespace Lavalink4NET
             // send configure resuming payload
             if (_resume)
             {
-                await SendPayloadAsync(new ConfigureResumingPayload(_resumeKey.ToString()));
+                await SendPayloadAsync(new ConfigureResumingPayload(ResumeKey.ToString()));
             }
         }
 
@@ -297,9 +301,9 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="payload">the payload to sent</param>
         /// <param name="forceSend">
-        ///     a value indicating whether an exception should be thrown if the connection is closed.
-        ///     If <see langword="true"/>, an exception is thrown; Otherwise payloads will be stored
-        ///     into a send queue and will be replayed (FIFO) after successful reconnection.
+        ///     a value indicating whether an exception should be thrown if the connection is
+        ///     closed. If <see langword="true"/>, an exception is thrown; Otherwise payloads will
+        ///     be stored into a send queue and will be replayed (FIFO) after successful reconnection.
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
@@ -307,8 +311,8 @@ namespace Lavalink4NET
         ///     <paramref name="forceSend"/> is <see langword="true"/>.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     thrown if the node socket has not been initialized. (Call
-        ///     <see cref="InitializeAsync"/> before sending payloads)
+        ///     thrown if the node socket has not been initialized. (Call <see
+        ///     cref="InitializeAsync"/> before sending payloads)
         /// </exception>
         public async Task SendPayloadAsync(IPayload payload, bool forceSend = false)
         {
@@ -371,8 +375,8 @@ namespace Lavalink4NET
         ///     Ensures that the socket is initialized.
         /// </summary>
         /// <exception cref="InvalidOperationException">
-        ///     thrown if the node socket has not been initialized. (Call
-        ///     <see cref="InitializeAsync"/> before sending payloads)
+        ///     thrown if the node socket has not been initialized. (Call <see
+        ///     cref="InitializeAsync"/> before sending payloads)
         /// </exception>
         protected void EnsureInitialized()
         {
