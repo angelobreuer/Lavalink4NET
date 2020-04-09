@@ -504,6 +504,7 @@ namespace Lavalink4NET.Player
             EnsureNotDestroyed();
 
             _voiceState = voiceState;
+            VoiceChannelId = voiceState.VoiceChannelId;
             return UpdateAsync();
         }
 
