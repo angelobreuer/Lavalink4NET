@@ -43,7 +43,7 @@ namespace Lavalink4NET.DSharpPlus
         /// </summary>
         // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/Entities/DiscordVoiceState.cs#L70
         private static readonly PropertyInfo _sessionIdProperty = typeof(DiscordVoiceState)
-            .GetProperty("SessionId", BindingFlags.NonPublic | BindingFlags.Instance);
+            .GetProperty("_sessionId", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
         ///     The internal "VoiceToken" property info in <see cref="VoiceServerUpdateEventArgs"/>.
@@ -53,9 +53,9 @@ namespace Lavalink4NET.DSharpPlus
             .GetProperty("VoiceToken", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
-        ///     The internal "_webSocketClient" field info in <see cref="value"/>.
+        ///     The internal "_webSocketClient" field info in <see cref="DiscordClient"/>.
         /// </summary>
-        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/DiscordClient.cs#L39
+        // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/DiscordClient.cs#L36
         private static readonly FieldInfo _webSocketClientField = typeof(DiscordClient)
             .GetField("_webSocketClient", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -78,7 +78,7 @@ namespace Lavalink4NET.DSharpPlus
         /// <summary>
         ///     Gets the internal "_webSocketClient" field value of the specified <paramref name="client"/>.
         /// </summary>
-        public static BaseWebSocketClient GetWebSocketClient(this DiscordClient client)
-            => (BaseWebSocketClient)_webSocketClientField.GetValue(client);
+        public static IWebSocketClient GetWebSocketClient(this DiscordClient client)
+            => (IWebSocketClient)_webSocketClientField.GetValue(client);
     }
 }
