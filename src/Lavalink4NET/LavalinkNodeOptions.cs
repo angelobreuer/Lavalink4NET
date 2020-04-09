@@ -52,8 +52,8 @@ namespace Lavalink4NET
         ///     channel its connected to after the track ended.
         /// </summary>
         /// <remarks>
-        ///     This property defaults to <see langword="true"/>. This can be useful to set to
-        ///     <see langword="false"/>, for example when using the InactivityTrackingService.
+        ///     This property defaults to <see langword="true"/>. This can be useful to set to <see
+        ///     langword="false"/>, for example when using the InactivityTrackingService.
         /// </remarks>
         public bool DisconnectOnStop { get; set; } = true;
 
@@ -63,6 +63,12 @@ namespace Lavalink4NET
         /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>
         public ReconnectStrategy ReconnectStrategy { get; set; }
             = ReconnectStrategies.DefaultStrategy;
+
+        /// <summary>
+        ///     The number of seconds a session is valid after the connection aborts.
+        /// </summary>
+        /// <remarks>This property defaults to <c>60</c>.</remarks>
+        public int SessionTimeout { get; set; } = 60;
 
         /// <summary>
         ///     Gets or sets the Lavalink Node WebSocket host(name).

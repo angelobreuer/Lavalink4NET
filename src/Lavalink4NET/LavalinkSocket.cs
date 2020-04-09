@@ -51,6 +51,7 @@ namespace Lavalink4NET
         private readonly bool _ioDebug;
         private readonly StringBuilder _overflowBuffer;
         private readonly string _password;
+        private readonly int _sessionTimeout;
         private readonly Queue<IPayload> _queue;
         private readonly byte[] _receiveBuffer;
         private readonly ReconnectStrategy _reconnectionStrategy;
@@ -85,6 +86,12 @@ namespace Lavalink4NET
             if (options.ReconnectStrategy is null)
             {
                 throw new InvalidOperationException("No reconnection strategy specified in options.");
+            }
+
+            if (options.AllowResuming && options.SessionTimeout < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options.SessionTimeout), options.SessionTimeout,
+                    "The specified session timeout can not be negative or zero.");
             }
 
             _client = client;
@@ -252,7 +259,7 @@ namespace Lavalink4NET
             // send configure resuming payload
             if (_resume)
             {
-                await SendPayloadAsync(new ConfigureResumingPayload(ResumeKey.ToString()));
+                await SendPayloadAsync(new ConfigureResumingPayload(ResumeKey, _sessionTimeout));
             }
         }
 
