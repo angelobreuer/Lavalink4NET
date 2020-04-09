@@ -46,17 +46,18 @@ namespace Lavalink4NET
     /// </summary>
     public class LavalinkSocket : LavalinkRestClient, IDisposable
     {
-        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IDiscordClientWrapper _client;
         private readonly bool _ioDebug;
         private readonly StringBuilder _overflowBuffer;
         private readonly string _password;
-        private readonly int _sessionTimeout;
         private readonly Queue<IPayload> _queue;
         private readonly byte[] _receiveBuffer;
         private readonly ReconnectStrategy _reconnectionStrategy;
         private readonly bool _resume;
+        private readonly int _sessionTimeout;
         private readonly Uri _webSocketUri;
+        private CancellationTokenSource _cancellationTokenSource;
+        private bool _disposed;
         private volatile bool _initialized;
         private ClientWebSocket _webSocket;
 
@@ -153,8 +154,11 @@ namespace Lavalink4NET
         ///     a cancellation token used to propagate notification that this operation should be canceled.
         /// </param>
         /// <returns>a task that represents the asynchronously operation.</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task CloseAsync(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string reason = "", CancellationToken cancellationToken = default)
         {
+            EnsureNotDisposed();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (_webSocket is null)
@@ -184,8 +188,11 @@ namespace Lavalink4NET
         ///     thrown if the connection is already open
         /// </exception>
         /// <exception cref="OperationCanceledException">thrown if the operation was canceled</exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
+            EnsureNotDisposed();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (IsConnected)
@@ -268,14 +275,19 @@ namespace Lavalink4NET
         /// </summary>
         public override void Dispose()
         {
-            if (!_initialized)
+            if (!_initialized || _disposed)
             {
                 return;
             }
 
+            _disposed = true;
+
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
             _webSocket?.Dispose();
+
+            _cancellationTokenSource = null;
+            _webSocket = null;
 
             base.Dispose();
         }
@@ -284,8 +296,11 @@ namespace Lavalink4NET
         ///     Initializes the node asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task InitializeAsync()
         {
+            EnsureNotDisposed();
+
             if (_initialized)
             {
                 return;
@@ -321,8 +336,10 @@ namespace Lavalink4NET
         ///     thrown if the node socket has not been initialized. (Call <see
         ///     cref="InitializeAsync"/> before sending payloads)
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task SendPayloadAsync(IPayload payload, bool forceSend = false)
         {
+            EnsureNotDisposed();
             EnsureInitialized();
 
             if (!IsConnected)
@@ -427,6 +444,18 @@ namespace Lavalink4NET
             => ReconnectAttempt.InvokeAsync(this, eventArgs);
 
         /// <summary>
+        ///     Throws an exception if the <see cref="LavalinkSocket"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(LavalinkSocket));
+            }
+        }
+
+        /// <summary>
         ///     Processes an incoming payload asynchronously.
         /// </summary>
         /// <remarks>
@@ -434,8 +463,11 @@ namespace Lavalink4NET
         ///     see: <see cref="RunLifeCycleAsync"/>.
         /// </remarks>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         private async Task ProcessNextPayload()
         {
+            EnsureNotDisposed();
+
             WebSocketReceiveResult result;
 
             try
@@ -508,8 +540,11 @@ namespace Lavalink4NET
         ///     Runs the receive / reconnect life cycle asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         private async Task RunLifeCycleAsync()
         {
+            EnsureNotDisposed();
+
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
                 // receive new payload until the web-socket is connected.

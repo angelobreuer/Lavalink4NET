@@ -49,6 +49,7 @@ namespace Lavalink4NET
     {
         private readonly bool _disconnectOnStop;
         private readonly IDiscordClientWrapper _discordClient;
+        private bool _disposed;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
@@ -126,6 +127,13 @@ namespace Lavalink4NET
         /// </summary>
         public override void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
             // call base handling
             base.Dispose();
 
@@ -157,9 +165,11 @@ namespace Lavalink4NET
         ///     thrown if the node socket has not been initialized. (Call <see
         ///     cref="LavalinkSocket.InitializeAsync"/> before sending payloads)
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public TPlayer GetPlayer<TPlayer>(ulong guildId)
             where TPlayer : LavalinkPlayer
         {
+            EnsureNotDisposed();
             EnsureInitialized();
 
             if (!Players.TryGetValue(guildId, out var player))
@@ -183,6 +193,18 @@ namespace Lavalink4NET
         }
 
         /// <summary>
+        ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(LavalinkNode));
+            }
+        }
+
+        /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
         /// </summary>
         /// <param name="guildId">the guild identifier to get the player for</param>
@@ -197,8 +219,12 @@ namespace Lavalink4NET
         ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
         /// </typeparam>
         /// <returns>the player list</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer
-            => Players.Select(s => s.Value).OfType<TPlayer>().ToList().AsReadOnly();
+        {
+            EnsureNotDisposed();
+            return Players.Select(s => s.Value).OfType<TPlayer>().ToList().AsReadOnly();
+        }
 
         /// <summary>
         ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
@@ -209,7 +235,12 @@ namespace Lavalink4NET
         /// <returns>
         ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
         /// </returns>
-        public bool HasPlayer(ulong guildId) => Players.ContainsKey(guildId);
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public bool HasPlayer(ulong guildId)
+        {
+            EnsureNotDisposed();
+            return Players.ContainsKey(guildId);
+        }
 
         /// <summary>
         ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
@@ -228,9 +259,12 @@ namespace Lavalink4NET
         ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
         ///     differs from the created one.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
             where TPlayer : LavalinkPlayer
         {
+            EnsureNotDisposed();
+
             var player = GetPlayer<TPlayer>(guildId);
 
             if (player is null)
@@ -258,6 +292,7 @@ namespace Lavalink4NET
         ///     a task that represents the asynchronous operation
         ///     <para>the audio player</para>
         /// </returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
             => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
@@ -273,8 +308,11 @@ namespace Lavalink4NET
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="node"/> is the same as the player node.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task MoveAllPlayersAsync(LavalinkNode node)
         {
+            EnsureNotDisposed();
+
             if (node is null)
             {
                 throw new ArgumentNullException(nameof(node), "The specified target node is null.");
@@ -319,8 +357,11 @@ namespace Lavalink4NET
         ///     thrown if the specified <paramref name="node"/> does not serve the specified
         ///     <paramref name="player"/>.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task MovePlayerAsync(LavalinkPlayer player, LavalinkNode node)
         {
+            EnsureNotDisposed();
+
             if (player is null)
             {
                 throw new ArgumentNullException(nameof(player), "The player to move is null.");
@@ -369,8 +410,11 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="payload">the payload</param>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         protected virtual async Task OnEventReceived(EventPayload payload)
         {
+            EnsureNotDisposed();
+
             if (!Players.TryGetValue(payload.GuildId, out var player))
             {
                 return;
@@ -431,8 +475,11 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="eventArgs">the event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         protected override async Task OnPayloadReceived(PayloadReceivedEventArgs eventArgs)
         {
+            EnsureNotDisposed();
+
             var payload = eventArgs.Payload;
 
             // received an event
@@ -480,8 +527,11 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="payload">the payload</param>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         protected virtual Task OnPlayerPayloadReceived(IPlayerPayload payload)
         {
+            EnsureNotDisposed();
+
             var player = GetPlayer<LavalinkPlayer>(ulong.Parse(payload.GuildId));
 
             // a player update was received
@@ -536,8 +586,11 @@ namespace Lavalink4NET
         /// <param name="sender">the event sender (unused here, but may be override)</param>
         /// <param name="voiceServer">the voice server update data</param>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         protected virtual Task VoiceServerUpdated(object sender, VoiceServer voiceServer)
         {
+            EnsureNotDisposed();
+
             var player = GetPlayer<LavalinkPlayer>(voiceServer.GuildId);
 
             if (player is null)
@@ -557,6 +610,8 @@ namespace Lavalink4NET
         /// <returns>a task that represents the asynchronous operation</returns>
         protected virtual async Task VoiceStateUpdated(object sender, VoiceStateUpdateEventArgs args)
         {
+            EnsureNotDisposed();
+
             // ignore other users except the bot
             if (args.UserId != _discordClient.CurrentUserId)
             {
@@ -596,6 +651,8 @@ namespace Lavalink4NET
 
         private async Task MovePlayerInternalAsync(LavalinkPlayer player, LavalinkNode node)
         {
+            EnsureNotDisposed();
+
             var wasPlaying = player.State == PlayerState.Playing;
             var trackPosition = player.TrackPosition;
 
