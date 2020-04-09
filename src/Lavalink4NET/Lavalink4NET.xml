@@ -1401,6 +1401,13 @@
                 thrown if the node socket has not been initialized. (Call <see
                 cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.LavalinkNode"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.GetPlayer(System.UInt64)">
             <summary>
@@ -1417,6 +1424,7 @@
                 the type of the players to get; use <see cref="T:Lavalink4NET.Player.LavalinkPlayer"/> to get all players
             </typeparam>
             <returns>the player list</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.HasPlayer(System.UInt64)">
             <summary>
@@ -1428,6 +1436,7 @@
             <returns>
                 a value indicating whether a player is created for the specified <paramref name="guildId"/>
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.JoinAsync``1(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
             <summary>
@@ -1447,6 +1456,7 @@
                 name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
                 differs from the created one.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.JoinAsync(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
             <summary>
@@ -1460,6 +1470,7 @@
                 a task that represents the asynchronous operation
                 <para>the audio player</para>
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.MoveAllPlayersAsync(Lavalink4NET.LavalinkNode)">
             <summary>
@@ -1473,6 +1484,7 @@
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="node"/> is the same as the player node.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.MovePlayerAsync(Lavalink4NET.Player.LavalinkPlayer,Lavalink4NET.LavalinkNode)">
             <summary>
@@ -1499,6 +1511,7 @@
                 thrown if the specified <paramref name="node"/> does not serve the specified
                 <paramref name="player"/>.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.NotifyDisconnectAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
             <summary>
@@ -1513,6 +1526,7 @@
             </summary>
             <param name="payload">the payload</param>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnPayloadReceived(Lavalink4NET.Events.PayloadReceivedEventArgs)">
             <summary>
@@ -1521,6 +1535,7 @@
             </summary>
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnPlayerConnectedAsync(Lavalink4NET.Events.PlayerConnectedEventArgs)">
             <summary>
@@ -1542,6 +1557,7 @@
             </summary>
             <param name="payload">the payload</param>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnStatisticsUpdateAsync(Lavalink4NET.Events.NodeStatisticsUpdateEventArgs)">
             <summary>
@@ -1582,6 +1598,7 @@
             <param name="sender">the event sender (unused here, but may be override)</param>
             <param name="voiceServer">the voice server update data</param>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.VoiceStateUpdated(System.Object,Lavalink4NET.Events.VoiceStateUpdateEventArgs)">
             <summary>
@@ -1616,8 +1633,8 @@
                 channel its connected to after the track ended.
             </summary>
             <remarks>
-                This property defaults to <see langword="true"/>. This can be useful to set to
-                <see langword="false"/>, for example when using the InactivityTrackingService.
+                This property defaults to <see langword="true"/>. This can be useful to set to <see
+                langword="false"/>, for example when using the InactivityTrackingService.
             </remarks>
         </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.ReconnectStrategy">
@@ -1625,6 +1642,12 @@
                 Gets or sets the reconnect strategy for reconnection.
             </summary>
             <remarks>This property defaults to <see cref="P:Lavalink4NET.ReconnectStrategies.DefaultStrategy"/>.</remarks>
+        </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.SessionTimeout">
+            <summary>
+                The number of seconds a session is valid after the connection aborts.
+            </summary>
+            <remarks>This property defaults to <c>60</c>.</remarks>
         </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.WebSocketUri">
             <summary>
@@ -1677,6 +1700,11 @@
                 Gets the logger.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.LavalinkSocket.ResumeKey">
+            <summary>
+                Gets the resume key.
+            </summary>
+        </member>
         <member name="M:Lavalink4NET.LavalinkSocket.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus,System.String,System.Threading.CancellationToken)">
             <summary>
                 Closes the connection to the remote endpoint asynchronously.
@@ -1687,6 +1715,7 @@
                 a cancellation token used to propagate notification that this operation should be canceled.
             </param>
             <returns>a task that represents the asynchronously operation.</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.ConnectAsync(System.Threading.CancellationToken)">
             <summary>
@@ -1700,6 +1729,7 @@
                 thrown if the connection is already open
             </exception>
             <exception cref="T:System.OperationCanceledException">thrown if the operation was canceled</exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.Dispose">
             <summary>
@@ -1711,6 +1741,7 @@
                 Initializes the node asynchronously.
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.SendPayloadAsync(Lavalink4NET.Payloads.IPayload,System.Boolean)">
             <summary>
@@ -1718,9 +1749,9 @@
             </summary>
             <param name="payload">the payload to sent</param>
             <param name="forceSend">
-                a value indicating whether an exception should be thrown if the connection is closed.
-                If <see langword="true"/>, an exception is thrown; Otherwise payloads will be stored
-                into a send queue and will be replayed (FIFO) after successful reconnection.
+                a value indicating whether an exception should be thrown if the connection is
+                closed. If <see langword="true"/>, an exception is thrown; Otherwise payloads will
+                be stored into a send queue and will be replayed (FIFO) after successful reconnection.
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">
@@ -1728,9 +1759,10 @@
                 <paramref name="forceSend"/> is <see langword="true"/>.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the node socket has not been initialized. (Call
-                <see cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
+                thrown if the node socket has not been initialized. (Call <see
+                cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.NotifyDisconnectAsync(Lavalink4NET.Events.PlayerDisconnectedEventArgs)">
             <summary>
@@ -1744,8 +1776,8 @@
                 Ensures that the socket is initialized.
             </summary>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the node socket has not been initialized. (Call
-                <see cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
+                thrown if the node socket has not been initialized. (Call <see
+                cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.OnConnectedAsync(Lavalink4NET.Events.ConnectedEventArgs)">
@@ -1777,6 +1809,12 @@
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronously operation.</returns>
         </member>
+        <member name="M:Lavalink4NET.LavalinkSocket.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.LavalinkSocket"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
         <member name="M:Lavalink4NET.LavalinkSocket.ProcessNextPayload">
             <summary>
                 Processes an incoming payload asynchronously.
@@ -1786,12 +1824,14 @@
                 see: <see cref="M:Lavalink4NET.LavalinkSocket.RunLifeCycleAsync"/>.
             </remarks>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkSocket.RunLifeCycleAsync">
             <summary>
                 Runs the receive / reconnect life cycle asynchronously.
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.Logging.EventLogger">
             <summary>
@@ -2232,14 +2272,6 @@
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Node.ConfigureResumingPayload"/> class.
             </summary>
             <param name="key">the resuming key</param>
-            <param name="timeout">
-                the number of seconds after disconnecting before the session is closed anyways
-            </param>
-        </member>
-        <member name="M:Lavalink4NET.Payloads.Node.ConfigureResumingPayload.#ctor(System.Int32)">
-            <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Node.ConfigureResumingPayload"/> class.
-            </summary>
             <param name="timeout">
                 the number of seconds after disconnecting before the session is closed anyways
             </param>

@@ -102,7 +102,7 @@
         </member>
         <member name="F:Lavalink4NET.DSharpPlus.DSharpUtil._webSocketClientField">
             <summary>
-                The internal "_webSocketClient" field info in <see cref="!:value"/>.
+                The internal "_webSocketClient" field info in <see cref="T:DSharpPlus.DiscordClient"/>.
             </summary>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DSharpUtil.GetSessionId(DSharpPlus.Entities.DiscordVoiceState)">
