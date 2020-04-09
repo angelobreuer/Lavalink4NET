@@ -165,7 +165,7 @@ namespace Lavalink4NET.DSharpPlus
         /// <summary>
         ///     The asynchronous callback when a voice state update was received.
         /// </summary>
-        /// <param name="voiceServer">the voice state data</param>
+        /// <param name="eventArgs">the voice state data</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         private Task OnVoiceStateUpdated(global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
         {
