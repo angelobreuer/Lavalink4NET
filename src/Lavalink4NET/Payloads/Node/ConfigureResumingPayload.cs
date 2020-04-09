@@ -50,17 +50,6 @@ namespace Lavalink4NET.Payloads.Node
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="ConfigureResumingPayload"/> class.
-        /// </summary>
-        /// <param name="timeout">
-        ///     the number of seconds after disconnecting before the session is closed anyways
-        /// </param>
-        public ConfigureResumingPayload(int timeout = 60)
-            : this(Guid.NewGuid().ToString(), timeout)
-        {
-        }
-
-        /// <summary>
         ///     Gets the operation code for the payload.
         /// </summary>
         [JsonRequired, JsonProperty("op")]
