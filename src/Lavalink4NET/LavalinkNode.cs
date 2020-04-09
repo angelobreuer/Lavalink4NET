@@ -588,8 +588,7 @@ namespace Lavalink4NET
             }
 
             // reconnected to a voice channel
-            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null
-                && args.OldVoiceState.VoiceChannelId == args.VoiceState.VoiceChannelId)
+            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
             }
