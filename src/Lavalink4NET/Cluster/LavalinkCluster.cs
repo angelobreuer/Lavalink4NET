@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ namespace Lavalink4NET.Cluster
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -49,6 +50,7 @@ namespace Lavalink4NET.Cluster
         private readonly ILogger _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
+        private bool _disposed;
         private bool _initialized;
         private volatile int _nodeId;
 
@@ -115,6 +117,49 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
+        ///     Gets the preferred node using the <see cref="LoadBalancingStrategy"/> specified in
+        ///     the options.
+        /// </summary>
+        /// <returns>the next preferred node</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">thrown if no nodes is available</exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public LavalinkNode PreferredNode
+        {
+            get
+            {
+                EnsureNotDisposed();
+
+                if (!_initialized)
+                {
+                    throw new InvalidOperationException("The cluster has not been initialized.");
+                }
+
+                lock (_nodesLock)
+                {
+                    // find a connected node
+                    var nodes = _nodes.Where(s => s.IsConnected).ToArray();
+
+                    // no nodes available
+                    if (nodes.Length == 0)
+                    {
+                        throw new InvalidOperationException("No node available.");
+                    }
+
+                    // get the preferred node by the load balancing strategy
+                    var node = _loadBalacingStrategy(this, nodes);
+
+                    // update last usage
+                    node.LastUsage = DateTimeOffset.UtcNow;
+
+                    return node;
+                }
+            }
+        }
+
+        /// <summary>
         ///     Gets or sets a value indicating whether stay-online should be enabled for the cluster.
         /// </summary>
         /// <remarks>
@@ -131,8 +176,11 @@ namespace Lavalink4NET.Cluster
         ///     a task that represents the asynchronous operation
         ///     <para>the cluster node info created for the node</para>
         /// </returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task<LavalinkClusterNode> AddNodeAsync(LavalinkNodeOptions nodeOptions)
         {
+            EnsureNotDisposed();
+
             var node = CreateNode(nodeOptions);
 
             // initialize node
@@ -152,6 +200,13 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
             lock (_nodesLock)
             {
                 _nodes.ForEach(s => s.Dispose());
@@ -159,36 +214,22 @@ namespace Lavalink4NET.Cluster
             }
         }
 
-        /// <summary>
-        ///     Gets the audio player for the specified <paramref name="guildId"/>.
-        /// </summary>
-        /// <param name="guildId">the guild identifier to get the player for</param>
-        /// <returns>the player for the guild</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public LavalinkPlayer GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
 
-        /// <summary>
-        ///     Gets the audio player for the specified <paramref name="guildId"/>.
-        /// </summary>
-        /// <typeparam name="TPlayer">the type of the player to use</typeparam>
-        /// <param name="guildId">the guild identifier to get the player for</param>
-        /// <returns>the player for the guild</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer
             => GetServingNode(guildId).GetPlayer<TPlayer>(guildId);
 
-        /// <summary>
-        ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
-        /// </summary>
-        /// <typeparam name="TPlayer">
-        ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
-        /// </typeparam>
-        /// <returns>the player list</returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public IReadOnlyList<TPlayer> GetPlayers<TPlayer>()
             where TPlayer : LavalinkPlayer
         {
+            EnsureNotDisposed();
+
             lock (_nodesLock)
             {
                 return _nodes
@@ -198,53 +239,19 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
-        ///     Gets the preferred node using the <see cref="LoadBalancingStrategy"/> specified in
-        ///     the options.
-        /// </summary>
-        /// <returns>the next preferred node</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if no nodes is available</exception>
-        public LavalinkNode GetPreferredNode()
-        {
-            if (!_initialized)
-            {
-                throw new InvalidOperationException("The cluster has not been initialized.");
-            }
-
-            lock (_nodesLock)
-            {
-                // find a connected node
-                var nodes = _nodes.Where(s => s.IsConnected).ToArray();
-
-                // no nodes available
-                if (nodes.Length == 0)
-                {
-                    throw new InvalidOperationException("No node available.");
-                }
-
-                // get the preferred node by the load balancing strategy
-                var node = _loadBalacingStrategy(this, nodes);
-
-                // update last usage
-                node.LastUsage = DateTimeOffset.UtcNow;
-
-                return node;
-            }
-        }
-
-        /// <summary>
         ///     Gets the node that serves the guild specified by <paramref name="guildId"/> (if no
-        ///     node serves the guild, <see cref="GetPreferredNode()"/> is used).
+        ///     node serves the guild, <see cref="PreferredNode"/> is used).
         /// </summary>
         /// <param name="guildId">the guild snowflake identifier</param>
         /// <returns>the serving node for the specified <paramref name="guildId"/></returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public LavalinkNode GetServingNode(ulong guildId)
         {
+            EnsureNotDisposed();
+
             lock (_nodesLock)
             {
                 var node = _nodes.FirstOrDefault(s => s.HasPlayer(guildId));
@@ -255,77 +262,45 @@ namespace Lavalink4NET.Cluster
                 }
             }
 
-            return GetPreferredNode();
+            return PreferredNode;
         }
 
-        /// <summary>
-        ///     Gets the track for the specified <paramref name="query"/> asynchronously.
-        /// </summary>
-        /// <param name="query">the track search query</param>
-        /// <param name="mode">the track search mode</param>
-        /// <param name="noCache">
-        ///     a value indicating whether the track should be returned from cache, if it is cached.
-        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     a cancellation token that can be used by other objects or threads to receive notice
-        ///     of cancellation.
-        /// </param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the track
-        ///     found for the specified <paramref name="query"/>
-        /// </returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
-            => GetPreferredNode().GetTrackAsync(query, mode, noCache, cancellationToken);
+        {
+            EnsureNotDisposed();
+            return PreferredNode.GetTrackAsync(query, mode, noCache, cancellationToken);
+        }
 
-        /// <summary>
-        ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
-        /// </summary>
-        /// <param name="query">the track search query</param>
-        /// <param name="mode">the track search mode</param>
-        /// <param name="noCache">
-        ///     a value indicating whether the track should be returned from cache, if it is cached.
-        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     a cancellation token that can be used by other objects or threads to receive notice
-        ///     of cancellation.
-        /// </param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation. The task result are the tracks
-        ///     found for the specified <paramref name="query"/>
-        /// </returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
-            => GetPreferredNode().GetTracksAsync(query, mode, noCache, cancellationToken);
+        {
+            EnsureNotDisposed();
+            return PreferredNode.GetTracksAsync(query, mode, noCache, cancellationToken);
+        }
 
-        /// <summary>
-        ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
-        /// </summary>
-        /// <param name="guildId">
-        ///     the snowflake identifier of the guild to create the player for
-        /// </param>
-        /// <returns>
-        ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public bool HasPlayer(ulong guildId)
         {
+            EnsureNotDisposed();
+
             lock (_nodesLock)
             {
                 return _nodes.Any(s => s.HasPlayer(guildId));
             }
         }
 
-        /// <summary>
-        ///     Initializes all nodes asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task InitializeAsync()
         {
+            EnsureNotDisposed();
+
             if (_initialized)
             {
                 return;
@@ -336,59 +311,31 @@ namespace Lavalink4NET.Cluster
             _initialized = true;
         }
 
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+        {
+            EnsureNotDisposed();
+            return JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+        }
 
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the cluster has not been initialized.
-        /// </exception>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
             where TPlayer : LavalinkPlayer
-            => GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+        {
+            EnsureNotDisposed();
+            return GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+        }
 
-        /// <summary>
-        ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.
-        /// </summary>
-        /// <param name="query">the search query</param>
-        /// <param name="mode">the track search mode</param>
-        /// <param name="noCache">
-        ///     a value indicating whether the track should be returned from cache, if it is cached.
-        ///     Note this parameter does only take any effect is a cache provider is specified in constructor.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     a cancellation token that can be used by other objects or threads to receive notice
-        ///     of cancellation.
-        /// </param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the request
-        ///     response for the specified <paramref name="query"/>.
-        /// </returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
-            => GetPreferredNode().LoadTracksAsync(query, mode, noCache, cancellationToken);
+        {
+            EnsureNotDisposed();
+            return PreferredNode.LoadTracksAsync(query, mode, noCache, cancellationToken);
+        }
 
         /// <summary>
         ///     An internal callback when a cluster node connected to the cluster asynchronously.
@@ -457,6 +404,18 @@ namespace Lavalink4NET.Cluster
         private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
             => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _cache, _nodeId++);
 
+        /// <summary>
+        ///     Throws an exception if the <see cref="LavalinkCluster"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(LavalinkCluster));
+            }
+        }
+
         private async Task MovePlayerToNewNodeAsync(LavalinkNode sourceNode, LavalinkPlayer player)
         {
             if (player is null)
@@ -474,7 +433,7 @@ namespace Lavalink4NET.Cluster
             }
 
             // move node
-            var targetNode = GetPreferredNode();
+            var targetNode = PreferredNode;
             await sourceNode.MovePlayerAsync(player, targetNode);
 
             // invoke event

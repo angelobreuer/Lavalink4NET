@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,10 @@ namespace Lavalink4NET.Decoding
     /// </summary>
     public sealed class DataInputReader : IDisposable
     {
+        private readonly Stream _baseStream;
+        private readonly Endianness _endianness;
         private readonly bool _leaveOpen;
+        private bool _disposed;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DataInputReader"/> class.
@@ -52,8 +55,8 @@ namespace Lavalink4NET.Decoding
         /// </exception>
         public DataInputReader(Stream baseStream, Endianness endianness = Endianness.BigEndian, bool leaveOpen = false)
         {
-            BaseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
-            Endianness = endianness;
+            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+            _endianness = endianness;
 
             _leaveOpen = leaveOpen;
 
@@ -66,12 +69,76 @@ namespace Lavalink4NET.Decoding
         /// <summary>
         ///     Gets the base stream to read from.
         /// </summary>
-        public Stream BaseStream { get; }
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public Stream BaseStream
+        {
+            get
+            {
+                EnsureNotDisposed();
+                return _baseStream;
+            }
+        }
 
         /// <summary>
         ///     Gets the source stream endianness.
         /// </summary>
-        public Endianness Endianness { get; }
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public Endianness Endianness
+        {
+            get
+            {
+                EnsureNotDisposed();
+                return _endianness;
+            }
+        }
+
+        /// <summary>
+        ///     Disposes the underlying <see cref="BaseStream"/>, if specified in constructor (!leaveOpen).
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            if (!_leaveOpen)
+            {
+                BaseStream.Dispose();
+            }
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="bool"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public bool ReadBoolean() => ReadBytes(1)[0] == 1;
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public byte ReadByte()
+        {
+            var b = BaseStream.ReadByte();
+
+            if (b == -1)
+            {
+                throw new EndOfStreamException("Reached end of stream while reading single byte.");
+            }
+
+            return (byte)b;
+        }
 
         /// <summary>
         ///     Reads bytes from the stream.
@@ -81,8 +148,11 @@ namespace Lavalink4NET.Decoding
         /// <exception cref="EndOfStreamException">
         ///     thrown if the end of the <see cref="BaseStream"/> was reached.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public byte[] ReadBytes(int count)
         {
+            EnsureNotDisposed();
+
             var buffer = new byte[count];
 
             if (BaseStream.Read(buffer, 0, count) < count)
@@ -100,6 +170,7 @@ namespace Lavalink4NET.Decoding
         /// <exception cref="EndOfStreamException">
         ///     thrown if the end of stream was reached while reading the value
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public short ReadInt16() => Read(sizeof(short), BitConverter.ToInt16);
 
         /// <summary>
@@ -109,6 +180,7 @@ namespace Lavalink4NET.Decoding
         /// <exception cref="EndOfStreamException">
         ///     thrown if the end of stream was reached while reading the value
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public int ReadInt32() => Read(sizeof(int), BitConverter.ToInt32);
 
         /// <summary>
@@ -118,71 +190,8 @@ namespace Lavalink4NET.Decoding
         /// <exception cref="EndOfStreamException">
         ///     thrown if the end of stream was reached while reading the value
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public long ReadInt64() => Read(sizeof(long), BitConverter.ToInt64);
-
-        /// <summary>
-        ///     Reads a <see cref="float"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public float ReadSingle() => Read(sizeof(float), BitConverter.ToSingle);
-
-        /// <summary>
-        ///     Reads an <see cref="ushort"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public ushort ReadUInt16() => Read(sizeof(ushort), BitConverter.ToUInt16);
-
-        /// <summary>
-        ///     Reads an <see cref="uint"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public uint ReadUInt32() => Read(sizeof(uint), BitConverter.ToUInt32);
-
-        /// <summary>
-        ///     Reads an <see cref="ulong"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public ulong ReadUInt64() => Read(sizeof(ulong), BitConverter.ToUInt64);
-
-        /// <summary>
-        ///     Reads a <see cref="bool"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public bool ReadBoolean() => ReadBytes(1)[0] == 1;
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        public byte ReadByte()
-        {
-            var b = BaseStream.ReadByte();
-
-            if (b == -1)
-            {
-                throw new EndOfStreamException("Reached end of stream while reading single byte.");
-            }
-
-            return (byte)b;
-        }
 
         /// <summary>
         ///     Reads a <see cref="sbyte"/> from the stream.
@@ -191,12 +200,24 @@ namespace Lavalink4NET.Decoding
         /// <exception cref="EndOfStreamException">
         ///     thrown if the end of stream was reached while reading the value
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public sbyte ReadSByte() => (sbyte)ReadByte();
+
+        /// <summary>
+        ///     Reads a <see cref="float"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public float ReadSingle() => Read(sizeof(float), BitConverter.ToSingle);
 
         /// <summary>
         ///     Reads an UTF-8 string from the stream.
         /// </summary>
         /// <returns>the read string</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public string ReadString()
         {
             var length = ReadUInt16();
@@ -217,6 +238,48 @@ namespace Lavalink4NET.Decoding
             }
         }
 
+        /// <summary>
+        ///     Reads an <see cref="ushort"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public ushort ReadUInt16() => Read(sizeof(ushort), BitConverter.ToUInt16);
+
+        /// <summary>
+        ///     Reads an <see cref="uint"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public uint ReadUInt32() => Read(sizeof(uint), BitConverter.ToUInt32);
+
+        /// <summary>
+        ///     Reads an <see cref="ulong"/> from the stream.
+        /// </summary>
+        /// <returns>the read value</returns>
+        /// <exception cref="EndOfStreamException">
+        ///     thrown if the end of stream was reached while reading the value
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public ulong ReadUInt64() => Read(sizeof(ulong), BitConverter.ToUInt64);
+
+        /// <summary>
+        ///     Ensures that the instance is not disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(DataInputReader));
+            }
+        }
+
         private T Read<T>(int count, Func<byte[], int, T> converterFunc)
             => Read(count, converterFunc, EndianConverter.SystemEndianess);
 
@@ -225,17 +288,6 @@ namespace Lavalink4NET.Decoding
             var bytes = ReadBytes(count);
             EndianConverter.Convert(bytes, Endianness, endianness);
             return converterFunc(bytes, 0);
-        }
-
-        /// <summary>
-        ///     Disposes the underlying <see cref="BaseStream"/>, if specified in constructor (!leaveOpen).
-        /// </summary>
-        public void Dispose()
-        {
-            if (!_leaveOpen)
-            {
-                BaseStream.Dispose();
-            }
         }
     }
 }

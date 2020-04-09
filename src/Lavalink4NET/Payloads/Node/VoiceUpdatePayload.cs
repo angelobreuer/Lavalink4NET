@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,7 @@ namespace Lavalink4NET.Payloads.Node
     /// <summary>
     ///     The representation of a voice update lavalink payload.
     /// </summary>
-    public sealed class VoiceUpdatePayload
-        : IPayload, IPlayerPayload
+    public sealed class VoiceUpdatePayload : IPayload, IPlayerPayload
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="VoiceUpdatePayload"/> class.

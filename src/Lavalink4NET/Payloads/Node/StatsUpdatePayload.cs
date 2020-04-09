@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,10 @@ namespace Lavalink4NET.Payloads.Node
     using Statistics;
 
     /// <summary>
-    ///     The strongly-typed representation of a node statistics payload received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     The strongly-typed representation of a node statistics payload received from the
+    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public sealed class StatsUpdatePayload
-        : IPayload
+    public sealed class StatsUpdatePayload : IPayload
     {
         /// <summary>
         ///     Gets the operation code for the payload.

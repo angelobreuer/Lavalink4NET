@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,7 @@ namespace Lavalink4NET.Payloads
     /// <summary>
     ///     An abstract implementation of lavalink incoming server event payloads.
     /// </summary>
-    public abstract class EventPayload
-        : IPayload
+    public abstract class EventPayload : IPayload
     {
         /// <summary>
         ///     Gets the operation code for the payload.

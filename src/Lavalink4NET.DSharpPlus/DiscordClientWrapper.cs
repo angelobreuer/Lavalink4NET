@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -43,60 +43,69 @@ namespace Lavalink4NET.DSharpPlus
     public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         private readonly DiscordClient _client;
+        private bool _disposed;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
         /// </summary>
         /// <param name="client">the sharded discord client</param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
         public DiscordClientWrapper(DiscordClient client)
         {
-            _client = client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
 
             _client.VoiceStateUpdated += OnVoiceStateUpdated;
             _client.VoiceServerUpdated += OnVoiceServerUpdated;
         }
 
-        /// <summary>
-        ///     An asynchronous event which is triggered when the voice server was updated.
-        /// </summary>
+        /// <inheritdoc/>
         public event Events.AsyncEventHandler<VoiceServer> VoiceServerUpdated;
 
-        /// <summary>
-        ///     An asynchronous event which is triggered when a user voice state was updated.
-        /// </summary>
+        /// <inheritdoc/>
         public event Events.AsyncEventHandler<Events.VoiceStateUpdateEventArgs> VoiceStateUpdated;
 
-        /// <summary>
-        ///     Gets the current user snowflake identifier value.
-        /// </summary>
-        public ulong CurrentUserId => _client.CurrentUser.Id;
+        /// <inheritdoc/>
+        public ulong CurrentUserId
+        {
+            get
+            {
+                EnsureNotDisposed();
+                return _client.CurrentUser.Id;
+            }
+        }
 
-        /// <summary>
-        ///     Gets the number of total shards the bot uses.
-        /// </summary>
-        public int ShardCount => _client.ShardCount;
+        /// <inheritdoc/>
+        public int ShardCount
+        {
+            get
+            {
+                EnsureNotDisposed();
+                return _client.ShardCount;
+            }
+        }
 
-        /// <summary>
-        ///     Disposes the wrapper and unregisters all events attached to the discord client.
-        /// </summary>
+        /// <inheritdoc/>
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
             _client.VoiceStateUpdated -= OnVoiceStateUpdated;
             _client.VoiceServerUpdated -= OnVoiceServerUpdated;
         }
 
-        /// <summary>
-        ///     Gets the snowflake identifier values of the users in the voice channel specified by
-        ///     <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
-        /// </summary>
-        /// <param name="guildId">the guild identifier snowflake where the channel is in</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the snowflake identifier values of the users in the voice channel</para>
-        /// </returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
         {
+            EnsureNotDisposed();
+
             var guild = await _client.GetGuildAsync(guildId)
                 ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
 
@@ -106,12 +115,12 @@ namespace Lavalink4NET.DSharpPlus
             return channel.Users.Select(s => s.Id);
         }
 
-        /// <summary>
-        ///     Awaits the initialization of the discord client asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task InitializeAsync()
         {
+            EnsureNotDisposed();
+
             var startTime = DateTimeOffset.UtcNow;
 
             // await until current user arrived
@@ -128,19 +137,12 @@ namespace Lavalink4NET.DSharpPlus
             }
         }
 
-        /// <summary>
-        ///     Sends a voice channel state update asynchronously.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">
-        ///     the snowflake identifier of the voice channel to join (if <see langword="null"/> the
-        ///     client should disconnect from the voice channel).
-        /// </param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
         {
+            EnsureNotDisposed();
+
             var payload = new JObject();
             var data = new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf);
 
@@ -152,23 +154,34 @@ namespace Lavalink4NET.DSharpPlus
         }
 
         /// <summary>
-        ///     The asynchronous callback when a voice server update was received.
+        ///     Throws an <see cref="ObjectDisposedException"/> if the <see
+        ///     cref="DiscordClientWrapper"/> is disposed.
         /// </summary>
-        /// <param name="voiceServer">the voice server data</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(DiscordClientWrapper));
+            }
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         private Task OnVoiceServerUpdated(VoiceServerUpdateEventArgs voiceServer)
         {
+            EnsureNotDisposed();
+
             var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.GetVoiceToken(), voiceServer.Endpoint);
             return VoiceServerUpdated.InvokeAsync(this, args);
         }
 
-        /// <summary>
-        ///     The asynchronous callback when a voice state update was received.
-        /// </summary>
-        /// <param name="eventArgs">the voice state data</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         private Task OnVoiceStateUpdated(global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
         {
+            EnsureNotDisposed();
+
             // create voice states
             var oldVoiceState = eventArgs.Before?.Channel is null ? null : new VoiceState(
                 eventArgs.Before.Channel.Id, eventArgs.Before.Guild.Id, eventArgs.Before.GetSessionId());

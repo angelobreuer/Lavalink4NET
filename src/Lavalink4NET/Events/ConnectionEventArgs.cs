@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,6 @@ namespace Lavalink4NET.Events
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
         /// </exception>
-        /// w
         public ConnectionEventArgs(Uri uri)
             => Uri = uri ?? throw new ArgumentNullException(nameof(uri));
 

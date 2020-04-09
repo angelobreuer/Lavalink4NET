@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,9 @@
 
 namespace Lavalink4NET.Cluster
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     ///     The options for a lavalink cluster ( <see cref="LavalinkCluster"/>).
     /// </summary>
@@ -41,8 +44,8 @@ namespace Lavalink4NET.Cluster
         /// <summary>
         ///     Gets or sets the cluster node options.
         /// </summary>
-        public LavalinkNodeOptions[] Nodes { get; set; }
-            = new LavalinkNodeOptions[0];
+        public IReadOnlyList<LavalinkNodeOptions> Nodes { get; set; }
+            = Array.Empty<LavalinkNodeOptions>();
 
         /// <summary>
         ///     Gets or sets a value indicating whether players should be moved to a new node if a

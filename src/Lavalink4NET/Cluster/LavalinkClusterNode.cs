@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -56,8 +56,7 @@ namespace Lavalink4NET.Cluster
         ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
         /// </exception>
         public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-            ILogger logger, ILavalinkCache cache, int id)
-            : base(options, client, logger, cache)
+            ILogger logger, ILavalinkCache cache, int id) : base(options, client, logger, cache)
         {
             if (options is null)
             {

@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ namespace Lavalink4NET.Lyrics
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     A service for retrieving song lyrics from the "https://lyrics.ovh" api.
+    ///     A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
     /// </summary>
     public sealed class LyricsService : IDisposable
     {
@@ -45,6 +45,7 @@ namespace Lavalink4NET.Lyrics
         private readonly TimeSpan _cacheTime;
         private readonly HttpClient _httpClient;
         private readonly bool _suppressExceptions;
+        private bool _disposed;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LyricsService"/> class.
@@ -102,7 +103,16 @@ namespace Lavalink4NET.Lyrics
         /// <summary>
         ///     Disposes the underlying HTTP client.
         /// </summary>
-        public void Dispose() => _httpClient.Dispose();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _httpClient.Dispose();
+        }
 
         /// <summary>
         ///     Gets the lyrics for a track asynchronously (cached).
@@ -114,8 +124,8 @@ namespace Lavalink4NET.Lyrics
         ///     of cancellation.
         /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the track found
-        ///     for the query
+        ///     a task that represents the asynchronous operation. The task result is the track
+        ///     found for the query
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="artist"/> is blank.
@@ -123,8 +133,11 @@ namespace Lavalink4NET.Lyrics
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="title"/> is blank.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
         public async Task<string> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
+            EnsureNotDisposed();
+
             if (string.IsNullOrWhiteSpace(artist))
             {
                 throw new ArgumentException("The specified artist cannot be blank.", nameof(artist));
@@ -160,6 +173,7 @@ namespace Lavalink4NET.Lyrics
         ///     a task that represents the asynchronous operation. The task result is the lyrics
         ///     found for the query
         /// </returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
         public Task<string> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -175,6 +189,7 @@ namespace Lavalink4NET.Lyrics
         ///     a task that represents the asynchronous operation. The task result is the lyrics
         ///     found for the query
         /// </returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
         public Task<string> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
@@ -197,8 +212,11 @@ namespace Lavalink4NET.Lyrics
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="title"/> is blank.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
         public async Task<string> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
+            EnsureNotDisposed();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // encode query parameters
@@ -223,6 +241,18 @@ namespace Lavalink4NET.Lyrics
                 }
 
                 return payload.Lyrics;
+            }
+        }
+
+        /// <summary>
+        ///     Throws an exception if the <see cref="LyricsService"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(LyricsService));
             }
         }
     }

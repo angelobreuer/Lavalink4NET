@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ namespace Lavalink4NET.Tracking
         private readonly IDictionary<ulong, DateTimeOffset> _players;
         private readonly IList<InactivityTracker> _trackers;
         private readonly object _trackersLock;
+        private bool _disposed;
         private Timer _timer;
 
         /// <summary>
@@ -74,13 +75,14 @@ namespace Lavalink4NET.Tracking
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger;
             _players = new Dictionary<ulong, DateTimeOffset>();
-
-            _trackers = new List<InactivityTracker>();
             _trackersLock = new object();
 
-            // add default trackers
-            _trackers.Add(DefaultInactivityTrackers.UsersInactivityTracker);
-            _trackers.Add(DefaultInactivityTrackers.ChannelInactivityTracker);
+            _trackers = new List<InactivityTracker>
+            {
+                // add default trackers
+                DefaultInactivityTrackers.UsersInactivityTracker,
+                DefaultInactivityTrackers.ChannelInactivityTracker
+            };
 
             if (options.TrackInactivity)
             {
@@ -94,23 +96,34 @@ namespace Lavalink4NET.Tracking
         public event AsyncEventHandler<InactivePlayerEventArgs> InactivePlayer;
 
         /// <summary>
-        ///     An asynchronously event that is triggered when a player's tracking status (
-        ///     <see cref="InactivityTrackingStatus"/>) was updated.
+        ///     An asynchronously event that is triggered when a player's tracking status ( <see
+        ///     cref="InactivityTrackingStatus"/>) was updated.
         /// </summary>
         public event AsyncEventHandler<PlayerTrackingStatusUpdateEventArgs> PlayerTrackingStatusUpdated;
 
         /// <summary>
         ///     Gets a value indicating whether the service is tracking inactive players.
         /// </summary>
-        public bool IsTracking => _timer != null;
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public bool IsTracking
+        {
+            get
+            {
+                EnsureNotDisposed();
+                return _timer != null;
+            }
+        }
 
         /// <summary>
         ///     Gets all trackers.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public IReadOnlyList<InactivityTracker> Trackers
         {
             get
             {
+                EnsureNotDisposed();
+
                 lock (_trackersLock)
                 {
                     return _trackers.ToList().AsReadOnly();
@@ -125,8 +138,11 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public void AddTracker(InactivityTracker tracker)
         {
+            EnsureNotDisposed();
+
             if (tracker is null)
             {
                 throw new ArgumentNullException(nameof(tracker));
@@ -144,8 +160,11 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="InvalidOperationException">
         ///     thrown if the service is already tracking inactive players.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public void BeginTracking()
         {
+            EnsureNotDisposed();
+
             if (_timer != null)
             {
                 throw new InvalidOperationException("Already tracking.");
@@ -159,8 +178,11 @@ namespace Lavalink4NET.Tracking
         /// <summary>
         ///     Removes all registered trackers.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public void ClearTrackers()
         {
+            EnsureNotDisposed();
+
             lock (_trackersLock)
             {
                 _trackers.Clear();
@@ -170,15 +192,28 @@ namespace Lavalink4NET.Tracking
         /// <summary>
         ///     Disposes the underlying timer.
         /// </summary>
-        public void Dispose() => _timer?.Dispose();
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _timer?.Dispose();
+        }
 
         /// <summary>
         ///     Gets the tracking status of the specified <paramref name="player"/>.
         /// </summary>
         /// <param name="player">the player</param>
         /// <returns>the inactivity tracking status of the player</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public InactivityTrackingStatus GetStatus(LavalinkPlayer player)
         {
+            EnsureNotDisposed();
+
             if (!_players.TryGetValue(player.GuildId, out var dateTimeOffset))
             {
                 // there are no tracking entries for the player
@@ -191,7 +226,7 @@ namespace Lavalink4NET.Tracking
                 return InactivityTrackingStatus.Inactive;
             }
 
-            //player is tracked for inactivity, but not removed
+            // player is tracked for inactivity, but not removed
             return InactivityTrackingStatus.Tracked;
         }
 
@@ -199,8 +234,11 @@ namespace Lavalink4NET.Tracking
         ///     Force polls tracking of all inactive players asynchronously.
         /// </summary>
         /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public virtual async Task PollAsync()
         {
+            EnsureNotDisposed();
+
             // get all created player instances in the audio service
             var players = _audioService.GetPlayers<LavalinkPlayer>();
 
@@ -281,8 +319,11 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public void RemoveTracker(InactivityTracker tracker)
         {
+            EnsureNotDisposed();
+
             if (tracker is null)
             {
                 throw new ArgumentNullException(nameof(tracker));
@@ -300,8 +341,11 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="InvalidOperationException">
         ///     thrown if the service is not tracking inactive players.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public void StopTracking()
         {
+            EnsureNotDisposed();
+
             if (_timer is null)
             {
                 throw new InvalidOperationException("Not tracking.");
@@ -322,8 +366,11 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
         /// </exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public async Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
         {
+            EnsureNotDisposed();
+
             if (player is null)
             {
                 throw new ArgumentNullException(nameof(player));
@@ -350,8 +397,11 @@ namespace Lavalink4NET.Tracking
         ///     a task that represents the asynchronous operation. The task result is a value
         ///     indicating whether the specified <paramref name="player"/> is inactive.
         /// </returns>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         protected virtual async Task<bool> IsInactiveAsync(LavalinkPlayer player)
         {
+            EnsureNotDisposed();
+
             // iterate through the trackers
             foreach (var tracker in Trackers)
             {
@@ -380,5 +430,17 @@ namespace Lavalink4NET.Tracking
         /// <returns>a task that represents the asynchronous operation</returns>
         protected virtual Task OnPlayerTrackingStatusUpdated(PlayerTrackingStatusUpdateEventArgs eventArgs)
             => PlayerTrackingStatusUpdated.InvokeAsync(this, eventArgs);
+
+        /// <summary>
+        ///     Throws an exception if the <see cref="InactivityTrackingService"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(InactivityTrackingService));
+            }
+        }
     }
 }

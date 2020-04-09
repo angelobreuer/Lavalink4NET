@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2020
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -112,6 +112,11 @@ namespace Lavalink4NET
         public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
 
         /// <summary>
+        ///     Gets the current lavalink server version that is supported by the library.
+        /// </summary>
+        public static Version SupportedVersion { get; } = new Version(3, 0, 0);
+
+        /// <summary>
         ///     Gets the last received node statistics; or <see langword="null"/> if no statistics
         ///     are available for the node.
         /// </summary>
@@ -190,18 +195,6 @@ namespace Lavalink4NET
             }
 
             return player1;
-        }
-
-        /// <summary>
-        ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        private void EnsureNotDisposed()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(LavalinkNode));
-            }
         }
 
         /// <summary>
@@ -646,6 +639,18 @@ namespace Lavalink4NET
             else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null)
             {
                 await player.UpdateAsync(args.VoiceState);
+            }
+        }
+
+        /// <summary>
+        ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(LavalinkNode));
             }
         }
 
