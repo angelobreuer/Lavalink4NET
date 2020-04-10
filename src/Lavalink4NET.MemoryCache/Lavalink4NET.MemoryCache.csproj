@@ -3,22 +3,16 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <LangVersion>7.1</LangVersion>
+
+    <!-- Package Description-->
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       NOTE: This package only contains a wrapper for the System.Runtime.Caching.ObjectCache to enable request caching.
     </Description>
-    <Authors>Angelo Breuer</Authors>
-    <Product>Lavalink4NET</Product>
-    <Copyright>Angelo Breuer 2020</Copyright>
+
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
-    <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
-    <Version>1.4.11</Version>
+
+    <!-- Documentation -->
     <DocumentationFile>Lavalink4NET.MemoryCache.xml</DocumentationFile>
   </PropertyGroup>
 
@@ -29,4 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
+
+  <Import Project="../Lavalink4NET.targets" />
 </Project>

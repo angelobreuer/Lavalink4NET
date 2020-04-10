@@ -13,6 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.MemoryCache", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Tests", "Lavalink4NET.Tests\Lavalink4NET.Tests.csproj", "{C5360CAD-5276-48B2-832E-665015793D91}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E562590-5309-411D-9084-9EAE7F01EC98}"
+	ProjectSection(SolutionItems) = preProject
+		Lavalink4NET.png = Lavalink4NET.png
+		Lavalink4NET.targets = Lavalink4NET.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

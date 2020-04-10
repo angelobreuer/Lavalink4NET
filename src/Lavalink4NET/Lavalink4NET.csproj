@@ -4,31 +4,23 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <LangVersion>7.1</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Authors>Angelo Breuer</Authors>
-    <Company>Angelo Breuer</Company>
+
+    <!-- Package Description -->
     <Description>
       A Lavalink wrapper for playing music using a discord bot.
       NOTE: This package is only for implementing own Discord clients. Use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus
     </Description>
-    <Copyright>Angelo Breuer 2020</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
-    <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
-    <Version>1.4.11</Version>
-    <PackageProjectUrl />
-    <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
+
+    <!-- Documentation -->
     <DocumentationFile>Lavalink4NET.xml</DocumentationFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Lavalink4NET.xml" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="System.Buffers" Version="4.5.0" />
   </ItemGroup>
+
+  <Import Project="../Lavalink4NET.targets" />
 </Project>
