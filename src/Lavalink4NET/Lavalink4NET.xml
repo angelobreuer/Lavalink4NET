@@ -47,6 +47,18 @@
                 Gets all nodes.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Cluster.LavalinkCluster.PreferredNode">
+            <summary>
+                Gets the preferred node using the <see cref="T:Lavalink4NET.Cluster.LoadBalancingStrategy"/> specified in
+                the options.
+            </summary>
+            <returns>the next preferred node</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the cluster has not been initialized.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">thrown if no nodes is available</exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkCluster.StayOnline">
             <summary>
                 Gets or sets a value indicating whether stay-online should be enabled for the cluster.
@@ -65,6 +77,7 @@
                 a task that represents the asynchronous operation
                 <para>the cluster node info created for the node</para>
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.Dispose">
             <summary>
@@ -72,159 +85,56 @@
             </summary>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPlayer(System.UInt64)">
-            <summary>
-                Gets the audio player for the specified <paramref name="guildId"/>.
-            </summary>
-            <param name="guildId">the guild identifier to get the player for</param>
-            <returns>the player for the guild</returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPlayer``1(System.UInt64)">
-            <summary>
-                Gets the audio player for the specified <paramref name="guildId"/>.
-            </summary>
-            <typeparam name="TPlayer">the type of the player to use</typeparam>
-            <param name="guildId">the guild identifier to get the player for</param>
-            <returns>the player for the guild</returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPlayers``1">
-            <summary>
-                Gets all players of the specified <typeparamref name="TPlayer"/>.
-            </summary>
-            <typeparam name="TPlayer">
-                the type of the players to get; use <see cref="T:Lavalink4NET.Player.LavalinkPlayer"/> to get all players
-            </typeparam>
-            <returns>the player list</returns>
-        </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPreferredNode">
-            <summary>
-                Gets the preferred node using the <see cref="T:Lavalink4NET.Cluster.LoadBalancingStrategy"/> specified in
-                the options.
-            </summary>
-            <returns>the next preferred node</returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
-            <exception cref="T:System.InvalidOperationException">thrown if no nodes is available</exception>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetServingNode(System.UInt64)">
             <summary>
                 Gets the node that serves the guild specified by <paramref name="guildId"/> (if no
-                node serves the guild, <see cref="M:Lavalink4NET.Cluster.LavalinkCluster.GetPreferredNode"/> is used).
+                node serves the guild, <see cref="P:Lavalink4NET.Cluster.LavalinkCluster.PreferredNode"/> is used).
             </summary>
             <param name="guildId">the guild snowflake identifier</param>
             <returns>the serving node for the specified <paramref name="guildId"/></returns>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the cluster has not been initialized.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTrackAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-                Gets the track for the specified <paramref name="query"/> asynchronously.
-            </summary>
-            <param name="query">the track search query</param>
-            <param name="mode">the track search mode</param>
-            <param name="noCache">
-                a value indicating whether the track should be returned from cache, if it is cached.
-                Note this parameter does only take any effect is a cache provider is specified in constructor.
-            </param>
-            <param name="cancellationToken">
-                a cancellation token that can be used by other objects or threads to receive notice
-                of cancellation.
-            </param>
-            <returns>
-                a task that represents the asynchronous operation. The task result is the track
-                found for the specified <paramref name="query"/>
-            </returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-                Gets the tracks for the specified <paramref name="query"/> asynchronously.
-            </summary>
-            <param name="query">the track search query</param>
-            <param name="mode">the track search mode</param>
-            <param name="noCache">
-                a value indicating whether the track should be returned from cache, if it is cached.
-                Note this parameter does only take any effect is a cache provider is specified in constructor.
-            </param>
-            <param name="cancellationToken">
-                a cancellation token that can be used by other objects or threads to receive notice
-                of cancellation.
-            </param>
-            <returns>
-                a task that represents the asynchronous operation. The task result are the tracks
-                found for the specified <paramref name="query"/>
-            </returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.HasPlayer(System.UInt64)">
-            <summary>
-                Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
-            </summary>
-            <param name="guildId">
-                the snowflake identifier of the guild to create the player for
-            </param>
-            <returns>
-                a value indicating whether a player is created for the specified <paramref name="guildId"/>
-            </returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.InitializeAsync">
-            <summary>
-                Initializes all nodes asynchronously.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.JoinAsync(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
-            <summary>
-                Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-            </summary>
-            <param name="guildId">the guild snowflake identifier</param>
-            <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-            <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-            <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-            <returns>
-                a task that represents the asynchronous operation
-                <para>the audio player</para>
-            </returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.JoinAsync``1(System.UInt64,System.UInt64,System.Boolean,System.Boolean)">
-            <summary>
-                Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-            </summary>
-            <param name="guildId">the guild snowflake identifier</param>
-            <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-            <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-            <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-            <returns>
-                a task that represents the asynchronous operation
-                <para>the audio player</para>
-            </returns>
-            <exception cref="T:System.InvalidOperationException">
-                thrown if the cluster has not been initialized.
-            </exception>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.LoadTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-                Loads the tracks specified by the <paramref name="query"/> asynchronously.
-            </summary>
-            <param name="query">the search query</param>
-            <param name="mode">the track search mode</param>
-            <param name="noCache">
-                a value indicating whether the track should be returned from cache, if it is cached.
-                Note this parameter does only take any effect is a cache provider is specified in constructor.
-            </param>
-            <param name="cancellationToken">
-                a cancellation token that can be used by other objects or threads to receive notice
-                of cancellation.
-            </param>
-            <returns>
-                a task that represents the asynchronous operation. The task result is the request
-                response for the specified <paramref name="query"/>.
-            </returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkCluster.NodeConnectedAsync(Lavalink4NET.Cluster.LavalinkClusterNode,Lavalink4NET.Events.ConnectedEventArgs)">
             <summary>
@@ -269,6 +179,12 @@
             </summary>
             <param name="nodeOptions">the node options</param>
             <returns>the created node</returns>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.Cluster.LavalinkCluster"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.Cluster.LavalinkClusterNode">
             <summary>
@@ -410,11 +326,38 @@
             <summary>
                 Gets the base stream to read from.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="P:Lavalink4NET.Decoding.DataInputReader.Endianness">
             <summary>
                 Gets the source stream endianness.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.Dispose">
+            <summary>
+                Disposes the underlying <see cref="P:Lavalink4NET.Decoding.DataInputReader.BaseStream"/>, if specified in constructor (!leaveOpen).
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadBoolean">
+            <summary>
+                Reads a <see cref="T:System.Boolean"/> from the stream.
+            </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadByte">
+            <summary>
+                Reads a <see cref="T:System.Byte"/> from the stream.
+            </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadBytes(System.Int32)">
             <summary>
@@ -425,6 +368,7 @@
             <exception cref="T:System.IO.EndOfStreamException">
                 thrown if the end of the <see cref="P:Lavalink4NET.Decoding.DataInputReader.BaseStream"/> was reached.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadInt16">
             <summary>
@@ -434,6 +378,7 @@
             <exception cref="T:System.IO.EndOfStreamException">
                 thrown if the end of stream was reached while reading the value
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadInt32">
             <summary>
@@ -443,6 +388,7 @@
             <exception cref="T:System.IO.EndOfStreamException">
                 thrown if the end of stream was reached while reading the value
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadInt64">
             <summary>
@@ -452,60 +398,7 @@
             <exception cref="T:System.IO.EndOfStreamException">
                 thrown if the end of stream was reached while reading the value
             </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadSingle">
-            <summary>
-                Reads a <see cref="T:System.Single"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt16">
-            <summary>
-                Reads an <see cref="T:System.UInt16"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt32">
-            <summary>
-                Reads an <see cref="T:System.UInt32"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt64">
-            <summary>
-                Reads an <see cref="T:System.UInt64"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadBoolean">
-            <summary>
-                Reads a <see cref="T:System.Boolean"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
-        </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadByte">
-            <summary>
-                Reads a <see cref="T:System.Byte"/> from the stream.
-            </summary>
-            <returns>the read value</returns>
-            <exception cref="T:System.IO.EndOfStreamException">
-                thrown if the end of stream was reached while reading the value
-            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadSByte">
             <summary>
@@ -515,17 +408,60 @@
             <exception cref="T:System.IO.EndOfStreamException">
                 thrown if the end of stream was reached while reading the value
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadSingle">
+            <summary>
+                Reads a <see cref="T:System.Single"/> from the stream.
+            </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadString">
             <summary>
                 Reads an UTF-8 string from the stream.
             </summary>
             <returns>the read string</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
-        <member name="M:Lavalink4NET.Decoding.DataInputReader.Dispose">
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt16">
             <summary>
-                Disposes the underlying <see cref="P:Lavalink4NET.Decoding.DataInputReader.BaseStream"/>, if specified in constructor (!leaveOpen).
+                Reads an <see cref="T:System.UInt16"/> from the stream.
             </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt32">
+            <summary>
+                Reads an <see cref="T:System.UInt32"/> from the stream.
+            </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.ReadUInt64">
+            <summary>
+                Reads an <see cref="T:System.UInt64"/> from the stream.
+            </summary>
+            <returns>the read value</returns>
+            <exception cref="T:System.IO.EndOfStreamException">
+                thrown if the end of stream was reached while reading the value
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Decoding.DataInputReader.EnsureNotDisposed">
+            <summary>
+                Ensures that the instance is not disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.Decoding.EndianConverter">
             <summary>
@@ -686,7 +622,6 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
             </exception>
-            w
         </member>
         <member name="P:Lavalink4NET.Events.ConnectionEventArgs.Uri">
             <summary>
@@ -1227,7 +1162,8 @@
         </member>
         <member name="T:Lavalink4NET.IDiscordClientWrapper">
             <summary>
-                The interface for implementing a discord client wrapper for usage with the lavalink audio service.
+                The interface for implementing a discord client wrapper for usage with the lavalink
+                audio service.
             </summary>
         </member>
         <member name="M:Lavalink4NET.IDiscordClientWrapper.InitializeAsync">
@@ -1308,16 +1244,6 @@
             </param>
             <returns>a value indicating whether the item was in cache</returns>
         </member>
-        <member name="T:Lavalink4NET.Lavalink">
-            <summary>
-                The main lavalink class.
-            </summary>
-        </member>
-        <member name="P:Lavalink4NET.Lavalink.SupportedVersion">
-            <summary>
-                Gets the current lavalink server version that is supported by the library.
-            </summary>
-        </member>
         <member name="T:Lavalink4NET.LavalinkNode">
             <summary>
                 Used for connecting to a single lavalink node.
@@ -1369,6 +1295,11 @@
                 An asynchronous event which is triggered when a track got stuck.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.LavalinkNode.SupportedVersion">
+            <summary>
+                Gets the current lavalink server version that is supported by the library.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.LavalinkNode.Statistics">
             <summary>
                 Gets the last received node statistics; or <see langword="null"/> if no statistics
@@ -1401,12 +1332,6 @@
                 thrown if the node socket has not been initialized. (Call <see
                 cref="M:Lavalink4NET.LavalinkSocket.InitializeAsync"/> before sending payloads)
             </exception>
-            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
-        </member>
-        <member name="M:Lavalink4NET.LavalinkNode.EnsureNotDisposed">
-            <summary>
-                Throws an exception if the <see cref="T:Lavalink4NET.LavalinkNode"/> instance is disposed.
-            </summary>
             <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.GetPlayer(System.UInt64)">
@@ -1608,6 +1533,12 @@
             <param name="sender">the event sender (unused here)</param>
             <param name="args">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.LavalinkNode"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.LavalinkNodeOptions">
             <summary>
@@ -1978,7 +1909,7 @@
         </member>
         <member name="T:Lavalink4NET.Lyrics.LyricsService">
             <summary>
-                A service for retrieving song lyrics from the "https://lyrics.ovh" api.
+                A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.#ctor(Lavalink4NET.Lyrics.LyricsOptions,Lavalink4NET.ILavalinkCache)">
@@ -2007,8 +1938,8 @@
                 of cancellation.
             </param>
             <returns>
-                a task that represents the asynchronous operation. The task result is the track found
-                for the query
+                a task that represents the asynchronous operation. The task result is the track
+                found for the query
             </returns>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="artist"/> is blank.
@@ -2016,6 +1947,7 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="title"/> is blank.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed.</exception>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.GetLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
             <summary>
@@ -2030,6 +1962,7 @@
                 a task that represents the asynchronous operation. The task result is the lyrics
                 found for the query
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed.</exception>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(Lavalink4NET.Player.LavalinkTrackInfo,System.Threading.CancellationToken)">
             <summary>
@@ -2044,6 +1977,7 @@
                 a task that represents the asynchronous operation. The task result is the lyrics
                 found for the query
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed.</exception>
         </member>
         <member name="M:Lavalink4NET.Lyrics.LyricsService.RequestLyricsAsync(System.String,System.String,System.Threading.CancellationToken)">
             <summary>
@@ -2065,6 +1999,13 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="title"/> is blank.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed.</exception>
+        </member>
+        <member name="M:Lavalink4NET.Lyrics.LyricsService.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.Lyrics.LyricsService"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed.</exception>
         </member>
         <member name="T:Lavalink4NET.Payloads.EventPayload">
             <summary>
@@ -2293,8 +2234,8 @@
         </member>
         <member name="T:Lavalink4NET.Payloads.Node.StatsUpdatePayload">
             <summary>
-                The strongly-typed representation of a node statistics payload received from the lavalink
-                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+                The strongly-typed representation of a node statistics payload received from the
+                lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
         <member name="P:Lavalink4NET.Payloads.Node.StatsUpdatePayload.OpCode">
@@ -2528,8 +2469,8 @@
         </member>
         <member name="T:Lavalink4NET.Payloads.Player.PlayerPausePayload">
             <summary>
-                The strongly-typed representation of a player pause payload sent to the lavalink node (in
-                serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+                The strongly-typed representation of a player pause payload sent to the lavalink node
+                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
         <member name="M:Lavalink4NET.Payloads.Player.PlayerPausePayload.#ctor(System.UInt64,System.Boolean)">
@@ -2603,8 +2544,8 @@
         </member>
         <member name="P:Lavalink4NET.Payloads.Player.PlayerPlayPayload.NoReplace">
             <summary>
-                Gets a value indicating whether the track play should be ignored if the same track is
-                currently playing.
+                Gets a value indicating whether the track play should be ignored if the same track
+                is currently playing.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Payloads.Player.PlayerSeekPayload">
@@ -3115,7 +3056,8 @@
                 Gets or sets the track at the specified <paramref name="index"/>.
             </summary>
             <remarks>
-                This indexer property is thread-safe, so it can be used from multiple threads at once safely.
+                This indexer property is thread-safe, so it can be used from multiple threads at
+                once safely.
             </remarks>
             <param name="index">the zero-based position</param>
             <returns>the track at the specified <paramref name="index"/></returns>
@@ -3175,7 +3117,8 @@
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.CopyTo(Lavalink4NET.Player.LavalinkTrack[],System.Int32)">
             <summary>
-                Copies all tracks to the specified <paramref name="array"/> at the specified <paramref name="index"/>.
+                Copies all tracks to the specified <paramref name="array"/> at the specified
+                <paramref name="index"/>.
             </summary>
             <remarks>
                 This method is thread-safe, so it can be used from multiple threads at once safely.
@@ -4431,19 +4374,21 @@
         </member>
         <member name="E:Lavalink4NET.Tracking.InactivityTrackingService.PlayerTrackingStatusUpdated">
             <summary>
-                An asynchronously event that is triggered when a player's tracking status (
-                <see cref="T:Lavalink4NET.Tracking.InactivityTrackingStatus"/>) was updated.
+                An asynchronously event that is triggered when a player's tracking status ( <see
+                cref="T:Lavalink4NET.Tracking.InactivityTrackingStatus"/>) was updated.
             </summary>
         </member>
         <member name="P:Lavalink4NET.Tracking.InactivityTrackingService.IsTracking">
             <summary>
                 Gets a value indicating whether the service is tracking inactive players.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="P:Lavalink4NET.Tracking.InactivityTrackingService.Trackers">
             <summary>
                 Gets all trackers.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.AddTracker(Lavalink4NET.Tracking.InactivityTracker)">
             <summary>
@@ -4453,6 +4398,7 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.BeginTracking">
             <summary>
@@ -4461,16 +4407,19 @@
             <exception cref="T:System.InvalidOperationException">
                 thrown if the service is already tracking inactive players.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.ClearTrackers">
             <summary>
                 Removes all registered trackers.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.Dispose">
             <summary>
                 Disposes the underlying timer.
             </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.GetStatus(Lavalink4NET.Player.LavalinkPlayer)">
             <summary>
@@ -4478,12 +4427,14 @@
             </summary>
             <param name="player">the player</param>
             <returns>the inactivity tracking status of the player</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.PollAsync">
             <summary>
                 Force polls tracking of all inactive players asynchronously.
             </summary>
             <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.RemoveTracker(Lavalink4NET.Tracking.InactivityTracker)">
             <summary>
@@ -4493,6 +4444,7 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.StopTracking">
             <summary>
@@ -4501,6 +4453,7 @@
             <exception cref="T:System.InvalidOperationException">
                 thrown if the service is not tracking inactive players.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.UntrackPlayerAsync(Lavalink4NET.Player.LavalinkPlayer)">
             <summary>
@@ -4514,6 +4467,7 @@
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="player"/> is <see langword="null"/>.
             </exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.IsInactiveAsync(Lavalink4NET.Player.LavalinkPlayer)">
             <summary>
@@ -4524,6 +4478,7 @@
                 a task that represents the asynchronous operation. The task result is a value
                 indicating whether the specified <paramref name="player"/> is inactive.
             </returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.OnInactivePlayerAsync(Lavalink4NET.Tracking.InactivePlayerEventArgs)">
             <summary>
@@ -4538,6 +4493,12 @@
             </summary>
             <param name="eventArgs">the event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.Tracking.InactivityTrackingService.EnsureNotDisposed">
+            <summary>
+                Throws an exception if the <see cref="T:Lavalink4NET.Tracking.InactivityTrackingService"/> instance is disposed.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.Tracking.InactivityTrackingStatus">
             <summary>

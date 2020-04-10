@@ -14,76 +14,51 @@
                 Initializes a new instance of the <see cref="T:Lavalink4NET.DSharpPlus.DiscordClientWrapper"/> class.
             </summary>
             <param name="client">the sharded discord client</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+            </exception>
         </member>
         <member name="E:Lavalink4NET.DSharpPlus.DiscordClientWrapper.VoiceServerUpdated">
-            <summary>
-                An asynchronous event which is triggered when the voice server was updated.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="E:Lavalink4NET.DSharpPlus.DiscordClientWrapper.VoiceStateUpdated">
-            <summary>
-                An asynchronous event which is triggered when a user voice state was updated.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:Lavalink4NET.DSharpPlus.DiscordClientWrapper.CurrentUserId">
-            <summary>
-                Gets the current user snowflake identifier value.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:Lavalink4NET.DSharpPlus.DiscordClientWrapper.ShardCount">
-            <summary>
-                Gets the number of total shards the bot uses.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.Dispose">
-            <summary>
-                Disposes the wrapper and unregisters all events attached to the discord client.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.GetChannelUsersAsync(System.UInt64,System.UInt64)">
-            <summary>
-                Gets the snowflake identifier values of the users in the voice channel specified by
-                <paramref name="voiceChannelId"/> (the snowflake identifier of the voice channel).
-            </summary>
-            <param name="guildId">the guild identifier snowflake where the channel is in</param>
-            <param name="voiceChannelId">the snowflake identifier of the voice channel</param>
-            <returns>
-                a task that represents the asynchronous operation
-                <para>the snowflake identifier values of the users in the voice channel</para>
-            </returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.InitializeAsync">
-            <summary>
-                Awaits the initialization of the discord client asynchronously.
-            </summary>
-            <returns>a task that represents the asynchronous operation</returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.SendVoiceUpdateAsync(System.UInt64,System.Nullable{System.UInt64},System.Boolean,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.EnsureNotDisposed">
             <summary>
-                Sends a voice channel state update asynchronously.
+                Throws an <see cref="T:System.ObjectDisposedException"/> if the <see
+                cref="T:Lavalink4NET.DSharpPlus.DiscordClientWrapper"/> is disposed.
             </summary>
-            <param name="guildId">the guild snowflake identifier</param>
-            <param name="voiceChannelId">
-                the snowflake identifier of the voice channel to join (if <see langword="null"/> the
-                client should disconnect from the voice channel).
-            </param>
-            <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-            <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-            <returns>a task that represents the asynchronous operation</returns>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceServerUpdated(DSharpPlus.EventArgs.VoiceServerUpdateEventArgs)">
-            <summary>
-                The asynchronous callback when a voice server update was received.
-            </summary>
-            <param name="voiceServer">the voice server data</param>
-            <returns>a task that represents the asynchronous operation</returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceStateUpdated(DSharpPlus.EventArgs.VoiceStateUpdateEventArgs)">
-            <summary>
-                The asynchronous callback when a voice state update was received.
-            </summary>
-            <param name="voiceServer">the voice state data</param>
-            <returns>a task that represents the asynchronous operation</returns>
+            <inheritdoc/>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
         <member name="T:Lavalink4NET.DSharpPlus.DSharpUtil">
             <summary>

@@ -15,9 +15,9 @@
             </summary>
             <param name="cache">the cache</param>
             <param name="dispose">
-                a value indicating whether the cache should be disposed when the
-                <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> instance is about being disposed. Note this parameter
-                only has an effect if the <paramref name="cache"/> instance implements <see cref="T:System.IDisposable"/>.
+                a value indicating whether the cache should be disposed when the <see
+                cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> instance is about being disposed. Note this parameter only
+                has an effect if the <paramref name="cache"/> instance implements <see cref="T:System.IDisposable"/>.
             </param>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="cache"/> is <see langword="null"/>.
@@ -25,14 +25,14 @@
         </member>
         <member name="M:Lavalink4NET.MemoryCache.LavalinkCache.#ctor">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> class using the default
-                <see cref="T:System.Runtime.Caching.MemoryCache"/> ( <see cref="P:System.Runtime.Caching.MemoryCache.Default"/>).
+                Initializes a new instance of the <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> class using the
+                default <see cref="T:System.Runtime.Caching.MemoryCache"/> ( <see cref="P:System.Runtime.Caching.MemoryCache.Default"/>).
             </summary>
         </member>
         <member name="M:Lavalink4NET.MemoryCache.LavalinkCache.#ctor(System.String,System.Collections.Specialized.NameValueCollection)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> class using a new
-                <see cref="T:System.Runtime.Caching.MemoryCache"/> with the specified <paramref name="name"/>.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> class using a new <see
+                cref="T:System.Runtime.Caching.MemoryCache"/> with the specified <paramref name="name"/>.
             </summary>
             <param name="name">the name of the <see cref="T:System.Runtime.Caching.MemoryCache"/></param>
             <param name="config">an optional configuration entry collection for the <see cref="T:System.Runtime.Caching.MemoryCache"/></param>
@@ -68,6 +68,12 @@
                 the item that was found in cache; or default if the item was not in cache
             </param>
             <returns>a value indicating whether the item was in cache</returns>
+        </member>
+        <member name="M:Lavalink4NET.MemoryCache.LavalinkCache.EnsureNotDisposed">
+            <summary>
+                Ensures that the instance of the <see cref="T:Lavalink4NET.MemoryCache.LavalinkCache"/> instance.
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
     </members>
 </doc>
