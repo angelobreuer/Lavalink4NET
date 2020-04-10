@@ -3,6 +3,10 @@
     using System;
     using Lavalink4NET.Player;
 
+    /// <summary>
+    ///     The event arguments ( <see cref="EventArgs"/>) for the <see
+    ///     cref="IAudioService.TrackStarted"/> event.
+    /// </summary>
     public sealed class TrackStartedEventArgs : TrackEventArgs
     {
         /// <summary>

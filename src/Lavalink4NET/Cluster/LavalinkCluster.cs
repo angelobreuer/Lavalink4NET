@@ -85,20 +85,38 @@ namespace Lavalink4NET.Cluster
             _nodes = options.Nodes.Select(CreateNode).ToList();
         }
 
-        /// <summary>
-        ///     An asynchronous event triggered when a node connected.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<NodeConnectedEventArgs> NodeConnected;
 
-        /// <summary>
-        ///     An asynchronous event triggered when a node disconnected.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
 
-        /// <summary>
-        ///     Asynchronous event which is dispatched when a player was moved.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<PlayerMovedEventArgs> PlayerMoved;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+
+        internal Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => TrackStarted.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => TrackEnd.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => TrackException.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => TrackStuck.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Gets all nodes.
@@ -223,8 +241,7 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public IReadOnlyList<TPlayer> GetPlayers<TPlayer>()
-            where TPlayer : LavalinkPlayer
+        public IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer
         {
             EnsureNotDisposed();
 

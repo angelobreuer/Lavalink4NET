@@ -88,20 +88,28 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         public DateTimeOffset LastUsage { get; internal set; }
 
-        /// <summary>
-        ///     Triggers the <see cref="LavalinkSocket.Connected"/> event asynchronously.
-        /// </summary>
-        /// <param name="eventArgs">the event arguments</param>
-        /// <returns>a task that represents the asynchronously operation.</returns>
+        /// <inheritdoc/>
         protected override Task OnConnectedAsync(ConnectedEventArgs eventArgs)
             => Task.WhenAll(base.OnConnectedAsync(eventArgs), Cluster.NodeConnectedAsync(this, eventArgs));
 
-        /// <summary>
-        ///     Triggers the <see cref="LavalinkSocket.Disconnected"/> event asynchronously.
-        /// </summary>
-        /// <param name="eventArgs">the event arguments</param>
-        /// <returns>a task that represents the asynchronously operation.</returns>
+        /// <inheritdoc/>
         protected override Task OnDisconnectedAsync(DisconnectedEventArgs eventArgs)
             => Task.WhenAll(base.OnDisconnectedAsync(eventArgs), Cluster.NodeDisconnectedAsync(this, eventArgs));
+
+        /// <inheritdoc/>
+        protected override Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => Task.WhenAll(base.OnTrackEndAsync(eventArgs), Cluster.OnTrackEndAsync(eventArgs));
+
+        /// <inheritdoc/>
+        protected override Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => Task.WhenAll(base.OnTrackExceptionAsync(eventArgs), Cluster.OnTrackExceptionAsync(eventArgs));
+
+        /// <inheritdoc/>
+        protected override Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => Task.WhenAll(base.OnTrackStartedAsync(eventArgs), Cluster.OnTrackStartedAsync(eventArgs));
+
+        /// <inheritdoc/>
+        protected override Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => Task.WhenAll(base.OnTrackStuckAsync(eventArgs), Cluster.OnTrackStuckAsync(eventArgs));
     }
 }

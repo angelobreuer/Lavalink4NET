@@ -28,19 +28,16 @@
             </exception>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.NodeConnected">
-            <summary>
-                An asynchronous event triggered when a node connected.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.NodeDisconnected">
-            <summary>
-                An asynchronous event triggered when a node disconnected.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.PlayerMoved">
-            <summary>
-                Asynchronous event which is dispatched when a player was moved.
-            </summary>
+            <inheritdoc/>
+        </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStarted">
+            <inheritdoc/>
         </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkCluster.Nodes">
             <summary>
@@ -1031,6 +1028,12 @@
                 Gets the error that occurred.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Events.TrackStartedEventArgs">
+            <summary>
+                The event arguments ( <see cref="T:System.EventArgs"/>) for the <see
+                cref="E:Lavalink4NET.IAudioService.TrackStarted"/> event.
+            </summary>
+        </member>
         <member name="M:Lavalink4NET.Events.TrackStartedEventArgs.#ctor(Lavalink4NET.Player.LavalinkPlayer,System.String)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Events.TrackEventArgs"/> class.
@@ -1106,6 +1109,11 @@
         <member name="T:Lavalink4NET.IAudioService">
             <summary>
                 The interface for a lavalink audio provider service.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.IAudioService.TrackStarted">
+            <summary>
+                Asynchronous event which is dispatched when a track started.
             </summary>
         </member>
         <member name="M:Lavalink4NET.IAudioService.GetPlayer``1(System.UInt64)">
@@ -3480,6 +3488,13 @@
             <summary>
                 Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
             </summary>
+        </member>
+        <member name="T:Lavalink4NET.Player.PlayerFactory`1">
+            <summary>
+                A factory used to create players.
+            </summary>
+            <typeparam name="T">the type of the player</typeparam>
+            <returns>the player</returns>
         </member>
         <member name="T:Lavalink4NET.Player.PlayerState">
             <summary>

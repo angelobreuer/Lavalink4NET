@@ -30,6 +30,7 @@ namespace Lavalink4NET
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Lavalink4NET.Events;
     using Player;
     using Rest;
 
@@ -38,6 +39,26 @@ namespace Lavalink4NET
     /// </summary>
     public interface IAudioService : IDisposable, ILavalinkRestClient
     {
+        /// <summary>
+        ///     An asynchronous event which is triggered when a track ended.
+        /// </summary>
+        event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+
+        /// <summary>
+        ///     An asynchronous event which is triggered when an exception occurred while playing a track.
+        /// </summary>
+        event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+
+        /// <summary>
+        ///     Asynchronous event which is dispatched when a track started.
+        /// </summary>
+        event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+
+        /// <summary>
+        ///     An asynchronous event which is triggered when a track got stuck.
+        /// </summary>
+        event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
         /// </summary>
