@@ -15,10 +15,10 @@ deploy:
       secure: BEn1eXLxc62JPTXUFl0RuSwflB10IeiJuVCvUrjjWUSV6ZvVMth4xuHyLPMZCuVk
     skip_symbols: false
     artifact: /.*\.nupkg/
-
+    
   # GitHub Release Deployment
   - provider: GitHub
-    tag: v1.4.12
+    tag: v1.4.13
     description: 'Automated AppVeyor deployment'
     auth_token:
       secure: MgLx/AxMRG7E0GkPw36xBBD81pAD2Qqm5pBR3UsUVDJNzx8Fm2p8rOIJQ8PCJ7pC
