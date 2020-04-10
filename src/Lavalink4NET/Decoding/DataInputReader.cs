@@ -106,7 +106,7 @@ namespace Lavalink4NET.Decoding
 
             if (!_leaveOpen)
             {
-                BaseStream.Dispose();
+                _baseStream.Dispose();
             }
         }
 
