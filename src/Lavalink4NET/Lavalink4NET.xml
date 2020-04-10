@@ -39,6 +39,15 @@
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStarted">
             <inheritdoc/>
         </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackEnd">
+            <inheritdoc/>
+        </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackException">
+            <inheritdoc/>
+        </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStuck">
+            <inheritdoc/>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkCluster.Nodes">
             <summary>
                 Gets all nodes.
@@ -225,18 +234,22 @@
             </summary>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnConnectedAsync(Lavalink4NET.Events.ConnectedEventArgs)">
-            <summary>
-                Triggers the <see cref="E:Lavalink4NET.LavalinkSocket.Connected"/> event asynchronously.
-            </summary>
-            <param name="eventArgs">the event arguments</param>
-            <returns>a task that represents the asynchronously operation.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnDisconnectedAsync(Lavalink4NET.Events.DisconnectedEventArgs)">
-            <summary>
-                Triggers the <see cref="E:Lavalink4NET.LavalinkSocket.Disconnected"/> event asynchronously.
-            </summary>
-            <param name="eventArgs">the event arguments</param>
-            <returns>a task that represents the asynchronously operation.</returns>
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnTrackExceptionAsync(Lavalink4NET.Events.TrackExceptionEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnTrackStartedAsync(Lavalink4NET.Events.TrackStartedEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.OnTrackStuckAsync(Lavalink4NET.Events.TrackStuckEventArgs)">
+            <inheritdoc/>
         </member>
         <member name="T:Lavalink4NET.Cluster.LavalinkClusterOptions">
             <summary>
@@ -1111,9 +1124,24 @@
                 The interface for a lavalink audio provider service.
             </summary>
         </member>
+        <member name="E:Lavalink4NET.IAudioService.TrackEnd">
+            <summary>
+                An asynchronous event which is triggered when a track ended.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.IAudioService.TrackException">
+            <summary>
+                An asynchronous event which is triggered when an exception occurred while playing a track.
+            </summary>
+        </member>
         <member name="E:Lavalink4NET.IAudioService.TrackStarted">
             <summary>
                 Asynchronous event which is dispatched when a track started.
+            </summary>
+        </member>
+        <member name="E:Lavalink4NET.IAudioService.TrackStuck">
+            <summary>
+                An asynchronous event which is triggered when a track got stuck.
             </summary>
         </member>
         <member name="M:Lavalink4NET.IAudioService.GetPlayer``1(System.UInt64)">
