@@ -19,19 +19,6 @@
         private readonly static IDictionary<ulong, float> _volumes = new Dictionary<ulong, float>();
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
-        /// </summary>
-        /// <param name="lavalinkSocket">the lavalink socket</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        public MyCustomPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId)
-            : base(lavalinkSocket, client, guildId)
-        {
-            // This constructor pattern must be always used for a custom player. You can not add nor
-            // remove any constructor parameters. The player class will be instantiated using System.Activator.
-        }
-
-        /// <summary>
         ///     Updates the player volume asynchronously.
         /// </summary>
         /// <param name="volume">the player volume (0f - 10f)</param>
@@ -71,7 +58,7 @@
             // check if a volume has been stored
             if (_volumes.TryGetValue(GuildId, out var volume) && Volume != volume)
             {
-                // here the volume is restored, we fire-and-forget the volume update.
+                // here the volume is restored
                 await SetVolumeAsync(volume);
             }
 

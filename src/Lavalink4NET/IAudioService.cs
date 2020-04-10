@@ -68,7 +68,9 @@ namespace Lavalink4NET
         /// <param name="guildId">
         ///     the snowflake identifier of the guild to create the player for
         /// </param>
-        /// <returns>a value indicating whether a player is created for the specified <paramref name="guildId"/></returns>
+        /// <returns>
+        ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
+        /// </returns>
         bool HasPlayer(ulong guildId);
 
         /// <summary>
@@ -89,8 +91,22 @@ namespace Lavalink4NET
         ///     a task that represents the asynchronous operation
         ///     <para>the audio player</para>
         /// </returns>
-        Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-             where TPlayer : LavalinkPlayer;
+        Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new();
+
+        /// <summary>
+        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
+        /// </summary>
+        /// <typeparam name="TPlayer">the type of the player to create</typeparam>
+        /// <param name="playerFactory">the factory used to create the player instance</param>
+        /// <param name="guildId">the guild snowflake identifier</param>
+        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
+        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+        /// <returns>
+        ///     a task that represents the asynchronous operation
+        ///     <para>the audio player</para>
+        /// </returns>
+        Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer;
 
         /// <summary>
         ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.

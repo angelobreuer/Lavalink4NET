@@ -29,14 +29,12 @@ namespace Lavalink4NET.Cluster
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
     using Lavalink4NET.Logging;
-    using Player;
+    using Lavalink4NET.Player;
     using Rest;
 
     /// <summary>
@@ -312,21 +310,16 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-        {
-            EnsureNotDisposed();
-            return JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
-        }
+        public Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
+            => GetServingNode(guildId).JoinAsync<TPlayer>(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            where TPlayer : LavalinkPlayer
-        {
-            EnsureNotDisposed();
-            return GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
-        }
+        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
+            => GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => GetServingNode(guildId).JoinAsync(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>

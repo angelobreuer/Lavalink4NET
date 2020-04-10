@@ -38,9 +38,9 @@ namespace Lavalink4NET
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
+    using Lavalink4NET.Player;
     using Lavalink4NET.Statistics;
     using Payloads;
-    using Player;
 
     /// <summary>
     ///     Used for connecting to a single lavalink node.
@@ -235,26 +235,23 @@ namespace Lavalink4NET
             return Players.ContainsKey(guildId);
         }
 
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <remarks>This will auto-initialize the connection to the node asynchronously.</remarks>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown when a player was already created for the guild specified by <paramref
-        ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
-        ///     differs from the created one.
-        /// </exception>
+        private static T CreateDefaultFactory<T>() where T : LavalinkPlayer, new() => new T();
+
+        /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            where TPlayer : LavalinkPlayer
+        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
+            => JoinAsync(CreateDefaultFactory<TPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => JoinAsync(CreateDefaultFactory<LavalinkPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public async Task<TPlayer> JoinAsync<TPlayer>(
+            PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false,
+            bool selfMute = false) where TPlayer : LavalinkPlayer
         {
             EnsureNotDisposed();
 
@@ -262,8 +259,8 @@ namespace Lavalink4NET
 
             if (player is null)
             {
-                Players[guildId] = player = (TPlayer)Activator.CreateInstance(typeof(TPlayer),
-                    this, _discordClient, guildId, _disconnectOnStop);
+                Players[guildId] = player = LavalinkPlayer.CreatePlayer(
+                    playerFactory, this, _discordClient, guildId, _disconnectOnStop);
             }
 
             if (!player.VoiceChannelId.HasValue || player.VoiceChannelId != voiceChannelId)
@@ -273,22 +270,6 @@ namespace Lavalink4NET
 
             return player;
         }
-
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <summary>
         ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
