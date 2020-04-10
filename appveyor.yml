@@ -15,7 +15,7 @@ deploy:
       secure: BEn1eXLxc62JPTXUFl0RuSwflB10IeiJuVCvUrjjWUSV6ZvVMth4xuHyLPMZCuVk
     skip_symbols: false
     artifact: /.*\.nupkg/
-    
+
   # GitHub Release Deployment
   - provider: GitHub
     tag: v1.4.13
@@ -28,7 +28,7 @@ deploy:
     on:
       branch: master
       APPVEYOR_REPO_TAG: true
-      
+
 # Build Settings
 build:
   parallel: true
