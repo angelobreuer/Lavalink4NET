@@ -1031,6 +1031,19 @@
                 Gets the error that occurred.
             </summary>
         </member>
+        <member name="M:Lavalink4NET.Events.TrackStartedEventArgs.#ctor(Lavalink4NET.Player.LavalinkPlayer,System.String)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Events.TrackEventArgs"/> class.
+            </summary>
+            <param name="player">the affected player</param>
+            <param name="trackIdentifier">the identifier of the affected track</param>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+            </exception>
+            <exception cref="T:System.ArgumentNullException">
+                thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
+            </exception>
+        </member>
         <member name="T:Lavalink4NET.Events.TrackStuckEventArgs">
             <summary>
                 The event arguments for the <see cref="E:Lavalink4NET.LavalinkNode.TrackStuck"/> event.
@@ -1308,6 +1321,11 @@
                 An asynchronous event which is triggered when an exception occurred while playing a track.
             </summary>
         </member>
+        <member name="E:Lavalink4NET.LavalinkNode.TrackStarted">
+            <summary>
+                Asynchronous event which is dispatched when a track started.
+            </summary>
+        </member>
         <member name="E:Lavalink4NET.LavalinkNode.TrackStuck">
             <summary>
                 An asynchronous event which is triggered when a track got stuck.
@@ -1501,6 +1519,13 @@
                 event catching)
             </summary>
             <param name="eventArgs">the event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.LavalinkNode.OnTrackStartedAsync(Lavalink4NET.Events.TrackStartedEventArgs)">
+            <summary>
+                Dispatches the <see cref="E:Lavalink4NET.LavalinkNode.TrackStarted"/> event asynchronously.
+            </summary>
+            <param name="eventArgs">the event arguments passed with the event</param>
             <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.LavalinkNode.OnTrackStuckAsync(Lavalink4NET.Events.TrackStuckEventArgs)">
@@ -2065,6 +2090,22 @@
                 Gets the error that occurred.
             </summary>
         </member>
+        <member name="T:Lavalink4NET.Payloads.Events.TrackStartEvent">
+            <summary>
+                The strongly-typed representation of a track start event received from the lavalink node
+                (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackStartEvent.TrackIdentifier">
+            <summary>
+                Gets the identifier of the track that started.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Events.TrackStartEvent.Type">
+            <summary>
+                Gets the event type.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Payloads.Events.TrackStuckEvent">
             <summary>
                 The strongly-typed representation of a track stuck event received from the lavalink node
@@ -2161,6 +2202,11 @@
         <member name="F:Lavalink4NET.Payloads.EventType.TrackEnd">
             <summary>
                 Indicates that a playing track ended.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Payloads.EventType.TrackStart">
+            <summary>
+                Indicates that a playing track started.
             </summary>
         </member>
         <member name="F:Lavalink4NET.Payloads.EventType.TrackException">
@@ -2833,6 +2879,13 @@
         <member name="M:Lavalink4NET.Player.LavalinkPlayer.OnTrackExceptionAsync(Lavalink4NET.Events.TrackExceptionEventArgs)">
             <summary>
                 Asynchronously triggered when an exception occurred while playing a track.
+            </summary>
+            <param name="eventArgs">the track event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.OnTrackStartedAsync(Lavalink4NET.Events.TrackStartedEventArgs)">
+            <summary>
+                Asynchronously triggered when a track started.
             </summary>
             <param name="eventArgs">the track event arguments</param>
             <returns>a task that represents the asynchronous operation</returns>

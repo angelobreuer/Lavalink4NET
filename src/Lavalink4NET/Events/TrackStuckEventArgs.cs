@@ -33,8 +33,7 @@ namespace Lavalink4NET.Events
     /// <summary>
     ///     The event arguments for the <see cref="LavalinkNode.TrackStuck"/> event.
     /// </summary>
-    public class TrackStuckEventArgs
-          : TrackEventArgs
+    public class TrackStuckEventArgs : TrackEventArgs
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="TrackStuckEventArgs"/> class.

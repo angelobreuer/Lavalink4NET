@@ -311,7 +311,7 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         public Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
-            => GetServingNode(guildId).JoinAsync<TPlayer>(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
+            => GetServingNode(guildId).JoinAsync(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()

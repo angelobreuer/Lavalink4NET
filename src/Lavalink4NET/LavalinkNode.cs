@@ -107,6 +107,11 @@ namespace Lavalink4NET
         public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
 
         /// <summary>
+        ///     Asynchronous event which is dispatched when a track started.
+        /// </summary>
+        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+
+        /// <summary>
         ///     An asynchronous event which is triggered when a track got stuck.
         /// </summary>
         public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
@@ -234,8 +239,6 @@ namespace Lavalink4NET
             EnsureNotDisposed();
             return Players.ContainsKey(guildId);
         }
-
-        private static T CreateDefaultFactory<T>() where T : LavalinkPlayer, new() => new T();
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
@@ -427,6 +430,16 @@ namespace Lavalink4NET
                     player.OnTrackStuckAsync(args));
             }
 
+            // a track started
+            if (payload is TrackStartEvent trackStartEvent)
+            {
+                var args = new TrackStartedEventArgs(player,
+                    trackStartEvent.TrackIdentifier);
+
+                await Task.WhenAll(OnTrackStartedAsync(args),
+                    player.OnTrackStartedAsync(args));
+            }
+
             // the voice web socket was closed
             if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
@@ -545,6 +558,14 @@ namespace Lavalink4NET
             => TrackException.InvokeAsync(this, eventArgs);
 
         /// <summary>
+        ///     Dispatches the <see cref="TrackStarted"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => TrackStarted.InvokeAsync(this, eventArgs);
+
+        /// <summary>
         ///     Invokes the <see cref="TrackStuck"/> event asynchronously. (Can be override for
         ///     event catching)
         /// </summary>
@@ -622,6 +643,8 @@ namespace Lavalink4NET
                 await player.UpdateAsync(args.VoiceState);
             }
         }
+
+        private static T CreateDefaultFactory<T>() where T : LavalinkPlayer, new() => new T();
 
         /// <summary>
         ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.

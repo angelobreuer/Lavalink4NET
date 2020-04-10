@@ -213,6 +213,14 @@ namespace Lavalink4NET.Player
             => Task.CompletedTask;
 
         /// <summary>
+        ///     Asynchronously triggered when a track started.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
         ///     Asynchronously triggered when a track got stuck.
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>

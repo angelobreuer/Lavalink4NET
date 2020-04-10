@@ -98,7 +98,7 @@ namespace Lavalink4NET.DiscordNet
         public static Task<TPlayer> JoinAsync<TPlayer>(
             this IAudioService audioService, PlayerFactory<TPlayer> playerFactory, IVoiceChannel voiceChannel,
             bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
-            => audioService.JoinAsync<TPlayer>(playerFactory, voiceChannel.GuildId, voiceChannel.Id, selfDeaf, selfMute);
+            => audioService.JoinAsync(playerFactory, voiceChannel.GuildId, voiceChannel.Id, selfDeaf, selfMute);
 
         /// <summary>
         ///     Joins the specified <paramref name="audioService"/> asynchronously.

@@ -1,5 +1,5 @@
-/*
- *  File:   EventType.cs
+﻿/*
+ *  File:   TrackStartEvent.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,46 +25,26 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads.Events
 {
-    using System.Runtime.Serialization;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
-    ///     The event types in lavalink event payloads.
+    ///     The strongly-typed representation of a track start event received from the lavalink node
+    ///     (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum EventType
+    public sealed class TrackStartEvent : EventPayload
     {
         /// <summary>
-        ///     Indicates that a playing track ended.
+        ///     Gets the identifier of the track that started.
         /// </summary>
-        [EnumMember(Value = "TrackEndEvent")]
-        TrackEnd,
+        [JsonRequired, JsonProperty("track")]
+        public string TrackIdentifier { get; internal set; }
 
         /// <summary>
-        ///     Indicates that a playing track started.
+        ///     Gets the event type.
         /// </summary>
-        [EnumMember(Value = "TrackStartEvent")]
-        TrackStart,
-
-        /// <summary>
-        ///     Indicates that an exception occurred while playing a track.
-        /// </summary>
-        [EnumMember(Value = "TrackExceptionEvent")]
-        TrackException,
-
-        /// <summary>
-        ///     Indicates that a track got stuck while playing.
-        /// </summary>
-        [EnumMember(Value = "TrackStuckEvent")]
-        TrackStuck,
-
-        /// <summary>
-        ///     Indicates that the discord voice socket was closed.
-        /// </summary>
-        [EnumMember(Value = "WebSocketClosedEvent")]
-        WebSocketClosedEvent
+        [JsonRequired, JsonProperty("type")]
+        public override EventType Type => EventType.TrackStart;
     }
 }
