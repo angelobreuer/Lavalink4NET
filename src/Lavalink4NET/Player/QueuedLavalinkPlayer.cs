@@ -41,23 +41,13 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
         /// </summary>
-        /// <param name="lavalinkSocket">the lavalink socket</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        /// <param name="disconnectOnStop">
-        ///     a value indicating whether the player should stop after the track finished playing
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
-        /// </exception>
-        public QueuedLavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
-            : base(lavalinkSocket, client, guildId, false /* this player handles this on itself */)
+        public QueuedLavalinkPlayer()
         {
             Queue = new LavalinkQueue();
-            _disconnectOnStop = disconnectOnStop;
+
+            // use own disconnect on stop logic
+            _disconnectOnStop = DisconnectOnStop;
+            DisconnectOnStop = false;
         }
 
         /// <summary>
@@ -186,9 +176,9 @@ namespace Lavalink4NET.Player
         /// </remarks>
         /// <returns>
         ///     a task that represents the asynchronous operation. The task result is a value
-        ///     indicating whether the track was pushed between the current ( <see langword="true"/>)
-        ///     or the specified track was simply started ( <see langword="false"/>), because there
-        ///     is no track playing.
+        ///     indicating whether the track was pushed between the current ( <see
+        ///     langword="true"/>) or the specified track was simply started ( <see
+        ///     langword="false"/>), because there is no track playing.
         /// </returns>
         public virtual async Task<bool> PushTrackAsync(LavalinkTrack track, bool push = false)
         {

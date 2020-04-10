@@ -38,9 +38,9 @@ namespace Lavalink4NET
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
+    using Lavalink4NET.Player;
     using Lavalink4NET.Statistics;
     using Payloads;
-    using Player;
 
     /// <summary>
     ///     Used for connecting to a single lavalink node.
@@ -105,6 +105,11 @@ namespace Lavalink4NET
         ///     An asynchronous event which is triggered when an exception occurred while playing a track.
         /// </summary>
         public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+
+        /// <summary>
+        ///     Asynchronous event which is dispatched when a track started.
+        /// </summary>
+        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a track got stuck.
@@ -235,26 +240,21 @@ namespace Lavalink4NET
             return Players.ContainsKey(guildId);
         }
 
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <remarks>This will auto-initialize the connection to the node asynchronously.</remarks>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown when a player was already created for the guild specified by <paramref
-        ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
-        ///     differs from the created one.
-        /// </exception>
+        /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            where TPlayer : LavalinkPlayer
+        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
+            => JoinAsync(CreateDefaultFactory<TPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => JoinAsync(CreateDefaultFactory<LavalinkPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public async Task<TPlayer> JoinAsync<TPlayer>(
+            PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false,
+            bool selfMute = false) where TPlayer : LavalinkPlayer
         {
             EnsureNotDisposed();
 
@@ -262,8 +262,8 @@ namespace Lavalink4NET
 
             if (player is null)
             {
-                Players[guildId] = player = (TPlayer)Activator.CreateInstance(typeof(TPlayer),
-                    this, _discordClient, guildId, _disconnectOnStop);
+                Players[guildId] = player = LavalinkPlayer.CreatePlayer(
+                    playerFactory, this, _discordClient, guildId, _disconnectOnStop);
             }
 
             if (!player.VoiceChannelId.HasValue || player.VoiceChannelId != voiceChannelId)
@@ -273,22 +273,6 @@ namespace Lavalink4NET
 
             return player;
         }
-
-        /// <summary>
-        ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier</param>
-        /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>
-        ///     a task that represents the asynchronous operation
-        ///     <para>the audio player</para>
-        /// </returns>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            => JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <summary>
         ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
@@ -446,6 +430,16 @@ namespace Lavalink4NET
                     player.OnTrackStuckAsync(args));
             }
 
+            // a track started
+            if (payload is TrackStartEvent trackStartEvent)
+            {
+                var args = new TrackStartedEventArgs(player,
+                    trackStartEvent.TrackIdentifier);
+
+                await Task.WhenAll(OnTrackStartedAsync(args),
+                    player.OnTrackStartedAsync(args));
+            }
+
             // the voice web socket was closed
             if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
@@ -564,6 +558,14 @@ namespace Lavalink4NET
             => TrackException.InvokeAsync(this, eventArgs);
 
         /// <summary>
+        ///     Dispatches the <see cref="TrackStarted"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => TrackStarted.InvokeAsync(this, eventArgs);
+
+        /// <summary>
         ///     Invokes the <see cref="TrackStuck"/> event asynchronously. (Can be override for
         ///     event catching)
         /// </summary>
@@ -641,6 +643,8 @@ namespace Lavalink4NET
                 await player.UpdateAsync(args.VoiceState);
             }
         }
+
+        private static T CreateDefaultFactory<T>() where T : LavalinkPlayer, new() => new T();
 
         /// <summary>
         ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.

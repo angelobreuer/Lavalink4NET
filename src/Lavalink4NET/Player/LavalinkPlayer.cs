@@ -43,32 +43,14 @@ namespace Lavalink4NET.Player
     {
         internal VoiceServer _voiceServer;
         internal VoiceState _voiceState;
-        private readonly bool _disconnectOnStop;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
         /// </summary>
-        /// <param name="lavalinkSocket">the lavalink socket</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        /// <param name="disconnectOnStop">
-        ///     a value indicating whether the player should stop after the track finished playing
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="lavalinkSocket"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
-        /// </exception>
-        public LavalinkPlayer(LavalinkSocket lavalinkSocket, IDiscordClientWrapper client, ulong guildId, bool disconnectOnStop)
+        public LavalinkPlayer()
         {
-            GuildId = guildId;
-            LavalinkSocket = lavalinkSocket ?? throw new ArgumentNullException(nameof(lavalinkSocket));
-            Client = client ?? throw new ArgumentNullException(nameof(client));
-
-            _disconnectOnStop = disconnectOnStop;
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
         }
@@ -82,7 +64,7 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the discord client wrapper.
         /// </summary>
-        public IDiscordClientWrapper Client { get; }
+        public IDiscordClientWrapper Client { get; private set; }
 
         /// <summary>
         ///     Gets the track that is currently playing.
@@ -92,7 +74,7 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the identifier snowflake value of the guild the player is for.
         /// </summary>
-        public ulong GuildId { get; }
+        public ulong GuildId { get; private set; }
 
         /// <summary>
         ///     Gets the current player state.
@@ -125,6 +107,12 @@ namespace Lavalink4NET.Player
         ///     Gets the communication lavalink socket.
         /// </summary>
         internal LavalinkSocket LavalinkSocket { get; set; }
+
+        /// <summary>
+        ///     Gets or sets a value indicating whether the player should stop after the track
+        ///     finished playing.
+        /// </summary>
+        protected bool DisconnectOnStop { get; set; }
 
         /// <summary>
         ///     Joins the voice channel specified by <paramref name="voiceChannelId"/> asynchronously.
@@ -203,7 +191,7 @@ namespace Lavalink4NET.Player
         /// <returns>a task that represents the asynchronous operation</returns>
         public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
         {
-            if (_disconnectOnStop)
+            if (DisconnectOnStop)
             {
                 return DisconnectAsync();
             }
@@ -222,6 +210,14 @@ namespace Lavalink4NET.Player
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
         public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => Task.CompletedTask;
+
+        /// <summary>
+        ///     Asynchronously triggered when a track started.
+        /// </summary>
+        /// <param name="eventArgs">the track event arguments</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        public virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
             => Task.CompletedTask;
 
         /// <summary>
@@ -447,6 +443,44 @@ namespace Lavalink4NET.Player
             }
 
             return LavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of a player.
+        /// </summary>
+        /// <param name="playerFactory">the player factory</param>
+        /// <param name="socket">the lavalink socket</param>
+        /// <param name="client">the discord client</param>
+        /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
+        /// <param name="disconnectOnStop">
+        ///     a value indicating whether the player should stop after the track finished playing
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="playerFactory"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="socket"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+        /// </exception>
+        internal static T CreatePlayer<T>(
+            PlayerFactory<T> playerFactory, LavalinkSocket socket, IDiscordClientWrapper client,
+            ulong guildId, bool disconnectOnStop) where T : LavalinkPlayer
+        {
+            if (playerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(playerFactory));
+            }
+
+            var player = playerFactory();
+
+            player.LavalinkSocket = socket ?? throw new ArgumentNullException(nameof(socket));
+            player.Client = client ?? throw new ArgumentNullException(nameof(client));
+            player.GuildId = guildId;
+            player.DisconnectOnStop = disconnectOnStop;
+
+            return player;
         }
 
         /// <summary>

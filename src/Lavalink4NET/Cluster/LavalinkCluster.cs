@@ -29,14 +29,12 @@ namespace Lavalink4NET.Cluster
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Lavalink4NET.Events;
     using Lavalink4NET.Logging;
-    using Player;
+    using Lavalink4NET.Player;
     using Rest;
 
     /// <summary>
@@ -87,20 +85,38 @@ namespace Lavalink4NET.Cluster
             _nodes = options.Nodes.Select(CreateNode).ToList();
         }
 
-        /// <summary>
-        ///     An asynchronous event triggered when a node connected.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<NodeConnectedEventArgs> NodeConnected;
 
-        /// <summary>
-        ///     An asynchronous event triggered when a node disconnected.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
 
-        /// <summary>
-        ///     Asynchronous event which is dispatched when a player was moved.
-        /// </summary>
+        /// <inheritdoc/>
         public event AsyncEventHandler<PlayerMovedEventArgs> PlayerMoved;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+
+        /// <inheritdoc/>
+        public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+
+        internal Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+            => TrackStarted.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => TrackEnd.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => TrackException.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => TrackStuck.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Gets all nodes.
@@ -225,8 +241,7 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public IReadOnlyList<TPlayer> GetPlayers<TPlayer>()
-            where TPlayer : LavalinkPlayer
+        public IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer
         {
             EnsureNotDisposed();
 
@@ -312,21 +327,16 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-        {
-            EnsureNotDisposed();
-            return JoinAsync<LavalinkPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
-        }
+        public Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
+            => GetServingNode(guildId).JoinAsync(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            where TPlayer : LavalinkPlayer
-        {
-            EnsureNotDisposed();
-            return GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
-        }
+        public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
+            => GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+
+        /// <inheritdoc/>
+        public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+            => GetServingNode(guildId).JoinAsync(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>

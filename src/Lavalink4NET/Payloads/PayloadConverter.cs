@@ -60,6 +60,9 @@ namespace Lavalink4NET.Payloads
                 case EventType.WebSocketClosedEvent:
                     return typeof(WebSocketClosedEvent);
 
+                case EventType.TrackStart:
+                    return typeof(TrackStartEvent);
+
                 default:
                     throw new Exception("Invalid event type.");
             }
