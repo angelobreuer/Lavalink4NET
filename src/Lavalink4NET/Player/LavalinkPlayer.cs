@@ -558,9 +558,9 @@ namespace Lavalink4NET.Player
             await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
                 _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
 
-            if (State == PlayerState.NotConnected)
+            if (State == PlayerState.NotConnected || State == PlayerState.Destroyed)
             {
-                // set initial player state to connected, if player was not connected,
+                // set initial player state to connected, if player was not connected or destroyed,
                 // see: https://github.com/angelobreuer/Lavalink4NET/issues/28
                 State = PlayerState.NotPlaying;
             }
