@@ -43,7 +43,7 @@ namespace Lavalink4NET.DSharpPlus
         /// </summary>
         // https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/Entities/DiscordVoiceState.cs#L70
         private static readonly PropertyInfo _sessionIdProperty = typeof(DiscordVoiceState)
-            .GetProperty("_sessionId", BindingFlags.NonPublic | BindingFlags.Instance);
+            .GetProperty("SessionId", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
         ///     The internal "VoiceToken" property info in <see cref="VoiceServerUpdateEventArgs"/>.
