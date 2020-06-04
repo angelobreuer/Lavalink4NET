@@ -171,8 +171,8 @@ namespace Lavalink4NET.Tracking
             }
 
             // initialize the timer that polls inactive players
-            _timer = new Timer(_ => _ = PollAsync(), null,
-               _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero, _options.PollInterval);
+            var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
+            _timer = new Timer(PollTimerCallback, null, pollDelay, _options.PollInterval);
         }
 
         /// <summary>
@@ -421,6 +421,18 @@ namespace Lavalink4NET.Tracking
             if (_disposed)
             {
                 throw new ObjectDisposedException(nameof(InactivityTrackingService));
+            }
+        }
+
+        private void PollTimerCallback(object state)
+        {
+            try
+            {
+                PollAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(this, "Inactivity tracking poll failed!", LogLevel.Warning, ex);
             }
         }
 
