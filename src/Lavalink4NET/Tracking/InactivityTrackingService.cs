@@ -368,7 +368,14 @@ namespace Lavalink4NET.Tracking
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
-            => UntrackPlayerAsync(player.GuildId);
+        {
+            if (player is null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
+            return UntrackPlayerAsync(player.GuildId);
+        }
 
         /// <summary>
         ///     Gets a value indicating whether the specified <paramref name="player"/> is inactive asynchronously.
