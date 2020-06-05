@@ -58,6 +58,14 @@ namespace Lavalink4NET
         public bool DisconnectOnStop { get; set; } = true;
 
         /// <summary>
+        ///     Gets or sets the node label.
+        /// </summary>
+        /// <remarks>
+        ///     This property defaults to <see langword="null"/> and is used for identifying nodes.
+        /// </remarks>
+        public string Label { get; set; }
+
+        /// <summary>
         ///     Gets or sets the reconnect strategy for reconnection.
         /// </summary>
         /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>

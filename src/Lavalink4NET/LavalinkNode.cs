@@ -72,6 +72,7 @@ namespace Lavalink4NET
                 throw new ArgumentNullException(nameof(options));
             }
 
+            Label = options.Label;
             _discordClient = client ?? throw new ArgumentNullException(nameof(client));
             Players = new ConcurrentDictionary<ulong, LavalinkPlayer>();
 
@@ -120,6 +121,11 @@ namespace Lavalink4NET
         ///     Gets the current lavalink server version that is supported by the library.
         /// </summary>
         public static Version SupportedVersion { get; } = new Version(3, 0, 0);
+
+        /// <summary>
+        ///     Gets or sets the node label.
+        /// </summary>
+        public string Label { get; set; }
 
         /// <summary>
         ///     Gets the last received node statistics; or <see langword="null"/> if no statistics

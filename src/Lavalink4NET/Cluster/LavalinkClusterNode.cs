@@ -68,8 +68,13 @@ namespace Lavalink4NET.Cluster
                 throw new ArgumentNullException(nameof(client));
             }
 
+            if (Label is null)
+            {
+                Label = "Cluster Node-" + id;
+            }
+
+            Id = id;
             Cluster = cluster ?? throw new ArgumentNullException(nameof(cluster));
-            Identifier = "Cluster Node-" + id;
             LastUsage = DateTimeOffset.MinValue;
         }
 
@@ -79,9 +84,15 @@ namespace Lavalink4NET.Cluster
         public LavalinkCluster Cluster { get; }
 
         /// <summary>
-        ///     Gets an identifier that is used to identify the node (used for debugging or logging).
+        ///     Gets the cluster node id.
         /// </summary>
-        public string Identifier { get; }
+        public int Id { get; }
+
+        /// <summary>
+        ///     Gets the cluster node label.
+        /// </summary>
+        [Obsolete("Use Label instead. This property will be removed in future.")]
+        public string Identifier => Label;
 
         /// <summary>
         ///     Gets the coordinated universal time (UTC) point of the last usage of the node.
