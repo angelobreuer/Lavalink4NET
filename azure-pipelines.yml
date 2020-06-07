@@ -30,3 +30,6 @@ steps:
     includesymbols: true
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_VERSION'
+    verbosityPack: Minimal
+    verbosityRestore: Minimal
+    arguments: '--configuration Release'
