@@ -29,23 +29,27 @@ steps:
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_VERSION'
     verbosityPack: 'Minimal'
-- task: DotNetCoreCLI@2
-  displayName: Push artifacts
-  inputs:
-    command: 'push'
-    arguments: '--skip-duplicate'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: '59efcb96-30b1-4853-8b73-4906861ebe5f/aa5e7181-834a-45e2-8438-3b3147abca2b'
 - task: NuGetAuthenticate@0
+  displayName: NuGet Authentication
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     nuGetServiceConnections: 'NuGet Lavalink4NET'
-- task: DotNetCoreCLI@2
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+- task: NuGetCommand@2
+  displayName: Push to Azure feed
   inputs:
     command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '59efcb96-30b1-4853-8b73-4906861ebe5f/aa5e7181-834a-45e2-8438-3b3147abca2b'
+    allowPackageConflicts: true
+    verbosityPush: 'Normal'
+- task: NuGetCommand@2
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  displayName: 'Push to NuGet feed'
+  inputs:
     arguments: '--skip-duplicate'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
     nuGetFeedType: 'external'
     publishFeedCredentials: 'NuGet Lavalink4NET'
+    verbosityPush: 'Normal'
