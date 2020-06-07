@@ -27,14 +27,14 @@
 
 namespace Lavalink4NET.Tracking
 {
+    using Lavalink4NET.Events;
+    using Lavalink4NET.Logging;
+    using Lavalink4NET.Player;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Lavalink4NET.Events;
-    using Lavalink4NET.Logging;
-    using Lavalink4NET.Player;
 
     /// <summary>
     ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
@@ -171,8 +171,8 @@ namespace Lavalink4NET.Tracking
             }
 
             // initialize the timer that polls inactive players
-            _timer = new Timer(_ => _ = PollAsync(), null,
-               _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero, _options.PollInterval);
+            var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
+            _timer = new Timer(PollTimerCallback, null, pollDelay, _options.PollInterval);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace Lavalink4NET.Tracking
                     if (trackedPlayer is null)
                     {
                         // remove from tracking list
-                        await UntrackPlayerAsync(trackedPlayer);
+                        await UntrackPlayerAsync(player.Key);
 
                         continue;
                     }
@@ -367,26 +367,14 @@ namespace Lavalink4NET.Tracking
         ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
+        public Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
         {
-            EnsureNotDisposed();
-
             if (player is null)
             {
                 throw new ArgumentNullException(nameof(player));
             }
 
-            if (!_players.Remove(player.GuildId))
-            {
-                // player was not tracked
-                return false;
-            }
-
-            // trigger event
-            await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                player, InactivityTrackingStatus.Untracked));
-
-            return true;
+            return UntrackPlayerAsync(player.GuildId);
         }
 
         /// <summary>
@@ -441,6 +429,39 @@ namespace Lavalink4NET.Tracking
             {
                 throw new ObjectDisposedException(nameof(InactivityTrackingService));
             }
+        }
+
+        private void PollTimerCallback(object state)
+        {
+            try
+            {
+                PollAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(this, "Inactivity tracking poll failed!", LogLevel.Warning, ex);
+            }
+        }
+
+        private async Task<bool> UntrackPlayerAsync(ulong guildId)
+        {
+            EnsureNotDisposed();
+
+            if (!_players.Remove(guildId))
+            {
+                // player was not tracked
+                return false;
+            }
+
+            var player = _audioService.GetPlayer(guildId);
+
+            // trigger event
+            var args = new PlayerTrackingStatusUpdateEventArgs(_audioService,
+                player, InactivityTrackingStatus.Untracked);
+
+            await OnPlayerTrackingStatusUpdated(args);
+
+            return true;
         }
     }
 }
