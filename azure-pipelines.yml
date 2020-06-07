@@ -26,10 +26,9 @@ steps:
   inputs:
     command: 'pack'
     packagesToPack: 'src/**/*.csproj'
+    configuration: 'Release'
     nobuild: true
     includesymbols: true
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_VERSION'
-    verbosityPack: Minimal
-    verbosityRestore: Minimal
-    arguments: '--configuration Release'
+    verbosityPack: 'Minimal'
