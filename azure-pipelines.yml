@@ -29,11 +29,6 @@ steps:
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_VERSION'
     verbosityPack: 'Minimal'
-- task: NuGetAuthenticate@0
-  displayName: NuGet Authentication
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    nuGetServiceConnections: 'NuGet Lavalink4NET'
 - task: NuGetCommand@2
   displayName: Push to Azure feed
   inputs:
