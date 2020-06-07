@@ -18,7 +18,7 @@ steps:
   displayName: Run tests
   inputs:
     command: 'test'
-    projects: 'src/**/*.csproj'
+    projects: 'src/Lavalink4NET.Tests/Lavalink4NET.Tests.csproj'
     arguments: '--configuration Release --no-build'
 - task: DotNetCoreCLI@2
   displayName: NuGet packaging
