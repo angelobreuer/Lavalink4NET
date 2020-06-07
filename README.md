@@ -21,7 +21,7 @@
 	<img alt="GitHub issues" src="https://img.shields.io/github/issues/angelobreuer/Lavalink4NET.svg?style=for-the-badge">	
 </a>
 
-<a href="https://github.com/angelobreuer/Lavalink4NET/tree/dev">
+<a href="https://dev.azure.com/angelo-breuer/Lavalink4NET/_build?definitionId=7">
 	<img alt="Azure DevOps builds (branch)" src="https://img.shields.io/azure-devops/build/angelo-breuer/59efcb96-30b1-4853-8b73-4906861ebe5f/7/master?label=Build&style=for-the-badge">
 </a>
 
