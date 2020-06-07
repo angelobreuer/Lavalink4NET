@@ -10,18 +10,21 @@ pool:
 
 steps:
 - task: DotNetCoreCLI@2
+  displayName: Build projects
   inputs:
     command: 'build'
-    projects: '**/*.csproj'
+    projects: 'src/**/*.csproj'
 - task: DotNetCoreCLI@2
+  displayName: Run tests
   inputs:
     command: 'test'
-    projects: '**/*.csproj'
+    projects: 'src/**/*.csproj'
     arguments: '--configuration Release --no-build'
 - task: DotNetCoreCLI@2
+  displayName: NuGet packaging
   inputs:
     command: 'pack'
-    packagesToPack: '**/*.csproj'
+    packagesToPack: 'src/**/*.csproj'
     nobuild: true
     includesymbols: true
     versioningScheme: 'byEnvVar'
