@@ -21,17 +21,8 @@
 	<img alt="GitHub issues" src="https://img.shields.io/github/issues/angelobreuer/Lavalink4NET.svg?style=for-the-badge">	
 </a>
 
-<br/>
-
-<!-- AppVeyor CI (master) Badge -->
-<a href="https://ci.appveyor.com/project/angelobreuer/lavalink4net">
-	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/Lavalink4NET?style=for-the-badge">
-</a>	
-
-
-<!-- AppVeyor CI (Development) Badge -->
 <a href="https://github.com/angelobreuer/Lavalink4NET/tree/dev">
-	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/Lavalink4NET/dev?label=development&style=for-the-badge">
+	<img alt="Azure DevOps builds (branch)" src="https://img.shields.io/azure-devops/build/angelo-breuer/59efcb96-30b1-4853-8b73-4906861ebe5f/7/master?label=Build&style=for-the-badge">
 </a>
 
 </p>
