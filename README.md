@@ -116,7 +116,7 @@ var player = _audioService.GetPlayer<LavalinkPlayer>(guildId)
     ?? await _audioService.JoinAsync(guildId, voiceChannelId);
 
 // resolve a track from youtube
-var myTrack = await player.GetTrackAsync("<search query>", SearchMode.YouTube);
+var myTrack = await _audioService.GetTrackAsync("<search query>", SearchMode.YouTube);
 
 // play track
 await player.PlayAsync(myTrack);
