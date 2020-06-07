@@ -1,0 +1,55 @@
+variables:
+- name: BUILD_VERSION
+  value: 1.4.19
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Build projects
+  inputs:
+    command: 'build'
+    projects: 'src/**/*.csproj'
+    arguments: '--configuration Release /property:Version=$(BUILD_VERSION)'
+- task: DotNetCoreCLI@2
+  displayName: Run tests
+  inputs:
+    command: 'test'
+    projects: 'src/Lavalink4NET.Tests/Lavalink4NET.Tests.csproj'
+    arguments: '--configuration Release --no-build'
+- task: DotNetCoreCLI@2
+  displayName: NuGet packaging
+  inputs:
+    command: 'pack'
+    packagesToPack: 'src/**/*.csproj'
+    configuration: 'Release'
+    nobuild: true
+    includesymbols: true
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'BUILD_VERSION'
+    verbosityPack: 'Minimal'
+- task: NuGetAuthenticate@0
+  displayName: NuGet Authentication
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  inputs:
+    nuGetServiceConnections: 'NuGet Lavalink4NET'
+- task: NuGetCommand@2
+  displayName: Push to Azure feed
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '59efcb96-30b1-4853-8b73-4906861ebe5f/aa5e7181-834a-45e2-8438-3b3147abca2b'
+    allowPackageConflicts: true
+    verbosityPush: 'Normal'
+- task: NuGetCommand@2
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  displayName: 'Push to NuGet feed'
+  inputs:
+    arguments: '--skip-duplicate'
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'NuGet Lavalink4NET'
+    verbosityPush: 'Normal'
