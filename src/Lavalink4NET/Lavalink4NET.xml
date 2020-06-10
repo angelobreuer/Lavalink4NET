@@ -335,6 +335,31 @@
             <param name="type">the type of the purpose for the node</param>
             <returns>the preferred node</returns>
         </member>
+        <member name="T:Lavalink4NET.Cluster.NodeRequestType">
+            <summary>
+                A set of possible node request types.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.Unspecified">
+            <summary>
+                Denotes that the node purpose is unspecified.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.LoadTrack">
+            <summary>
+                Denotes that the node purpose is to load a track.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.PlayTrack">
+            <summary>
+                Denotes that the node purpose is to play tracks.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.Backup">
+            <summary>
+                Denotes that the node purpose is to backup players from another node.
+            </summary>
+        </member>
         <member name="T:Lavalink4NET.Decoding.DataInputReader">
             <summary>
                 A C# port for the DataInput stream (used to decode Lavalink tracks).
