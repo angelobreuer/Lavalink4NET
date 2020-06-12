@@ -95,28 +95,16 @@ namespace Lavalink4NET.Cluster
         public event AsyncEventHandler<PlayerMovedEventArgs> PlayerMoved;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
-
-        /// <inheritdoc/>
         public event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
 
         /// <inheritdoc/>
         public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
 
         /// <inheritdoc/>
+        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+
+        /// <inheritdoc/>
         public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
-
-        internal Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
-            => TrackStarted.InvokeAsync(this, eventArgs);
-
-        internal Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-            => TrackEnd.InvokeAsync(this, eventArgs);
-
-        internal Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-            => TrackException.InvokeAsync(this, eventArgs);
-
-        internal Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-            => TrackStuck.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Gets all nodes.
@@ -142,38 +130,7 @@ namespace Lavalink4NET.Cluster
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if no nodes is available</exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public LavalinkNode PreferredNode
-        {
-            get
-            {
-                EnsureNotDisposed();
-
-                if (!_initialized)
-                {
-                    throw new InvalidOperationException("The cluster has not been initialized.");
-                }
-
-                lock (_nodesLock)
-                {
-                    // find a connected node
-                    var nodes = _nodes.Where(s => s.IsConnected).ToArray();
-
-                    // no nodes available
-                    if (nodes.Length == 0)
-                    {
-                        throw new InvalidOperationException("No node available.");
-                    }
-
-                    // get the preferred node by the load balancing strategy
-                    var node = _loadBalacingStrategy(this, nodes);
-
-                    // update last usage
-                    node.LastUsage = DateTimeOffset.UtcNow;
-
-                    return node;
-                }
-            }
-        }
+        public LavalinkNode PreferredNode => GetPreferredNode();
 
         /// <summary>
         ///     Gets or sets a value indicating whether stay-online should be enabled for the cluster.
@@ -237,7 +194,7 @@ namespace Lavalink4NET.Cluster
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
         public TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer
-            => GetServingNode(guildId).GetPlayer<TPlayer>(guildId);
+            => GetServingNode(guildId, NodeRequestType.PlayTrack).GetPlayer<TPlayer>(guildId);
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
@@ -254,16 +211,43 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <summary>
+        ///     Gets the preferred node using the <see cref="LoadBalancingStrategy"/> specified in
+        ///     the options.
+        /// </summary>
+        /// <param name="type">the type of the purpose for the node</param>
+        /// <returns>the next preferred node</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the cluster has not been initialized.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">thrown if no nodes is available</exception>
+        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+        public LavalinkNode GetPreferredNode(NodeRequestType type = NodeRequestType.Unspecified)
+        {
+            EnsureNotDisposed();
+
+            if (!_initialized)
+            {
+                throw new InvalidOperationException("The cluster has not been initialized.");
+            }
+
+            lock (_nodesLock)
+            {
+                return GetPreferredNodeInternal(type);
+            }
+        }
+
+        /// <summary>
         ///     Gets the node that serves the guild specified by <paramref name="guildId"/> (if no
         ///     node serves the guild, <see cref="PreferredNode"/> is used).
         /// </summary>
         /// <param name="guildId">the guild snowflake identifier</param>
+        /// <param name="type">the type of the purpose for the node</param>
         /// <returns>the serving node for the specified <paramref name="guildId"/></returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the cluster has not been initialized.
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public LavalinkNode GetServingNode(ulong guildId)
+        public LavalinkNode GetServingNode(ulong guildId, NodeRequestType type = NodeRequestType.Unspecified)
         {
             EnsureNotDisposed();
 
@@ -275,9 +259,9 @@ namespace Lavalink4NET.Cluster
                 {
                     return node;
                 }
-            }
 
-            return PreferredNode;
+                return GetPreferredNodeInternal(type);
+            }
         }
 
         /// <inheritdoc/>
@@ -286,7 +270,7 @@ namespace Lavalink4NET.Cluster
             bool noCache = false, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
-            return PreferredNode.GetTrackAsync(query, mode, noCache, cancellationToken);
+            return GetPreferredNode(NodeRequestType.LoadTrack).GetTrackAsync(query, mode, noCache, cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -295,7 +279,7 @@ namespace Lavalink4NET.Cluster
             bool noCache = false, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
-            return PreferredNode.GetTracksAsync(query, mode, noCache, cancellationToken);
+            return GetPreferredNode(NodeRequestType.LoadTrack).GetTracksAsync(query, mode, noCache, cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -328,15 +312,15 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         public Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
-            => GetServingNode(guildId).JoinAsync(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
+            => GetServingNode(guildId, NodeRequestType.PlayTrack).JoinAsync(playerFactory, guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
-            => GetServingNode(guildId).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
+            => GetServingNode(guildId, NodeRequestType.PlayTrack).JoinAsync<TPlayer>(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-            => GetServingNode(guildId).JoinAsync(guildId, voiceChannelId, selfDeaf, selfMute);
+            => GetServingNode(guildId, NodeRequestType.PlayTrack).JoinAsync(guildId, voiceChannelId, selfDeaf, selfMute);
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
@@ -344,7 +328,7 @@ namespace Lavalink4NET.Cluster
             bool noCache = false, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
-            return PreferredNode.LoadTracksAsync(query, mode, noCache, cancellationToken);
+            return GetPreferredNode(NodeRequestType.LoadTrack).LoadTracksAsync(query, mode, noCache, cancellationToken);
         }
 
         /// <summary>
@@ -364,6 +348,18 @@ namespace Lavalink4NET.Cluster
         /// <returns>a task that represents the asynchronous operation</returns>
         internal Task NodeDisconnectedAsync(LavalinkClusterNode node, DisconnectedEventArgs eventArgs)
             => OnNodeDisconnectedAsync(new NodeDisconnectedEventArgs(node, eventArgs));
+
+        internal Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+            => TrackEnd.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+            => TrackException.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+                                                                                                                                                                                            => TrackStarted.InvokeAsync(this, eventArgs);
+
+        internal Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+            => TrackStuck.InvokeAsync(this, eventArgs);
 
         /// <summary>
         ///     Triggers the <see cref="NodeConnected"/> event asynchronously.
@@ -426,6 +422,26 @@ namespace Lavalink4NET.Cluster
             }
         }
 
+        private LavalinkNode GetPreferredNodeInternal(NodeRequestType type = NodeRequestType.Unspecified)
+        {
+            // find a connected node
+            var nodes = _nodes.Where(s => s.IsConnected).ToArray();
+
+            // no nodes available
+            if (nodes.Length == 0)
+            {
+                throw new InvalidOperationException("No node available.");
+            }
+
+            // get the preferred node by the load balancing strategy
+            var node = _loadBalacingStrategy(this, nodes, type);
+
+            // update last usage
+            node.LastUsage = DateTimeOffset.UtcNow;
+
+            return node;
+        }
+
         private async Task MovePlayerToNewNodeAsync(LavalinkNode sourceNode, LavalinkPlayer player)
         {
             if (player is null)
@@ -443,7 +459,7 @@ namespace Lavalink4NET.Cluster
             }
 
             // move node
-            var targetNode = PreferredNode;
+            var targetNode = GetPreferredNode(NodeRequestType.Backup);
             await sourceNode.MovePlayerAsync(player, targetNode);
 
             // invoke event

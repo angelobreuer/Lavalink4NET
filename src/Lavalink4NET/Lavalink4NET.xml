@@ -36,13 +36,13 @@
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.PlayerMoved">
             <inheritdoc/>
         </member>
-        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStarted">
-            <inheritdoc/>
-        </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackEnd">
             <inheritdoc/>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackException">
+            <inheritdoc/>
+        </member>
+        <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStarted">
             <inheritdoc/>
         </member>
         <member name="E:Lavalink4NET.Cluster.LavalinkCluster.TrackStuck">
@@ -102,12 +102,26 @@
             <inheritdoc/>
             <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetServingNode(System.UInt64)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetPreferredNode(Lavalink4NET.Cluster.NodeRequestType)">
+            <summary>
+                Gets the preferred node using the <see cref="T:Lavalink4NET.Cluster.LoadBalancingStrategy"/> specified in
+                the options.
+            </summary>
+            <param name="type">the type of the purpose for the node</param>
+            <returns>the next preferred node</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the cluster has not been initialized.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">thrown if no nodes is available</exception>
+            <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
+        </member>
+        <member name="M:Lavalink4NET.Cluster.LavalinkCluster.GetServingNode(System.UInt64,Lavalink4NET.Cluster.NodeRequestType)">
             <summary>
                 Gets the node that serves the guild specified by <paramref name="guildId"/> (if no
                 node serves the guild, <see cref="P:Lavalink4NET.Cluster.LavalinkCluster.PreferredNode"/> is used).
             </summary>
             <param name="guildId">the guild snowflake identifier</param>
+            <param name="type">the type of the purpose for the node</param>
             <returns>the serving node for the specified <paramref name="guildId"/></returns>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the cluster has not been initialized.
@@ -223,9 +237,14 @@
                 Gets the cluster owning the node.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.Id">
+            <summary>
+                Gets the cluster node id.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.Identifier">
             <summary>
-                Gets an identifier that is used to identify the node (used for debugging or logging).
+                Gets the cluster node label.
             </summary>
         </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.LastUsage">
@@ -313,7 +332,33 @@
             </summary>
             <param name="cluster">the cluster</param>
             <param name="nodes">the nodes</param>
+            <param name="type">the type of the purpose for the node</param>
             <returns>the preferred node</returns>
+        </member>
+        <member name="T:Lavalink4NET.Cluster.NodeRequestType">
+            <summary>
+                A set of possible node request types.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.Unspecified">
+            <summary>
+                Denotes that the node purpose is unspecified.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.LoadTrack">
+            <summary>
+                Denotes that the node purpose is to load a track.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.PlayTrack">
+            <summary>
+                Denotes that the node purpose is to play tracks.
+            </summary>
+        </member>
+        <member name="F:Lavalink4NET.Cluster.NodeRequestType.Backup">
+            <summary>
+                Denotes that the node purpose is to backup players from another node.
+            </summary>
         </member>
         <member name="T:Lavalink4NET.Decoding.DataInputReader">
             <summary>
@@ -1372,6 +1417,11 @@
                 Gets the current lavalink server version that is supported by the library.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.LavalinkNode.Label">
+            <summary>
+                Gets or sets the node label.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.LavalinkNode.Statistics">
             <summary>
                 Gets the last received node statistics; or <see langword="null"/> if no statistics
@@ -1623,6 +1673,14 @@
             <remarks>
                 This property defaults to <see langword="true"/>. This can be useful to set to <see
                 langword="false"/>, for example when using the InactivityTrackingService.
+            </remarks>
+        </member>
+        <member name="P:Lavalink4NET.LavalinkNodeOptions.Label">
+            <summary>
+                Gets or sets the node label.
+            </summary>
+            <remarks>
+                This property defaults to <see langword="null"/> and is used for identifying nodes.
             </remarks>
         </member>
         <member name="P:Lavalink4NET.LavalinkNodeOptions.ReconnectStrategy">
