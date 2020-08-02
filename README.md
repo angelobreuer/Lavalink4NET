@@ -77,7 +77,7 @@ var audioService = new LavalinkNode(new LavalinkNodeOptions
 ##### Usage with Dependency Injection / IoC *(recommended)*
 
 ```csharp
-var serviceProvider = new ServiceCollection
+var serviceProvider = new ServiceCollection()
 	.AddSingleton<IAudioService, LavalinkNode>()	
 	.AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>();
 	.AddSingleton(new LavalinkNodeOptions {[...]})
