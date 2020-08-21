@@ -80,7 +80,7 @@ namespace Lavalink4NET.Player
         /// <remarks>
         ///     This property is thread-safe, so it can be used from multiple threads at once safely.
         /// </remarks>
-        public bool IsReadOnly => true;
+        public bool IsReadOnly => false;
 
         /// <summary>
         ///     Gets or sets the enqueued tracks.
