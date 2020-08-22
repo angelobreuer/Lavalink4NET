@@ -292,7 +292,7 @@
         {
             var queue = new LavalinkQueue();
 
-            Assert.True(queue.IsReadOnly);
+            Assert.False(queue.IsReadOnly);
         }
 
         /// <summary>
