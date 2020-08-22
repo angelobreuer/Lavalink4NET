@@ -118,7 +118,7 @@ namespace Lavalink4NET.Player
             EnsureConnected();
 
             // check if the track should be enqueued (if a track is already playing)
-            if (enqueue && State == PlayerState.Playing)
+            if (enqueue && (Queue.Count > 0 || State == PlayerState.Playing || State == PlayerState.Paused))
             {
                 // add the track to the queue
                 Queue.Add(track);
