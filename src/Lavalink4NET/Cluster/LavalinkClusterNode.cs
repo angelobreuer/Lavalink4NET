@@ -91,12 +91,6 @@ namespace Lavalink4NET.Cluster
         public int Id { get; }
 
         /// <summary>
-        ///     Gets the cluster node label.
-        /// </summary>
-        [Obsolete("Use Label instead. This property will be removed in future.")]
-        public string? Identifier => Label;
-
-        /// <summary>
         ///     Gets the coordinated universal time (UTC) point of the last usage of the node.
         /// </summary>
         public DateTimeOffset LastUsage { get; internal set; }
