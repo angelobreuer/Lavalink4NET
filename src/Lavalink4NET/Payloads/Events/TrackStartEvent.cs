@@ -39,7 +39,7 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the identifier of the track that started.
         /// </summary>
         [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        public string TrackIdentifier { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     Gets the event type.

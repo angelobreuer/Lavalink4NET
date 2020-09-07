@@ -56,10 +56,10 @@ namespace Lavalink4NET
         private readonly bool _resume;
         private readonly int _sessionTimeout;
         private readonly Uri _webSocketUri;
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource? _cancellationTokenSource;
         private bool _disposed;
         private volatile bool _initialized;
-        private ClientWebSocket _webSocket;
+        private ClientWebSocket? _webSocket;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkSocket"/> class.
@@ -68,7 +68,7 @@ namespace Lavalink4NET
         /// <param name="client">the discord client</param>
         /// <param name="logger">the logger</param>
         /// <param name="cache">an optional cache that caches track requests</param>
-        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger, ILavalinkCache cache = null)
+        public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
             : base(options, logger, cache)
         {
             Logger = logger;
@@ -112,23 +112,23 @@ namespace Lavalink4NET
         /// <summary>
         ///     Asynchronously triggered when the socket connected to a remote endpoint.
         /// </summary>
-        public event AsyncEventHandler<ConnectedEventArgs> Connected;
+        public event AsyncEventHandler<ConnectedEventArgs>? Connected;
 
         /// <summary>
         ///     Asynchronously triggered when the socket disconnected from the remote endpoint.
         /// </summary>
-        public event AsyncEventHandler<DisconnectedEventArgs> Disconnected;
+        public event AsyncEventHandler<DisconnectedEventArgs>? Disconnected;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a payload was received from the
         ///     lavalink node.
         /// </summary>
-        public event AsyncEventHandler<PayloadReceivedEventArgs> PayloadReceived;
+        public event AsyncEventHandler<PayloadReceivedEventArgs>? PayloadReceived;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a new reconnection attempt is made.
         /// </summary>
-        public event AsyncEventHandler<ReconnectAttemptEventArgs> ReconnectAttempt;
+        public event AsyncEventHandler<ReconnectAttemptEventArgs>? ReconnectAttempt;
 
         /// <summary>
         ///     Gets a value indicating whether the client is connected to the lavalink node.
@@ -139,7 +139,7 @@ namespace Lavalink4NET
         /// <summary>
         ///     Gets the logger.
         /// </summary>
-        public ILogger Logger { get; }
+        public ILogger? Logger { get; }
 
         /// <summary>
         ///     Gets the resume key.
@@ -283,8 +283,8 @@ namespace Lavalink4NET
 
             _disposed = true;
 
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
             _webSocket?.Dispose();
 
             _cancellationTokenSource = null;
@@ -367,7 +367,7 @@ namespace Lavalink4NET
                 var length = Encoding.UTF8.GetBytes(content, 0, content.Length, pooledBuffer, 0);
 
                 // send the payload
-                await _webSocket.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
+                await _webSocket!.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, _cancellationTokenSource!.Token);
             }
             catch (Exception ex)
             {
@@ -473,11 +473,11 @@ namespace Lavalink4NET
 
             try
             {
-                result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(_receiveBuffer, 0, _receiveBuffer.Length), _cancellationTokenSource.Token);
+                result = await _webSocket!.ReceiveAsync(new ArraySegment<byte>(_receiveBuffer, 0, _receiveBuffer.Length), _cancellationTokenSource!.Token);
             }
             catch (WebSocketException ex)
             {
-                if (_cancellationTokenSource.IsCancellationRequested)
+                if (_cancellationTokenSource!.IsCancellationRequested)
                 {
                     return;
                 }
@@ -485,7 +485,7 @@ namespace Lavalink4NET
                 Logger?.Log(ex, "Lavalink Node disconnected (without handshake, maybe connection loss or server crash)");
                 await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, WebSocketCloseStatus.Empty, string.Empty, true));
 
-                _webSocket.Dispose();
+                _webSocket?.Dispose();
                 _webSocket = null;
                 return;
             }
@@ -493,7 +493,7 @@ namespace Lavalink4NET
             // check if the web socket received a close frame
             if (result.MessageType == WebSocketMessageType.Close)
             {
-                Logger?.Log(this, string.Format("Lavalink Node disconnected: {0}, {1}.", result.CloseStatus.Value, result.CloseStatusDescription), LogLevel.Warning);
+                Logger?.Log(this, string.Format("Lavalink Node disconnected: {0}, {1}.", result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription), LogLevel.Warning);
                 await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription, true));
 
                 _webSocket.Dispose();
@@ -546,7 +546,7 @@ namespace Lavalink4NET
         {
             EnsureNotDisposed();
 
-            while (!_cancellationTokenSource.IsCancellationRequested)
+            while (!_cancellationTokenSource!.IsCancellationRequested)
             {
                 // receive new payload until the web-socket is connected.
                 while (IsConnected && !_cancellationTokenSource.IsCancellationRequested)

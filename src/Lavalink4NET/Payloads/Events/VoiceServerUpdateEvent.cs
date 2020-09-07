@@ -68,7 +68,7 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the token for the voice connection.
         /// </summary>
         [JsonProperty("token")]
-        public string Token { get; internal set; }
+        public string Token { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     Gets the id of the guild the update is for
@@ -80,6 +80,6 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the endpoint of the voice server.
         /// </summary>
         [JsonProperty("endpoint")]
-        public string Endpoint { get; internal set; }
+        public string Endpoint { get; internal set; } = string.Empty;
     }
 }

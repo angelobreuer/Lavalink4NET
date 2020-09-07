@@ -36,16 +36,16 @@ namespace Lavalink4NET.Payloads.Player
     public sealed class PlayerUpdatePayload : IPlayerPayload
     {
         /// <summary>
+        ///     Gets the guild snowflake identifier the player update is for.
+        /// </summary>
+        [JsonRequired, JsonProperty("guildId")]
+        public string GuildId { get; internal set; } = null!;
+
+        /// <summary>
         ///     Gets the operation code for the payload.
         /// </summary>
         [JsonRequired, JsonProperty("op")]
         public OpCode OpCode => OpCode.PlayerUpdate;
-
-        /// <summary>
-        ///     Gets the guild snowflake identifier the player update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
 
         /// <summary>
         ///     Gets the player status.

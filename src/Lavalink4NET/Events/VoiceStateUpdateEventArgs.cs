@@ -27,11 +27,9 @@
 
 namespace Lavalink4NET.Events
 {
-    using System;
-
     /// <summary>
-    ///     Represents the event arguments for the
-    ///     <see cref="IDiscordClientWrapper.VoiceStateUpdated"/> event.
+    ///     Represents the event arguments for the <see
+    ///     cref="IDiscordClientWrapper.VoiceStateUpdated"/> event.
     /// </summary>
     public sealed class VoiceStateUpdateEventArgs
     {
@@ -41,13 +39,7 @@ namespace Lavalink4NET.Events
         /// <param name="userId">the user snowflake identifier the update is for</param>
         /// <param name="voiceState">the new user voice state</param>
         /// <param name="oldVoiceState">the old user voice state</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
-        /// </exception>
-        public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState, VoiceState oldVoiceState)
+        public VoiceStateUpdateEventArgs(ulong userId, VoiceState? voiceState, VoiceState? oldVoiceState)
         {
             UserId = userId;
             VoiceState = voiceState;
@@ -62,11 +54,11 @@ namespace Lavalink4NET.Events
         /// <summary>
         ///     Gets the new user voice state.
         /// </summary>
-        public VoiceState VoiceState { get; }
+        public VoiceState? VoiceState { get; }
 
         /// <summary>
         ///     Gets the old user voice state.
         /// </summary>
-        public VoiceState OldVoiceState { get; }
+        public VoiceState? OldVoiceState { get; }
     }
 }

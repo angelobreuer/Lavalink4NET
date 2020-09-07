@@ -55,8 +55,10 @@ namespace Lavalink4NET.Cluster
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
         /// </exception>
-        public LavalinkClusterNode(LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-            ILogger logger, ILavalinkCache cache, int id) : base(options, client, logger, cache)
+        public LavalinkClusterNode(
+            LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
+            int id, ILogger? logger = null, ILavalinkCache? cache = null)
+            : base(options, client, logger, cache)
         {
             if (options is null)
             {
@@ -92,7 +94,7 @@ namespace Lavalink4NET.Cluster
         ///     Gets the cluster node label.
         /// </summary>
         [Obsolete("Use Label instead. This property will be removed in future.")]
-        public string Identifier => Label;
+        public string? Identifier => Label;
 
         /// <summary>
         ///     Gets the coordinated universal time (UTC) point of the last usage of the node.

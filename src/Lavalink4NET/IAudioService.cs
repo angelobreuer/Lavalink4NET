@@ -42,22 +42,22 @@ namespace Lavalink4NET
         /// <summary>
         ///     An asynchronous event which is triggered when a track ended.
         /// </summary>
-        event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+        event AsyncEventHandler<TrackEndEventArgs>? TrackEnd;
 
         /// <summary>
         ///     An asynchronous event which is triggered when an exception occurred while playing a track.
         /// </summary>
-        event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+        event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
 
         /// <summary>
         ///     Asynchronous event which is dispatched when a track started.
         /// </summary>
-        event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+        event AsyncEventHandler<TrackStartedEventArgs>? TrackStarted;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a track got stuck.
         /// </summary>
-        event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+        event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
@@ -65,14 +65,14 @@ namespace Lavalink4NET
         /// <typeparam name="TPlayer">the type of the player to use</typeparam>
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
-        TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer;
+        TPlayer? GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer;
 
         /// <summary>
         ///     Gets the audio player for the specified <paramref name="guildId"/>.
         /// </summary>
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
-        LavalinkPlayer GetPlayer(ulong guildId);
+        LavalinkPlayer? GetPlayer(ulong guildId);
 
         /// <summary>
         ///     Gets all players of the specified <typeparamref name="TPlayer"/>.

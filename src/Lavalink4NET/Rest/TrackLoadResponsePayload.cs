@@ -38,9 +38,11 @@ namespace Lavalink4NET.Rest
         /// <summary>
         ///     Gets an exception that indicates why the track load failed (see: <see cref="LoadType"/>).
         /// </summary>
-        /// <remarks>This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.</remarks>
+        /// <remarks>
+        ///     This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.
+        /// </remarks>
         [JsonProperty("exception")]
-        public TrackLoadException Exception { get; internal set; }
+        public TrackLoadException Exception { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets the type of what was loaded.
@@ -52,12 +54,12 @@ namespace Lavalink4NET.Rest
         ///     Gets the information about the playlist.
         /// </summary>
         [JsonRequired, JsonProperty("playlistInfo")]
-        public PlaylistInfo PlaylistInfo { get; internal set; }
+        public PlaylistInfo? PlaylistInfo { get; internal set; }
 
         /// <summary>
         ///     Gets the loaded tracks.
         /// </summary>
         [JsonRequired, JsonProperty("tracks")]
-        public LavalinkTrack[] Tracks { get; internal set; }
+        public LavalinkTrack[]? Tracks { get; internal set; }
     }
 }

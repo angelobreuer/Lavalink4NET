@@ -51,7 +51,7 @@ namespace Lavalink4NET.Events
         {
             if (string.IsNullOrWhiteSpace(rawJson))
             {
-                throw new ArgumentException("message", nameof(rawJson));
+                throw new ArgumentException("The specified rawJson can not be null, empty or only consists of white-spaces.", nameof(rawJson));
             }
 
             Payload = payload ?? throw new ArgumentNullException(nameof(payload));

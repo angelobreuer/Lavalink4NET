@@ -68,18 +68,18 @@ namespace Lavalink4NET.Payloads.Node
         ///     Gets usage statistics for the memory of the node.
         /// </summary>
         [JsonRequired, JsonProperty("memory")]
-        public MemoryStatistics Memory { get; internal set; }
+        public MemoryStatistics Memory { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets usage statistics for the processor of the node.
         /// </summary>
         [JsonRequired, JsonProperty("cpu")]
-        public ProcessorStatistics Processor { get; internal set; }
+        public ProcessorStatistics Processor { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets frame statistics of the node.
         /// </summary>
         [JsonProperty("frameStats")]
-        public FrameStatistics FrameStatistics { get; internal set; }
+        public FrameStatistics FrameStatistics { get; internal set; } = null!;
     }
 }

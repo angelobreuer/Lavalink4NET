@@ -43,7 +43,7 @@ namespace Lavalink4NET.DiscordNet
         /// <param name="audioService">the audio service</param>
         /// <param name="guild">the guild to get the player for</param>
         /// <returns>the player for the guild</returns>
-        public static TPlayer GetPlayer<TPlayer>(this IAudioService audioService, IGuild guild) where TPlayer : LavalinkPlayer
+        public static TPlayer? GetPlayer<TPlayer>(this IAudioService audioService, IGuild guild) where TPlayer : LavalinkPlayer
             => audioService.GetPlayer<TPlayer>(guild.Id);
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Lavalink4NET.DiscordNet
         /// <param name="audioService">the audio service</param>
         /// <param name="guild">the guild to get the player for</param>
         /// <returns>the player for the guild</returns>
-        public static LavalinkPlayer GetPlayer(this IAudioService audioService, IGuild guild)
+        public static LavalinkPlayer? GetPlayer(this IAudioService audioService, IGuild guild)
             => audioService.GetPlayer(guild.Id);
 
         /// <summary>

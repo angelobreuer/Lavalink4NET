@@ -101,12 +101,12 @@ namespace Lavalink4NET.DiscordNet
         /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.
         /// </summary>
-        public event AsyncEventHandler<VoiceServer> VoiceServerUpdated;
+        public event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a user voice state was updated.
         /// </summary>
-        public event AsyncEventHandler<VoiceStateUpdateEventArgs> VoiceStateUpdated;
+        public event AsyncEventHandler<VoiceStateUpdateEventArgs>? VoiceStateUpdated;
 
         /// <summary>
         ///     Gets the current user snowflake identifier value.

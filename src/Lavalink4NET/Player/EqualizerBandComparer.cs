@@ -31,17 +31,17 @@ namespace Lavalink4NET.Player
 
     internal sealed class EqualizerBandComparer : IEqualityComparer<EqualizerBand>
     {
-        private static IEqualityComparer<EqualizerBand> _instance;
+        private static IEqualityComparer<EqualizerBand>? _instance;
 
         /// <summary>
         ///     Gets the shared instance of the <see cref="EqualizerBandComparer"/> class.
         /// </summary>
         public static IEqualityComparer<EqualizerBand> Instance
-            => _instance ?? (_instance = new EqualizerBandComparer());
+            => _instance ??= new EqualizerBandComparer();
 
         /// <summary>
-        ///     Checks the equality of the first <paramref name="band1"/> and the second
-        ///     <paramref name="band2"/> by comparing it's gain value.
+        ///     Checks the equality of the first <paramref name="band1"/> and the second <paramref
+        ///     name="band2"/> by comparing it's gain value.
         /// </summary>
         /// <param name="band1">the first equalizer band</param>
         /// <param name="band2">the second equalizer band</param>

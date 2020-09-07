@@ -41,6 +41,12 @@ namespace Lavalink4NET.Tracking
         /// </summary>
         public static InactivityTracker UsersInactivityTracker { get; } = async (player, client) =>
         {
+            if (player.VoiceChannelId is null)
+            {
+                // no users in the voice channel
+                return true;
+            }
+
             // count the users in the player voice channel (bot excluded)
             var userCount = (await client.GetChannelUsersAsync(player.GuildId, player.VoiceChannelId.Value))
                 .Where(s => s != client.CurrentUserId)

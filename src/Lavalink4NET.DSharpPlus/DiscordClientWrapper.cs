@@ -61,10 +61,10 @@ namespace Lavalink4NET.DSharpPlus
         }
 
         /// <inheritdoc/>
-        public event Events.AsyncEventHandler<VoiceServer> VoiceServerUpdated;
+        public event Events.AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
 
         /// <inheritdoc/>
-        public event Events.AsyncEventHandler<Events.VoiceStateUpdateEventArgs> VoiceStateUpdated;
+        public event Events.AsyncEventHandler<Events.VoiceStateUpdateEventArgs>? VoiceStateUpdated;
 
         /// <inheritdoc/>
         public ulong CurrentUserId

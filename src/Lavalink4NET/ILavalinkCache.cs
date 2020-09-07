@@ -43,7 +43,7 @@ namespace Lavalink4NET
         ///     the Coordinated Universal Time (UTC) time point offset when the cache item will
         ///     expire and is marked to be removed from the cache.
         /// </param>
-        void AddItem(string key, object item, DateTimeOffset absoluteExpiration);
+        void AddItem(string key, object? item, DateTimeOffset absoluteExpiration);
 
         /// <summary>
         ///     Tries to retrieve an item from the cache.

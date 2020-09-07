@@ -31,8 +31,8 @@ namespace Lavalink4NET.Payloads.Events
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     The strongly-typed representation of a web socket closed event received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     The strongly-typed representation of a web socket closed event received from the
+    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
     public sealed class WebSocketClosedEvent : EventPayload
     {
@@ -52,7 +52,7 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the reason why the web-socket was closed.
         /// </summary>
         [JsonRequired, JsonProperty("reason")]
-        public string Reason { get; internal set; }
+        public string Reason { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     Gets a value indicating whether the connection was closed by the remote (discord gateway).

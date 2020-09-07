@@ -54,6 +54,6 @@ namespace Lavalink4NET.Payloads.Player
         ///     Gets the guild snowflake identifier where the player should be destroyed.
         /// </summary>
         [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
+        public string GuildId { get; internal set; } = null!;
     }
 }

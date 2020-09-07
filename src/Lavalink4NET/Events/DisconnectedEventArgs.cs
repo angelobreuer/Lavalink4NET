@@ -47,7 +47,7 @@ namespace Lavalink4NET.Events
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="uri"/> is <see langword="null"/>.
         /// </exception>
-        public DisconnectedEventArgs(Uri uri, WebSocketCloseStatus closeStatus, string reason, bool byRemote) : base(uri)
+        public DisconnectedEventArgs(Uri uri, WebSocketCloseStatus closeStatus, string? reason, bool byRemote) : base(uri)
         {
             CloseStatus = closeStatus;
             Reason = reason;
@@ -62,7 +62,7 @@ namespace Lavalink4NET.Events
         /// <summary>
         ///     Gets the close reason.
         /// </summary>
-        public string Reason { get; }
+        public string? Reason { get; }
 
         /// <summary>
         ///     Gets a value indicating whether the connection was closed by the remote endpoint.

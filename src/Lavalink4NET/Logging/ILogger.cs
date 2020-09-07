@@ -41,6 +41,6 @@ namespace Lavalink4NET.Logging
         /// <param name="message">the message to log</param>
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
-        void Log(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null);
+        void Log(object source, string message, LogLevel level = LogLevel.Information, Exception? exception = null);
     }
 }

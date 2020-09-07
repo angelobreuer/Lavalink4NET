@@ -45,7 +45,7 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the identifier of the track that got stuck.
         /// </summary>
         [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        public string TrackIdentifier { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     Gets the threshold in milliseconds.

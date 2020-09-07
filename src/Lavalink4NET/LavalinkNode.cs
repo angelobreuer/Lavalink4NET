@@ -31,7 +31,6 @@ namespace Lavalink4NET
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Events;
     using Lavalink4NET.Logging;
@@ -64,7 +63,7 @@ namespace Lavalink4NET
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
         /// </exception>
-        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
+        public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
             : base(options, client, logger, cache)
         {
             if (options is null)
@@ -84,38 +83,38 @@ namespace Lavalink4NET
         /// <summary>
         ///     Asynchronous event which is dispatched when a player connected to a voice channel.
         /// </summary>
-        public event AsyncEventHandler<PlayerConnectedEventArgs> PlayerConnected;
+        public event AsyncEventHandler<PlayerConnectedEventArgs>? PlayerConnected;
 
         /// <summary>
         ///     Asynchronous event which is dispatched when a player disconnected from a voice channel.
         /// </summary>
-        public event AsyncEventHandler<PlayerDisconnectedEventArgs> PlayerDisconnected;
+        public event AsyncEventHandler<PlayerDisconnectedEventArgs>? PlayerDisconnected;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a new statistics update was received
         ///     from the lavalink node.
         /// </summary>
-        public event AsyncEventHandler<NodeStatisticsUpdateEventArgs> StatisticsUpdated;
+        public event AsyncEventHandler<NodeStatisticsUpdateEventArgs>? StatisticsUpdated;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a track ended.
         /// </summary>
-        public event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+        public event AsyncEventHandler<TrackEndEventArgs>? TrackEnd;
 
         /// <summary>
         ///     An asynchronous event which is triggered when an exception occurred while playing a track.
         /// </summary>
-        public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+        public event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
 
         /// <summary>
         ///     Asynchronous event which is dispatched when a track started.
         /// </summary>
-        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+        public event AsyncEventHandler<TrackStartedEventArgs>? TrackStarted;
 
         /// <summary>
         ///     An asynchronous event which is triggered when a track got stuck.
         /// </summary>
-        public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+        public event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
         /// <summary>
         ///     Gets the current lavalink server version that is supported by the library.
@@ -125,13 +124,13 @@ namespace Lavalink4NET
         /// <summary>
         ///     Gets or sets the node label.
         /// </summary>
-        public string Label { get; set; }
+        public string? Label { get; set; }
 
         /// <summary>
         ///     Gets the last received node statistics; or <see langword="null"/> if no statistics
         ///     are available for the node.
         /// </summary>
-        public NodeStatistics Statistics { get; private set; }
+        public NodeStatistics? Statistics { get; private set; }
 
         /// <summary>
         ///     Gets the player dictionary.
@@ -182,7 +181,7 @@ namespace Lavalink4NET
         ///     cref="LavalinkSocket.InitializeAsync"/> before sending payloads)
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public TPlayer GetPlayer<TPlayer>(ulong guildId)
+        public TPlayer? GetPlayer<TPlayer>(ulong guildId)
             where TPlayer : LavalinkPlayer
         {
             EnsureNotDisposed();
@@ -213,8 +212,7 @@ namespace Lavalink4NET
         /// </summary>
         /// <param name="guildId">the guild identifier to get the player for</param>
         /// <returns>the player for the guild</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LavalinkPlayer GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
+        public LavalinkPlayer? GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
 
         /// <summary>
         ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
@@ -619,7 +617,7 @@ namespace Lavalink4NET
                 return;
             }
 
-            var guildId = args.VoiceState?.GuildId ?? args.OldVoiceState.GuildId;
+            var guildId = args.VoiceState?.GuildId ?? args.OldVoiceState!.GuildId;
 
             // try getting affected player
             if (!Players.TryGetValue(guildId, out var player))
@@ -684,7 +682,7 @@ namespace Lavalink4NET
             if (wasPlaying)
             {
                 // restart track
-                await player.PlayAsync(player.CurrentTrack, trackPosition);
+                await player.PlayAsync(player.CurrentTrack!, trackPosition);
             }
 
             // add player to the new node

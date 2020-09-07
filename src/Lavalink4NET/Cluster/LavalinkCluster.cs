@@ -42,10 +42,10 @@ namespace Lavalink4NET.Cluster
     /// </summary>
     public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     {
-        private readonly ILavalinkCache _cache;
+        private readonly ILavalinkCache? _cache;
         private readonly IDiscordClientWrapper _client;
         private readonly LoadBalancingStrategy _loadBalacingStrategy;
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
         private readonly List<LavalinkClusterNode> _nodes;
         private readonly object _nodesLock;
         private bool _disposed;
@@ -68,7 +68,7 @@ namespace Lavalink4NET.Cluster
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
         /// </exception>
-        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger logger = null, ILavalinkCache cache = null)
+        public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
         {
             if (options is null)
             {
@@ -86,25 +86,25 @@ namespace Lavalink4NET.Cluster
         }
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<NodeConnectedEventArgs> NodeConnected;
+        public event AsyncEventHandler<NodeConnectedEventArgs>? NodeConnected;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
+        public event AsyncEventHandler<NodeDisconnectedEventArgs>? NodeDisconnected;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<PlayerMovedEventArgs> PlayerMoved;
+        public event AsyncEventHandler<PlayerMovedEventArgs>? PlayerMoved;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<TrackEndEventArgs> TrackEnd;
+        public event AsyncEventHandler<TrackEndEventArgs>? TrackEnd;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<TrackExceptionEventArgs> TrackException;
+        public event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<TrackStartedEventArgs> TrackStarted;
+        public event AsyncEventHandler<TrackStartedEventArgs>? TrackStarted;
 
         /// <inheritdoc/>
-        public event AsyncEventHandler<TrackStuckEventArgs> TrackStuck;
+        public event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
         /// <summary>
         ///     Gets all nodes.
@@ -189,11 +189,11 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public LavalinkPlayer GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
+        public LavalinkPlayer? GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public TPlayer GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer
+        public TPlayer? GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer
             => GetServingNode(guildId, NodeRequestType.PlayTrack).GetPlayer<TPlayer>(guildId);
 
         /// <inheritdoc/>
@@ -266,7 +266,7 @@ namespace Lavalink4NET.Cluster
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+        public Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
@@ -356,7 +356,7 @@ namespace Lavalink4NET.Cluster
             => TrackException.InvokeAsync(this, eventArgs);
 
         internal Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
-                                                                                                                                                                                            => TrackStarted.InvokeAsync(this, eventArgs);
+            => TrackStarted.InvokeAsync(this, eventArgs);
 
         internal Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
             => TrackStuck.InvokeAsync(this, eventArgs);
@@ -408,7 +408,7 @@ namespace Lavalink4NET.Cluster
         /// <param name="nodeOptions">the node options</param>
         /// <returns>the created node</returns>
         private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
-            => new LavalinkClusterNode(this, nodeOptions, _client, _logger, _cache, _nodeId++);
+            => new LavalinkClusterNode(this, nodeOptions, _client, _nodeId++, _logger, _cache);
 
         /// <summary>
         ///     Throws an exception if the <see cref="LavalinkCluster"/> instance is disposed.
@@ -451,7 +451,7 @@ namespace Lavalink4NET.Cluster
 
             if (!Nodes.Any(s => s.IsConnected))
             {
-                _logger.Log(this, $"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
+                _logger?.Log(this, $"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
 
                 // invoke event
                 await OnPlayerMovedAsync(new PlayerMovedEventArgs(sourceNode, null, player));

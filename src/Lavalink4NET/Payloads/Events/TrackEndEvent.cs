@@ -46,7 +46,7 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the identifier of the track that has ended.
         /// </summary>
         [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        public string TrackIdentifier { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets the reason why the track ended.

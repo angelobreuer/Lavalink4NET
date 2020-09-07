@@ -44,7 +44,7 @@ namespace Lavalink4NET.Events
         ///     the event parameters (if <see langword="null"/><see cref="EventArgs.Empty"/> is used)
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public static Task InvokeAsync(this AsyncEventHandler eventHandler, object sender, EventArgs eventArgs = null)
+        public static Task InvokeAsync(this AsyncEventHandler? eventHandler, object sender, EventArgs? eventArgs = null)
             => eventHandler?.Invoke(sender, eventArgs ?? EventArgs.Empty) ?? Task.CompletedTask;
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Lavalink4NET.Events
         /// <param name="sender">the object that is firing the event</param>
         /// <param name="eventArgs">the event parameters</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public static Task InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs> eventHandler, object sender, TEventArgs eventArgs)
+        public static Task InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs>? eventHandler, object sender, TEventArgs eventArgs)
             => eventHandler?.Invoke(sender, eventArgs) ?? Task.CompletedTask;
     }
 }

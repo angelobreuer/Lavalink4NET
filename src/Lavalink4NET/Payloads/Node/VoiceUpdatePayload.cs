@@ -73,12 +73,12 @@ namespace Lavalink4NET.Payloads.Node
         ///     Gets the discord voice state session identifier received from the voice state update payload.
         /// </summary>
         [JsonRequired, JsonProperty("sessionId")]
-        public string SessionId { get; internal set; }
+        public string SessionId { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets the voice server update event.
         /// </summary>
         [JsonRequired, JsonProperty("event")]
-        public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; internal set; }
+        public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; internal set; } = null!;
     }
 }

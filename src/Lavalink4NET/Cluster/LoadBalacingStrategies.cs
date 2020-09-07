@@ -64,7 +64,7 @@ namespace Lavalink4NET.Cluster
         /// </summary>
         /// <param name="statistics">the node statistics</param>
         /// <returns>the score for the node (higher = better)</returns>
-        public static double CalculateScore(NodeStatistics statistics)
+        public static double CalculateScore(NodeStatistics? statistics)
         {
             // no statistics retrieved for the node.
             if (statistics is null || statistics.Processor is null

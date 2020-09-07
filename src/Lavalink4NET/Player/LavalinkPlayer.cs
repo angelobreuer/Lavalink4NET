@@ -41,8 +41,8 @@ namespace Lavalink4NET.Player
     /// </summary>
     public class LavalinkPlayer : IDisposable
     {
-        internal VoiceServer _voiceServer;
-        internal VoiceState _voiceState;
+        internal VoiceServer? _voiceServer;
+        internal VoiceState? _voiceState;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
 
@@ -64,12 +64,12 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the discord client wrapper.
         /// </summary>
-        public IDiscordClientWrapper Client { get; private set; }
+        public IDiscordClientWrapper Client { get; private set; } = null!; // Lazy-initialized
 
         /// <summary>
         ///     Gets the track that is currently playing.
         /// </summary>
-        public LavalinkTrack CurrentTrack { get; private set; }
+        public LavalinkTrack? CurrentTrack { get; private set; }
 
         /// <summary>
         ///     Gets the identifier snowflake value of the guild the player is for.
@@ -106,7 +106,7 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the communication lavalink socket.
         /// </summary>
-        internal LavalinkSocket LavalinkSocket { get; set; }
+        internal LavalinkSocket LavalinkSocket { get; set; } = null!; // Lazy-initialized
 
         /// <summary>
         ///     Gets or sets a value indicating whether the player should stop after the track
@@ -275,7 +275,7 @@ namespace Lavalink4NET.Player
             EnsureConnected();
 
             CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
-            startTime = startTime ?? track.Position;
+            startTime ??= track.Position;
 
             await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
                 startTime, endTime, noReplace));

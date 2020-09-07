@@ -50,11 +50,11 @@ namespace Lavalink4NET.Rest
         /// </summary>
         private const string VersionHeaderName = "Lavalink-Api-Version";
 
-        private readonly ILavalinkCache _cache;
+        private readonly ILavalinkCache? _cache;
         private readonly TimeSpan _cacheTime;
         private readonly bool _debugPayloads;
         private readonly HttpClient _httpClient;
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkRestClient"/> class.
@@ -69,7 +69,7 @@ namespace Lavalink4NET.Rest
         ///     thrown if the track cache time ( <see cref="RestClientOptions.CacheTime"/>) is equal
         ///     or less than <see cref="TimeSpan.Zero"/>.
         /// </exception>
-        public LavalinkRestClient(LavalinkRestOptions options, ILogger logger = null, ILavalinkCache cache = null)
+        public LavalinkRestClient(LavalinkRestOptions options, ILogger? logger = null, ILavalinkCache? cache = null)
         {
             if (options is null)
             {
@@ -134,7 +134,7 @@ namespace Lavalink4NET.Rest
         ///     a task that represents the asynchronous operation. The task result is the track
         ///     found for the specified <paramref name="query"/>
         /// </returns>
-        public async Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+        public async Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
             => (await GetTracksAsync(query, mode, noCache, cancellationToken))?.FirstOrDefault();
 
@@ -157,7 +157,7 @@ namespace Lavalink4NET.Rest
         /// </returns>
         public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default)
-            => (await LoadTracksAsync(query, mode, noCache, cancellationToken))?.Tracks;
+            => (await LoadTracksAsync(query, mode, noCache, cancellationToken)).Tracks ?? Enumerable.Empty<LavalinkTrack>();
 
         /// <summary>
         ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.

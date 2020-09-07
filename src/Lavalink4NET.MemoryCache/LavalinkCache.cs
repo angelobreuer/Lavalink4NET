@@ -45,7 +45,7 @@
         /// </summary>
         /// <param name="name">the name of the <see cref="MemoryCache"/></param>
         /// <param name="config">an optional configuration entry collection for the <see cref="MemoryCache"/></param>
-        public LavalinkCache(string name, NameValueCollection config = null)
+        public LavalinkCache(string name, NameValueCollection? config = null)
             : this(new MemoryCache(name, config), dispose: true)
         {
         }
@@ -71,7 +71,7 @@
         ///     the Coordinated Universal Time (UTC) time point offset when the cache item will
         ///     expire and is marked to be removed from the cache.
         /// </param>
-        public void AddItem(string key, object item, DateTimeOffset absoluteExpiration)
+        public void AddItem(string key, object? item, DateTimeOffset absoluteExpiration)
         {
             EnsureNotDisposed();
             Cache.Add(key, item, absoluteExpiration);
@@ -118,7 +118,7 @@
                 return true;
             }
 
-            item = default;
+            item = default!;
             return false;
         }
 

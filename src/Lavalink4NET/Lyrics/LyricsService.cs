@@ -41,7 +41,7 @@ namespace Lavalink4NET.Lyrics
     /// </summary>
     public sealed class LyricsService : IDisposable
     {
-        private readonly ILavalinkCache _cache;
+        private readonly ILavalinkCache? _cache;
         private readonly TimeSpan _cacheTime;
         private readonly HttpClient _httpClient;
         private readonly bool _suppressExceptions;
@@ -55,7 +55,7 @@ namespace Lavalink4NET.Lyrics
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
         /// </exception>
-        public LyricsService(LyricsOptions options, ILavalinkCache cache = null)
+        public LyricsService(LyricsOptions options, ILavalinkCache? cache = null)
         {
             if (options is null)
             {
@@ -96,7 +96,6 @@ namespace Lavalink4NET.Lyrics
 
             _cache = cache;
             _cacheTime = options.CacheTime;
-            _cache = cache;
             _suppressExceptions = options.SuppressExceptions;
         }
 
@@ -134,7 +133,7 @@ namespace Lavalink4NET.Lyrics
         ///     thrown if the specified <paramref name="title"/> is blank.
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-        public async Task<string> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
+        public async Task<string?> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
 
@@ -174,7 +173,7 @@ namespace Lavalink4NET.Lyrics
         ///     found for the query
         /// </returns>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-        public Task<string> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
+        public Task<string?> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
         /// <summary>
@@ -190,7 +189,7 @@ namespace Lavalink4NET.Lyrics
         ///     found for the query
         /// </returns>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-        public Task<string> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
+        public Task<string?> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
             => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
 
         /// <summary>
@@ -213,7 +212,7 @@ namespace Lavalink4NET.Lyrics
         ///     thrown if the specified <paramref name="title"/> is blank.
         /// </exception>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-        public async Task<string> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
+        public async Task<string?> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
         {
             EnsureNotDisposed();
 
@@ -224,24 +223,23 @@ namespace Lavalink4NET.Lyrics
             artist = HttpUtility.HtmlEncode(artist);
 
             // send response
-            using (var response = await _httpClient.GetAsync($"{artist}/{title}", cancellationToken))
+            using var response = await _httpClient.GetAsync($"{artist}/{title}", cancellationToken);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var payload = JsonConvert.DeserializeObject<LyricsResponse>(content);
+
+            if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var payload = JsonConvert.DeserializeObject<LyricsResponse>(content);
-
-                if (!response.IsSuccessStatusCode)
+                // exceptions are suppressed
+                if (_suppressExceptions)
                 {
-                    // exceptions are suppressed
-                    if (_suppressExceptions)
-                    {
-                        return null;
-                    }
-
-                    throw new Exception($"Error while requesting: {response.RequestMessage.RequestUri}\n\t\t{payload.ErrorMessage}");
+                    return null;
                 }
 
-                return payload.Lyrics;
+                throw new Exception($"Error while requesting: {response.RequestMessage.RequestUri}\n\t\t{payload.ErrorMessage}");
             }
+
+            return payload.Lyrics;
         }
 
         /// <summary>

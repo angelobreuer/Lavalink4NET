@@ -38,12 +38,12 @@ namespace Lavalink4NET.Lyrics
         ///     Gets an hopefully descriptive error message indicating what error occurred.
         /// </summary>
         [JsonProperty("error")]
-        public string ErrorMessage { get; internal set; }
+        public string? ErrorMessage { get; internal set; }
 
         /// <summary>
         ///     Gets the lyrics of the requested song.
         /// </summary>
         [JsonProperty("lyrics")]
-        public string Lyrics { get; internal set; }
+        public string? Lyrics { get; internal set; }
     }
 }

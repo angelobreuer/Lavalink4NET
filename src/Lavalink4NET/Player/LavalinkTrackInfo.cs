@@ -40,7 +40,9 @@ namespace Lavalink4NET.Player
         ///     Initializes a new instance of the <see cref="LavalinkTrackInfo"/> class.
         /// </summary>
         [JsonConstructor]
+#pragma warning disable CS8618
         internal LavalinkTrackInfo()
+#pragma warning restore CS8618
         {
         }
 
@@ -78,7 +80,7 @@ namespace Lavalink4NET.Player
         ///     Gets the track source.
         /// </summary>
         [JsonRequired, JsonProperty("uri")]
-        public string Source { get; internal set; }
+        public string? Source { get; internal set; }
 
         /// <summary>
         ///     Gets the title of the track.

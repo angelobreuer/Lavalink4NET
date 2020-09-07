@@ -51,7 +51,7 @@ namespace Lavalink4NET.Events
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
         /// </exception>
-        public PlayerMovedEventArgs(LavalinkNode node, LavalinkNode targetNode, LavalinkPlayer player)
+        public PlayerMovedEventArgs(LavalinkNode node, LavalinkNode? targetNode, LavalinkPlayer player)
         {
             Node = node ?? throw new ArgumentNullException(nameof(node));
             Player = player ?? throw new ArgumentNullException(nameof(player));
@@ -77,6 +77,6 @@ namespace Lavalink4NET.Events
         ///     Gets the node the player was moved to; if <see langword="null"/> the player was not
         ///     moved to a new node, because no node was available.
         /// </summary>
-        public LavalinkNode TargetNode { get; }
+        public LavalinkNode? TargetNode { get; }
     }
 }

@@ -45,12 +45,12 @@ namespace Lavalink4NET.Payloads.Events
         ///     Gets the identifier of the track where the exception occurred.
         /// </summary>
         [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; }
+        public string TrackIdentifier { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets the error that occurred.
         /// </summary>
         [JsonRequired, JsonProperty("error")]
-        public string Error { get; internal set; }
+        public string Error { get; internal set; } = null!;
     }
 }

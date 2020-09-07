@@ -17,6 +17,10 @@
     <!-- Icon -->
     <PackageIcon>Lavalink4NET.png</PackageIcon>
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
+
+    <!-- Nullable -->
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

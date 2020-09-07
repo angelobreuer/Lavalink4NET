@@ -81,11 +81,11 @@ namespace Lavalink4NET
         /// <summary>
         ///     An asynchronous event which is triggered when a user voice state was updated.
         /// </summary>
-        event AsyncEventHandler<VoiceStateUpdateEventArgs> VoiceStateUpdated;
+        event AsyncEventHandler<VoiceStateUpdateEventArgs>? VoiceStateUpdated;
 
         /// <summary>
         ///     An asynchronous event which is triggered when the voice server was updated.
         /// </summary>
-        event AsyncEventHandler<VoiceServer> VoiceServerUpdated;
+        event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
     }
 }

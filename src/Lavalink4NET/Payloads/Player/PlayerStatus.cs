@@ -33,7 +33,7 @@ namespace Lavalink4NET.Payloads.Player
     /// <summary>
     ///     A wrapper for the player status object.
     /// </summary>
-    public sealed class PlayerStatus
+    public readonly struct PlayerStatus
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="PlayerStatus"/> class.
@@ -48,15 +48,15 @@ namespace Lavalink4NET.Payloads.Player
         }
 
         /// <summary>
-        ///     Gets the time when the position update was sent.
-        /// </summary>
-        [JsonIgnore]
-        public DateTimeOffset UpdateTime { get; }
-
-        /// <summary>
         ///     Gets the track position (at the time the update was received, see: <see cref="UpdateTime"/>).
         /// </summary>
         [JsonIgnore]
         public TimeSpan Position { get; }
+
+        /// <summary>
+        ///     Gets the time when the position update was sent.
+        /// </summary>
+        [JsonIgnore]
+        public DateTimeOffset UpdateTime { get; }
     }
 }

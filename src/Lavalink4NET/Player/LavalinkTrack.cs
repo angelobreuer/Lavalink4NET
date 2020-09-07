@@ -79,19 +79,16 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="author"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="source"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="title"/> is <see langword="null"/>.
         /// </exception>
         public LavalinkTrack(string identifier, string author, TimeSpan duration, bool isLiveStream, bool isSeekable,
-            string source, string title, string trackIdentifier, StreamProvider provider)
+            string? source, string title, string trackIdentifier, StreamProvider provider)
         {
             Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
             TrackIdentifier = trackIdentifier ?? throw new ArgumentNullException(nameof(trackIdentifier));
             Author = author ?? throw new ArgumentNullException(nameof(author));
-            Source = source ?? throw new ArgumentNullException(nameof(source));
             Title = title ?? throw new ArgumentNullException(nameof(title));
+            Source = source;
 
             Duration = duration;
             IsSeekable = isSeekable;
@@ -107,7 +104,9 @@ namespace Lavalink4NET.Player
         ///     the specified <paramref name="info"/> can not be <see langword="null"/>.
         /// </exception>
         [JsonConstructor]
+#pragma warning disable CS8618
         internal LavalinkTrack(LavalinkTrackInfo info)
+#pragma warning restore CS8618
         {
             if (info is null)
             {
@@ -121,7 +120,10 @@ namespace Lavalink4NET.Player
             IsLiveStream = info.IsLiveStream;
             IsSeekable = info.IsSeekable;
             TrackIdentifier = info.TrackIdentifier;
-            Provider = StreamProviderUtil.GetStreamProvider(info.Source);
+
+            Provider = info.Source is null
+                ? StreamProvider.Unknown
+                : StreamProviderUtil.GetStreamProvider(info.Source);
         }
 
         /// <summary>
@@ -170,7 +172,7 @@ namespace Lavalink4NET.Player
         ///     Gets the track source.
         /// </summary>
         [JsonIgnore]
-        public string Source { get; }
+        public string? Source { get; }
 
         /// <summary>
         ///     Gets the title of the track.

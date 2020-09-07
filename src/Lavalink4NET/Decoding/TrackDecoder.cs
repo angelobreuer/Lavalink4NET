@@ -73,29 +73,28 @@ namespace Lavalink4NET.Decoding
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            using (var memoryStream = new MemoryStream(buffer))
-            using (var reader = new DataInputReader(memoryStream))
+            using var memoryStream = new MemoryStream(buffer);
+            using var reader = new DataInputReader(memoryStream);
+
+            ReadHeader(reader, buffer.Length, verify);
+
+            var title = reader.ReadString();
+            var author = reader.ReadString();
+            var length = reader.ReadInt64();
+            var identifier = reader.ReadString();
+            var isStream = reader.ReadBoolean();
+            var uri = reader.ReadBoolean() ? reader.ReadString() : null;
+
+            return new LavalinkTrackInfo
             {
-                ReadHeader(reader, buffer.Length, verify);
-
-                var title = reader.ReadString();
-                var author = reader.ReadString();
-                var length = reader.ReadInt64();
-                var identifier = reader.ReadString();
-                var isStream = reader.ReadBoolean();
-                var uri = reader.ReadBoolean() ? reader.ReadString() : null;
-
-                return new LavalinkTrackInfo
-                {
-                    Title = title,
-                    Author = author,
-                    Duration = TimeSpan.FromMilliseconds(length),
-                    TrackIdentifier = identifier,
-                    IsLiveStream = isStream,
-                    IsSeekable = !isStream,
-                    Source = uri
-                };
-            }
+                Title = title,
+                Author = author,
+                Duration = TimeSpan.FromMilliseconds(length),
+                TrackIdentifier = identifier,
+                IsLiveStream = isStream,
+                IsSeekable = !isStream,
+                Source = uri
+            };
         }
 
         /// <summary>

@@ -210,20 +210,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Clears the queue.
-        /// </summary>
-        /// <remarks>
-        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
-        /// </remarks>
-        void ICollection<LavalinkTrack>.Clear()
-        {
-            lock (_syncRoot)
-            {
-                _list.Clear();
-            }
-        }
-
-        /// <summary>
         ///     Gets a value indicating whether the specified <paramref name="track"/> is in the queue.
         /// </summary>
         /// <remarks>
@@ -330,21 +316,6 @@ namespace Lavalink4NET.Player
             lock (_syncRoot)
             {
                 return _list.ToList().GetEnumerator();
-            }
-        }
-
-        /// <summary>
-        ///     Gets the track enumerator.
-        /// </summary>
-        /// <remarks>
-        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
-        /// </remarks>
-        /// <returns>the track enumerator</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            lock (_syncRoot)
-            {
-                return _list.ToArray().GetEnumerator();
             }
         }
 
@@ -491,7 +462,7 @@ namespace Lavalink4NET.Player
         ///     thrown if no tracks were in the queue
         /// </exception>
         /// <returns>a value indicating whether a track was dequeued.</returns>
-        public bool TryDequeue(out LavalinkTrack track)
+        public bool TryDequeue(out LavalinkTrack? track)
         {
             lock (_syncRoot)
             {
@@ -504,6 +475,35 @@ namespace Lavalink4NET.Player
                 track = _list[0];
                 _list.RemoveAt(0);
                 return true;
+            }
+        }
+
+        /// <summary>
+        ///     Clears the queue.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
+        /// </remarks>
+        void ICollection<LavalinkTrack>.Clear()
+        {
+            lock (_syncRoot)
+            {
+                _list.Clear();
+            }
+        }
+
+        /// <summary>
+        ///     Gets the track enumerator.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe, so it can be used from multiple threads at once safely.
+        /// </remarks>
+        /// <returns>the track enumerator</returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            lock (_syncRoot)
+            {
+                return _list.ToArray().GetEnumerator();
             }
         }
     }

@@ -27,14 +27,14 @@
 
 namespace Lavalink4NET.Tracking
 {
-    using Lavalink4NET.Events;
-    using Lavalink4NET.Logging;
-    using Lavalink4NET.Player;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Lavalink4NET.Events;
+    using Lavalink4NET.Logging;
+    using Lavalink4NET.Player;
 
     /// <summary>
     ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
@@ -43,13 +43,13 @@ namespace Lavalink4NET.Tracking
     {
         private readonly IAudioService _audioService;
         private readonly IDiscordClientWrapper _clientWrapper;
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
         private readonly InactivityTrackingOptions _options;
         private readonly IDictionary<ulong, DateTimeOffset> _players;
         private readonly IList<InactivityTracker> _trackers;
         private readonly object _trackersLock;
         private bool _disposed;
-        private Timer _timer;
+        private Timer? _timer;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="InactivityTrackingService"/> class.
@@ -67,8 +67,9 @@ namespace Lavalink4NET.Tracking
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
         /// </exception>
-        public InactivityTrackingService(IAudioService audioService, IDiscordClientWrapper clientWrapper,
-            InactivityTrackingOptions options, ILogger logger = null)
+        public InactivityTrackingService(
+            IAudioService audioService, IDiscordClientWrapper clientWrapper,
+            InactivityTrackingOptions options, ILogger? logger = null)
         {
             _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
             _clientWrapper = clientWrapper ?? throw new ArgumentNullException(nameof(clientWrapper));
@@ -93,13 +94,13 @@ namespace Lavalink4NET.Tracking
         /// <summary>
         ///     An asynchronously event that is triggered when an inactive player was found.
         /// </summary>
-        public event AsyncEventHandler<InactivePlayerEventArgs> InactivePlayer;
+        public event AsyncEventHandler<InactivePlayerEventArgs>? InactivePlayer;
 
         /// <summary>
         ///     An asynchronously event that is triggered when a player's tracking status ( <see
         ///     cref="InactivityTrackingStatus"/>) was updated.
         /// </summary>
-        public event AsyncEventHandler<PlayerTrackingStatusUpdateEventArgs> PlayerTrackingStatusUpdated;
+        public event AsyncEventHandler<PlayerTrackingStatusUpdateEventArgs>? PlayerTrackingStatusUpdated;
 
         /// <summary>
         ///     Gets a value indicating whether the service is tracking inactive players.
@@ -254,7 +255,7 @@ namespace Lavalink4NET.Tracking
                         // mark as tracked
                         _players.Add(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay);
 
-                        _logger.Log(this, string.Format("Tracked player {0} as inactive.", player.GuildId), LogLevel.Debug);
+                        _logger?.Log(this, string.Format("Tracked player {0} as inactive.", player.GuildId), LogLevel.Debug);
 
                         // trigger event
                         await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
@@ -266,7 +267,7 @@ namespace Lavalink4NET.Tracking
                     // the player is active again, remove from tracking list
                     if (_players.Remove(player.GuildId))
                     {
-                        _logger.Log(this, string.Format("Removed player {0} from tracking list.", player.GuildId), LogLevel.Debug);
+                        _logger?.Log(this, string.Format("Removed player {0} from tracking list.", player.GuildId), LogLevel.Debug);
 
                         // remove from tracking list
                         await UntrackPlayerAsync(player);
@@ -301,7 +302,7 @@ namespace Lavalink4NET.Tracking
                         continue;
                     }
 
-                    _logger.Log(this, string.Format("Destroyed player {0} due inactivity.", player.Key), LogLevel.Debug);
+                    _logger?.Log(this, string.Format("Destroyed player {0} due inactivity.", player.Key), LogLevel.Debug);
 
                     // dispose the player
                     trackedPlayer.Dispose();
@@ -455,9 +456,15 @@ namespace Lavalink4NET.Tracking
 
             var player = _audioService.GetPlayer(guildId);
 
+            if (player is null)
+            {
+                // unknown player
+                return false;
+            }
+
             // trigger event
-            var args = new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                player, InactivityTrackingStatus.Untracked);
+            var args = new PlayerTrackingStatusUpdateEventArgs(
+                _audioService, player, InactivityTrackingStatus.Untracked);
 
             await OnPlayerTrackingStatusUpdated(args);
 

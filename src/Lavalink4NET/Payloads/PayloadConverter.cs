@@ -44,67 +44,33 @@ namespace Lavalink4NET.Payloads
         /// </summary>
         /// <param name="eventType">the type of the event</param>
         /// <returns>the implementation type</returns>
-        public static Type GetEventType(EventType eventType)
+        public static Type GetEventType(EventType eventType) => eventType switch
         {
-            switch (eventType)
-            {
-                case EventType.TrackStuck:
-                    return typeof(TrackStuckEvent);
-
-                case EventType.TrackEnd:
-                    return typeof(TrackEndEvent);
-
-                case EventType.TrackException:
-                    return typeof(TrackExceptionEvent);
-
-                case EventType.WebSocketClosedEvent:
-                    return typeof(WebSocketClosedEvent);
-
-                case EventType.TrackStart:
-                    return typeof(TrackStartEvent);
-
-                default:
-                    throw new Exception("Invalid event type.");
-            }
-        }
+            EventType.TrackStuck => typeof(TrackStuckEvent),
+            EventType.TrackEnd => typeof(TrackEndEvent),
+            EventType.TrackException => typeof(TrackExceptionEvent),
+            EventType.WebSocketClosedEvent => typeof(WebSocketClosedEvent),
+            EventType.TrackStart => typeof(TrackStartEvent),
+            _ => throw new Exception("Invalid event type."),
+        };
 
         /// <summary>
         ///     Gets the implementation type for the specified <paramref name="opCode"/>.
         /// </summary>
         /// <param name="opCode">the operation code of the event</param>
         /// <returns>the implementation type</returns>
-        public static Type GetPayloadType(OpCode opCode)
+        public static Type GetPayloadType(OpCode opCode) => opCode switch
         {
-            switch (opCode)
-            {
-                case OpCode.GuildVoiceUpdate:
-                    return typeof(VoiceUpdatePayload);
-
-                case OpCode.PlayerPause:
-                    return typeof(PlayerPausePayload);
-
-                case OpCode.PlayerSeek:
-                    return typeof(PlayerSeekPayload);
-
-                case OpCode.PlayerStop:
-                    return typeof(PlayerStopPayload);
-
-                case OpCode.PlayerPlay:
-                    return typeof(PlayerPlayPayload);
-
-                case OpCode.PlayerUpdate:
-                    return typeof(PlayerUpdatePayload);
-
-                case OpCode.NodeStats:
-                    return typeof(StatsUpdatePayload);
-
-                case OpCode.Event:
-                    throw new Exception("Events are specially handled.");
-
-                default:
-                    throw new Exception("Invalid operation code.");
-            }
-        }
+            OpCode.GuildVoiceUpdate => typeof(VoiceUpdatePayload),
+            OpCode.PlayerPause => typeof(PlayerPausePayload),
+            OpCode.PlayerSeek => typeof(PlayerSeekPayload),
+            OpCode.PlayerStop => typeof(PlayerStopPayload),
+            OpCode.PlayerPlay => typeof(PlayerPlayPayload),
+            OpCode.PlayerUpdate => typeof(PlayerUpdatePayload),
+            OpCode.NodeStats => typeof(StatsUpdatePayload),
+            OpCode.Event => throw new Exception("Events are specially handled."),
+            _ => throw new Exception("Invalid operation code."),
+        };
 
         /// <summary>
         ///     Reads a lavalink payload from the specified json.

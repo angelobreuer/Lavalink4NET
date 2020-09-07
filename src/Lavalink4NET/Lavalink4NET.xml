@@ -212,7 +212,7 @@
                 A clustered lavalink node with additional information.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache,System.Int32)">
+        <member name="M:Lavalink4NET.Cluster.LavalinkClusterNode.#ctor(Lavalink4NET.Cluster.LavalinkCluster,Lavalink4NET.LavalinkNodeOptions,Lavalink4NET.IDiscordClientWrapper,System.Int32,Lavalink4NET.Logging.ILogger,Lavalink4NET.ILavalinkCache)">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.LavalinkNode"/> class.
             </summary>
@@ -1131,8 +1131,8 @@
         </member>
         <member name="T:Lavalink4NET.Events.VoiceStateUpdateEventArgs">
             <summary>
-                Represents the event arguments for the
-                <see cref="E:Lavalink4NET.IDiscordClientWrapper.VoiceStateUpdated"/> event.
+                Represents the event arguments for the <see
+                cref="E:Lavalink4NET.IDiscordClientWrapper.VoiceStateUpdated"/> event.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Events.VoiceStateUpdateEventArgs.#ctor(System.UInt64,Lavalink4NET.VoiceState,Lavalink4NET.VoiceState)">
@@ -1142,12 +1142,6 @@
             <param name="userId">the user snowflake identifier the update is for</param>
             <param name="voiceState">the new user voice state</param>
             <param name="oldVoiceState">the old user voice state</param>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="voiceState"/> is <see langword="null"/>.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="oldVoiceState"/> is <see langword="null"/>.
-            </exception>
         </member>
         <member name="P:Lavalink4NET.Events.VoiceStateUpdateEventArgs.UserId">
             <summary>
@@ -2264,8 +2258,8 @@
         </member>
         <member name="T:Lavalink4NET.Payloads.Events.WebSocketClosedEvent">
             <summary>
-                The strongly-typed representation of a web socket closed event received from the lavalink
-                node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+                The strongly-typed representation of a web socket closed event received from the
+                lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
         <member name="P:Lavalink4NET.Payloads.Events.WebSocketClosedEvent.Type">
@@ -2724,14 +2718,14 @@
             <param name="time">the time when the update was sent</param>
             <param name="position">the track position in milliseconds</param>
         </member>
-        <member name="P:Lavalink4NET.Payloads.Player.PlayerStatus.UpdateTime">
-            <summary>
-                Gets the time when the position update was sent.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Payloads.Player.PlayerStatus.Position">
             <summary>
                 Gets the track position (at the time the update was received, see: <see cref="P:Lavalink4NET.Payloads.Player.PlayerStatus.UpdateTime"/>).
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerStatus.UpdateTime">
+            <summary>
+                Gets the time when the position update was sent.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Payloads.Player.PlayerStopPayload">
@@ -2762,14 +2756,14 @@
                 node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.OpCode">
-            <summary>
-                Gets the operation code for the payload.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.GuildId">
             <summary>
                 Gets the guild snowflake identifier the player update is for.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.OpCode">
+            <summary>
+                Gets the operation code for the payload.
             </summary>
         </member>
         <member name="P:Lavalink4NET.Payloads.Player.PlayerUpdatePayload.Status">
@@ -2842,8 +2836,8 @@
         </member>
         <member name="M:Lavalink4NET.Player.EqualizerBandComparer.Equals(Lavalink4NET.Player.EqualizerBand,Lavalink4NET.Player.EqualizerBand)">
             <summary>
-                Checks the equality of the first <paramref name="band1"/> and the second
-                <paramref name="band2"/> by comparing it's gain value.
+                Checks the equality of the first <paramref name="band1"/> and the second <paramref
+                name="band2"/> by comparing it's gain value.
             </summary>
             <param name="band1">the first equalizer band</param>
             <param name="band2">the second equalizer band</param>
@@ -3253,14 +3247,6 @@
             </remarks>
             <returns>the number of tracks removed</returns>
         </member>
-        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#Generic#ICollection{Lavalink4NET#Player#LavalinkTrack}#Clear">
-            <summary>
-                Clears the queue.
-            </summary>
-            <remarks>
-                This method is thread-safe, so it can be used from multiple threads at once safely.
-            </remarks>
-        </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.Contains(Lavalink4NET.Player.LavalinkTrack)">
             <summary>
                 Gets a value indicating whether the specified <paramref name="track"/> is in the queue.
@@ -3305,15 +3291,6 @@
             </remarks>
         </member>
         <member name="M:Lavalink4NET.Player.LavalinkQueue.GetEnumerator">
-            <summary>
-                Gets the track enumerator.
-            </summary>
-            <remarks>
-                This method is thread-safe, so it can be used from multiple threads at once safely.
-            </remarks>
-            <returns>the track enumerator</returns>
-        </member>
-        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#IEnumerable#GetEnumerator">
             <summary>
                 Gets the track enumerator.
             </summary>
@@ -3407,6 +3384,23 @@
             </exception>
             <returns>a value indicating whether a track was dequeued.</returns>
         </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#Generic#ICollection{Lavalink4NET#Player#LavalinkTrack}#Clear">
+            <summary>
+                Clears the queue.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+        </member>
+        <member name="M:Lavalink4NET.Player.LavalinkQueue.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+                Gets the track enumerator.
+            </summary>
+            <remarks>
+                This method is thread-safe, so it can be used from multiple threads at once safely.
+            </remarks>
+            <returns>the track enumerator</returns>
+        </member>
         <member name="T:Lavalink4NET.Player.LavalinkTrack">
             <summary>
                 The information of a lavalink track.
@@ -3445,9 +3439,6 @@
             </exception>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="author"/> is <see langword="null"/>.
-            </exception>
-            <exception cref="T:System.ArgumentNullException">
-                thrown if the specified <paramref name="source"/> is <see langword="null"/>.
             </exception>
             <exception cref="T:System.ArgumentNullException">
                 thrown if the specified <paramref name="title"/> is <see langword="null"/>.
@@ -3850,16 +3841,14 @@
                 A lavalink player with a queuing and voting system.
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
-            <summary>
-                Asynchronously triggered when a track ends.
-            </summary>
-            <param name="eventArgs">the track event arguments</param>
-            <returns>a task that represents the asynchronous operation</returns>
-        </member>
         <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.#ctor">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Player.VoteLavalinkPlayer"/> class.
+            </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.ClearVotes">
+            <summary>
+                Clears all user votes.
             </summary>
         </member>
         <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.GetVoteInfoAsync">
@@ -3869,10 +3858,12 @@
             <returns>the vote info</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.ClearVotes">
+        <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.OnTrackEndAsync(Lavalink4NET.Events.TrackEndEventArgs)">
             <summary>
-                Clears all user votes.
+                Asynchronously triggered when a track ends.
             </summary>
+            <param name="eventArgs">the track event arguments</param>
+            <returns>a task that represents the asynchronous operation</returns>
         </member>
         <member name="M:Lavalink4NET.Player.VoteLavalinkPlayer.VoteAsync(System.UInt64,System.Single)">
             <summary>
@@ -3890,7 +3881,7 @@
         </member>
         <member name="M:Lavalink4NET.Player.VoteSkipInfo.#ctor(System.Collections.Generic.IReadOnlyCollection{System.UInt64},System.Int32)">
             <summary>
-                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.VoteSkipInfo"/> class.
+                Initializes a new instance of the <see cref="T:Lavalink4NET.Player.VoteSkipInfo"/> struct.
             </summary>
             <param name="votes">
                 a collection of the snowflake identifier values of the users that voted for skipping
@@ -3965,8 +3956,8 @@
                 of cancellation.
             </param>
             <returns>
-                a task that represents the asynchronous operation. The task result is the track found
-                for the specified <paramref name="query"/>
+                a task that represents the asynchronous operation. The task result is the track
+                found for the specified <paramref name="query"/>
             </returns>
         </member>
         <member name="M:Lavalink4NET.Rest.ILavalinkRestClient.GetTracksAsync(System.String,Lavalink4NET.Rest.SearchMode,System.Boolean,System.Threading.CancellationToken)">
@@ -4132,14 +4123,14 @@
                 The playlist info object for the track load response.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Rest.PlaylistInfo.SelectedTrack">
-            <summary>
-                Gets the index of the selected track.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Rest.PlaylistInfo.Name">
             <summary>
                 Gets the name of the playlist.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Rest.PlaylistInfo.SelectedTrack">
+            <summary>
+                Gets the index of the selected track.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Rest.RestClientOptions">
@@ -4231,7 +4222,9 @@
             <summary>
                 Gets an exception that indicates why the track load failed (see: <see cref="P:Lavalink4NET.Rest.TrackLoadResponsePayload.LoadType"/>).
             </summary>
-            <remarks>This property is only available if <see cref="T:Lavalink4NET.Rest.TrackLoadType"/> is <see cref="F:Lavalink4NET.Rest.TrackLoadType.LoadFailed"/>.</remarks>
+            <remarks>
+                This property is only available if <see cref="T:Lavalink4NET.Rest.TrackLoadType"/> is <see cref="F:Lavalink4NET.Rest.TrackLoadType.LoadFailed"/>.
+            </remarks>
         </member>
         <member name="P:Lavalink4NET.Rest.TrackLoadResponsePayload.LoadType">
             <summary>

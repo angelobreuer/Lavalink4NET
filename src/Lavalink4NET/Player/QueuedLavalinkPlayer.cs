@@ -195,7 +195,7 @@ namespace Lavalink4NET.Player
             }
 
             // create clone and set starting position
-            var oldTrack = CurrentTrack.WithPosition(TrackPosition);
+            var oldTrack = CurrentTrack!.WithPosition(TrackPosition);
 
             // enqueue old track with starting position
             Queue.Add(oldTrack);
@@ -230,7 +230,7 @@ namespace Lavalink4NET.Player
             // tracks are enqueued
             else if (!Queue.IsEmpty)
             {
-                LavalinkTrack track = null;
+                LavalinkTrack? track = null;
 
                 while (count-- > 0)
                 {
@@ -246,7 +246,7 @@ namespace Lavalink4NET.Player
                 }
 
                 // a track to play was found, dequeue and play
-                return PlayAsync(track, false);
+                return PlayAsync(track!, false);
             }
             // no tracks queued, disconnect if wanted
             else if (_disconnectOnStop)

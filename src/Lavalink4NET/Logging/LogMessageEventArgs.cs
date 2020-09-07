@@ -52,7 +52,7 @@ namespace Lavalink4NET.Logging
         /// <summary>
         ///     Gets an optional exception that occurred.
         /// </summary>
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LogMessageEventArgs"/> class.
@@ -61,7 +61,7 @@ namespace Lavalink4NET.Logging
         /// <param name="message">the message to log</param>
         /// <param name="level">the logging level / the severity of the message</param>
         /// <param name="exception">an optional exception that occurred</param>
-        public LogMessageEventArgs(object source, string message, LogLevel level = LogLevel.Information, Exception exception = null)
+        public LogMessageEventArgs(object source, string message, LogLevel level = LogLevel.Information, Exception? exception = null)
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Message = message ?? throw new ArgumentNullException(nameof(message));

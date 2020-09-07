@@ -27,7 +27,6 @@
 
 namespace Lavalink4NET.Payloads.Node
 {
-    using System;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -59,7 +58,7 @@ namespace Lavalink4NET.Payloads.Node
         ///     Gets the resuming key.
         /// </summary>
         [JsonRequired, JsonProperty("key")]
-        public string Key { get; internal set; }
+        public string Key { get; internal set; } = string.Empty;
 
         /// <summary>
         ///     Gets the number of seconds after disconnecting before the session is closed anyways.

@@ -63,14 +63,13 @@ namespace Lavalink4NET
         /// <remarks>
         ///     This property defaults to <see langword="null"/> and is used for identifying nodes.
         /// </remarks>
-        public string Label { get; set; }
+        public string? Label { get; set; }
 
         /// <summary>
         ///     Gets or sets the reconnect strategy for reconnection.
         /// </summary>
         /// <remarks>This property defaults to <see cref="ReconnectStrategies.DefaultStrategy"/>.</remarks>
-        public ReconnectStrategy ReconnectStrategy { get; set; }
-            = ReconnectStrategies.DefaultStrategy;
+        public ReconnectStrategy ReconnectStrategy { get; set; } = ReconnectStrategies.DefaultStrategy;
 
         /// <summary>
         ///     The number of seconds a session is valid after the connection aborts.

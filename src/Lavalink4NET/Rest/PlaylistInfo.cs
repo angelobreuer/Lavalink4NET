@@ -35,15 +35,15 @@ namespace Lavalink4NET.Rest
     public sealed class PlaylistInfo
     {
         /// <summary>
+        ///     Gets the name of the playlist.
+        /// </summary>
+        [JsonProperty("name")]
+        public string? Name { get; internal set; }
+
+        /// <summary>
         ///     Gets the index of the selected track.
         /// </summary>
         [JsonProperty("selectedTrack")]
         public int SelectedTrack { get; internal set; }
-
-        /// <summary>
-        ///     Gets the name of the playlist.
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; internal set; }
     }
 }

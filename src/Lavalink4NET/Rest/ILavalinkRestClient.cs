@@ -52,10 +52,10 @@ namespace Lavalink4NET.Rest
         ///     of cancellation.
         /// </param>
         /// <returns>
-        ///     a task that represents the asynchronous operation. The task result is the track found
-        ///     for the specified <paramref name="query"/>
+        ///     a task that represents the asynchronous operation. The task result is the track
+        ///     found for the specified <paramref name="query"/>
         /// </returns>
-        Task<LavalinkTrack> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+        Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
             bool noCache = false, CancellationToken cancellationToken = default);
 
         /// <summary>

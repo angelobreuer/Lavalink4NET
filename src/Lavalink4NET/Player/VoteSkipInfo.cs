@@ -36,7 +36,7 @@ namespace Lavalink4NET.Player
     public class VoteSkipInfo
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="VoteSkipInfo"/> class.
+        ///     Initializes a new instance of the <see cref="VoteSkipInfo"/> struct.
         /// </summary>
         /// <param name="votes">
         ///     a collection of the snowflake identifier values of the users that voted for skipping
