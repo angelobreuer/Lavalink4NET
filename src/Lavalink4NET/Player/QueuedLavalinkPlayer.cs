@@ -65,14 +65,22 @@ namespace Lavalink4NET.Player
         /// </summary>
         /// <param name="eventArgs">the track event arguments</param>
         /// <returns>a task that represents the asynchronous operation</returns>
-        public override async Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+        public override Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
         {
+            // Note: It is intended that 'await base.OnTrackEndAsync(eventArgs);' is avoided here to
+            // suppress the State update
             if (eventArgs.MayStartNext)
             {
-                await SkipAsync();
+                return SkipAsync();
             }
-
-            await base.OnTrackEndAsync(eventArgs);
+            else if (_disconnectOnStop)
+            {
+                return DisconnectAsync(PlayerDisconnectCause.Stop);
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
         }
 
         /// <summary>
