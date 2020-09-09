@@ -256,10 +256,10 @@ namespace Lavalink4NET.Player
                 // a track to play was found, dequeue and play
                 return PlayAsync(track!, false);
             }
-            // no tracks queued, disconnect if wanted
-            else if (_disconnectOnStop)
+            // no tracks queued, stop player and disconnect if specified
+            else
             {
-                return DisconnectAsync();
+                StopAsync(disconnect: _disconnectOnStop);
             }
 
             return Task.CompletedTask;
