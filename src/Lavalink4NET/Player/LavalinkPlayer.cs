@@ -125,7 +125,9 @@ namespace Lavalink4NET.Player
         {
             await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
             VoiceChannelId = voiceChannelId;
+
             State = PlayerState.NotPlaying;
+            CurrentTrack = null;
         }
 
         /// <summary>
@@ -199,6 +201,7 @@ namespace Lavalink4NET.Player
             {
                 // The track ended, set to not playing
                 State = PlayerState.NotPlaying;
+                CurrentTrack = null;
             }
 
             return Task.CompletedTask;
@@ -421,6 +424,9 @@ namespace Lavalink4NET.Player
             {
                 await DisconnectAsync(PlayerDisconnectCause.Stop);
             }
+
+            State = PlayerState.NotPlaying;
+            CurrentTrack = null;
         }
 
         /// <summary>
@@ -563,6 +569,7 @@ namespace Lavalink4NET.Player
                 // set initial player state to connected, if player was not connected or destroyed,
                 // see: https://github.com/angelobreuer/Lavalink4NET/issues/28
                 State = PlayerState.NotPlaying;
+                CurrentTrack = null;
             }
 
             // trigger event

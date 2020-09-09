@@ -242,11 +242,6 @@
                 Gets the cluster node id.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.Identifier">
-            <summary>
-                Gets the cluster node label.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Cluster.LavalinkClusterNode.LastUsage">
             <summary>
                 Gets the coordinated universal time (UTC) point of the last usage of the node.
@@ -4395,16 +4390,16 @@
                 A set of default out-of-box inactivity trackers.
             </summary>
         </member>
-        <member name="P:Lavalink4NET.Tracking.DefaultInactivityTrackers.UsersInactivityTracker">
-            <summary>
-                An inactivity tracker ( <see cref="T:Lavalink4NET.Tracking.InactivityTracker"/>) which marks a player as
-                "inactive" when there are no users in the channel except the bot itself.
-            </summary>
-        </member>
         <member name="P:Lavalink4NET.Tracking.DefaultInactivityTrackers.ChannelInactivityTracker">
             <summary>
                 An inactivity tracker ( <see cref="T:Lavalink4NET.Tracking.InactivityTracker"/>) which marks a player as
                 "inactive" when the player is not playing a track.
+            </summary>
+        </member>
+        <member name="P:Lavalink4NET.Tracking.DefaultInactivityTrackers.UsersInactivityTracker">
+            <summary>
+                An inactivity tracker ( <see cref="T:Lavalink4NET.Tracking.InactivityTracker"/>) which marks a player as
+                "inactive" when there are no users in the channel except the bot itself.
             </summary>
         </member>
         <member name="T:Lavalink4NET.Tracking.InactivePlayerEventArgs">
