@@ -4,7 +4,6 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <LangVersion>7.1</LangVersion>
-    <Version>1.5.1-c7517f26490a9115a42809e132ddc454bab25fa8</Version>
 
     <!-- Package Description -->
     <Description>
