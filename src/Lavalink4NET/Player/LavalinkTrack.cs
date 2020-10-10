@@ -130,61 +130,61 @@ namespace Lavalink4NET.Player
         ///     Gets the name of the track author.
         /// </summary>
         [JsonIgnore]
-        public string Author { get; }
+        public virtual string Author { get; }
 
         /// <summary>
         ///     Gets the duration of the track.
         /// </summary>
         [JsonIgnore]
-        public TimeSpan Duration { get; }
+        public virtual TimeSpan Duration { get; }
 
         /// <summary>
         ///     Gets an unique track identifier.
         /// </summary>
         [JsonRequired, JsonProperty("track")]
-        public string Identifier { get; internal set; }
+        public virtual string Identifier { get; internal set; }
 
         /// <summary>
         ///     Gets a value indicating whether the track is a live stream.
         /// </summary>
         [JsonIgnore]
-        public bool IsLiveStream { get; }
+        public virtual bool IsLiveStream { get; }
 
         /// <summary>
         ///     Gets a value indicating whether the track is seek-able.
         /// </summary>
         [JsonIgnore]
-        public bool IsSeekable { get; }
+        public virtual bool IsSeekable { get; }
 
         /// <summary>
         ///     Gets the start position of the track.
         /// </summary>
         [JsonIgnore]
-        public TimeSpan Position { get; private set; }
+        public virtual TimeSpan Position { get; private set; }
 
         /// <summary>
         ///     Gets the stream provider (e.g. YouTube).
         /// </summary>
         [JsonIgnore]
-        public StreamProvider Provider { get; }
+        public virtual StreamProvider Provider { get; }
 
         /// <summary>
         ///     Gets the track source.
         /// </summary>
         [JsonIgnore]
-        public string? Source { get; }
+        public virtual string? Source { get; }
 
         /// <summary>
         ///     Gets the title of the track.
         /// </summary>
         [JsonIgnore]
-        public string Title { get; }
+        public virtual string Title { get; }
 
         /// <summary>
         ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
         /// </summary>
         [JsonIgnore]
-        public string TrackIdentifier { get; }
+        public virtual string TrackIdentifier { get; }
 
         /// <summary>
         ///     Clones the current track.
