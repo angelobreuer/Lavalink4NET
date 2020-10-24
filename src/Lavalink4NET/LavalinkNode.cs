@@ -666,7 +666,7 @@ namespace Lavalink4NET
         {
             EnsureNotDisposed();
 
-            var wasPlaying = player.State == PlayerState.Playing;
+            var previousTrack = player.CurrentTrack;
             var trackPosition = player.TrackPosition;
 
             // destroy (NOT DISCONNECT) the player
@@ -679,10 +679,10 @@ namespace Lavalink4NET
             await player.UpdateAsync();
 
             // play track if one is playing
-            if (wasPlaying)
+            if (previousTrack != null)
             {
                 // restart track
-                await player.PlayAsync(player.CurrentTrack!, trackPosition);
+                await player.PlayAsync(previousTrack, trackPosition);
             }
 
             // add player to the new node
