@@ -99,6 +99,11 @@ namespace Lavalink4NET.Player
         public float Volume { get; private set; } = 1f;
 
         /// <summary>
+        ///     Gets a read-only collection that contains the bands applied to the equalizer.
+        /// </summary>
+        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
+
+        /// <summary>
         ///     Gets or sets the reason why the player disconnected.
         /// </summary>
         internal PlayerDisconnectCause DisconnectCause { get; set; }
@@ -365,6 +370,10 @@ namespace Lavalink4NET.Player
         ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
         ///     -20f to 0f.
         /// </param>
+        /// <param name="force">
+        ///     a value indicating whether to send the update regardless of whether the current
+        ///     volume is the same as the specified <paramref name="volume"/>.
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the player is not connected to a voice channel
@@ -373,7 +382,7 @@ namespace Lavalink4NET.Player
         ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
         /// </exception>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false)
+        public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false, bool force = false)
         {
             EnsureNotDestroyed();
             EnsureConnected();
@@ -391,7 +400,7 @@ namespace Lavalink4NET.Player
             }
 
             // check if the volume is already the same as wanted
-            if (Volume == volume)
+            if (!force && Volume == volume)
             {
                 return;
             }
@@ -437,18 +446,32 @@ namespace Lavalink4NET.Player
         ///     a value indicating whether the equalizer bands should be overridden ( <see
         ///     langword="false"/>) or replaced ( <see langword="true"/>).
         /// </param>
+        /// <param name="force">
+        ///     a value indicating whether to send the update regardless of whether the current
+        ///     equalizer bands ( <see cref="Bands"/>) are configured the same as the specified
+        ///     <paramref name="bands"/>.
+        /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true)
+        public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true, bool force = false)
         {
             EnsureNotDestroyed();
 
             if (reset)
             {
-                bands = bands.Union(DefaultEqualizer, new EqualizerBandComparer());
+                bands = bands.Union(DefaultEqualizer, EqualizerBandComparer.Instance);
             }
 
-            return LavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
+            if (!force && Bands.SequenceEqual(bands, EqualizerBandComparer.Instance))
+            {
+                // equalizer bands are the same
+                return Task.CompletedTask;
+            }
+
+            Bands = bands.ToArray();
+
+            var payload = new PlayerEqualizerPayload(GuildId, Bands);
+            return LavalinkSocket.SendPayloadAsync(payload);
         }
 
         /// <summary>

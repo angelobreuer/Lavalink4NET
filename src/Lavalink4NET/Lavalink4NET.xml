@@ -2568,7 +2568,7 @@
                 implementation documentation https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
             </summary>
         </member>
-        <member name="M:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.#ctor(System.UInt64,Lavalink4NET.Player.EqualizerBand[])">
+        <member name="M:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload.#ctor(System.UInt64,System.Collections.Generic.IReadOnlyList{Lavalink4NET.Player.EqualizerBand})">
             <summary>
                 Initializes a new instance of the <see cref="T:Lavalink4NET.Payloads.Player.PlayerEqualizerPayload"/> class.
             </summary>
@@ -2895,6 +2895,11 @@
                 Gets the current player volume.
             </summary>
         </member>
+        <member name="P:Lavalink4NET.Player.LavalinkPlayer.Bands">
+            <summary>
+                Gets a read-only collection that contains the bands applied to the equalizer.
+            </summary>
+        </member>
         <member name="P:Lavalink4NET.Player.LavalinkPlayer.DisconnectCause">
             <summary>
                 Gets or sets the reason why the player disconnected.
@@ -3046,7 +3051,7 @@
             </exception>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.LavalinkPlayer.SetVolumeAsync(System.Single,System.Boolean)">
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.SetVolumeAsync(System.Single,System.Boolean,System.Boolean)">
             <summary>
                 Updates the player volume asynchronously.
             </summary>
@@ -3055,6 +3060,10 @@
                 a value indicating whether if the <paramref name="volume"/> is out of range (0f -
                 10f) it should be normalized in its range. For example 11f will be mapped to 10f and
                 -20f to 0f.
+            </param>
+            <param name="force">
+                a value indicating whether to send the update regardless of whether the current
+                volume is the same as the specified <paramref name="volume"/>.
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">
@@ -3078,7 +3087,7 @@
             </exception>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
         </member>
-        <member name="M:Lavalink4NET.Player.LavalinkPlayer.UpdateEqualizerAsync(System.Collections.Generic.IEnumerable{Lavalink4NET.Player.EqualizerBand},System.Boolean)">
+        <member name="M:Lavalink4NET.Player.LavalinkPlayer.UpdateEqualizerAsync(System.Collections.Generic.IEnumerable{Lavalink4NET.Player.EqualizerBand},System.Boolean,System.Boolean)">
             <summary>
                 Updates the player equalizer asynchronously.
             </summary>
@@ -3086,6 +3095,11 @@
             <param name="reset">
                 a value indicating whether the equalizer bands should be overridden ( <see
                 langword="false"/>) or replaced ( <see langword="true"/>).
+            </param>
+            <param name="force">
+                a value indicating whether to send the update regardless of whether the current
+                equalizer bands ( <see cref="P:Lavalink4NET.Player.LavalinkPlayer.Bands"/>) are configured the same as the specified
+                <paramref name="bands"/>.
             </param>
             <returns>a task that represents the asynchronous operation</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the player is destroyed</exception>
