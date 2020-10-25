@@ -27,6 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Player
 {
+    using System.Collections.Generic;
     using Lavalink4NET.Player;
     using Newtonsoft.Json;
 
@@ -44,7 +45,7 @@ namespace Lavalink4NET.Payloads.Player
         ///     the guild snowflake identifier the player equalizer update is for
         /// </param>
         /// <param name="bands">the equalizer bands</param>
-        public PlayerEqualizerPayload(ulong guildId, params EqualizerBand[] bands)
+        public PlayerEqualizerPayload(ulong guildId, IReadOnlyList<EqualizerBand> bands)
         {
             GuildId = guildId.ToString();
             Bands = bands;
@@ -66,6 +67,6 @@ namespace Lavalink4NET.Payloads.Player
         ///     Gets the equalizer bands.
         /// </summary>
         [JsonRequired, JsonProperty("bands")]
-        public EqualizerBand[] Bands { get; internal set; }
+        public IReadOnlyList<EqualizerBand> Bands { get; internal set; }
     }
 }

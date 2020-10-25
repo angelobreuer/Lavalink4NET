@@ -666,8 +666,11 @@ namespace Lavalink4NET
         {
             EnsureNotDisposed();
 
+            // capture previous player state
             var previousTrack = player.CurrentTrack;
             var trackPosition = player.TrackPosition;
+            var previousVolume = player.Volume;
+            var previousBands = player.Bands;
 
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
@@ -683,6 +686,18 @@ namespace Lavalink4NET
             {
                 // restart track
                 await player.PlayAsync(previousTrack, trackPosition);
+            }
+
+            // apply previous volume
+            if (previousVolume != 1F)
+            {
+                await player.SetVolumeAsync(previousVolume, normalize: false, force: true);
+            }
+
+            // apply previous equalizer bands
+            if (previousBands.Any())
+            {
+                await player.UpdateEqualizerAsync(previousBands, reset: false, force: true);
             }
 
             // add player to the new node

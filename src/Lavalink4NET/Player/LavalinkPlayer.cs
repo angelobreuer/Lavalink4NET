@@ -99,9 +99,9 @@ namespace Lavalink4NET.Player
         public float Volume { get; private set; } = 1f;
 
         /// <summary>
-        ///     Gets an enumerable that enumerates through the equalizer bands applied to the player.
+        ///     Gets a read-only collection that contains the bands applied to the equalizer.
         /// </summary>
-        public IEnumerable<EqualizerBand> Bands { get; private set; } = Enumerable.Empty<EqualizerBand>();
+        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
 
         /// <summary>
         ///     Gets or sets the reason why the player disconnected.
@@ -468,7 +468,10 @@ namespace Lavalink4NET.Player
                 return Task.CompletedTask;
             }
 
-            return LavalinkSocket.SendPayloadAsync(new PlayerEqualizerPayload(GuildId, bands.ToArray()));
+            Bands = bands.ToArray();
+
+            var payload = new PlayerEqualizerPayload(GuildId, Bands);
+            return LavalinkSocket.SendPayloadAsync(payload);
         }
 
         /// <summary>
