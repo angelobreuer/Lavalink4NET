@@ -117,6 +117,11 @@ namespace Lavalink4NET
         public event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
         /// <summary>
+        ///     Asynchronous event which is dispatched when a voice WebSocket connection was closed.
+        /// </summary>
+        public event AsyncEventHandler<WebSocketClosedEventArgs> WebSocketClosed;
+
+        /// <summary>
         ///     Gets the current lavalink server version that is supported by the library.
         /// </summary>
         public static Version SupportedVersion { get; } = new Version(3, 0, 0);
@@ -447,16 +452,19 @@ namespace Lavalink4NET
             // the voice web socket was closed
             if (payload is WebSocketClosedEvent webSocketClosedEvent)
             {
-                await player.DisconnectAsync(PlayerDisconnectCause.WebSocketClosed);
-                Players.Remove(payload.GuildId);
-                player.Dispose();
-
                 Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
                     "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
                     payload.GuildId, webSocketClosedEvent.CloseCode,
                     (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
                     webSocketClosedEvent.ByRemote ? "Yes" : "No"),
                     webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
+
+                var eventArgs = new WebSocketClosedEventArgs(
+                    closeCode: webSocketClosedEvent.CloseCode,
+                    reason: webSocketClosedEvent.Reason,
+                    byRemote: webSocketClosedEvent.ByRemote);
+
+                await OnWebSocketClosedAsync(eventArgs);
             }
         }
 
@@ -579,6 +587,14 @@ namespace Lavalink4NET
             => TrackStuck.InvokeAsync(this, eventArgs);
 
         /// <summary>
+        ///     Dispatches the <see cref="WebSocketClosed"/> event asynchronously.
+        /// </summary>
+        /// <param name="eventArgs">the event arguments passed with the event</param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        protected virtual Task OnWebSocketClosedAsync(WebSocketClosedEventArgs eventArgs)
+            => WebSocketClosed.InvokeAsync(this, eventArgs);
+
+        /// <summary>
         ///     The asynchronous method which is triggered when a voice server updated was received
         ///     from the discord gateway.
         /// </summary>
@@ -617,34 +633,35 @@ namespace Lavalink4NET
                 return;
             }
 
-            var guildId = args.VoiceState?.GuildId ?? args.OldVoiceState!.GuildId;
-
             // try getting affected player
-            if (!Players.TryGetValue(guildId, out var player))
+            if (!Players.TryGetValue(args.VoiceState.GuildId, out var player))
             {
                 return;
             }
 
+            var voiceState = args.VoiceState;
+            var oldVoiceState = player.VoiceState;
+
             // connect to a voice channel
-            if (args.OldVoiceState?.VoiceChannelId is null && args.VoiceState?.VoiceChannelId != null)
+            if (oldVoiceState?.VoiceChannelId is null && voiceState.VoiceChannelId != null)
             {
-                await player.UpdateAsync(args.VoiceState);
-                await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, args.VoiceState.VoiceChannelId.Value));
+                await player.UpdateAsync(voiceState);
+                await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, voiceState.VoiceChannelId.Value));
             }
 
             // disconnect from a voice channel
-            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId is null)
+            else if (oldVoiceState?.VoiceChannelId != null && voiceState.VoiceChannelId is null)
             {
                 // dispose the player
                 await player.DisconnectAsync(PlayerDisconnectCause.Disconnected);
                 player.Dispose();
-                Players.Remove(guildId);
+                Players.Remove(voiceState.GuildId);
             }
 
             // reconnected to a voice channel
-            else if (args.OldVoiceState?.VoiceChannelId != null && args.VoiceState?.VoiceChannelId != null)
+            else if (oldVoiceState?.VoiceChannelId != null && voiceState.VoiceChannelId != null)
             {
-                await player.UpdateAsync(args.VoiceState);
+                await player.UpdateAsync(voiceState);
             }
         }
 

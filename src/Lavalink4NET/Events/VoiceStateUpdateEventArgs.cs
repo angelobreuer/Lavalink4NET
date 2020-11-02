@@ -38,12 +38,10 @@ namespace Lavalink4NET.Events
         /// </summary>
         /// <param name="userId">the user snowflake identifier the update is for</param>
         /// <param name="voiceState">the new user voice state</param>
-        /// <param name="oldVoiceState">the old user voice state</param>
-        public VoiceStateUpdateEventArgs(ulong userId, VoiceState? voiceState, VoiceState? oldVoiceState)
+        public VoiceStateUpdateEventArgs(ulong userId, VoiceState voiceState)
         {
             UserId = userId;
             VoiceState = voiceState;
-            OldVoiceState = oldVoiceState;
         }
 
         /// <summary>
@@ -54,11 +52,6 @@ namespace Lavalink4NET.Events
         /// <summary>
         ///     Gets the new user voice state.
         /// </summary>
-        public VoiceState? VoiceState { get; }
-
-        /// <summary>
-        ///     Gets the old user voice state.
-        /// </summary>
-        public VoiceState? OldVoiceState { get; }
+        public VoiceState VoiceState { get; }
     }
 }
