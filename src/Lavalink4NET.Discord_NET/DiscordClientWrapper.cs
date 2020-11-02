@@ -205,15 +205,16 @@ namespace Lavalink4NET.DiscordNet
 
         private Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState oldSocketVoiceState, SocketVoiceState socketVoiceState)
         {
-            // create voice states
-            var oldVoiceState = oldSocketVoiceState.VoiceChannel is null ? null : new VoiceState(
-                oldSocketVoiceState.VoiceChannel.Id, oldSocketVoiceState.VoiceChannel.Guild.Id, oldSocketVoiceState.VoiceSessionId);
+            var guildId = oldSocketVoiceState.VoiceChannel?.Guild?.Id ?? socketVoiceState.VoiceChannel.Guild.Id;
 
-            var voiceState = socketVoiceState.VoiceChannel is null ? null : new VoiceState(
-                socketVoiceState.VoiceChannel.Id, socketVoiceState.VoiceChannel.Guild.Id, socketVoiceState.VoiceSessionId);
+            // create voice state
+            var voiceState = new VoiceState(
+                voiceChannelId: socketVoiceState.VoiceChannel?.Id,
+                guildId: guildId,
+                voiceSessionId: socketVoiceState.VoiceSessionId);
 
             // invoke event
-            return VoiceStateUpdated.InvokeAsync(this, new VoiceStateUpdateEventArgs(user.Id, voiceState, oldVoiceState));
+            return VoiceStateUpdated.InvokeAsync(this, new VoiceStateUpdateEventArgs(user.Id, voiceState));
         }
     }
 }

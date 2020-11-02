@@ -182,16 +182,19 @@ namespace Lavalink4NET.DSharpPlus
         {
             EnsureNotDisposed();
 
-            // create voice states
-            var oldVoiceState = eventArgs.Before?.Channel is null ? null : new VoiceState(
-                eventArgs.Before.Channel.Id, eventArgs.Before.Guild.Id, eventArgs.Before.GetSessionId());
+            // session id is the same as the resume key so DSharpPlus should be able to give us the
+            // session key in either before or after voice state
+            var sessionId = eventArgs.Before?.GetSessionId() ?? eventArgs.After.GetSessionId();
 
-            var voiceState = eventArgs.After?.Channel is null ? null : new VoiceState(
-                eventArgs.After.Channel.Id, eventArgs.After.Guild.Id, eventArgs.After.GetSessionId());
+            // create voice state
+            var voiceState = new VoiceState(
+                voiceChannelId: eventArgs.After?.Channel?.Id,
+                guildId: eventArgs.Guild.Id,
+                voiceSessionId: sessionId);
 
             // invoke event
             return VoiceStateUpdated.InvokeAsync(this,
-                new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState, oldVoiceState));
+                new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState));
         }
     }
 }

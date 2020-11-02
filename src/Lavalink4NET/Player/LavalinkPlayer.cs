@@ -41,8 +41,6 @@ namespace Lavalink4NET.Player
     /// </summary>
     public class LavalinkPlayer : IDisposable
     {
-        internal VoiceServer? _voiceServer;
-        internal VoiceState? _voiceState;
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
 
@@ -60,6 +58,11 @@ namespace Lavalink4NET.Player
         /// </summary>
         public static IReadOnlyCollection<EqualizerBand> DefaultEqualizer { get; }
             = Enumerable.Range(0, 15).Select(s => new EqualizerBand(s, 0)).ToList().AsReadOnly();
+
+        /// <summary>
+        ///     Gets a read-only collection that contains the bands applied to the equalizer.
+        /// </summary>
+        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
 
         /// <summary>
         ///     Gets the discord client wrapper.
@@ -99,11 +102,6 @@ namespace Lavalink4NET.Player
         public float Volume { get; private set; } = 1f;
 
         /// <summary>
-        ///     Gets a read-only collection that contains the bands applied to the equalizer.
-        /// </summary>
-        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
-
-        /// <summary>
         ///     Gets or sets the reason why the player disconnected.
         /// </summary>
         internal PlayerDisconnectCause DisconnectCause { get; set; }
@@ -112,6 +110,10 @@ namespace Lavalink4NET.Player
         ///     Gets the communication lavalink socket.
         /// </summary>
         internal LavalinkSocket LavalinkSocket { get; set; } = null!; // Lazy-initialized
+
+        internal VoiceServer? VoiceServer { get; set; }
+
+        internal VoiceState? VoiceState { get; set; }
 
         /// <summary>
         ///     Gets or sets a value indicating whether the player should stop after the track
@@ -551,7 +553,7 @@ namespace Lavalink4NET.Player
         {
             EnsureNotDestroyed();
 
-            _voiceServer = voiceServer;
+            VoiceServer = voiceServer;
             return UpdateAsync();
         }
 
@@ -566,7 +568,7 @@ namespace Lavalink4NET.Player
         {
             EnsureNotDestroyed();
 
-            _voiceState = voiceState;
+            VoiceState = voiceState;
             VoiceChannelId = voiceState.VoiceChannelId;
             return UpdateAsync();
         }
@@ -577,15 +579,15 @@ namespace Lavalink4NET.Player
         /// <returns>a task that represents the asynchronous operation</returns>
         internal async Task UpdateAsync()
         {
-            if (_voiceServer is null || _voiceState is null)
+            if (VoiceServer is null || VoiceState is null)
             {
                 // voice state or server is missing
                 return;
             }
 
             // send voice update payload
-            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(_voiceState.GuildId,
-                _voiceState.VoiceSessionId, new VoiceServerUpdateEvent(_voiceServer)));
+            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(VoiceState.GuildId,
+                VoiceState.VoiceSessionId, new VoiceServerUpdateEvent(VoiceServer)));
 
             if (State == PlayerState.NotConnected || State == PlayerState.Destroyed)
             {
@@ -596,7 +598,7 @@ namespace Lavalink4NET.Player
             }
 
             // trigger event
-            await OnConnectedAsync(_voiceServer, _voiceState);
+            await OnConnectedAsync(VoiceServer, VoiceState);
         }
 
         internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
