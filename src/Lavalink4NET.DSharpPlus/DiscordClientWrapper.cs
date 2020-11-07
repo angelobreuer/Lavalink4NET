@@ -168,7 +168,7 @@ namespace Lavalink4NET.DSharpPlus
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        private Task OnVoiceServerUpdated(VoiceServerUpdateEventArgs voiceServer)
+        private Task OnVoiceServerUpdated(DiscordClient _, VoiceServerUpdateEventArgs voiceServer)
         {
             EnsureNotDisposed();
 
@@ -178,7 +178,7 @@ namespace Lavalink4NET.DSharpPlus
 
         /// <inheritdoc/>
         /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        private Task OnVoiceStateUpdated(global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
+        private Task OnVoiceStateUpdated(DiscordClient _, global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
         {
             EnsureNotDisposed();
 

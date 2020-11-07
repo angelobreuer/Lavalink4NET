@@ -52,11 +52,11 @@
             </summary>
             <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
-        <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceServerUpdated(DSharpPlus.EventArgs.VoiceServerUpdateEventArgs)">
+        <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceServerUpdated(DSharpPlus.DiscordClient,DSharpPlus.EventArgs.VoiceServerUpdateEventArgs)">
             <inheritdoc/>
             <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
-        <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceStateUpdated(DSharpPlus.EventArgs.VoiceStateUpdateEventArgs)">
+        <member name="M:Lavalink4NET.DSharpPlus.DiscordClientWrapper.OnVoiceStateUpdated(DSharpPlus.DiscordClient,DSharpPlus.EventArgs.VoiceStateUpdateEventArgs)">
             <inheritdoc/>
             <exception cref="T:System.ObjectDisposedException">thrown if the instance is disposed</exception>
         </member>
