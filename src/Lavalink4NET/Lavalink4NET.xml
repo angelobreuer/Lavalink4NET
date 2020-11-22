@@ -2831,8 +2831,8 @@
                 than <c>14</c>.
             </exception>
             <exception cref="T:System.ArgumentOutOfRangeException">
-                thrown if the specified <paramref name="gain"/> is less than <c>-0.25f</c> or greater
-                than <c>1f</c>.
+                thrown if the specified <paramref name="gain"/> is less than <c>-0.25f</c> or
+                greater than <c>1f</c>.
             </exception>
         </member>
         <member name="P:Lavalink4NET.Player.EqualizerBand.Band">
@@ -2844,6 +2844,15 @@
             <summary>
                 Gets the band gain (-0.25f - 1f).
             </summary>
+        </member>
+        <member name="M:Lavalink4NET.Player.EqualizerBand.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Player.EqualizerBand.Equals(Lavalink4NET.Player.EqualizerBand)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Lavalink4NET.Player.EqualizerBand.GetHashCode">
+            <inheritdoc/>
         </member>
         <member name="P:Lavalink4NET.Player.EqualizerBandComparer.Instance">
             <summary>
