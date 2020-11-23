@@ -464,13 +464,13 @@ namespace Lavalink4NET.Player
                 bands = bands.Union(DefaultEqualizer, EqualizerBandComparer.Instance);
             }
 
-            if (!force && Bands.SequenceEqual(bands, EqualizerBandComparer.Instance))
+            if (!force && Bands.SequenceEqual(bands.OrderBy(x => x.Band)))
             {
                 // equalizer bands are the same
                 return Task.CompletedTask;
             }
 
-            Bands = bands.ToArray();
+            Bands = bands.OrderBy(x => x.Band).ToArray();
 
             var payload = new PlayerEqualizerPayload(GuildId, Bands);
             return LavalinkSocket.SendPayloadAsync(payload);

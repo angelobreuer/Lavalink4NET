@@ -28,12 +28,13 @@
 namespace Lavalink4NET.Player
 {
     using System;
+    using System.Collections.Generic;
     using Newtonsoft.Json;
 
     /// <summary>
     ///     Represents a lavalink equalizer band.
     /// </summary>
-    public sealed class EqualizerBand
+    public sealed class EqualizerBand : IEquatable<EqualizerBand?>
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="EqualizerBand"/> class.
@@ -45,8 +46,8 @@ namespace Lavalink4NET.Player
         ///     than <c>14</c>.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="gain"/> is less than <c>-0.25f</c> or greater
-        ///     than <c>1f</c>.
+        ///     thrown if the specified <paramref name="gain"/> is less than <c>-0.25f</c> or
+        ///     greater than <c>1f</c>.
         /// </exception>
         public EqualizerBand(int band, float gain)
         {
@@ -75,5 +76,28 @@ namespace Lavalink4NET.Player
         /// </summary>
         [JsonRequired, JsonProperty("gain")]
         public float Gain { get; }
+
+        public static bool operator !=(EqualizerBand? left, EqualizerBand? right) => !(left == right);
+
+        public static bool operator ==(EqualizerBand? left, EqualizerBand? right)
+            => EqualityComparer<EqualizerBand?>.Default.Equals(left, right);
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj) => Equals(obj as EqualizerBand);
+
+        /// <inheritdoc/>
+        public bool Equals(EqualizerBand? other)
+        {
+            return other != null && Band == other.Band && Gain == other.Gain;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            var hashCode = 1089811828;
+            hashCode = (hashCode * -1521134295) + Band.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Gain.GetHashCode();
+            return hashCode;
+        }
     }
 }
