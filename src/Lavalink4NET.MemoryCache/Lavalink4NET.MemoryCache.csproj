@@ -13,7 +13,7 @@
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,discord.net</PackageTags>
 
     <!-- Documentation -->
-    <DocumentationFile>Lavalink4NET.MemoryCache.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -13,7 +13,7 @@
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,dsharpplus</PackageTags>
 
     <!-- Documentation -->
-    <DocumentationFile>Lavalink4NET.DiscordNet.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

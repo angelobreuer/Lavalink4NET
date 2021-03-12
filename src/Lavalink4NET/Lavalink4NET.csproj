@@ -14,7 +14,7 @@
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
 
     <!-- Documentation -->
-    <DocumentationFile>Lavalink4NET.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
