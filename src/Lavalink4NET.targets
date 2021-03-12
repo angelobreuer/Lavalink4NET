@@ -4,13 +4,13 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Angelo Breuer</Authors>
     <Company>Angelo Breuer</Company>
-    <PackageReleaseNotes>Compatible with Lavalink Server 3.0</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatible with Lavalink Server 3.x</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl />
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
 
     <!-- License -->
-    <Copyright>Angelo Breuer 2020</Copyright>
+    <Copyright>Angelo Breuer 2021</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
