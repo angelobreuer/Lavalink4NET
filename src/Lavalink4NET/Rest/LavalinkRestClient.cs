@@ -196,6 +196,9 @@ namespace Lavalink4NET.Rest
                 }
             }
 
+            // escape query for passing via URI
+            query = Uri.EscapeDataString(query);
+
             // check if a cache provider is specified in constructor and the track request is cached
             // and caching is wanted (see: "noCache" method parameter)
             if (_cache != null && !noCache && _cache.TryGetItem<TrackLoadResponsePayload>("track-" + query, out var track))
