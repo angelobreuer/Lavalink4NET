@@ -34,7 +34,7 @@ namespace Lavalink4NET.Payloads.Player
     /// <summary>
     ///     The strongly-typed representation of a player equalizer update payload sent to the
     ///     lavalink node (in serialized JSON format). For more reference see the lavalink client
-    ///     implementation documentation https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     implementation documentation https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
     public sealed class PlayerEqualizerPayload : IPlayerPayload
     {

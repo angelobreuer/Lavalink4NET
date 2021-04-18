@@ -33,7 +33,7 @@ namespace Lavalink4NET.Payloads.Node
 
     /// <summary>
     ///     The strongly-typed representation of a node statistics payload received from the
-    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
     public sealed class StatsUpdatePayload : IPayload
     {

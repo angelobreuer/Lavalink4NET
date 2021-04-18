@@ -31,7 +31,7 @@ namespace Lavalink4NET.Payloads.Player
 
     /// <summary>
     ///     The strongly-typed representation of a player stop payload sent to the lavalink node (in
-    ///     serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
     public sealed class PlayerStopPayload : IPayload, IPlayerPayload
     {
