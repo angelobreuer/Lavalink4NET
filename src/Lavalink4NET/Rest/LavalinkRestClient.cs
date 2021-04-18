@@ -45,7 +45,7 @@ namespace Lavalink4NET.Rest
     {
         /// <summary>
         ///     The header name for the version of the Lavalink HTTP response from the node. See
-        ///     https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md#significant-changes-v20---v30
+        ///     https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md#significant-changes-v20---v30
         ///     for more details.
         /// </summary>
         private const string VersionHeaderName = "Lavalink-Api-Version";

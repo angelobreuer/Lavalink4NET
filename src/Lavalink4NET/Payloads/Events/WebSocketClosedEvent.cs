@@ -32,7 +32,7 @@ namespace Lavalink4NET.Payloads.Events
 
     /// <summary>
     ///     The strongly-typed representation of a web socket closed event received from the
-    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/Frederikam/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
     public sealed class WebSocketClosedEvent : EventPayload
     {
