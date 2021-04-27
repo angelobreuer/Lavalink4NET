@@ -1,5 +1,5 @@
 /*
- *  File:   DiscordClientWrapper.cs
+ *  File:   DiscordShardedClientWrapper.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -32,11 +32,11 @@ namespace Lavalink4NET.DSharpPlus
     using global::DSharpPlus.Entities;
 
     /// <summary>
-    ///     A wrapper for the discord client from the "DSharpPlus" discord client library. (https://github.com/DSharpPlus/DSharpPlus)
+    ///     A wrapper for the discord sharded client from the "DSharpPlus" discord client library. (https://github.com/DSharpPlus/DSharpPlus)
     /// </summary>
-    public sealed class DiscordClientWrapper : DiscordClientWrapperBase, IDisposable
+    public sealed class DiscordShardedClientWrapper : DiscordClientWrapperBase, IDisposable
     {
-        private readonly DiscordClient _client;
+        private readonly DiscordShardedClient _client;
         private bool _disposed;
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Lavalink4NET.DSharpPlus
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
         /// </exception>
-        public DiscordClientWrapper(DiscordClient client)
+        public DiscordShardedClientWrapper(DiscordShardedClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
 
@@ -60,7 +60,7 @@ namespace Lavalink4NET.DSharpPlus
             get
             {
                 EnsureNotDisposed();
-                return _client.ShardCount;
+                return _client.ShardClients.Count;
             }
         }
 
@@ -82,7 +82,7 @@ namespace Lavalink4NET.DSharpPlus
         }
 
         /// <inheritdoc/>
-        protected override DiscordClient GetClient(ulong guildId) => _client;
+        protected override DiscordClient GetClient(ulong guildId) => _client.GetShard(guildId);
 
         private void Dispose(bool disposing)
         {
