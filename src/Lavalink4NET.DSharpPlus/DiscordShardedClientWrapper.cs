@@ -34,7 +34,7 @@ namespace Lavalink4NET.DSharpPlus
     /// <summary>
     ///     A wrapper for the discord sharded client from the "DSharpPlus" discord client library. (https://github.com/DSharpPlus/DSharpPlus)
     /// </summary>
-    public sealed class DiscordShardedClientWrapper : DiscordClientWrapperBase, IDisposable
+    public class DiscordShardedClientWrapper : DiscordClientWrapperBase, IDisposable
     {
         private readonly DiscordShardedClient _client;
         private bool _disposed;
@@ -81,10 +81,15 @@ namespace Lavalink4NET.DSharpPlus
             GC.SuppressFinalize(this);
         }
 
-        /// <inheritdoc/>
-        protected override DiscordClient GetClient(ulong guildId) => _client.GetShard(guildId);
-
-        private void Dispose(bool disposing)
+        /// <summary>
+        ///     Releases the unmanaged resources used by the <see
+        ///     cref="DiscordShardedClientWrapper"/> and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        ///     <see langword="true"/> to release both managed and unmanaged resources; <see
+        ///     langword="false"/> to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
             {
@@ -99,6 +104,9 @@ namespace Lavalink4NET.DSharpPlus
 
             _disposed = true;
         }
+
+        /// <inheritdoc/>
+        protected override DiscordClient GetClient(ulong guildId) => _client.GetShard(guildId);
 
         /// <summary>
         ///     Throws an <see cref="ObjectDisposedException"/> if the <see
