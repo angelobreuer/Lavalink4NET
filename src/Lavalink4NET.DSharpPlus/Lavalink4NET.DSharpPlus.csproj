@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00813" />
+    <PackageReference Include="DSharpPlus" Version="5.0.0-nightly-00840" />
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
