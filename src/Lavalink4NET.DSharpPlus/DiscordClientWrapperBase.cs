@@ -42,7 +42,7 @@ namespace Lavalink4NET.DSharpPlus
     ///     An abstraction used to implement a wrapper for the discord client from the "DSharpPlus"
     ///     discord client library. (https://github.com/DSharpPlus/DSharpPlus)
     /// </summary>
-    public abstract class DiscordClientWrapperBase
+    public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
     {
         /// <inheritdoc/>
         public event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
