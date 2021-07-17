@@ -55,6 +55,12 @@
             set => this[KaraokeFilterOptions.Name] = value;
         }
 
+        public TimescaleFilterOptions? Timescale
+        {
+            get => this[TimescaleFilterOptions.Name] as TimescaleFilterOptions;
+            set => this[TimescaleFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
