@@ -19,11 +19,11 @@
             _filters = new Dictionary<string, IFilterOptions>();
         }
 
-        public async Task CommitAsync(CancellationToken cancellationToken = default)
+        public async Task CommitAsync(bool force = false, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_changesToCommit)
+            if (!_changesToCommit && !force)
             {
                 return;
             }
