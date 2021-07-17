@@ -28,34 +28,36 @@
 namespace Lavalink4NET.Payloads.Player
 {
     using System.Collections.Generic;
-    using Lavalink4NET.Player;
+    using System.Linq;
+    using Lavalink4NET.Filters;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    ///     The strongly-typed representation of a player equalizer update payload sent to the
+    ///     The strongly-typed representation of a player filters update payload sent to the
     ///     lavalink node (in serialized JSON format). For more reference see the lavalink client
     ///     implementation documentation https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
     /// </summary>
-    public sealed class PlayerEqualizerPayload : IPlayerPayload
+    public sealed class PlayerFiltersPayload : IPlayerPayload
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerEqualizerPayload"/> class.
+        ///     Initializes a new instance of the <see cref="PlayerFiltersPayload"/> class.
         /// </summary>
         /// <param name="guildId">
         ///     the guild snowflake identifier the player equalizer update is for
         /// </param>
-        /// <param name="bands">the equalizer bands</param>
-        public PlayerEqualizerPayload(ulong guildId, IReadOnlyList<EqualizerBand> bands)
+        /// <param name="filters">the player filters</param>
+        public PlayerFiltersPayload(ulong guildId, IReadOnlyDictionary<string, IFilterOptions> filters)
         {
             GuildId = guildId.ToString();
-            Bands = bands;
+            Filters = filters.ToDictionary(x => x.Key, x => JToken.FromObject(x.Value));
         }
 
         /// <summary>
         ///     Gets the operation code for the payload.
         /// </summary>
         [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerEqualizer;
+        public OpCode OpCode => OpCode.PlayerFilters;
 
         /// <summary>
         ///     Gets the guild snowflake identifier the player equalizer update is for.
@@ -63,10 +65,7 @@ namespace Lavalink4NET.Payloads.Player
         [JsonRequired, JsonProperty("guildId")]
         public string GuildId { get; internal set; }
 
-        /// <summary>
-        ///     Gets the equalizer bands.
-        /// </summary>
-        [JsonRequired, JsonProperty("bands")]
-        public IReadOnlyList<EqualizerBand> Bands { get; internal set; }
+        [JsonRequired, JsonExtensionData, JsonProperty("filters")]
+        internal IDictionary<string, JToken> Filters { get; set; }
     }
 }

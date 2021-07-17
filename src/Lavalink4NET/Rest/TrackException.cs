@@ -35,15 +35,16 @@ namespace Lavalink4NET.Rest
     /// </summary>
     [Serializable]
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public sealed class TrackLoadException : Exception
+    public sealed class TrackException : Exception
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="TrackLoadException"/> class.
+        ///     Initializes a new instance of the <see cref="TrackException"/> class.
         /// </summary>
-        /// <param name="friendlyMessage">a localized message from the Lavalink Node</param>
+        /// <param name="message">a localized message from the Lavalink Node</param>
         /// <param name="severity">
         ///     the exception severity; 'COMMON' indicates that the exception is not from Lavalink itself.
         /// </param>
+        /// <param name="cause">the cause of the exception.</param>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="severity"/> is <see langword="null"/>.
         /// </exception>
@@ -53,10 +54,11 @@ namespace Lavalink4NET.Rest
         /// </remarks>
         [JsonConstructor]
         [Obsolete("This constructor should be only used by Json.Net")]
-        public TrackLoadException(string friendlyMessage, string severity)
-            : base(friendlyMessage)
+        public TrackException(string message, string severity, string cause)
+            : base(message)
         {
             Severity = severity ?? throw new ArgumentNullException(nameof(severity));
+            Cause = cause;
         }
 
         /// <summary>
@@ -64,5 +66,7 @@ namespace Lavalink4NET.Rest
         /// </summary>
         /// <remarks>'COMMON' indicates that the exception is not from Lavalink itself</remarks>
         public string Severity { get; internal set; }
+
+        public string Cause { get; }
     }
 }

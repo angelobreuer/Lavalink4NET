@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>latest</LangVersion>
 
     <!-- Package Description -->
     <Description>

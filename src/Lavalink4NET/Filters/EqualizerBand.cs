@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Filters
 {
     using System;
     using System.Collections.Generic;

@@ -42,7 +42,7 @@ namespace Lavalink4NET.Rest
         ///     This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.
         /// </remarks>
         [JsonProperty("exception")]
-        public TrackLoadException Exception { get; internal set; } = null!;
+        public TrackException Exception { get; internal set; } = null!;
 
         /// <summary>
         ///     Gets the type of what was loaded.

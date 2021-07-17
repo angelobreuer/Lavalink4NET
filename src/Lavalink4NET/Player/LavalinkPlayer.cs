@@ -32,6 +32,7 @@ namespace Lavalink4NET.Player
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Filters;
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
@@ -43,6 +44,7 @@ namespace Lavalink4NET.Player
     {
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
+        private PlayerFilterMap? _filterMap;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -54,17 +56,6 @@ namespace Lavalink4NET.Player
         }
 
         /// <summary>
-        ///     Gets the default equalizer bands. (All 15 [0-14] equalizer bands set to zero gain)
-        /// </summary>
-        public static IReadOnlyCollection<EqualizerBand> DefaultEqualizer { get; }
-            = Enumerable.Range(0, 15).Select(s => new EqualizerBand(s, 0)).ToList().AsReadOnly();
-
-        /// <summary>
-        ///     Gets a read-only collection that contains the bands applied to the equalizer.
-        /// </summary>
-        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
-
-        /// <summary>
         ///     Gets the discord client wrapper.
         /// </summary>
         public IDiscordClientWrapper Client { get; private set; } = null!; // Lazy-initialized
@@ -73,6 +64,10 @@ namespace Lavalink4NET.Player
         ///     Gets the track that is currently playing.
         /// </summary>
         public LavalinkTrack? CurrentTrack { get; private set; }
+
+        public PlayerFilterMap Filters => _filterMap ??= new PlayerFilterMap(this);
+
+        internal bool HasFilters => _filterMap != null;
 
         /// <summary>
         ///     Gets the identifier snowflake value of the guild the player is for.
@@ -455,25 +450,15 @@ namespace Lavalink4NET.Player
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        [Obsolete("This member may be removed in a future version, use Filters.Equalizer instead.")]
         public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true, bool force = false)
         {
             EnsureNotDestroyed();
 
-            if (reset)
-            {
-                bands = bands.Union(DefaultEqualizer, EqualizerBandComparer.Instance);
-            }
+            Filters.Equalizer ??= new EqualizerFilterOptions();
+            Filters.Equalizer.Bands = bands.ToArray();
 
-            if (!force && Bands.SequenceEqual(bands.OrderBy(x => x.Band)))
-            {
-                // equalizer bands are the same
-                return Task.CompletedTask;
-            }
-
-            Bands = bands.OrderBy(x => x.Band).ToArray();
-
-            var payload = new PlayerEqualizerPayload(GuildId, Bands);
-            return LavalinkSocket.SendPayloadAsync(payload);
+            return Filters.CommitAsync();
         }
 
         /// <summary>
