@@ -43,6 +43,7 @@ namespace Lavalink4NET.Player
     {
         private DateTimeOffset _lastPositionUpdate;
         private TimeSpan _position;
+        private PlayerFilterMap? _filterMap;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
@@ -73,6 +74,8 @@ namespace Lavalink4NET.Player
         ///     Gets the track that is currently playing.
         /// </summary>
         public LavalinkTrack? CurrentTrack { get; private set; }
+
+        public PlayerFilterMap Filters => _filterMap ??= new PlayerFilterMap(this);
 
         /// <summary>
         ///     Gets the identifier snowflake value of the guild the player is for.
@@ -459,21 +462,7 @@ namespace Lavalink4NET.Player
         {
             EnsureNotDestroyed();
 
-            if (reset)
-            {
-                bands = bands.Union(DefaultEqualizer, EqualizerBandComparer.Instance);
-            }
-
-            if (!force && Bands.SequenceEqual(bands.OrderBy(x => x.Band)))
-            {
-                // equalizer bands are the same
-                return Task.CompletedTask;
-            }
-
-            Bands = bands.OrderBy(x => x.Band).ToArray();
-
-            var payload = new PlayerEqualizerPayload(GuildId, Bands);
-            return LavalinkSocket.SendPayloadAsync(payload);
+            throw new NotImplementedException(); // will be implemented in a future commit
         }
 
         /// <summary>

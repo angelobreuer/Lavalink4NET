@@ -75,10 +75,10 @@ namespace Lavalink4NET.Payloads
         PlayerVolume,
 
         /// <summary>
-        ///     Using the player equalizer.
+        ///     Updates the player filters.
         /// </summary>
-        [EnumMember(Value = "equalizer")]
-        PlayerEqualizer,
+        [EnumMember(Value = "filters")]
+        PlayerFilters,
 
         /// <summary>
         ///     Tell the server to potentially disconnect from the voice server and potentially
