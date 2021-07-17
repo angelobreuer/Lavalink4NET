@@ -40,11 +40,13 @@ namespace Lavalink4NET.Payloads.Player
         /// </summary>
         /// <param name="time">the time when the update was sent</param>
         /// <param name="position">the track position in milliseconds</param>
+        /// <param name="connected">a value indicating whether the player is connected</param>
         [JsonConstructor]
-        public PlayerStatus(long time, int position)
+        public PlayerStatus(long time, int position, bool connected)
         {
             UpdateTime = DateTimeOffset.FromUnixTimeMilliseconds(time);
             Position = TimeSpan.FromMilliseconds(position);
+            IsConnected = connected;
         }
 
         /// <summary>
@@ -52,6 +54,12 @@ namespace Lavalink4NET.Payloads.Player
         /// </summary>
         [JsonIgnore]
         public TimeSpan Position { get; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the player is connected.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsConnected { get; }
 
         /// <summary>
         ///     Gets the time when the position update was sent.
