@@ -73,6 +73,12 @@
             set => this[VibratoFilterOptions.Name] = value;
         }
 
+        public RotationFilterOptions? Rotation
+        {
+            get => this[RotationFilterOptions.Name] as RotationFilterOptions;
+            set => this[RotationFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
