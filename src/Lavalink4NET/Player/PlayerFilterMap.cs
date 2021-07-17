@@ -61,6 +61,12 @@
             set => this[TimescaleFilterOptions.Name] = value;
         }
 
+        public TremoloFilterOptions? Tremolo
+        {
+            get => this[TremoloFilterOptions.Name] as TremoloFilterOptions;
+            set => this[TremoloFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
