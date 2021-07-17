@@ -91,6 +91,12 @@
             set => this[ChannelMixFilterOptions.Name] = value;
         }
 
+        public LowPassFilterOptions? LowPass
+        {
+            get => this[LowPassFilterOptions.Name] as LowPassFilterOptions;
+            set => this[LowPassFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
