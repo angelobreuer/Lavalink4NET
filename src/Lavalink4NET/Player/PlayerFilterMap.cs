@@ -67,6 +67,12 @@
             set => this[TremoloFilterOptions.Name] = value;
         }
 
+        public VibratoFilterOptions? Vibrato
+        {
+            get => this[VibratoFilterOptions.Name] as VibratoFilterOptions;
+            set => this[VibratoFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
