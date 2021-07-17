@@ -95,8 +95,8 @@ namespace Lavalink4NET.Filters
         public override int GetHashCode()
         {
             var hashCode = 1089811828;
-            hashCode = hashCode * -1521134295 + Band.GetHashCode();
-            hashCode = hashCode * -1521134295 + Gain.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Band.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Gain.GetHashCode();
             return hashCode;
         }
     }
