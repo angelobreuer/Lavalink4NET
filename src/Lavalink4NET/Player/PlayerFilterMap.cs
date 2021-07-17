@@ -79,6 +79,12 @@
             set => this[RotationFilterOptions.Name] = value;
         }
 
+        public DistortionFilterOptions? Distortion
+        {
+            get => this[DistortionFilterOptions.Name] as DistortionFilterOptions;
+            set => this[DistortionFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
