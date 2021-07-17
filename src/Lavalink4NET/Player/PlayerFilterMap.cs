@@ -85,6 +85,12 @@
             set => this[DistortionFilterOptions.Name] = value;
         }
 
+        public ChannelMixFilterOptions? ChannelMix
+        {
+            get => this[ChannelMixFilterOptions.Name] as ChannelMixFilterOptions;
+            set => this[ChannelMixFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
