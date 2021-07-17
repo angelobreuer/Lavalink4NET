@@ -49,6 +49,12 @@
             set => this[EqualizerFilterOptions.Name] = value;
         }
 
+        public KaraokeFilterOptions? Karaoke
+        {
+            get => this[KaraokeFilterOptions.Name] as KaraokeFilterOptions;
+            set => this[KaraokeFilterOptions.Name] = value;
+        }
+
         public IFilterOptions? this[string name]
         {
             get
