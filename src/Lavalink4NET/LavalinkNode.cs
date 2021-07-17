@@ -684,9 +684,7 @@ namespace Lavalink4NET
             EnsureNotDisposed();
 
             // capture previous player state
-            var previousTrack = player.CurrentTrack;
-            var trackPosition = player.TrackPosition;
-            var previousVolume = player.Volume;
+            var capturedState = PlayerStateInfo.Capture(player);
 
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
@@ -697,20 +695,10 @@ namespace Lavalink4NET
             // resend voice update to the new node
             await player.UpdateAsync();
 
-            // play track if one is playing
-            if (previousTrack != null)
-            {
-                // restart track
-                await player.PlayAsync(previousTrack, trackPosition);
-            }
-
-            // apply previous volume
-            if (previousVolume != 1F)
-            {
-                await player.SetVolumeAsync(previousVolume, normalize: false, force: true);
-            }
-
-            // TODO: move filters
+            // restore old player state
+            await capturedState
+                .RestoreAsync(player)
+                .ConfigureAwait(false);
 
             // add player to the new node
             node.Players[player.GuildId] = player;

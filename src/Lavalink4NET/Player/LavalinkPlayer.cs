@@ -67,6 +67,8 @@ namespace Lavalink4NET.Player
 
         public PlayerFilterMap Filters => _filterMap ??= new PlayerFilterMap(this);
 
+        internal bool HasFilters => _filterMap != null;
+
         /// <summary>
         ///     Gets the identifier snowflake value of the guild the player is for.
         /// </summary>
