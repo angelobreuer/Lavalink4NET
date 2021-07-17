@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Filters
 {
     using System;
     using System.Collections.Generic;
@@ -95,8 +95,8 @@ namespace Lavalink4NET.Player
         public override int GetHashCode()
         {
             var hashCode = 1089811828;
-            hashCode = (hashCode * -1521134295) + Band.GetHashCode();
-            hashCode = (hashCode * -1521134295) + Gain.GetHashCode();
+            hashCode = hashCode * -1521134295 + Band.GetHashCode();
+            hashCode = hashCode * -1521134295 + Gain.GetHashCode();
             return hashCode;
         }
     }

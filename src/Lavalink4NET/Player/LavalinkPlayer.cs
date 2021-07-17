@@ -32,6 +32,7 @@ namespace Lavalink4NET.Player
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
+    using Lavalink4NET.Filters;
     using Lavalink4NET.Payloads.Events;
     using Lavalink4NET.Payloads.Node;
     using Lavalink4NET.Payloads.Player;
@@ -53,17 +54,6 @@ namespace Lavalink4NET.Player
             _lastPositionUpdate = DateTimeOffset.UtcNow;
             _position = TimeSpan.Zero;
         }
-
-        /// <summary>
-        ///     Gets the default equalizer bands. (All 15 [0-14] equalizer bands set to zero gain)
-        /// </summary>
-        public static IReadOnlyCollection<EqualizerBand> DefaultEqualizer { get; }
-            = Enumerable.Range(0, 15).Select(s => new EqualizerBand(s, 0)).ToList().AsReadOnly();
-
-        /// <summary>
-        ///     Gets a read-only collection that contains the bands applied to the equalizer.
-        /// </summary>
-        public IReadOnlyList<EqualizerBand> Bands { get; private set; } = Array.Empty<EqualizerBand>();
 
         /// <summary>
         ///     Gets the discord client wrapper.
@@ -458,11 +448,15 @@ namespace Lavalink4NET.Player
         /// </param>
         /// <returns>a task that represents the asynchronous operation</returns>
         /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+        [Obsolete("This member may be removed in a future version, use Filters.Equalizer instead.")]
         public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true, bool force = false)
         {
             EnsureNotDestroyed();
 
-            throw new NotImplementedException(); // will be implemented in a future commit
+            Filters.Equalizer ??= new EqualizerFilterOptions();
+            Filters.Equalizer.Bands = bands.ToArray();
+
+            return Filters.CommitAsync();
         }
 
         /// <summary>

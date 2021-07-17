@@ -687,7 +687,6 @@ namespace Lavalink4NET
             var previousTrack = player.CurrentTrack;
             var trackPosition = player.TrackPosition;
             var previousVolume = player.Volume;
-            var previousBands = player.Bands;
 
             // destroy (NOT DISCONNECT) the player
             await player.DestroyAsync();
@@ -711,11 +710,7 @@ namespace Lavalink4NET
                 await player.SetVolumeAsync(previousVolume, normalize: false, force: true);
             }
 
-            // apply previous equalizer bands
-            if (previousBands.Any())
-            {
-                await player.UpdateEqualizerAsync(previousBands, reset: false, force: true);
-            }
+            // TODO: move filters
 
             // add player to the new node
             node.Players[player.GuildId] = player;
