@@ -1,6 +1,6 @@
 variables:
 - name: BUILD_VERSION
-  value: 2.0.0-preview.1
+  value: 2.0.1-preview.1
 
 pool:
   vmImage: 'ubuntu-latest'

@@ -34,7 +34,7 @@ namespace Lavalink4NET.Filters
     [JsonConverter(typeof(EqualizerFilterOptionsJsonConverter))]
     public sealed class EqualizerFilterOptions : IFilterOptions
     {
-        public const string Name = "eqaulizer";
+        public const string Name = "equalizer";
 
         /// <inheritdoc/>
         string IFilterOptions.Name => Name;
