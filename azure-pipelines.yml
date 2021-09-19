@@ -6,6 +6,12 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- task: UseDotNet@2
+  displayName: "Use .NET 6.0"
+  inputs:
+    packageType: 'sdk'
+    useGlobalJson: true
+    workingDirectory: "ci"
 - task: DotNetCoreCLI@2
   displayName: Build projects
   inputs:
