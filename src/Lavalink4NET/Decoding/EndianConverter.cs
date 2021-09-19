@@ -25,47 +25,46 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Decoding
+namespace Lavalink4NET.Decoding;
+
+using System;
+using System.Runtime.CompilerServices;
+
+/// <summary>
+///     A utility class for conversion around endianness.
+/// </summary>
+public static class EndianConverter
 {
-    using System;
-    using System.Runtime.CompilerServices;
+    /// <summary>
+    ///     Gets the system endianness.
+    /// </summary>
+    public static Endianness SystemEndianess
+        => BitConverter.IsLittleEndian ? Endianness.LittleEndian : Endianness.BigEndian;
 
     /// <summary>
-    ///     A utility class for conversion around endianness.
+    ///     Converts the <paramref name="data"/> endianness.
     /// </summary>
-    public static class EndianConverter
+    /// <param name="data">the data to convert</param>
+    /// <param name="source">the source endianness</param>
+    /// <param name="target">the target endianness</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="data"/> is <see langword="null"/>.
+    /// </exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Convert(byte[] data, Endianness source, Endianness target)
     {
-        /// <summary>
-        ///     Gets the system endianness.
-        /// </summary>
-        public static Endianness SystemEndianess
-            => BitConverter.IsLittleEndian ? Endianness.LittleEndian : Endianness.BigEndian;
-
-        /// <summary>
-        ///     Converts the <paramref name="data"/> endianness.
-        /// </summary>
-        /// <param name="data">the data to convert</param>
-        /// <param name="source">the source endianness</param>
-        /// <param name="target">the target endianness</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="data"/> is <see langword="null"/>.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Convert(byte[] data, Endianness source, Endianness target)
+        if (data is null)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            // no conversion needed
-            if (source == target)
-            {
-                return;
-            }
-
-            // reverse endian
-            Array.Reverse(data);
+            throw new ArgumentNullException(nameof(data));
         }
+
+        // no conversion needed
+        if (source == target)
+        {
+            return;
+        }
+
+        // reverse endian
+        Array.Reverse(data);
     }
 }

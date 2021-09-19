@@ -25,28 +25,27 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using Newtonsoft.Json;
+
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+public sealed class ChannelMixFilterOptions : IFilterOptions
 {
-    using Newtonsoft.Json;
+    public const string Name = "channelMix";
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public sealed class ChannelMixFilterOptions : IFilterOptions
-    {
-        public const string Name = "channelMix";
+    /// <inheritdoc/>
+    string IFilterOptions.Name => Name;
 
-        /// <inheritdoc/>
-        string IFilterOptions.Name => Name;
+    [JsonProperty("leftToLeft")]
+    public float LeftToLeft { get; init; } = 1F;
 
-        [JsonProperty("leftToLeft")]
-        public float LeftToLeft { get; init; } = 1F;
+    [JsonProperty("leftToRight")]
+    public float LeftToRight { get; init; } = 0F;
 
-        [JsonProperty("leftToRight")]
-        public float LeftToRight { get; init; } = 0F;
+    [JsonProperty("rightToLeft")]
+    public float RightToLeft { get; init; } = 0F;
 
-        [JsonProperty("rightToLeft")]
-        public float RightToLeft { get; init; } = 0F;
-
-        [JsonProperty("rightToRight")]
-        public float RightToRight { get; init; } = 1F;
-    }
+    [JsonProperty("rightToRight")]
+    public float RightToRight { get; init; } = 1F;
 }

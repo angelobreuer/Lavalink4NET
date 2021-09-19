@@ -25,269 +25,268 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Decoding
+namespace Lavalink4NET.Decoding;
+
+using System;
+using System.Buffers;
+using System.IO;
+using System.Text;
+
+/// <summary>
+///     A C# port for the DataInput stream (used to decode Lavalink tracks).
+/// </summary>
+public sealed class DataInputReader : IDisposable
 {
-    using System;
-    using System.Buffers;
-    using System.IO;
-    using System.Text;
+    private readonly Stream _baseStream;
+    private readonly Endianness _endianness;
+    private readonly bool _leaveOpen;
+    private bool _disposed;
 
     /// <summary>
-    ///     A C# port for the DataInput stream (used to decode Lavalink tracks).
+    ///     Initializes a new instance of the <see cref="DataInputReader"/> class.
     /// </summary>
-    public sealed class DataInputReader : IDisposable
+    /// <param name="baseStream">the base stream to read from</param>
+    /// <param name="endianness">the input stream endianness</param>
+    /// <param name="leaveOpen">
+    ///     a value indicating whether the stream should be left open when disposing
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="baseStream"/> is <see langword="null"/>.
+    /// </exception>
+    public DataInputReader(Stream baseStream, Endianness endianness = Endianness.BigEndian, bool leaveOpen = false)
     {
-        private readonly Stream _baseStream;
-        private readonly Endianness _endianness;
-        private readonly bool _leaveOpen;
-        private bool _disposed;
+        _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+        _endianness = endianness;
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="DataInputReader"/> class.
-        /// </summary>
-        /// <param name="baseStream">the base stream to read from</param>
-        /// <param name="endianness">the input stream endianness</param>
-        /// <param name="leaveOpen">
-        ///     a value indicating whether the stream should be left open when disposing
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="baseStream"/> is <see langword="null"/>.
-        /// </exception>
-        public DataInputReader(Stream baseStream, Endianness endianness = Endianness.BigEndian, bool leaveOpen = false)
+        _leaveOpen = leaveOpen;
+
+        if (!baseStream.CanRead)
         {
-            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
-            _endianness = endianness;
-
-            _leaveOpen = leaveOpen;
-
-            if (!baseStream.CanRead)
-            {
-                throw new ArgumentException("The specified baseStream is not read-able.", nameof(baseStream));
-            }
+            throw new ArgumentException("The specified baseStream is not read-able.", nameof(baseStream));
         }
+    }
 
-        /// <summary>
-        ///     Gets the base stream to read from.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Stream BaseStream
-        {
-            get
-            {
-                EnsureNotDisposed();
-                return _baseStream;
-            }
-        }
-
-        /// <summary>
-        ///     Gets the source stream endianness.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public Endianness Endianness
-        {
-            get
-            {
-                EnsureNotDisposed();
-                return _endianness;
-            }
-        }
-
-        /// <summary>
-        ///     Disposes the underlying <see cref="BaseStream"/>, if specified in constructor (!leaveOpen).
-        /// </summary>
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            if (!_leaveOpen)
-            {
-                _baseStream.Dispose();
-            }
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="bool"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public bool ReadBoolean() => ReadBytes(1)[0] == 1;
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public byte ReadByte()
-        {
-            var b = BaseStream.ReadByte();
-
-            if (b == -1)
-            {
-                throw new EndOfStreamException("Reached end of stream while reading single byte.");
-            }
-
-            return (byte)b;
-        }
-
-        /// <summary>
-        ///     Reads bytes from the stream.
-        /// </summary>
-        /// <param name="count">the number of bytes to read</param>
-        /// <returns>the read bytes</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of the <see cref="BaseStream"/> was reached.
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public byte[] ReadBytes(int count)
+    /// <summary>
+    ///     Gets the base stream to read from.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public Stream BaseStream
+    {
+        get
         {
             EnsureNotDisposed();
-
-            var buffer = new byte[count];
-
-            if (BaseStream.Read(buffer, 0, count) < count)
-            {
-                throw new EndOfStreamException("Reached end of stream while reading bytes.");
-            }
-
-            return buffer;
+            return _baseStream;
         }
+    }
 
-        /// <summary>
-        ///     Reads a <see cref="short"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public short ReadInt16() => Read(sizeof(short), BitConverter.ToInt16);
-
-        /// <summary>
-        ///     Reads a <see cref="int"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public int ReadInt32() => Read(sizeof(int), BitConverter.ToInt32);
-
-        /// <summary>
-        ///     Reads a <see cref="long"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public long ReadInt64() => Read(sizeof(long), BitConverter.ToInt64);
-
-        /// <summary>
-        ///     Reads a <see cref="sbyte"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public sbyte ReadSByte() => (sbyte)ReadByte();
-
-        /// <summary>
-        ///     Reads a <see cref="float"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public float ReadSingle() => Read(sizeof(float), BitConverter.ToSingle);
-
-        /// <summary>
-        ///     Reads an UTF-8 string from the stream.
-        /// </summary>
-        /// <returns>the read string</returns>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public string ReadString()
+    /// <summary>
+    ///     Gets the source stream endianness.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public Endianness Endianness
+    {
+        get
         {
-            var length = ReadUInt16();
-            var pooledBuffer = ArrayPool<byte>.Shared.Rent(length);
-
-            try
-            {
-                if (BaseStream.Read(pooledBuffer, 0, length) < length)
-                {
-                    throw new EndOfStreamException("Unexpected end of stream while reading string.");
-                }
-
-                return Encoding.UTF8.GetString(pooledBuffer, 0, length);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(pooledBuffer);
-            }
+            EnsureNotDisposed();
+            return _endianness;
         }
+    }
 
-        /// <summary>
-        ///     Reads an <see cref="ushort"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public ushort ReadUInt16() => Read(sizeof(ushort), BitConverter.ToUInt16);
-
-        /// <summary>
-        ///     Reads an <see cref="uint"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public uint ReadUInt32() => Read(sizeof(uint), BitConverter.ToUInt32);
-
-        /// <summary>
-        ///     Reads an <see cref="ulong"/> from the stream.
-        /// </summary>
-        /// <returns>the read value</returns>
-        /// <exception cref="EndOfStreamException">
-        ///     thrown if the end of stream was reached while reading the value
-        /// </exception>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public ulong ReadUInt64() => Read(sizeof(ulong), BitConverter.ToUInt64);
-
-        /// <summary>
-        ///     Ensures that the instance is not disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        private void EnsureNotDisposed()
+    /// <summary>
+    ///     Disposes the underlying <see cref="BaseStream"/>, if specified in constructor (!leaveOpen).
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(DataInputReader));
-            }
+            return;
         }
 
-        private T Read<T>(int count, Func<byte[], int, T> converterFunc)
-            => Read(count, converterFunc, EndianConverter.SystemEndianess);
+        _disposed = true;
 
-        private T Read<T>(int count, Func<byte[], int, T> converterFunc, Endianness endianness)
+        if (!_leaveOpen)
         {
-            var bytes = ReadBytes(count);
-            EndianConverter.Convert(bytes, Endianness, endianness);
-            return converterFunc(bytes, 0);
+            _baseStream.Dispose();
         }
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="bool"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public bool ReadBoolean() => ReadBytes(1)[0] == 1;
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public byte ReadByte()
+    {
+        var b = BaseStream.ReadByte();
+
+        if (b == -1)
+        {
+            throw new EndOfStreamException("Reached end of stream while reading single byte.");
+        }
+
+        return (byte)b;
+    }
+
+    /// <summary>
+    ///     Reads bytes from the stream.
+    /// </summary>
+    /// <param name="count">the number of bytes to read</param>
+    /// <returns>the read bytes</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of the <see cref="BaseStream"/> was reached.
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public byte[] ReadBytes(int count)
+    {
+        EnsureNotDisposed();
+
+        var buffer = new byte[count];
+
+        if (BaseStream.Read(buffer, 0, count) < count)
+        {
+            throw new EndOfStreamException("Reached end of stream while reading bytes.");
+        }
+
+        return buffer;
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="short"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public short ReadInt16() => Read(sizeof(short), BitConverter.ToInt16);
+
+    /// <summary>
+    ///     Reads a <see cref="int"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public int ReadInt32() => Read(sizeof(int), BitConverter.ToInt32);
+
+    /// <summary>
+    ///     Reads a <see cref="long"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public long ReadInt64() => Read(sizeof(long), BitConverter.ToInt64);
+
+    /// <summary>
+    ///     Reads a <see cref="sbyte"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public sbyte ReadSByte() => (sbyte)ReadByte();
+
+    /// <summary>
+    ///     Reads a <see cref="float"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public float ReadSingle() => Read(sizeof(float), BitConverter.ToSingle);
+
+    /// <summary>
+    ///     Reads an UTF-8 string from the stream.
+    /// </summary>
+    /// <returns>the read string</returns>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public string ReadString()
+    {
+        var length = ReadUInt16();
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            if (BaseStream.Read(pooledBuffer, 0, length) < length)
+            {
+                throw new EndOfStreamException("Unexpected end of stream while reading string.");
+            }
+
+            return Encoding.UTF8.GetString(pooledBuffer, 0, length);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
+        }
+    }
+
+    /// <summary>
+    ///     Reads an <see cref="ushort"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public ushort ReadUInt16() => Read(sizeof(ushort), BitConverter.ToUInt16);
+
+    /// <summary>
+    ///     Reads an <see cref="uint"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public uint ReadUInt32() => Read(sizeof(uint), BitConverter.ToUInt32);
+
+    /// <summary>
+    ///     Reads an <see cref="ulong"/> from the stream.
+    /// </summary>
+    /// <returns>the read value</returns>
+    /// <exception cref="EndOfStreamException">
+    ///     thrown if the end of stream was reached while reading the value
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public ulong ReadUInt64() => Read(sizeof(ulong), BitConverter.ToUInt64);
+
+    /// <summary>
+    ///     Ensures that the instance is not disposed.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    private void EnsureNotDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DataInputReader));
+        }
+    }
+
+    private T Read<T>(int count, Func<byte[], int, T> converterFunc)
+        => Read(count, converterFunc, EndianConverter.SystemEndianess);
+
+    private T Read<T>(int count, Func<byte[], int, T> converterFunc, Endianness endianness)
+    {
+        var bytes = ReadBytes(count);
+        EndianConverter.Convert(bytes, Endianness, endianness);
+        return converterFunc(bytes, 0);
     }
 }

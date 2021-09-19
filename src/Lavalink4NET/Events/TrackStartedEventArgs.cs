@@ -25,30 +25,29 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Events
-{
-    using System;
-    using Lavalink4NET.Player;
+namespace Lavalink4NET.Events;
 
+using System;
+using Lavalink4NET.Player;
+
+/// <summary>
+///     The event arguments ( <see cref="EventArgs"/>) for the <see
+///     cref="IAudioService.TrackStarted"/> event.
+/// </summary>
+public sealed class TrackStartedEventArgs : TrackEventArgs
+{
     /// <summary>
-    ///     The event arguments ( <see cref="EventArgs"/>) for the <see
-    ///     cref="IAudioService.TrackStarted"/> event.
+    ///     Initializes a new instance of the <see cref="TrackEventArgs"/> class.
     /// </summary>
-    public sealed class TrackStartedEventArgs : TrackEventArgs
+    /// <param name="player">the affected player</param>
+    /// <param name="trackIdentifier">the identifier of the affected track</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
+    /// </exception>
+    public TrackStartedEventArgs(LavalinkPlayer player, string trackIdentifier) : base(player, trackIdentifier)
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="TrackEventArgs"/> class.
-        /// </summary>
-        /// <param name="player">the affected player</param>
-        /// <param name="trackIdentifier">the identifier of the affected track</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
-        /// </exception>
-        public TrackStartedEventArgs(LavalinkPlayer player, string trackIdentifier) : base(player, trackIdentifier)
-        {
-        }
     }
 }

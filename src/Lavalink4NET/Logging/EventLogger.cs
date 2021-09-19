@@ -25,35 +25,34 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Logging
+namespace Lavalink4NET.Logging;
+
+using System;
+
+/// <summary>
+///     A logger implementation for a logger that logs the messages to an event.
+/// </summary>
+public class EventLogger : ILogger
 {
-    using System;
+    /// <summary>
+    ///     An event that is triggered when a message is logged.
+    /// </summary>
+    public event EventHandler<LogMessageEventArgs>? LogMessage;
 
     /// <summary>
-    ///     A logger implementation for a logger that logs the messages to an event.
+    ///     Logs a message.
     /// </summary>
-    public class EventLogger : ILogger
-    {
-        /// <summary>
-        ///     An event that is triggered when a message is logged.
-        /// </summary>
-        public event EventHandler<LogMessageEventArgs>? LogMessage;
+    /// <param name="source">the source the message comes from (usually this)</param>
+    /// <param name="message">the message to log</param>
+    /// <param name="level">the logging level / the severity of the message</param>
+    /// <param name="exception">an optional exception that occurred</param>
+    public void Log(object source, string message, LogLevel level = LogLevel.Information, Exception? exception = null)
+        => OnLogMessage(new LogMessageEventArgs(source, message, level, exception));
 
-        /// <summary>
-        ///     Logs a message.
-        /// </summary>
-        /// <param name="source">the source the message comes from (usually this)</param>
-        /// <param name="message">the message to log</param>
-        /// <param name="level">the logging level / the severity of the message</param>
-        /// <param name="exception">an optional exception that occurred</param>
-        public void Log(object source, string message, LogLevel level = LogLevel.Information, Exception? exception = null)
-            => OnLogMessage(new LogMessageEventArgs(source, message, level, exception));
-
-        /// <summary>
-        ///     Triggers the <see cref="LogMessage"/> event.
-        /// </summary>
-        /// <param name="eventArgs">the event arguments</param>
-        protected virtual void OnLogMessage(LogMessageEventArgs eventArgs)
-            => LogMessage?.Invoke(this, eventArgs);
-    }
+    /// <summary>
+    ///     Triggers the <see cref="LogMessage"/> event.
+    /// </summary>
+    /// <param name="eventArgs">the event arguments</param>
+    protected virtual void OnLogMessage(LogMessageEventArgs eventArgs)
+        => LogMessage?.Invoke(this, eventArgs);
 }

@@ -25,20 +25,19 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using Newtonsoft.Json;
+
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+[JsonConverter(typeof(VolumeFilterOptionsJsonConverter))]
+public sealed class VolumeFilterOptions : IFilterOptions
 {
-    using Newtonsoft.Json;
+    public const string Name = "volume";
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    [JsonConverter(typeof(VolumeFilterOptionsJsonConverter))]
-    public sealed class VolumeFilterOptions : IFilterOptions
-    {
-        public const string Name = "volume";
+    /// <inheritdoc/>
+    string IFilterOptions.Name => Name;
 
-        /// <inheritdoc/>
-        string IFilterOptions.Name => Name;
-
-        [JsonProperty("volume")]
-        public float Volume { get; init; }
-    }
+    [JsonProperty("volume")]
+    public float Volume { get; init; }
 }

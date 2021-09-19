@@ -25,26 +25,25 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Events
+namespace Lavalink4NET.Payloads.Events;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a track start event received from the lavalink node
+///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class TrackStartEvent : EventPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the identifier of the track that started.
+    /// </summary>
+    [JsonRequired, JsonProperty("track")]
+    public string TrackIdentifier { get; internal set; } = string.Empty;
 
     /// <summary>
-    ///     The strongly-typed representation of a track start event received from the lavalink node
-    ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the event type.
     /// </summary>
-    public sealed class TrackStartEvent : EventPayload
-    {
-        /// <summary>
-        ///     Gets the identifier of the track that started.
-        /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackStart;
-    }
+    [JsonRequired, JsonProperty("type")]
+    public override EventType Type => EventType.TrackStart;
 }

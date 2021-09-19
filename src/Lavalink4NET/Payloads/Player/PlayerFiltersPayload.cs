@@ -25,47 +25,46 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using System.Collections.Generic;
+using System.Linq;
+using Lavalink4NET.Filters;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+/// <summary>
+///     The strongly-typed representation of a player filters update payload sent to the
+///     lavalink node (in serialized JSON format). For more reference see the lavalink client
+///     implementation documentation https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class PlayerFiltersPayload : IPlayerPayload
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using Lavalink4NET.Filters;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerFiltersPayload"/> class.
+    /// </summary>
+    /// <param name="guildId">
+    ///     the guild snowflake identifier the player equalizer update is for
+    /// </param>
+    /// <param name="filters">the player filters</param>
+    public PlayerFiltersPayload(ulong guildId, IReadOnlyDictionary<string, IFilterOptions> filters)
+    {
+        GuildId = guildId.ToString();
+        Filters = filters.ToDictionary(x => x.Key, x => JToken.FromObject(x.Value));
+    }
 
     /// <summary>
-    ///     The strongly-typed representation of a player filters update payload sent to the
-    ///     lavalink node (in serialized JSON format). For more reference see the lavalink client
-    ///     implementation documentation https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class PlayerFiltersPayload : IPlayerPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerFiltersPayload"/> class.
-        /// </summary>
-        /// <param name="guildId">
-        ///     the guild snowflake identifier the player equalizer update is for
-        /// </param>
-        /// <param name="filters">the player filters</param>
-        public PlayerFiltersPayload(ulong guildId, IReadOnlyDictionary<string, IFilterOptions> filters)
-        {
-            GuildId = guildId.ToString();
-            Filters = filters.ToDictionary(x => x.Key, x => JToken.FromObject(x.Value));
-        }
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.PlayerFilters;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerFilters;
+    /// <summary>
+    ///     Gets the guild snowflake identifier the player equalizer update is for.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; }
 
-        /// <summary>
-        ///     Gets the guild snowflake identifier the player equalizer update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
-
-        [JsonRequired, JsonExtensionData, JsonProperty("filters")]
-        internal IDictionary<string, JToken> Filters { get; set; }
-    }
+    [JsonRequired, JsonExtensionData, JsonProperty("filters")]
+    internal IDictionary<string, JToken> Filters { get; set; }
 }

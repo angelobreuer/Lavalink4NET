@@ -25,35 +25,34 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a player destroy payload sent to the lavalink node
+///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class PlayerDestroyPayload : IPlayerPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerDestroyPayload"/> class.
+    /// </summary>
+    /// <param name="guildId">
+    ///     the guild snowflake identifier where the player should be destroyed
+    /// </param>
+    public PlayerDestroyPayload(ulong guildId)
+        => GuildId = guildId.ToString();
 
     /// <summary>
-    ///     The strongly-typed representation of a player destroy payload sent to the lavalink node
-    ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class PlayerDestroyPayload : IPlayerPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerDestroyPayload"/> class.
-        /// </summary>
-        /// <param name="guildId">
-        ///     the guild snowflake identifier where the player should be destroyed
-        /// </param>
-        public PlayerDestroyPayload(ulong guildId)
-            => GuildId = guildId.ToString();
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.PlayerDestroy;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerDestroy;
-
-        /// <summary>
-        ///     Gets the guild snowflake identifier where the player should be destroyed.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; } = null!;
-    }
+    /// <summary>
+    ///     Gets the guild snowflake identifier where the player should be destroyed.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; } = null!;
 }

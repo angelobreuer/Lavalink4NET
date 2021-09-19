@@ -25,19 +25,18 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using Newtonsoft.Json;
+
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+public sealed class LowPassFilterOptions : IFilterOptions
 {
-    using Newtonsoft.Json;
+    public const string Name = "lowPass";
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public sealed class LowPassFilterOptions : IFilterOptions
-    {
-        public const string Name = "lowPass";
+    /// <inheritdoc/>
+    string IFilterOptions.Name => Name;
 
-        /// <inheritdoc/>
-        string IFilterOptions.Name => Name;
-
-        [JsonProperty("smoothing")]
-        public float Smoothing { get; set; } = 20.0F;
-    }
+    [JsonProperty("smoothing")]
+    public float Smoothing { get; set; } = 20.0F;
 }

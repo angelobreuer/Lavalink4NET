@@ -25,13 +25,12 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+public interface IFilterOptions
 {
-    public interface IFilterOptions
-    {
-        /// <summary>
-        ///     Gets the name of the filter.
-        /// </summary>
-        string Name { get; }
-    }
+    /// <summary>
+    ///     Gets the name of the filter.
+    /// </summary>
+    string Name { get; }
 }

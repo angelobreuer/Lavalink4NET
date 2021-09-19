@@ -25,21 +25,20 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Decoding
+namespace Lavalink4NET.Decoding;
+
+/// <summary>
+///     The different endian types (without MiddleEndian).
+/// </summary>
+public enum Endianness
 {
     /// <summary>
-    ///     The different endian types (without MiddleEndian).
+    ///     The big-endian byte order.
     /// </summary>
-    public enum Endianness
-    {
-        /// <summary>
-        ///     The big-endian byte order.
-        /// </summary>
-        BigEndian,
+    BigEndian,
 
-        /// <summary>
-        ///     The little-endian byte order.
-        /// </summary>
-        LittleEndian
-    }
+    /// <summary>
+    ///     The little-endian byte order.
+    /// </summary>
+    LittleEndian
 }

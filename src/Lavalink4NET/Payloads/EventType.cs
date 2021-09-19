@@ -25,46 +25,45 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+/// <summary>
+///     The event types in lavalink event payloads.
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
+public enum EventType
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    /// <summary>
+    ///     Indicates that a playing track ended.
+    /// </summary>
+    [EnumMember(Value = "TrackEndEvent")]
+    TrackEnd,
 
     /// <summary>
-    ///     The event types in lavalink event payloads.
+    ///     Indicates that a playing track started.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum EventType
-    {
-        /// <summary>
-        ///     Indicates that a playing track ended.
-        /// </summary>
-        [EnumMember(Value = "TrackEndEvent")]
-        TrackEnd,
+    [EnumMember(Value = "TrackStartEvent")]
+    TrackStart,
 
-        /// <summary>
-        ///     Indicates that a playing track started.
-        /// </summary>
-        [EnumMember(Value = "TrackStartEvent")]
-        TrackStart,
+    /// <summary>
+    ///     Indicates that an exception occurred while playing a track.
+    /// </summary>
+    [EnumMember(Value = "TrackExceptionEvent")]
+    TrackException,
 
-        /// <summary>
-        ///     Indicates that an exception occurred while playing a track.
-        /// </summary>
-        [EnumMember(Value = "TrackExceptionEvent")]
-        TrackException,
+    /// <summary>
+    ///     Indicates that a track got stuck while playing.
+    /// </summary>
+    [EnumMember(Value = "TrackStuckEvent")]
+    TrackStuck,
 
-        /// <summary>
-        ///     Indicates that a track got stuck while playing.
-        /// </summary>
-        [EnumMember(Value = "TrackStuckEvent")]
-        TrackStuck,
-
-        /// <summary>
-        ///     Indicates that the discord voice socket was closed.
-        /// </summary>
-        [EnumMember(Value = "WebSocketClosedEvent")]
-        WebSocketClosedEvent
-    }
+    /// <summary>
+    ///     Indicates that the discord voice socket was closed.
+    /// </summary>
+    [EnumMember(Value = "WebSocketClosedEvent")]
+    WebSocketClosedEvent
 }

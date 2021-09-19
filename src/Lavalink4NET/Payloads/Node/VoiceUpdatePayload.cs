@@ -25,60 +25,59 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Node
+namespace Lavalink4NET.Payloads.Node;
+
+using System;
+using Lavalink4NET.Payloads.Events;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The representation of a voice update lavalink payload.
+/// </summary>
+public sealed class VoiceUpdatePayload : IPayload, IPlayerPayload
 {
-    using System;
-    using Lavalink4NET.Payloads.Events;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="VoiceUpdatePayload"/> class.
+    /// </summary>
+    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+    /// <param name="sessionId">
+    ///     the discord voice state session identifier received from the voice state update payload
+    /// </param>
+    /// <param name="voiceServerUpdateEvent">the voice server update event</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="sessionId"/> is <see langword="null"/>
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="voiceServerUpdateEvent"/> is <see langword="null"/>
+    /// </exception>
+    public VoiceUpdatePayload(ulong guildId, string sessionId, VoiceServerUpdateEvent voiceServerUpdateEvent)
+    {
+        GuildId = guildId.ToString();
+        SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
+        VoiceServerUpdateEvent = voiceServerUpdateEvent ?? throw new ArgumentNullException(nameof(voiceServerUpdateEvent));
+    }
 
     /// <summary>
-    ///     The representation of a voice update lavalink payload.
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class VoiceUpdatePayload : IPayload, IPlayerPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="VoiceUpdatePayload"/> class.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-        /// <param name="sessionId">
-        ///     the discord voice state session identifier received from the voice state update payload
-        /// </param>
-        /// <param name="voiceServerUpdateEvent">the voice server update event</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="sessionId"/> is <see langword="null"/>
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="voiceServerUpdateEvent"/> is <see langword="null"/>
-        /// </exception>
-        public VoiceUpdatePayload(ulong guildId, string sessionId, VoiceServerUpdateEvent voiceServerUpdateEvent)
-        {
-            GuildId = guildId.ToString();
-            SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
-            VoiceServerUpdateEvent = voiceServerUpdateEvent ?? throw new ArgumentNullException(nameof(voiceServerUpdateEvent));
-        }
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.GuildVoiceUpdate;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.GuildVoiceUpdate;
+    /// <summary>
+    ///     Gets the guild snowflake identifier the voice update is for.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; }
 
-        /// <summary>
-        ///     Gets the guild snowflake identifier the voice update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
+    /// <summary>
+    ///     Gets the discord voice state session identifier received from the voice state update payload.
+    /// </summary>
+    [JsonRequired, JsonProperty("sessionId")]
+    public string SessionId { get; internal set; } = null!;
 
-        /// <summary>
-        ///     Gets the discord voice state session identifier received from the voice state update payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("sessionId")]
-        public string SessionId { get; internal set; } = null!;
-
-        /// <summary>
-        ///     Gets the voice server update event.
-        /// </summary>
-        [JsonRequired, JsonProperty("event")]
-        public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; internal set; } = null!;
-    }
+    /// <summary>
+    ///     Gets the voice server update event.
+    /// </summary>
+    [JsonRequired, JsonProperty("event")]
+    public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; internal set; } = null!;
 }

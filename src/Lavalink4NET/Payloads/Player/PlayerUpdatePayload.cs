@@ -25,32 +25,31 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a player update payload received from the lavalink
+///     node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class PlayerUpdatePayload : IPlayerPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the guild snowflake identifier the player update is for.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; } = null!;
 
     /// <summary>
-    ///     The strongly-typed representation of a player update payload received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class PlayerUpdatePayload : IPlayerPayload
-    {
-        /// <summary>
-        ///     Gets the guild snowflake identifier the player update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; } = null!;
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.PlayerUpdate;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerUpdate;
-
-        /// <summary>
-        ///     Gets the player status.
-        /// </summary>
-        [JsonRequired, JsonProperty("state")]
-        public PlayerStatus Status { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the player status.
+    /// </summary>
+    [JsonRequired, JsonProperty("state")]
+    public PlayerStatus Status { get; internal set; }
 }

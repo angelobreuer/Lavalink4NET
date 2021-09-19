@@ -25,37 +25,36 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Logging
+namespace Lavalink4NET.Logging;
+
+/// <summary>
+///     A set of different logging levels.
+/// </summary>
+public enum LogLevel
 {
     /// <summary>
-    ///     A set of different logging levels.
+    ///     Information, not critical, just for user information.
     /// </summary>
-    public enum LogLevel
-    {
-        /// <summary>
-        ///     Information, not critical, just for user information.
-        /// </summary>
-        Information,
+    Information,
 
-        /// <summary>
-        ///     Error, critical (application can continue)
-        /// </summary>
-        Error,
+    /// <summary>
+    ///     Error, critical (application can continue)
+    /// </summary>
+    Error,
 
-        /// <summary>
-        ///     Warning, not critical (a warning, but the application can continue without any
-        ///     further problems)
-        /// </summary>
-        Warning,
+    /// <summary>
+    ///     Warning, not critical (a warning, but the application can continue without any
+    ///     further problems)
+    /// </summary>
+    Warning,
 
-        /// <summary>
-        ///     Debug message, not critical (just for information / debugging)
-        /// </summary>
-        Debug,
+    /// <summary>
+    ///     Debug message, not critical (just for information / debugging)
+    /// </summary>
+    Debug,
 
-        /// <summary>
-        ///     Trace message, not critical (just for information / debugging)
-        /// </summary>
-        Trace
-    }
+    /// <summary>
+    ///     Trace message, not critical (just for information / debugging)
+    /// </summary>
+    Trace
 }

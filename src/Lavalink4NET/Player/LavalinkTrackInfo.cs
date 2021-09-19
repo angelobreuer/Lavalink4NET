@@ -25,73 +25,72 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Player;
+
+using System;
+using Lavalink4NET.Util;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The information store for a lavalink track.
+/// </summary>
+public sealed class LavalinkTrackInfo
 {
-    using System;
-    using Lavalink4NET.Util;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="LavalinkTrackInfo"/> class.
+    /// </summary>
+    [JsonConstructor]
+#pragma warning disable CS8618
+    internal LavalinkTrackInfo()
+#pragma warning restore CS8618
+    {
+    }
 
     /// <summary>
-    ///     The information store for a lavalink track.
+    ///     Gets the name of the track author.
     /// </summary>
-    public sealed class LavalinkTrackInfo
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkTrackInfo"/> class.
-        /// </summary>
-        [JsonConstructor]
-#pragma warning disable CS8618
-        internal LavalinkTrackInfo()
-#pragma warning restore CS8618
-        {
-        }
+    [JsonRequired, JsonProperty("author")]
+    public string Author { get; internal set; }
 
-        /// <summary>
-        ///     Gets the name of the track author.
-        /// </summary>
-        [JsonRequired, JsonProperty("author")]
-        public string Author { get; internal set; }
+    /// <summary>
+    ///     Gets the duration of the track.
+    /// </summary>
+    [JsonProperty("length"), JsonConverter(typeof(TimeSpanConverter))]
+    public TimeSpan Duration { get; internal set; }
 
-        /// <summary>
-        ///     Gets the duration of the track.
-        /// </summary>
-        [JsonProperty("length"), JsonConverter(typeof(TimeSpanConverter))]
-        public TimeSpan Duration { get; internal set; }
+    /// <summary>
+    ///     Gets a value indicating whether the track is a live stream.
+    /// </summary>
+    [JsonRequired, JsonProperty("isStream")]
+    public bool IsLiveStream { get; internal set; }
 
-        /// <summary>
-        ///     Gets a value indicating whether the track is a live stream.
-        /// </summary>
-        [JsonRequired, JsonProperty("isStream")]
-        public bool IsLiveStream { get; internal set; }
+    /// <summary>
+    ///     Gets a value indicating whether the track is seek-able.
+    /// </summary>
+    [JsonRequired, JsonProperty("isSeekable")]
+    public bool IsSeekable { get; internal set; }
 
-        /// <summary>
-        ///     Gets a value indicating whether the track is seek-able.
-        /// </summary>
-        [JsonRequired, JsonProperty("isSeekable")]
-        public bool IsSeekable { get; internal set; }
+    /// <summary>
+    ///     Gets the start position of the track.
+    /// </summary>
+    [JsonProperty("position"), JsonConverter(typeof(TimeSpanConverter))]
+    public TimeSpan Position { get; internal set; }
 
-        /// <summary>
-        ///     Gets the start position of the track.
-        /// </summary>
-        [JsonProperty("position"), JsonConverter(typeof(TimeSpanConverter))]
-        public TimeSpan Position { get; internal set; }
+    /// <summary>
+    ///     Gets the track source.
+    /// </summary>
+    [JsonRequired, JsonProperty("uri")]
+    public string? Source { get; internal set; }
 
-        /// <summary>
-        ///     Gets the track source.
-        /// </summary>
-        [JsonRequired, JsonProperty("uri")]
-        public string? Source { get; internal set; }
+    /// <summary>
+    ///     Gets the title of the track.
+    /// </summary>
+    [JsonRequired, JsonProperty("title")]
+    public string Title { get; internal set; }
 
-        /// <summary>
-        ///     Gets the title of the track.
-        /// </summary>
-        [JsonRequired, JsonProperty("title")]
-        public string Title { get; internal set; }
-
-        /// <summary>
-        ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
-        /// </summary>
-        [JsonRequired, JsonProperty("identifier")]
-        public string TrackIdentifier { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
+    /// </summary>
+    [JsonRequired, JsonProperty("identifier")]
+    public string TrackIdentifier { get; internal set; }
 }

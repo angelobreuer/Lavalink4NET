@@ -25,16 +25,15 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+/// <summary>
+///     The base of a lavalink payload.
+/// </summary>
+public interface IPayload
 {
     /// <summary>
-    ///     The base of a lavalink payload.
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public interface IPayload
-    {
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        OpCode OpCode { get; }
-    }
+    OpCode OpCode { get; }
 }

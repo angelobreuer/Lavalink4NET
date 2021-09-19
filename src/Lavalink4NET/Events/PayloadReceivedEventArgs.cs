@@ -25,47 +25,46 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Events
+namespace Lavalink4NET.Events;
+
+using System;
+using Payloads;
+
+/// <summary>
+///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
+/// </summary>
+public sealed class PayloadReceivedEventArgs
+    : EventArgs
 {
-    using System;
-    using Payloads;
-
     /// <summary>
-    ///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
+    ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
     /// </summary>
-    public sealed class PayloadReceivedEventArgs
-        : EventArgs
+    /// <param name="payload">the payload that was received</param>
+    /// <param name="rawJson">the raw JSON object content of the payload</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     the specified <paramref name="rawJson"/> is blank.
+    /// </exception>
+    public PayloadReceivedEventArgs(IPayload payload, string rawJson)
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
-        /// </summary>
-        /// <param name="payload">the payload that was received</param>
-        /// <param name="rawJson">the raw JSON object content of the payload</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     the specified <paramref name="rawJson"/> is blank.
-        /// </exception>
-        public PayloadReceivedEventArgs(IPayload payload, string rawJson)
+        if (string.IsNullOrWhiteSpace(rawJson))
         {
-            if (string.IsNullOrWhiteSpace(rawJson))
-            {
-                throw new ArgumentException("The specified rawJson can not be null, empty or only consists of white-spaces.", nameof(rawJson));
-            }
-
-            Payload = payload ?? throw new ArgumentNullException(nameof(payload));
-            RawJson = rawJson;
+            throw new ArgumentException("The specified rawJson can not be null, empty or only consists of white-spaces.", nameof(rawJson));
         }
 
-        /// <summary>
-        ///     Gets the payload that was received.
-        /// </summary>
-        public IPayload Payload { get; }
-
-        /// <summary>
-        ///     Gets the raw JSON object content of the payload.
-        /// </summary>
-        public string RawJson { get; }
+        Payload = payload ?? throw new ArgumentNullException(nameof(payload));
+        RawJson = rawJson;
     }
+
+    /// <summary>
+    ///     Gets the payload that was received.
+    /// </summary>
+    public IPayload Payload { get; }
+
+    /// <summary>
+    ///     Gets the raw JSON object content of the payload.
+    /// </summary>
+    public string RawJson { get; }
 }

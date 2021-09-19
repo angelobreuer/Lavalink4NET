@@ -25,33 +25,32 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Events
+namespace Lavalink4NET.Payloads.Events;
+
+using Lavalink4NET.Rest;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a track exception event received from the lavalink
+///     node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class TrackExceptionEvent : EventPayload
 {
-    using Lavalink4NET.Rest;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the event type.
+    /// </summary>
+    [JsonRequired, JsonProperty("type")]
+    public override EventType Type => EventType.TrackException;
 
     /// <summary>
-    ///     The strongly-typed representation of a track exception event received from the lavalink
-    ///     node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the identifier of the track where the exception occurred.
     /// </summary>
-    public sealed class TrackExceptionEvent : EventPayload
-    {
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackException;
+    [JsonRequired, JsonProperty("track")]
+    public string TrackIdentifier { get; internal set; } = null!;
 
-        /// <summary>
-        ///     Gets the identifier of the track where the exception occurred.
-        /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; } = null!;
-
-        /// <summary>
-        ///     Gets the error that occurred.
-        /// </summary>
-        [JsonRequired, JsonProperty("exception")]
-        public TrackException Error { get; internal set; } = null!;
-    }
+    /// <summary>
+    ///     Gets the error that occurred.
+    /// </summary>
+    [JsonRequired, JsonProperty("exception")]
+    public TrackException Error { get; internal set; } = null!;
 }

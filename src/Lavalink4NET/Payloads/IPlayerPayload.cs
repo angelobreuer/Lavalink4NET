@@ -25,16 +25,15 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+/// <summary>
+///     The base for lavalink player payloads.
+/// </summary>
+public interface IPlayerPayload : IPayload
 {
     /// <summary>
-    ///     The base for lavalink player payloads.
+    ///     Gets the guild snowflake identifier the payload is for.
     /// </summary>
-    public interface IPlayerPayload : IPayload
-    {
-        /// <summary>
-        ///     Gets the guild snowflake identifier the payload is for.
-        /// </summary>
-        string GuildId { get; }
-    }
+    string GuildId { get; }
 }

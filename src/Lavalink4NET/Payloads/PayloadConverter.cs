@@ -25,90 +25,89 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+using System;
+using Lavalink4NET.Payloads.Events;
+using Lavalink4NET.Payloads.Node;
+using Lavalink4NET.Payloads.Player;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+/// <summary>
+///     An utility class for converting lavalink payloads.
+/// </summary>
+internal static class PayloadConverter
 {
-    using System;
-    using Lavalink4NET.Payloads.Events;
-    using Lavalink4NET.Payloads.Node;
-    using Lavalink4NET.Payloads.Player;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    /// <summary>
+    ///     Gets the implementation type for the specified <paramref name="eventType"/>.
+    /// </summary>
+    /// <param name="eventType">the type of the event</param>
+    /// <returns>the implementation type</returns>
+    public static Type GetEventType(EventType eventType) => eventType switch
+    {
+        EventType.TrackStuck => typeof(TrackStuckEvent),
+        EventType.TrackEnd => typeof(TrackEndEvent),
+        EventType.TrackException => typeof(TrackExceptionEvent),
+        EventType.WebSocketClosedEvent => typeof(WebSocketClosedEvent),
+        EventType.TrackStart => typeof(TrackStartEvent),
+        _ => throw new Exception("Invalid event type."),
+    };
 
     /// <summary>
-    ///     An utility class for converting lavalink payloads.
+    ///     Gets the implementation type for the specified <paramref name="opCode"/>.
     /// </summary>
-    internal static class PayloadConverter
+    /// <param name="opCode">the operation code of the event</param>
+    /// <returns>the implementation type</returns>
+    public static Type GetPayloadType(OpCode opCode) => opCode switch
     {
-        /// <summary>
-        ///     Gets the implementation type for the specified <paramref name="eventType"/>.
-        /// </summary>
-        /// <param name="eventType">the type of the event</param>
-        /// <returns>the implementation type</returns>
-        public static Type GetEventType(EventType eventType) => eventType switch
+        OpCode.GuildVoiceUpdate => typeof(VoiceUpdatePayload),
+        OpCode.PlayerPause => typeof(PlayerPausePayload),
+        OpCode.PlayerSeek => typeof(PlayerSeekPayload),
+        OpCode.PlayerStop => typeof(PlayerStopPayload),
+        OpCode.PlayerPlay => typeof(PlayerPlayPayload),
+        OpCode.PlayerUpdate => typeof(PlayerUpdatePayload),
+        OpCode.NodeStats => typeof(StatsUpdatePayload),
+        OpCode.Event => throw new Exception("Events are specially handled."),
+        _ => throw new Exception("Invalid operation code."),
+    };
+
+    /// <summary>
+    ///     Reads a lavalink payload from the specified json.
+    /// </summary>
+    /// <param name="json">the json to deserialize to a payload</param>
+    /// <returns>the deserialized payload</returns>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="json"/> is blank.
+    /// </exception>
+    public static IPayload ReadPayload(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
         {
-            EventType.TrackStuck => typeof(TrackStuckEvent),
-            EventType.TrackEnd => typeof(TrackEndEvent),
-            EventType.TrackException => typeof(TrackExceptionEvent),
-            EventType.WebSocketClosedEvent => typeof(WebSocketClosedEvent),
-            EventType.TrackStart => typeof(TrackStartEvent),
-            _ => throw new Exception("Invalid event type."),
-        };
-
-        /// <summary>
-        ///     Gets the implementation type for the specified <paramref name="opCode"/>.
-        /// </summary>
-        /// <param name="opCode">the operation code of the event</param>
-        /// <returns>the implementation type</returns>
-        public static Type GetPayloadType(OpCode opCode) => opCode switch
-        {
-            OpCode.GuildVoiceUpdate => typeof(VoiceUpdatePayload),
-            OpCode.PlayerPause => typeof(PlayerPausePayload),
-            OpCode.PlayerSeek => typeof(PlayerSeekPayload),
-            OpCode.PlayerStop => typeof(PlayerStopPayload),
-            OpCode.PlayerPlay => typeof(PlayerPlayPayload),
-            OpCode.PlayerUpdate => typeof(PlayerUpdatePayload),
-            OpCode.NodeStats => typeof(StatsUpdatePayload),
-            OpCode.Event => throw new Exception("Events are specially handled."),
-            _ => throw new Exception("Invalid operation code."),
-        };
-
-        /// <summary>
-        ///     Reads a lavalink payload from the specified json.
-        /// </summary>
-        /// <param name="json">the json to deserialize to a payload</param>
-        /// <returns>the deserialized payload</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="json"/> is blank.
-        /// </exception>
-        public static IPayload ReadPayload(string json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                throw new ArgumentException("The specified JSON is blank.", nameof(json));
-            }
-
-            var jObject = JsonConvert.DeserializeObject<JObject>(json);
-
-            if (!jObject.TryGetValue("op", out var opCodeToken))
-            {
-                throw new Exception("Invalid JSON: Expected 'op' in json object.");
-            }
-
-            var opCode = opCodeToken.ToObject<OpCode>();
-
-            if (opCode == OpCode.Event)
-            {
-                if (!jObject.TryGetValue("type", out var eventTypeToken))
-                {
-                    throw new Exception("Invalid JSON: Expected 'type' in json object.");
-                }
-
-                var eventType = eventTypeToken.ToObject<EventType>();
-                return (IPayload)jObject.ToObject(GetEventType(eventType));
-            }
-
-            var payloadType = GetPayloadType(opCode);
-            return (IPayload)jObject.ToObject(payloadType);
+            throw new ArgumentException("The specified JSON is blank.", nameof(json));
         }
+
+        var jObject = JsonConvert.DeserializeObject<JObject>(json);
+
+        if (!jObject.TryGetValue("op", out var opCodeToken))
+        {
+            throw new Exception("Invalid JSON: Expected 'op' in json object.");
+        }
+
+        var opCode = opCodeToken.ToObject<OpCode>();
+
+        if (opCode == OpCode.Event)
+        {
+            if (!jObject.TryGetValue("type", out var eventTypeToken))
+            {
+                throw new Exception("Invalid JSON: Expected 'type' in json object.");
+            }
+
+            var eventType = eventTypeToken.ToObject<EventType>();
+            return (IPayload)jObject.ToObject(GetEventType(eventType));
+        }
+
+        var payloadType = GetPayloadType(opCode);
+        return (IPayload)jObject.ToObject(payloadType);
     }
 }

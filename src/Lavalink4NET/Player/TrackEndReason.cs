@@ -25,46 +25,45 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Player;
+
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+/// <summary>
+///     The different reason for a track ending.
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
+public enum TrackEndReason
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    /// <summary>
+    ///     The track finished.
+    /// </summary>
+    [EnumMember(Value = "FINISHED")]
+    Finished,
 
     /// <summary>
-    ///     The different reason for a track ending.
+    ///     The load of the track failed.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum TrackEndReason
-    {
-        /// <summary>
-        ///     The track finished.
-        /// </summary>
-        [EnumMember(Value = "FINISHED")]
-        Finished,
+    [EnumMember(Value = "LOAD_FAILED")]
+    LoadFailed,
 
-        /// <summary>
-        ///     The load of the track failed.
-        /// </summary>
-        [EnumMember(Value = "LOAD_FAILED")]
-        LoadFailed,
+    /// <summary>
+    ///     The track was stopped.
+    /// </summary>
+    [EnumMember(Value = "STOPPED")]
+    Stopped,
 
-        /// <summary>
-        ///     The track was stopped.
-        /// </summary>
-        [EnumMember(Value = "STOPPED")]
-        Stopped,
+    /// <summary>
+    ///     The track was replaced by another.
+    /// </summary>
+    [EnumMember(Value = "REPLACED")]
+    Replaced,
 
-        /// <summary>
-        ///     The track was replaced by another.
-        /// </summary>
-        [EnumMember(Value = "REPLACED")]
-        Replaced,
-
-        /// <summary>
-        ///     The player was destroyed.
-        /// </summary>
-        [EnumMember(Value = "CLEANUP")]
-        CleanUp
-    }
+    /// <summary>
+    ///     The player was destroyed.
+    /// </summary>
+    [EnumMember(Value = "CLEANUP")]
+    CleanUp
 }

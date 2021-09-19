@@ -25,46 +25,45 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using System;
+using Newtonsoft.Json;
+
+/// <summary>
+///     A wrapper for the player status object.
+/// </summary>
+public readonly struct PlayerStatus
 {
-    using System;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerStatus"/> class.
+    /// </summary>
+    /// <param name="time">the time when the update was sent</param>
+    /// <param name="position">the track position in milliseconds</param>
+    /// <param name="connected">a value indicating whether the player is connected</param>
+    [JsonConstructor]
+    public PlayerStatus(long time, int position, bool connected)
+    {
+        UpdateTime = DateTimeOffset.FromUnixTimeMilliseconds(time);
+        Position = TimeSpan.FromMilliseconds(position);
+        IsConnected = connected;
+    }
 
     /// <summary>
-    ///     A wrapper for the player status object.
+    ///     Gets the track position (at the time the update was received, see: <see cref="UpdateTime"/>).
     /// </summary>
-    public readonly struct PlayerStatus
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerStatus"/> class.
-        /// </summary>
-        /// <param name="time">the time when the update was sent</param>
-        /// <param name="position">the track position in milliseconds</param>
-        /// <param name="connected">a value indicating whether the player is connected</param>
-        [JsonConstructor]
-        public PlayerStatus(long time, int position, bool connected)
-        {
-            UpdateTime = DateTimeOffset.FromUnixTimeMilliseconds(time);
-            Position = TimeSpan.FromMilliseconds(position);
-            IsConnected = connected;
-        }
+    [JsonIgnore]
+    public TimeSpan Position { get; }
 
-        /// <summary>
-        ///     Gets the track position (at the time the update was received, see: <see cref="UpdateTime"/>).
-        /// </summary>
-        [JsonIgnore]
-        public TimeSpan Position { get; }
+    /// <summary>
+    ///     Gets a value indicating whether the player is connected.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsConnected { get; }
 
-        /// <summary>
-        ///     Gets a value indicating whether the player is connected.
-        /// </summary>
-        [JsonIgnore]
-        public bool IsConnected { get; }
-
-        /// <summary>
-        ///     Gets the time when the position update was sent.
-        /// </summary>
-        [JsonIgnore]
-        public DateTimeOffset UpdateTime { get; }
-    }
+    /// <summary>
+    ///     Gets the time when the position update was sent.
+    /// </summary>
+    [JsonIgnore]
+    public DateTimeOffset UpdateTime { get; }
 }

@@ -25,39 +25,38 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Events
+namespace Lavalink4NET.Payloads.Events;
+
+using System.Net.WebSockets;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a web socket closed event received from the
+///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class WebSocketClosedEvent : EventPayload
 {
-    using System.Net.WebSockets;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the event type.
+    /// </summary>
+    [JsonRequired, JsonProperty("type")]
+    public override EventType Type => EventType.WebSocketClosedEvent;
 
     /// <summary>
-    ///     The strongly-typed representation of a web socket closed event received from the
-    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the web-socket close code.
     /// </summary>
-    public sealed class WebSocketClosedEvent : EventPayload
-    {
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.WebSocketClosedEvent;
+    [JsonRequired, JsonProperty("code")]
+    public WebSocketCloseStatus CloseCode { get; internal set; }
 
-        /// <summary>
-        ///     Gets the web-socket close code.
-        /// </summary>
-        [JsonRequired, JsonProperty("code")]
-        public WebSocketCloseStatus CloseCode { get; internal set; }
+    /// <summary>
+    ///     Gets the reason why the web-socket was closed.
+    /// </summary>
+    [JsonRequired, JsonProperty("reason")]
+    public string Reason { get; internal set; } = string.Empty;
 
-        /// <summary>
-        ///     Gets the reason why the web-socket was closed.
-        /// </summary>
-        [JsonRequired, JsonProperty("reason")]
-        public string Reason { get; internal set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets a value indicating whether the connection was closed by the remote (discord gateway).
-        /// </summary>
-        [JsonRequired, JsonProperty("byRemote")]
-        public bool ByRemote { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets a value indicating whether the connection was closed by the remote (discord gateway).
+    /// </summary>
+    [JsonRequired, JsonProperty("byRemote")]
+    public bool ByRemote { get; internal set; }
 }

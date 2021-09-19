@@ -25,44 +25,43 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using System;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
+///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class PlayerSeekPayload : IPayload, IPlayerPayload
 {
-    using System;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerSeekPayload"/> class.
+    /// </summary>
+    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+    /// <param name="position">the seek position</param>
+    public PlayerSeekPayload(ulong guildId, TimeSpan position)
+    {
+        GuildId = guildId.ToString();
+        Position = (int)position.TotalMilliseconds;
+    }
 
     /// <summary>
-    ///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
-    ///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class PlayerSeekPayload : IPayload, IPlayerPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerSeekPayload"/> class.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-        /// <param name="position">the seek position</param>
-        public PlayerSeekPayload(ulong guildId, TimeSpan position)
-        {
-            GuildId = guildId.ToString();
-            Position = (int)position.TotalMilliseconds;
-        }
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.PlayerSeek;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerSeek;
+    /// <summary>
+    ///     Gets the guild snowflake identifier the player update is for.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; }
 
-        /// <summary>
-        ///     Gets the guild snowflake identifier the player update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
-
-        /// <summary>
-        ///     Gets a value indicating whether the player should be paused.
-        /// </summary>
-        [JsonRequired, JsonProperty("position")]
-        public int Position { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets a value indicating whether the player should be paused.
+    /// </summary>
+    [JsonRequired, JsonProperty("position")]
+    public int Position { get; internal set; }
 }

@@ -25,32 +25,31 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Events
+namespace Lavalink4NET.Payloads.Events;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a track stuck event received from the lavalink node
+///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class TrackStuckEvent : EventPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the event type.
+    /// </summary>
+    [JsonRequired, JsonProperty("type")]
+    public override EventType Type => EventType.TrackStuck;
 
     /// <summary>
-    ///     The strongly-typed representation of a track stuck event received from the lavalink node
-    ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the identifier of the track that got stuck.
     /// </summary>
-    public sealed class TrackStuckEvent : EventPayload
-    {
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackStuck;
+    [JsonRequired, JsonProperty("track")]
+    public string TrackIdentifier { get; internal set; } = string.Empty;
 
-        /// <summary>
-        ///     Gets the identifier of the track that got stuck.
-        /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets the threshold in milliseconds.
-        /// </summary>
-        [JsonRequired, JsonProperty("thresholdMs")]
-        public long Threshold { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the threshold in milliseconds.
+    /// </summary>
+    [JsonRequired, JsonProperty("thresholdMs")]
+    public long Threshold { get; internal set; }
 }

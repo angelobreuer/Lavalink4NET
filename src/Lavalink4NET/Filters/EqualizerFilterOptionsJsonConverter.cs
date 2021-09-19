@@ -25,26 +25,25 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using System;
+using Newtonsoft.Json;
+
+internal sealed class EqualizerFilterOptionsJsonConverter : JsonConverter<EqualizerFilterOptions>
 {
-    using System;
-    using Newtonsoft.Json;
+    /// <inheritdoc/>
+    public override bool CanRead => false;
 
-    internal sealed class EqualizerFilterOptionsJsonConverter : JsonConverter<EqualizerFilterOptions>
+    /// <inheritdoc/>
+    public override EqualizerFilterOptions ReadJson(JsonReader reader, Type objectType, EqualizerFilterOptions existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        /// <inheritdoc/>
-        public override bool CanRead => false;
+        throw new NotSupportedException();
+    }
 
-        /// <inheritdoc/>
-        public override EqualizerFilterOptions ReadJson(JsonReader reader, Type objectType, EqualizerFilterOptions existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <inheritdoc/>
-        public override void WriteJson(JsonWriter writer, EqualizerFilterOptions value, JsonSerializer serializer)
-        {
-            serializer.Serialize(writer, value.Bands);
-        }
+    /// <inheritdoc/>
+    public override void WriteJson(JsonWriter writer, EqualizerFilterOptions value, JsonSerializer serializer)
+    {
+        serializer.Serialize(writer, value.Bands);
     }
 }

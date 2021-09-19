@@ -25,609 +25,608 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player
+namespace Lavalink4NET.Player;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Events;
+using Lavalink4NET.Filters;
+using Lavalink4NET.Payloads.Events;
+using Lavalink4NET.Payloads.Node;
+using Lavalink4NET.Payloads.Player;
+
+/// <summary>
+///     Controls a remote Lavalink Audio Player.
+/// </summary>
+public class LavalinkPlayer : IDisposable
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Events;
-    using Lavalink4NET.Filters;
-    using Lavalink4NET.Payloads.Events;
-    using Lavalink4NET.Payloads.Node;
-    using Lavalink4NET.Payloads.Player;
+    private PlayerFilterMap? _filterMap;
 
     /// <summary>
-    ///     Controls a remote Lavalink Audio Player.
+    ///     Gets the discord client wrapper.
     /// </summary>
-    public class LavalinkPlayer : IDisposable
+    public IDiscordClientWrapper Client { get; private set; } = null!; // Lazy-initialized
+
+    /// <summary>
+    ///     Gets the track that is currently playing.
+    /// </summary>
+    public LavalinkTrack? CurrentTrack { get; private set; }
+
+    public PlayerFilterMap Filters => _filterMap ??= new PlayerFilterMap(this);
+
+    internal bool HasFilters => _filterMap != null;
+
+    /// <summary>
+    ///     Gets the identifier snowflake value of the guild the player is for.
+    /// </summary>
+    public ulong GuildId { get; private set; }
+
+    /// <summary>
+    ///     Gets the current player state.
+    /// </summary>
+    public PlayerState State { get; private set; } = PlayerState.NotConnected;
+
+    /// <summary>
+    ///     Gets the current track position.
+    /// </summary>
+    /// <value>the current track position.</value>
+    public TrackPosition Position { get; private set; }
+
+    /// <summary>
+    ///     Gets the current track position.
+    /// </summary>
+    [Obsolete("This property will be removed in a future version, please use the Position property instead.")]
+    public TimeSpan TrackPosition => Position.Position;
+
+    /// <summary>
+    ///     Gets the voice channel id the player is connected to.
+    /// </summary>
+    public ulong? VoiceChannelId { get; private set; }
+
+    /// <summary>
+    ///     Gets the current player volume.
+    /// </summary>
+    public float Volume { get; private set; } = 1f;
+
+    /// <summary>
+    ///     Gets or sets the reason why the player disconnected.
+    /// </summary>
+    internal PlayerDisconnectCause DisconnectCause { get; set; }
+
+    /// <summary>
+    ///     Gets the communication lavalink socket.
+    /// </summary>
+    internal LavalinkSocket LavalinkSocket { get; set; } = null!; // Lazy-initialized
+
+    internal VoiceServer? VoiceServer { get; set; }
+
+    internal VoiceState? VoiceState { get; set; }
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether the player should stop after the track
+    ///     finished playing.
+    /// </summary>
+    protected bool DisconnectOnStop { get; set; }
+
+    /// <summary>
+    ///     Joins the voice channel specified by <paramref name="voiceChannelId"/> asynchronously.
+    /// </summary>
+    /// <param name="voiceChannelId">the voice channel identifier to join</param>
+    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
+    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
     {
-        private PlayerFilterMap? _filterMap;
+        await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
+        VoiceChannelId = voiceChannelId;
 
-        /// <summary>
-        ///     Gets the discord client wrapper.
-        /// </summary>
-        public IDiscordClientWrapper Client { get; private set; } = null!; // Lazy-initialized
+        State = PlayerState.NotPlaying;
+        CurrentTrack = null;
+    }
 
-        /// <summary>
-        ///     Gets the track that is currently playing.
-        /// </summary>
-        public LavalinkTrack? CurrentTrack { get; private set; }
+    /// <summary>
+    ///     Destroys the player asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public async Task DestroyAsync()
+    {
+        EnsureNotDestroyed();
 
-        public PlayerFilterMap Filters => _filterMap ??= new PlayerFilterMap(this);
+        // destroy player
+        State = PlayerState.Destroyed;
 
-        internal bool HasFilters => _filterMap != null;
+        // send destroy payload
+        await LavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
+    }
 
-        /// <summary>
-        ///     Gets the identifier snowflake value of the guild the player is for.
-        /// </summary>
-        public ulong GuildId { get; private set; }
+    /// <summary>
+    ///     Disconnects the player asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    public virtual Task DisconnectAsync()
+    {
+        EnsureConnected();
+        return DisconnectAsync(PlayerDisconnectCause.Stop);
+    }
 
-        /// <summary>
-        ///     Gets the current player state.
-        /// </summary>
-        public PlayerState State { get; private set; } = PlayerState.NotConnected;
-
-        /// <summary>
-        ///     Gets the current track position.
-        /// </summary>
-        /// <value>the current track position.</value>
-        public TrackPosition Position { get; private set; }
-
-        /// <summary>
-        ///     Gets the current track position.
-        /// </summary>
-        [Obsolete("This property will be removed in a future version, please use the Position property instead.")]
-        public TimeSpan TrackPosition => Position.Position;
-
-        /// <summary>
-        ///     Gets the voice channel id the player is connected to.
-        /// </summary>
-        public ulong? VoiceChannelId { get; private set; }
-
-        /// <summary>
-        ///     Gets the current player volume.
-        /// </summary>
-        public float Volume { get; private set; } = 1f;
-
-        /// <summary>
-        ///     Gets or sets the reason why the player disconnected.
-        /// </summary>
-        internal PlayerDisconnectCause DisconnectCause { get; set; }
-
-        /// <summary>
-        ///     Gets the communication lavalink socket.
-        /// </summary>
-        internal LavalinkSocket LavalinkSocket { get; set; } = null!; // Lazy-initialized
-
-        internal VoiceServer? VoiceServer { get; set; }
-
-        internal VoiceState? VoiceState { get; set; }
-
-        /// <summary>
-        ///     Gets or sets a value indicating whether the player should stop after the track
-        ///     finished playing.
-        /// </summary>
-        protected bool DisconnectOnStop { get; set; }
-
-        /// <summary>
-        ///     Joins the voice channel specified by <paramref name="voiceChannelId"/> asynchronously.
-        /// </summary>
-        /// <param name="voiceChannelId">the voice channel identifier to join</param>
-        /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-        /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+    /// <summary>
+    ///     Disposes the player.
+    /// </summary>
+    public virtual void Dispose()
+    {
+        if (State == PlayerState.Destroyed)
         {
-            await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
-            VoiceChannelId = voiceChannelId;
+            return;
+        }
 
+        // Disconnect from voice channel and send destroy player payload to the lavalink node
+        DisconnectAsync(PlayerDisconnectCause.Dispose).Wait();
+        DestroyAsync().Wait();
+    }
+
+    /// <summary>
+    ///     Asynchronously triggered when the player has connected to a voice channel.
+    /// </summary>
+    /// <param name="voiceServer">the voice server connected to</param>
+    /// <param name="voiceState">the voice state</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+        => Task.CompletedTask;
+
+    /// <summary>
+    ///     Asynchronously triggered when a track ends.
+    /// </summary>
+    /// <remarks>
+    ///     When overriding this method without supering / base calling it, the disconnect on
+    ///     stop function will be prevent.
+    /// </remarks>
+    /// <param name="eventArgs">the track event arguments</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+    {
+        if (DisconnectOnStop)
+        {
+            return DisconnectAsync();
+        }
+        else
+        {
+            // The track ended, set to not playing
             State = PlayerState.NotPlaying;
             CurrentTrack = null;
         }
 
-        /// <summary>
-        ///     Destroys the player asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task DestroyAsync()
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Asynchronously triggered when an exception occurred while playing a track.
+    /// </summary>
+    /// <param name="eventArgs">the track event arguments</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
+        => Task.CompletedTask;
+
+    /// <summary>
+    ///     Asynchronously triggered when a track started.
+    /// </summary>
+    /// <param name="eventArgs">the track event arguments</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
+        => Task.CompletedTask;
+
+    /// <summary>
+    ///     Asynchronously triggered when a track got stuck.
+    /// </summary>
+    /// <param name="eventArgs">the track event arguments</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
+        => Task.CompletedTask;
+
+    /// <summary>
+    ///     Pauses the current playing track asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the current playing track is already paused.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual async Task PauseAsync()
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        if (State != PlayerState.Playing)
         {
-            EnsureNotDestroyed();
-
-            // destroy player
-            State = PlayerState.Destroyed;
-
-            // send destroy payload
-            await LavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
+            throw new InvalidOperationException("The current playing track is not playing.");
         }
 
-        /// <summary>
-        ///     Disconnects the player asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        public virtual Task DisconnectAsync()
+        await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, true));
+        State = PlayerState.Paused;
+    }
+
+    /// <summary>
+    ///     Plays the specified <paramref name="track"/> asynchronously.
+    /// </summary>
+    /// <param name="track">the track to play</param>
+    /// <param name="startTime">the track start position</param>
+    /// <param name="endTime">the track end position</param>
+    /// <param name="noReplace">
+    ///     a value indicating whether the track play should be ignored if the same track is
+    ///     currently playing
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual async Task PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
+        TimeSpan? endTime = null, bool noReplace = false)
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
+        startTime ??= track.Position;
+
+        await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
+            startTime, endTime, noReplace));
+
+        State = PlayerState.Playing;
+    }
+
+    /// <summary>
+    ///     Replays the current track asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    public virtual Task ReplayAsync()
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        if (CurrentTrack is null || State == PlayerState.NotPlaying)
         {
-            EnsureConnected();
-            return DisconnectAsync(PlayerDisconnectCause.Stop);
+            throw new InvalidOperationException("No track is playing.");
         }
 
-        /// <summary>
-        ///     Disposes the player.
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (State == PlayerState.Destroyed)
-            {
-                return;
-            }
+        return PlayAsync(CurrentTrack, startTime: TimeSpan.Zero);
+    }
 
-            // Disconnect from voice channel and send destroy player payload to the lavalink node
-            DisconnectAsync(PlayerDisconnectCause.Dispose).Wait();
-            DestroyAsync().Wait();
+    /// <summary>
+    ///     Resumes the current playing track asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the current playing track is not paused
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual async Task ResumeAsync()
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        if (State != PlayerState.Paused)
+        {
+            throw new InvalidOperationException("There is no track paused.");
         }
 
-        /// <summary>
-        ///     Asynchronously triggered when the player has connected to a voice channel.
-        /// </summary>
-        /// <param name="voiceServer">the voice server connected to</param>
-        /// <param name="voiceState">the voice state</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
-            => Task.CompletedTask;
+        await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, false));
+        State = PlayerState.Playing;
+    }
 
-        /// <summary>
-        ///     Asynchronously triggered when a track ends.
-        /// </summary>
-        /// <remarks>
-        ///     When overriding this method without supering / base calling it, the disconnect on
-        ///     stop function will be prevent.
-        /// </remarks>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
+    /// <summary>
+    ///     Seeks the current playing track asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    ///     thrown if the current playing track does not support seeking.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual Task SeekPositionAsync(TimeSpan position)
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        if (State is not PlayerState.Paused and not PlayerState.Playing)
         {
-            if (DisconnectOnStop)
-            {
-                return DisconnectAsync();
-            }
-            else
-            {
-                // The track ended, set to not playing
-                State = PlayerState.NotPlaying;
-                CurrentTrack = null;
-            }
-
-            return Task.CompletedTask;
+            throw new InvalidOperationException("There is no track paused or playing.");
         }
 
-        /// <summary>
-        ///     Asynchronously triggered when an exception occurred while playing a track.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-            => Task.CompletedTask;
+        return LavalinkSocket.SendPayloadAsync(new PlayerSeekPayload(GuildId, position));
+    }
 
-        /// <summary>
-        ///     Asynchronously triggered when a track started.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
-            => Task.CompletedTask;
+    /// <summary>
+    ///     Updates the player volume asynchronously.
+    /// </summary>
+    /// <param name="volume">the player volume (0f - 10f)</param>
+    /// <param name="normalize">
+    ///     a value indicating whether if the <paramref name="volume"/> is out of range (0f -
+    ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
+    ///     -20f to 0f.
+    /// </param>
+    /// <param name="force">
+    ///     a value indicating whether to send the update regardless of whether the current
+    ///     volume is the same as the specified <paramref name="volume"/>.
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false, bool force = false)
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
 
-        /// <summary>
-        ///     Asynchronously triggered when a track got stuck.
-        /// </summary>
-        /// <param name="eventArgs">the track event arguments</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-            => Task.CompletedTask;
-
-        /// <summary>
-        ///     Pauses the current playing track asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the current playing track is already paused.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task PauseAsync()
+        if (volume is > 10f or < 0f)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            if (State != PlayerState.Playing)
+            if (!normalize)
             {
-                throw new InvalidOperationException("The current playing track is not playing.");
+                throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
             }
 
-            await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, true));
-            State = PlayerState.Paused;
+            // bring the values into range (0f - 10f)
+            volume = Math.Max(0f, volume);
+            volume = Math.Min(10f, volume);
         }
 
-        /// <summary>
-        ///     Plays the specified <paramref name="track"/> asynchronously.
-        /// </summary>
-        /// <param name="track">the track to play</param>
-        /// <param name="startTime">the track start position</param>
-        /// <param name="endTime">the track end position</param>
-        /// <param name="noReplace">
-        ///     a value indicating whether the track play should be ignored if the same track is
-        ///     currently playing
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
-            TimeSpan? endTime = null, bool noReplace = false)
+        // check if the volume is already the same as wanted
+        if (!force && Volume == volume)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
-            startTime ??= track.Position;
-
-            await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
-                startTime, endTime, noReplace));
-
-            State = PlayerState.Playing;
+            return;
         }
 
-        /// <summary>
-        ///     Replays the current track asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        public virtual Task ReplayAsync()
+        var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
+        await LavalinkSocket.SendPayloadAsync(payload);
+
+        Volume = volume;
+    }
+
+    /// <summary>
+    ///     Stops playing the current track asynchronously.
+    /// </summary>
+    /// <param name="disconnect">
+    ///     a value indicating whether the connection to the voice server should be closed
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    public virtual async Task StopAsync(bool disconnect = false)
+    {
+        EnsureNotDestroyed();
+        EnsureConnected();
+
+        await LavalinkSocket.SendPayloadAsync(new PlayerStopPayload(GuildId));
+
+        if (disconnect)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            if (CurrentTrack is null || State == PlayerState.NotPlaying)
-            {
-                throw new InvalidOperationException("No track is playing.");
-            }
-
-            return PlayAsync(CurrentTrack, startTime: TimeSpan.Zero);
+            await DisconnectAsync(PlayerDisconnectCause.Stop);
         }
 
-        /// <summary>
-        ///     Resumes the current playing track asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the current playing track is not paused
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task ResumeAsync()
+        State = PlayerState.NotPlaying;
+        CurrentTrack = null;
+    }
+
+    /// <summary>
+    ///     Updates the player equalizer asynchronously.
+    /// </summary>
+    /// <param name="bands">the bands</param>
+    /// <param name="reset">
+    ///     a value indicating whether the equalizer bands should be overridden ( <see
+    ///     langword="false"/>) or replaced ( <see langword="true"/>).
+    /// </param>
+    /// <param name="force">
+    ///     a value indicating whether to send the update regardless of whether the current
+    ///     equalizer bands ( <see cref="Bands"/>) are configured the same as the specified
+    ///     <paramref name="bands"/>.
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    [Obsolete("This member may be removed in a future version, use Filters.Equalizer instead.")]
+    public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true, bool force = false)
+    {
+        EnsureNotDestroyed();
+
+        Filters.Equalizer ??= new EqualizerFilterOptions();
+        Filters.Equalizer.Bands = bands.ToArray();
+
+        return Filters.CommitAsync();
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of a player.
+    /// </summary>
+    /// <param name="playerFactory">the player factory</param>
+    /// <param name="socket">the lavalink socket</param>
+    /// <param name="client">the discord client</param>
+    /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
+    /// <param name="disconnectOnStop">
+    ///     a value indicating whether the player should stop after the track finished playing
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="playerFactory"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="socket"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
+    /// </exception>
+    internal static T CreatePlayer<T>(
+        PlayerFactory<T> playerFactory, LavalinkSocket socket, IDiscordClientWrapper client,
+        ulong guildId, bool disconnectOnStop) where T : LavalinkPlayer
+    {
+        if (playerFactory is null)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            if (State != PlayerState.Paused)
-            {
-                throw new InvalidOperationException("There is no track paused.");
-            }
-
-            await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, false));
-            State = PlayerState.Playing;
+            throw new ArgumentNullException(nameof(playerFactory));
         }
 
-        /// <summary>
-        ///     Seeks the current playing track asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="NotSupportedException">
-        ///     thrown if the current playing track does not support seeking.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual Task SeekPositionAsync(TimeSpan position)
+        var player = playerFactory();
+
+        player.LavalinkSocket = socket ?? throw new ArgumentNullException(nameof(socket));
+        player.Client = client ?? throw new ArgumentNullException(nameof(client));
+        player.GuildId = guildId;
+        player.DisconnectOnStop = disconnectOnStop;
+
+        return player;
+    }
+
+    /// <summary>
+    ///     Disconnects the player asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    internal async Task DisconnectAsync(PlayerDisconnectCause disconnectCause)
+    {
+        if (State == PlayerState.NotConnected)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            if (State != PlayerState.Paused && State != PlayerState.Playing)
-            {
-                throw new InvalidOperationException("There is no track paused or playing.");
-            }
-
-            return LavalinkSocket.SendPayloadAsync(new PlayerSeekPayload(GuildId, position));
+            return;
         }
 
-        /// <summary>
-        ///     Updates the player volume asynchronously.
-        /// </summary>
-        /// <param name="volume">the player volume (0f - 10f)</param>
-        /// <param name="normalize">
-        ///     a value indicating whether if the <paramref name="volume"/> is out of range (0f -
-        ///     10f) it should be normalized in its range. For example 11f will be mapped to 10f and
-        ///     -20f to 0f.
-        /// </param>
-        /// <param name="force">
-        ///     a value indicating whether to send the update regardless of whether the current
-        ///     volume is the same as the specified <paramref name="volume"/>.
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="volume"/> is out of range (0f - 10f)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task SetVolumeAsync(float volume = 1f, bool normalize = false, bool force = false)
+        // keep old channel in memory
+        var channel = VoiceChannelId;
+
+        // disconnect from channel
+        await Client.SendVoiceUpdateAsync(GuildId, null);
+        VoiceChannelId = null;
+        State = PlayerState.NotConnected;
+
+        // only trigger event if disconnected from a channel
+        if (channel.HasValue)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
+            // notify disconnect
+            await LavalinkSocket.NotifyDisconnectAsync(
+                new PlayerDisconnectedEventArgs(this, channel.Value, disconnectCause));
+        }
+    }
 
-            if (volume > 10f || volume < 0f)
-            {
-                if (!normalize)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(volume), volume, "Volume is out of range (0f - 10f)");
-                }
+    /// <summary>
+    ///     Updates the voice server and sends the data to the Lavalink Node if the voice state
+    ///     is also provided.
+    /// </summary>
+    /// <param name="voiceServer">the voice server data</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    internal Task UpdateAsync(VoiceServer voiceServer)
+    {
+        EnsureNotDestroyed();
 
-                // bring the values into range (0f - 10f)
-                volume = Math.Max(0f, volume);
-                volume = Math.Min(10f, volume);
-            }
+        VoiceServer = voiceServer;
+        return UpdateAsync();
+    }
 
-            // check if the volume is already the same as wanted
-            if (!force && Volume == volume)
-            {
-                return;
-            }
+    /// <summary>
+    ///     Updates the voice state and sends the data to the Lavalink Node if the voice server
+    ///     is also provided.
+    /// </summary>
+    /// <param name="voiceState">the voice state data</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    internal Task UpdateAsync(VoiceState voiceState)
+    {
+        EnsureNotDestroyed();
 
-            var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
-            await LavalinkSocket.SendPayloadAsync(payload);
+        VoiceState = voiceState;
+        VoiceChannelId = voiceState.VoiceChannelId;
+        return UpdateAsync();
+    }
 
-            Volume = volume;
+    /// <summary>
+    ///     Sends the voice state and server data to the Lavalink Node if both is provided.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    internal async Task UpdateAsync()
+    {
+        if (VoiceServer is null || VoiceState is null)
+        {
+            // voice state or server is missing
+            return;
         }
 
-        /// <summary>
-        ///     Stops playing the current track asynchronously.
-        /// </summary>
-        /// <param name="disconnect">
-        ///     a value indicating whether the connection to the voice server should be closed
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        public virtual async Task StopAsync(bool disconnect = false)
+        // send voice update payload
+        await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(VoiceState.GuildId,
+            VoiceState.VoiceSessionId, new VoiceServerUpdateEvent(VoiceServer)));
+
+        if (State is PlayerState.NotConnected or PlayerState.Destroyed)
         {
-            EnsureNotDestroyed();
-            EnsureConnected();
-
-            await LavalinkSocket.SendPayloadAsync(new PlayerStopPayload(GuildId));
-
-            if (disconnect)
-            {
-                await DisconnectAsync(PlayerDisconnectCause.Stop);
-            }
-
+            // set initial player state to connected, if player was not connected or destroyed,
+            // see: https://github.com/angelobreuer/Lavalink4NET/issues/28
             State = PlayerState.NotPlaying;
             CurrentTrack = null;
         }
 
-        /// <summary>
-        ///     Updates the player equalizer asynchronously.
-        /// </summary>
-        /// <param name="bands">the bands</param>
-        /// <param name="reset">
-        ///     a value indicating whether the equalizer bands should be overridden ( <see
-        ///     langword="false"/>) or replaced ( <see langword="true"/>).
-        /// </param>
-        /// <param name="force">
-        ///     a value indicating whether to send the update regardless of whether the current
-        ///     equalizer bands ( <see cref="Bands"/>) are configured the same as the specified
-        ///     <paramref name="bands"/>.
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        [Obsolete("This member may be removed in a future version, use Filters.Equalizer instead.")]
-        public virtual Task UpdateEqualizerAsync(IEnumerable<EqualizerBand> bands, bool reset = true, bool force = false)
+        // trigger event
+        await OnConnectedAsync(VoiceServer, VoiceState);
+    }
+
+    internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
+    {
+        var timeStretchFactor = 1F;
+        var timescaleFilter = _filterMap?.Timescale;
+
+        if (timescaleFilter is not null)
         {
-            EnsureNotDestroyed();
-
-            Filters.Equalizer ??= new EqualizerFilterOptions();
-            Filters.Equalizer.Bands = bands.ToArray();
-
-            return Filters.CommitAsync();
+            timeStretchFactor *= timescaleFilter.Rate * timescaleFilter.Speed;
         }
 
-        /// <summary>
-        ///     Initializes a new instance of a player.
-        /// </summary>
-        /// <param name="playerFactory">the player factory</param>
-        /// <param name="socket">the lavalink socket</param>
-        /// <param name="client">the discord client</param>
-        /// <param name="guildId">the identifier of the guild that is controlled by the player</param>
-        /// <param name="disconnectOnStop">
-        ///     a value indicating whether the player should stop after the track finished playing
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="playerFactory"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="socket"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
-        /// </exception>
-        internal static T CreatePlayer<T>(
-            PlayerFactory<T> playerFactory, LavalinkSocket socket, IDiscordClientWrapper client,
-            ulong guildId, bool disconnectOnStop) where T : LavalinkPlayer
+        Position = new TrackPosition(positionUpdateTime, position, timeStretchFactor);
+    }
+
+    internal void UpdateTimeStretch(DateTimeOffset updateTime)
+    {
+        Debug.Assert(_filterMap?.Timescale is not null, "Timescale can not be null.");
+
+        var timescaleFilter = _filterMap!.Timescale!;
+        var timeStretchFactor = timescaleFilter.Rate * timescaleFilter.Speed;
+        Position = Position.FixAndStretch(updateTime, timeStretchFactor);
+    }
+
+    /// <summary>
+    ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected
+    ///     to a voice channel.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the player is not connected to a voice channel
+    /// </exception>
+    protected void EnsureConnected()
+    {
+        if (State == PlayerState.NotConnected)
         {
-            if (playerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(playerFactory));
-            }
-
-            var player = playerFactory();
-
-            player.LavalinkSocket = socket ?? throw new ArgumentNullException(nameof(socket));
-            player.Client = client ?? throw new ArgumentNullException(nameof(client));
-            player.GuildId = guildId;
-            player.DisconnectOnStop = disconnectOnStop;
-
-            return player;
+            throw new InvalidOperationException("The player is not connected to a voice channel.");
         }
+    }
 
-        /// <summary>
-        ///     Disconnects the player asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        internal async Task DisconnectAsync(PlayerDisconnectCause disconnectCause)
+    /// <summary>
+    ///     Throws an <see cref="InvalidOperationException"/> when the player is destroyed.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
+    protected void EnsureNotDestroyed()
+    {
+        if (State == PlayerState.Destroyed)
         {
-            if (State == PlayerState.NotConnected)
-            {
-                return;
-            }
-
-            // keep old channel in memory
-            var channel = VoiceChannelId;
-
-            // disconnect from channel
-            await Client.SendVoiceUpdateAsync(GuildId, null);
-            VoiceChannelId = null;
-            State = PlayerState.NotConnected;
-
-            // only trigger event if disconnected from a channel
-            if (channel.HasValue)
-            {
-                // notify disconnect
-                await LavalinkSocket.NotifyDisconnectAsync(
-                    new PlayerDisconnectedEventArgs(this, channel.Value, disconnectCause));
-            }
-        }
-
-        /// <summary>
-        ///     Updates the voice server and sends the data to the Lavalink Node if the voice state
-        ///     is also provided.
-        /// </summary>
-        /// <param name="voiceServer">the voice server data</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        internal Task UpdateAsync(VoiceServer voiceServer)
-        {
-            EnsureNotDestroyed();
-
-            VoiceServer = voiceServer;
-            return UpdateAsync();
-        }
-
-        /// <summary>
-        ///     Updates the voice state and sends the data to the Lavalink Node if the voice server
-        ///     is also provided.
-        /// </summary>
-        /// <param name="voiceState">the voice state data</param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        internal Task UpdateAsync(VoiceState voiceState)
-        {
-            EnsureNotDestroyed();
-
-            VoiceState = voiceState;
-            VoiceChannelId = voiceState.VoiceChannelId;
-            return UpdateAsync();
-        }
-
-        /// <summary>
-        ///     Sends the voice state and server data to the Lavalink Node if both is provided.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        internal async Task UpdateAsync()
-        {
-            if (VoiceServer is null || VoiceState is null)
-            {
-                // voice state or server is missing
-                return;
-            }
-
-            // send voice update payload
-            await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(VoiceState.GuildId,
-                VoiceState.VoiceSessionId, new VoiceServerUpdateEvent(VoiceServer)));
-
-            if (State == PlayerState.NotConnected || State == PlayerState.Destroyed)
-            {
-                // set initial player state to connected, if player was not connected or destroyed,
-                // see: https://github.com/angelobreuer/Lavalink4NET/issues/28
-                State = PlayerState.NotPlaying;
-                CurrentTrack = null;
-            }
-
-            // trigger event
-            await OnConnectedAsync(VoiceServer, VoiceState);
-        }
-
-        internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
-        {
-            var timeStretchFactor = 1F;
-            var timescaleFilter = _filterMap?.Timescale;
-
-            if (timescaleFilter is not null)
-            {
-                timeStretchFactor *= timescaleFilter.Rate * timescaleFilter.Speed;
-            }
-
-            Position = new TrackPosition(positionUpdateTime, position, timeStretchFactor);
-        }
-
-        internal void UpdateTimeStretch(DateTimeOffset updateTime)
-        {
-            Debug.Assert(_filterMap?.Timescale is not null, "Timescale can not be null.");
-
-            var timescaleFilter = _filterMap!.Timescale!;
-            var timeStretchFactor = timescaleFilter.Rate * timescaleFilter.Speed;
-            Position = Position.FixAndStretch(updateTime,timeStretchFactor);
-        }
-
-        /// <summary>
-        ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected
-        ///     to a voice channel.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the player is not connected to a voice channel
-        /// </exception>
-        protected void EnsureConnected()
-        {
-            if (State == PlayerState.NotConnected)
-            {
-                throw new InvalidOperationException("The player is not connected to a voice channel.");
-            }
-        }
-
-        /// <summary>
-        ///     Throws an <see cref="InvalidOperationException"/> when the player is destroyed.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-        protected void EnsureNotDestroyed()
-        {
-            if (State == PlayerState.Destroyed)
-            {
-                throw new InvalidOperationException("The player is destroyed.");
-            }
+            throw new InvalidOperationException("The player is destroyed.");
         }
     }
 }

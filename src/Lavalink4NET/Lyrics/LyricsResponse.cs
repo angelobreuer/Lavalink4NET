@@ -25,25 +25,24 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Lyrics
+namespace Lavalink4NET.Lyrics;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The response payload returned by the lyrics API service.
+/// </summary>
+public sealed class LyricsResponse
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets an hopefully descriptive error message indicating what error occurred.
+    /// </summary>
+    [JsonProperty("error")]
+    public string? ErrorMessage { get; internal set; }
 
     /// <summary>
-    ///     The response payload returned by the lyrics API service.
+    ///     Gets the lyrics of the requested song.
     /// </summary>
-    public sealed class LyricsResponse
-    {
-        /// <summary>
-        ///     Gets an hopefully descriptive error message indicating what error occurred.
-        /// </summary>
-        [JsonProperty("error")]
-        public string? ErrorMessage { get; internal set; }
-
-        /// <summary>
-        ///     Gets the lyrics of the requested song.
-        /// </summary>
-        [JsonProperty("lyrics")]
-        public string? Lyrics { get; internal set; }
-    }
+    [JsonProperty("lyrics")]
+    public string? Lyrics { get; internal set; }
 }

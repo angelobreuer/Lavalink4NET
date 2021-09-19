@@ -25,31 +25,30 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Statistics
+namespace Lavalink4NET.Statistics;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The frame statistics of a lavalink node.
+/// </summary>
+public sealed class FrameStatistics
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the number of average frames sent per minute.
+    /// </summary>
+    [JsonRequired, JsonProperty("sent")]
+    public int AverageFramesSent { get; internal set; }
 
     /// <summary>
-    ///     The frame statistics of a lavalink node.
+    ///     Gets the number of average nulled frames per minute.
     /// </summary>
-    public sealed class FrameStatistics
-    {
-        /// <summary>
-        ///     Gets the number of average frames sent per minute.
-        /// </summary>
-        [JsonRequired, JsonProperty("sent")]
-        public int AverageFramesSent { get; internal set; }
+    [JsonRequired, JsonProperty("nulled")]
+    public int AverageNulledFrames { get; internal set; }
 
-        /// <summary>
-        ///     Gets the number of average nulled frames per minute.
-        /// </summary>
-        [JsonRequired, JsonProperty("nulled")]
-        public int AverageNulledFrames { get; internal set; }
-
-        /// <summary>
-        ///     Gets the number of average deficit frames per minute.
-        /// </summary>
-        [JsonRequired, JsonProperty("deficit")]
-        public int AverageDeficitFrames { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the number of average deficit frames per minute.
+    /// </summary>
+    [JsonRequired, JsonProperty("deficit")]
+    public int AverageDeficitFrames { get; internal set; }
 }

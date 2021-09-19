@@ -25,25 +25,24 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Rest
+namespace Lavalink4NET.Rest;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The playlist info object for the track load response.
+/// </summary>
+public sealed class PlaylistInfo
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the name of the playlist.
+    /// </summary>
+    [JsonProperty("name")]
+    public string? Name { get; internal set; }
 
     /// <summary>
-    ///     The playlist info object for the track load response.
+    ///     Gets the index of the selected track.
     /// </summary>
-    public sealed class PlaylistInfo
-    {
-        /// <summary>
-        ///     Gets the name of the playlist.
-        /// </summary>
-        [JsonProperty("name")]
-        public string? Name { get; internal set; }
-
-        /// <summary>
-        ///     Gets the index of the selected track.
-        /// </summary>
-        [JsonProperty("selectedTrack")]
-        public int SelectedTrack { get; internal set; }
-    }
+    [JsonProperty("selectedTrack")]
+    public int SelectedTrack { get; internal set; }
 }

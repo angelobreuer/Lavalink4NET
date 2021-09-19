@@ -25,92 +25,91 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+/// <summary>
+///     The supported lavalink operation codes for payloads.
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
+public enum OpCode
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    /// <summary>
+    ///     Provide an intercepted voice server update. This causes the server to connect to the
+    ///     voice channel.
+    /// </summary>
+    [EnumMember(Value = "voiceUpdate")]
+    GuildVoiceUpdate,
 
     /// <summary>
-    ///     The supported lavalink operation codes for payloads.
+    ///     Cause the player to play a track.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum OpCode
-    {
-        /// <summary>
-        ///     Provide an intercepted voice server update. This causes the server to connect to the
-        ///     voice channel.
-        /// </summary>
-        [EnumMember(Value = "voiceUpdate")]
-        GuildVoiceUpdate,
+    [EnumMember(Value = "play")]
+    PlayerPlay,
 
-        /// <summary>
-        ///     Cause the player to play a track.
-        /// </summary>
-        [EnumMember(Value = "play")]
-        PlayerPlay,
+    /// <summary>
+    ///     Cause the player to stop.
+    /// </summary>
+    [EnumMember(Value = "stop")]
+    PlayerStop,
 
-        /// <summary>
-        ///     Cause the player to stop.
-        /// </summary>
-        [EnumMember(Value = "stop")]
-        PlayerStop,
+    /// <summary>
+    ///     Set player pause.
+    /// </summary>
+    [EnumMember(Value = "pause")]
+    PlayerPause,
 
-        /// <summary>
-        ///     Set player pause.
-        /// </summary>
-        [EnumMember(Value = "pause")]
-        PlayerPause,
+    /// <summary>
+    ///     Make the player seek to a position of the track.
+    /// </summary>
+    [EnumMember(Value = "seek")]
+    PlayerSeek,
 
-        /// <summary>
-        ///     Make the player seek to a position of the track.
-        /// </summary>
-        [EnumMember(Value = "seek")]
-        PlayerSeek,
+    /// <summary>
+    ///     Set player volume.
+    /// </summary>
+    [EnumMember(Value = "volume")]
+    PlayerVolume,
 
-        /// <summary>
-        ///     Set player volume.
-        /// </summary>
-        [EnumMember(Value = "volume")]
-        PlayerVolume,
+    /// <summary>
+    ///     Updates the player filters.
+    /// </summary>
+    [EnumMember(Value = "filters")]
+    PlayerFilters,
 
-        /// <summary>
-        ///     Updates the player filters.
-        /// </summary>
-        [EnumMember(Value = "filters")]
-        PlayerFilters,
+    /// <summary>
+    ///     Tell the server to potentially disconnect from the voice server and potentially
+    ///     remove the player with all its data. This is useful if you want to move to a new node
+    ///     for a voice connection. Calling this op does not affect voice state, and you can send
+    ///     the same VOICE_SERVER_UPDATE to a new node.
+    /// </summary>
+    [EnumMember(Value = "destroy")]
+    PlayerDestroy,
 
-        /// <summary>
-        ///     Tell the server to potentially disconnect from the voice server and potentially
-        ///     remove the player with all its data. This is useful if you want to move to a new node
-        ///     for a voice connection. Calling this op does not affect voice state, and you can send
-        ///     the same VOICE_SERVER_UPDATE to a new node.
-        /// </summary>
-        [EnumMember(Value = "destroy")]
-        PlayerDestroy,
+    /// <summary>
+    ///     Configures resuming for the connection.
+    /// </summary>
+    [EnumMember(Value = "configureResuming")]
+    ConfigureResuming,
 
-        /// <summary>
-        ///     Configures resuming for the connection.
-        /// </summary>
-        [EnumMember(Value = "configureResuming")]
-        ConfigureResuming,
+    /// <summary>
+    ///     Position information about a player.
+    /// </summary>
+    [EnumMember(Value = "playerUpdate")]
+    PlayerUpdate,
 
-        /// <summary>
-        ///     Position information about a player.
-        /// </summary>
-        [EnumMember(Value = "playerUpdate")]
-        PlayerUpdate,
+    /// <summary>
+    ///     A collection of stats sent every minute.
+    /// </summary>
+    [EnumMember(Value = "stats")]
+    NodeStats,
 
-        /// <summary>
-        ///     A collection of stats sent every minute.
-        /// </summary>
-        [EnumMember(Value = "stats")]
-        NodeStats,
-
-        /// <summary>
-        ///     An event was emitted.
-        /// </summary>
-        [EnumMember(Value = "event")]
-        Event
-    }
+    /// <summary>
+    ///     An event was emitted.
+    /// </summary>
+    [EnumMember(Value = "event")]
+    Event
 }

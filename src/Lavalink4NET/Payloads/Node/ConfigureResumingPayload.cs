@@ -25,45 +25,44 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Node
+namespace Lavalink4NET.Payloads.Node;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a configure resuming payload which sent to the
+///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class ConfigureResumingPayload : IPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ConfigureResumingPayload"/> class.
+    /// </summary>
+    /// <param name="key">the resuming key</param>
+    /// <param name="timeout">
+    ///     the number of seconds after disconnecting before the session is closed anyways
+    /// </param>
+    public ConfigureResumingPayload(string key, int timeout = 60)
+    {
+        Key = key;
+        Timeout = timeout;
+    }
 
     /// <summary>
-    ///     The strongly-typed representation of a configure resuming payload which sent to the
-    ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class ConfigureResumingPayload : IPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ConfigureResumingPayload"/> class.
-        /// </summary>
-        /// <param name="key">the resuming key</param>
-        /// <param name="timeout">
-        ///     the number of seconds after disconnecting before the session is closed anyways
-        /// </param>
-        public ConfigureResumingPayload(string key, int timeout = 60)
-        {
-            Key = key;
-            Timeout = timeout;
-        }
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.ConfigureResuming;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.ConfigureResuming;
+    /// <summary>
+    ///     Gets the resuming key.
+    /// </summary>
+    [JsonRequired, JsonProperty("key")]
+    public string Key { get; internal set; } = string.Empty;
 
-        /// <summary>
-        ///     Gets the resuming key.
-        /// </summary>
-        [JsonRequired, JsonProperty("key")]
-        public string Key { get; internal set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets the number of seconds after disconnecting before the session is closed anyways.
-        /// </summary>
-        [JsonRequired, JsonProperty("timeout")]
-        public int Timeout { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the number of seconds after disconnecting before the session is closed anyways.
+    /// </summary>
+    [JsonRequired, JsonProperty("timeout")]
+    public int Timeout { get; internal set; }
 }

@@ -25,20 +25,19 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+[JsonConverter(typeof(EqualizerFilterOptionsJsonConverter))]
+public sealed class EqualizerFilterOptions : IFilterOptions
 {
-    using System;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
+    public const string Name = "equalizer";
 
-    [JsonConverter(typeof(EqualizerFilterOptionsJsonConverter))]
-    public sealed class EqualizerFilterOptions : IFilterOptions
-    {
-        public const string Name = "equalizer";
+    /// <inheritdoc/>
+    string IFilterOptions.Name => Name;
 
-        /// <inheritdoc/>
-        string IFilterOptions.Name => Name;
-
-        public IReadOnlyList<EqualizerBand> Bands { get; set; } = Array.Empty<EqualizerBand>();
-    }
+    public IReadOnlyList<EqualizerBand> Bands { get; set; } = Array.Empty<EqualizerBand>();
 }

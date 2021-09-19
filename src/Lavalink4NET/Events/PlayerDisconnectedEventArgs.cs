@@ -25,41 +25,40 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Events
+namespace Lavalink4NET.Events;
+
+using System;
+using Lavalink4NET.Player;
+
+/// <summary>
+///     Event arguments for the <see cref="LavalinkNode.PlayerDisconnected"/> event.
+/// </summary>
+public sealed class PlayerDisconnectedEventArgs : PlayerEventArgs
 {
-    using System;
-    using Lavalink4NET.Player;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerDisconnectedEventArgs"/> class.
+    /// </summary>
+    /// <param name="player">the affected player</param>
+    /// <param name="voiceChannelId">
+    ///     the snowflake identifier of the voice channel disconnected from
+    /// </param>
+    /// <param name="disconnectCause">the reason why the player disconnected</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
+    /// </exception>
+    public PlayerDisconnectedEventArgs(LavalinkPlayer player, ulong voiceChannelId, PlayerDisconnectCause disconnectCause) : base(player)
+    {
+        VoiceChannelId = voiceChannelId;
+        DisconnectCause = disconnectCause;
+    }
 
     /// <summary>
-    ///     Event arguments for the <see cref="LavalinkNode.PlayerDisconnected"/> event.
+    ///     Gets the reason why the player disconnected.
     /// </summary>
-    public sealed class PlayerDisconnectedEventArgs : PlayerEventArgs
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerDisconnectedEventArgs"/> class.
-        /// </summary>
-        /// <param name="player">the affected player</param>
-        /// <param name="voiceChannelId">
-        ///     the snowflake identifier of the voice channel disconnected from
-        /// </param>
-        /// <param name="disconnectCause">the reason why the player disconnected</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
-        /// </exception>
-        public PlayerDisconnectedEventArgs(LavalinkPlayer player, ulong voiceChannelId, PlayerDisconnectCause disconnectCause) : base(player)
-        {
-            VoiceChannelId = voiceChannelId;
-            DisconnectCause = disconnectCause;
-        }
+    public PlayerDisconnectCause DisconnectCause { get; }
 
-        /// <summary>
-        ///     Gets the reason why the player disconnected.
-        /// </summary>
-        public PlayerDisconnectCause DisconnectCause { get; }
-
-        /// <summary>
-        ///     Gets the snowflake identifier of the voice channel disconnected from.
-        /// </summary>
-        public ulong VoiceChannelId { get; }
-    }
+    /// <summary>
+    ///     Gets the snowflake identifier of the voice channel disconnected from.
+    /// </summary>
+    public ulong VoiceChannelId { get; }
 }

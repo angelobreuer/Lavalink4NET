@@ -25,22 +25,21 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Filters
+namespace Lavalink4NET.Filters;
+
+using Newtonsoft.Json;
+
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+public sealed class VibratoFilterOptions : IFilterOptions
 {
-    using Newtonsoft.Json;
+    public const string Name = "vibrato";
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public sealed class VibratoFilterOptions : IFilterOptions
-    {
-        public const string Name = "vibrato";
+    /// <inheritdoc/>
+    string IFilterOptions.Name => Name;
 
-        /// <inheritdoc/>
-        string IFilterOptions.Name => Name;
+    [JsonProperty("frequency")]
+    public float Frequency { get; set; } = 2.0F;
 
-        [JsonProperty("frequency")]
-        public float Frequency { get; set; } = 2.0F;
-
-        [JsonProperty("depth")]
-        public float Depth { get; set; } = 0.5F;
-    }
+    [JsonProperty("depth")]
+    public float Depth { get; set; } = 0.5F;
 }

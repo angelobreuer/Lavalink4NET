@@ -25,30 +25,29 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads
+namespace Lavalink4NET.Payloads;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     An abstract implementation of lavalink incoming server event payloads.
+/// </summary>
+public abstract class EventPayload : IPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the operation code for the payload.
+    /// </summary>
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.Event;
 
     /// <summary>
-    ///     An abstract implementation of lavalink incoming server event payloads.
+    ///     Gets the event type.
     /// </summary>
-    public abstract class EventPayload : IPayload
-    {
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.Event;
+    public abstract EventType Type { get; }
 
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        public abstract EventType Type { get; }
-
-        /// <summary>
-        ///     Gets the id of the affected guild.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public ulong GuildId { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the id of the affected guild.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public ulong GuildId { get; internal set; }
 }

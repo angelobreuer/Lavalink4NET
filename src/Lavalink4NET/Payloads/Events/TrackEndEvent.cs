@@ -25,33 +25,32 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Events
+namespace Lavalink4NET.Payloads.Events;
+
+using Lavalink4NET.Player;
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a track end event received from the lavalink node
+///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class TrackEndEvent : EventPayload
 {
-    using Lavalink4NET.Player;
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Gets the event type.
+    /// </summary>
+    [JsonRequired, JsonProperty("type")]
+    public override EventType Type => EventType.TrackEnd;
 
     /// <summary>
-    ///     The strongly-typed representation of a track end event received from the lavalink node
-    ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the identifier of the track that has ended.
     /// </summary>
-    public sealed class TrackEndEvent : EventPayload
-    {
-        /// <summary>
-        ///     Gets the event type.
-        /// </summary>
-        [JsonRequired, JsonProperty("type")]
-        public override EventType Type => EventType.TrackEnd;
+    [JsonRequired, JsonProperty("track")]
+    public string TrackIdentifier { get; internal set; } = null!;
 
-        /// <summary>
-        ///     Gets the identifier of the track that has ended.
-        /// </summary>
-        [JsonRequired, JsonProperty("track")]
-        public string TrackIdentifier { get; internal set; } = null!;
-
-        /// <summary>
-        ///     Gets the reason why the track ended.
-        /// </summary>
-        [JsonRequired, JsonProperty("reason")]
-        public TrackEndReason Reason { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets the reason why the track ended.
+    /// </summary>
+    [JsonRequired, JsonProperty("reason")]
+    public TrackEndReason Reason { get; internal set; }
 }

@@ -25,31 +25,30 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Statistics
+namespace Lavalink4NET.Statistics;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     A wrapper for the statistics.processor object in the statistics update from the lavalink server.
+/// </summary>
+public sealed class ProcessorStatistics
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     The number of cores the system has.
+    /// </summary>
+    [JsonRequired, JsonProperty("cores")]
+    public int Cores { get; internal set; }
 
     /// <summary>
-    ///     A wrapper for the statistics.processor object in the statistics update from the lavalink server.
+    ///     The system load (percentage).
     /// </summary>
-    public sealed class ProcessorStatistics
-    {
-        /// <summary>
-        ///     The number of cores the system has.
-        /// </summary>
-        [JsonRequired, JsonProperty("cores")]
-        public int Cores { get; internal set; }
+    [JsonRequired, JsonProperty("systemLoad")]
+    public double SystemLoad { get; internal set; }
 
-        /// <summary>
-        ///     The system load (percentage).
-        /// </summary>
-        [JsonRequired, JsonProperty("systemLoad")]
-        public double SystemLoad { get; internal set; }
-
-        /// <summary>
-        ///     The node load (percentage).
-        /// </summary>
-        [JsonRequired, JsonProperty("lavalinkLoad")]
-        public double NodeLoad { get; internal set; }
-    }
+    /// <summary>
+    ///     The node load (percentage).
+    /// </summary>
+    [JsonRequired, JsonProperty("lavalinkLoad")]
+    public double NodeLoad { get; internal set; }
 }

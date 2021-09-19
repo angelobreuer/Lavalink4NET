@@ -25,43 +25,42 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Payloads.Player
+namespace Lavalink4NET.Payloads.Player;
+
+using Newtonsoft.Json;
+
+/// <summary>
+///     The strongly-typed representation of a player volume payload sent to the lavalink node
+///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+/// </summary>
+public sealed class PlayerVolumePayload : IPayload, IPlayerPayload
 {
-    using Newtonsoft.Json;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="PlayerVolumePayload"/> class.
+    /// </summary>
+    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
+    /// <param name="volume">the player volume (0 - 1000)</param>
+    public PlayerVolumePayload(ulong guildId, int volume = 100)
+    {
+        GuildId = guildId.ToString();
+        Volume = volume;
+    }
 
     /// <summary>
-    ///     The strongly-typed representation of a player volume payload sent to the lavalink node
-    ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
+    ///     Gets the operation code for the payload.
     /// </summary>
-    public sealed class PlayerVolumePayload : IPayload, IPlayerPayload
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PlayerVolumePayload"/> class.
-        /// </summary>
-        /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-        /// <param name="volume">the player volume (0 - 1000)</param>
-        public PlayerVolumePayload(ulong guildId, int volume = 100)
-        {
-            GuildId = guildId.ToString();
-            Volume = volume;
-        }
+    [JsonRequired, JsonProperty("op")]
+    public OpCode OpCode => OpCode.PlayerVolume;
 
-        /// <summary>
-        ///     Gets the operation code for the payload.
-        /// </summary>
-        [JsonRequired, JsonProperty("op")]
-        public OpCode OpCode => OpCode.PlayerVolume;
+    /// <summary>
+    ///     Gets the guild snowflake identifier the player update is for.
+    /// </summary>
+    [JsonRequired, JsonProperty("guildId")]
+    public string GuildId { get; internal set; }
 
-        /// <summary>
-        ///     Gets the guild snowflake identifier the player update is for.
-        /// </summary>
-        [JsonRequired, JsonProperty("guildId")]
-        public string GuildId { get; internal set; }
-
-        /// <summary>
-        ///     Gets a value indicating whether the player should be paused.
-        /// </summary>
-        [JsonRequired, JsonProperty("volume")]
-        public int Volume { get; internal set; }
-    }
+    /// <summary>
+    ///     Gets a value indicating whether the player should be paused.
+    /// </summary>
+    [JsonRequired, JsonProperty("volume")]
+    public int Volume { get; internal set; }
 }
