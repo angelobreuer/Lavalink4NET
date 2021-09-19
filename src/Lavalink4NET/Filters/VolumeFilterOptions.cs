@@ -39,6 +39,6 @@ namespace Lavalink4NET.Filters
         string IFilterOptions.Name => Name;
 
         [JsonProperty("volume")]
-        public float Volume { get; set; }
+        public float Volume { get; init; }
     }
 }

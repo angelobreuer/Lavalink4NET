@@ -29,6 +29,7 @@ namespace Lavalink4NET.Player
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using Events;
@@ -42,18 +43,7 @@ namespace Lavalink4NET.Player
     /// </summary>
     public class LavalinkPlayer : IDisposable
     {
-        private DateTimeOffset _lastPositionUpdate;
-        private TimeSpan _position;
         private PlayerFilterMap? _filterMap;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LavalinkPlayer"/> class.
-        /// </summary>
-        public LavalinkPlayer()
-        {
-            _lastPositionUpdate = DateTimeOffset.UtcNow;
-            _position = TimeSpan.Zero;
-        }
 
         /// <summary>
         ///     Gets the discord client wrapper.
@@ -77,14 +67,19 @@ namespace Lavalink4NET.Player
         /// <summary>
         ///     Gets the current player state.
         /// </summary>
-        public PlayerState State { get; private set; }
-            = PlayerState.NotConnected;
+        public PlayerState State { get; private set; } = PlayerState.NotConnected;
 
         /// <summary>
         ///     Gets the current track position.
         /// </summary>
-        public TimeSpan TrackPosition => CurrentTrack is null ? TimeSpan.Zero :
-            DateTimeOffset.UtcNow - _lastPositionUpdate + _position;
+        /// <value>the current track position.</value>
+        public TrackPosition Position { get; private set; }
+
+        /// <summary>
+        ///     Gets the current track position.
+        /// </summary>
+        [Obsolete("This property will be removed in a future version, please use the Position property instead.")]
+        public TimeSpan TrackPosition => Position.Position;
 
         /// <summary>
         ///     Gets the voice channel id the player is connected to.
@@ -588,8 +583,24 @@ namespace Lavalink4NET.Player
 
         internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
         {
-            _lastPositionUpdate = positionUpdateTime;
-            _position = position;
+            var timeStretchFactor = 1F;
+            var timescaleFilter = _filterMap?.Timescale;
+
+            if (timescaleFilter is not null)
+            {
+                timeStretchFactor *= timescaleFilter.Rate * timescaleFilter.Speed;
+            }
+
+            Position = new TrackPosition(positionUpdateTime, position, timeStretchFactor);
+        }
+
+        internal void UpdateTimeStretch(DateTimeOffset updateTime)
+        {
+            Debug.Assert(_filterMap?.Timescale is not null, "Timescale can not be null.");
+
+            var timescaleFilter = _filterMap!.Timescale!;
+            var timeStretchFactor = timescaleFilter.Rate * timescaleFilter.Speed;
+            Position = Position.FixAndStretch(updateTime,timeStretchFactor);
         }
 
         /// <summary>

@@ -38,15 +38,15 @@ namespace Lavalink4NET.Filters
         string IFilterOptions.Name => Name;
 
         [JsonProperty("leftToLeft")]
-        public float LeftToLeft { get; set; } = 1F;
+        public float LeftToLeft { get; init; } = 1F;
 
         [JsonProperty("leftToRight")]
-        public float LeftToRight { get; set; } = 0F;
+        public float LeftToRight { get; init; } = 0F;
 
         [JsonProperty("rightToLeft")]
-        public float RightToLeft { get; set; } = 0F;
+        public float RightToLeft { get; init; } = 0F;
 
         [JsonProperty("rightToRight")]
-        public float RightToRight { get; set; } = 1F;
+        public float RightToRight { get; init; } = 1F;
     }
 }

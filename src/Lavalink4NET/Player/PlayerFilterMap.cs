@@ -58,6 +58,11 @@ namespace Lavalink4NET.Player
             await _player.LavalinkSocket
                 .SendPayloadAsync(payload)
                 .ConfigureAwait(false);
+
+            if (Timescale is not null)
+            {
+                _player.UpdateTimeStretch(DateTimeOffset.UtcNow);
+            }
         }
 
         public VolumeFilterOptions? Volume
