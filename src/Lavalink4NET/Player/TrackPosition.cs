@@ -4,10 +4,10 @@ using System;
 
 public readonly struct TrackPosition
 {
-    public TrackPosition(DateTimeOffset syncedAt, TimeSpan relativePosition, float timeStretchFactor = 1.0F)
+    public TrackPosition(DateTimeOffset syncedAt, TimeSpan unstretchedRelativePosition, float timeStretchFactor = 1.0F)
     {
         SyncedAt = syncedAt;
-        RelativePosition = relativePosition;
+        UnstretchedRelativePosition = unstretchedRelativePosition;
         TimeStretchFactor = timeStretchFactor;
     }
 
@@ -18,36 +18,34 @@ public readonly struct TrackPosition
     public DateTimeOffset SyncedAt { get; }
 
     /// <summary>
+    ///     Gets the current unstretched track position relative to <see cref="SyncedAt"/>.
+    /// </summary>
+    /// <value>the current unstretched track position relative to <see cref="SyncedAt"/>.</value>
+    public TimeSpan UnstretchedRelativePosition { get; }
+
+    /// <summary>
     ///     Gets the current stretched track position relative to <see cref="SyncedAt"/>.
     /// </summary>
     /// <value>the current stretched track position relative to <see cref="SyncedAt"/>.</value>
-    public TimeSpan RelativePosition { get; }
+    public TimeSpan RelativePosition => TimeSpan.FromTicks((long)(UnstretchedRelativePosition.Ticks * TimeStretchFactor));
 
     public TimeSpan UnstretchedUnsyncedDuration => DateTimeOffset.UtcNow - SyncedAt;
 
     public TimeSpan UnsyncedDuration => TimeSpan.FromTicks((long)(UnstretchedUnsyncedDuration.Ticks * TimeStretchFactor));
 
     /// <summary>
+    ///     Gets the current unstretched track position.
+    /// </summary>
+    /// <value>the current unstretched track position.</value>
+    public TimeSpan UnstretchedPosition => UnstretchedRelativePosition + UnstretchedUnsyncedDuration;
+
+    /// <summary>
     ///     Gets the current stretched track position.
     /// </summary>
     /// <value>the current stretched track position.</value>
-    public TimeSpan Position => RelativePosition + UnsyncedDuration;
+    public TimeSpan Position => TimeSpan.FromTicks((long)((UnstretchedUnsyncedDuration.Ticks + UnstretchedRelativePosition.Ticks) * TimeStretchFactor));
 
     public float TimeStretchFactor { get; }
 
     public bool IsStretched => TimeStretchFactor is not 1F;
-
-    public readonly TrackPosition FixAndStretch(DateTimeOffset timestamp, float timeStretchFactor)
-    {
-        if (SyncedAt > timestamp)
-        {
-            throw new ArgumentException("Timestamp must be bigger than the current sync time.", nameof(timestamp));
-        }
-
-        // store state of the track position
-        var unstretchedUnsyncedTime = timestamp - SyncedAt;
-        var unsyncedDuration = TimeSpan.FromTicks((long)(unstretchedUnsyncedTime.Ticks * TimeStretchFactor));
-
-        return new TrackPosition(timestamp, unsyncedDuration + RelativePosition, timeStretchFactor);
-    }
 }

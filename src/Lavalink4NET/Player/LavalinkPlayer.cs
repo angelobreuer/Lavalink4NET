@@ -594,15 +594,6 @@ public class LavalinkPlayer : IDisposable
         Position = new TrackPosition(positionUpdateTime, position, timeStretchFactor);
     }
 
-    internal void UpdateTimeStretch(DateTimeOffset updateTime)
-    {
-        Debug.Assert(_filterMap?.Timescale is not null, "Timescale can not be null.");
-
-        var timescaleFilter = _filterMap!.Timescale!;
-        var timeStretchFactor = timescaleFilter.Rate * timescaleFilter.Speed;
-        Position = Position.FixAndStretch(updateTime, timeStretchFactor);
-    }
-
     /// <summary>
     ///     Throws an <see cref="InvalidOperationException"/> when the player is not connected
     ///     to a voice channel.
