@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Player;
 
-using System;
 using Lavalink4NET.Util;
 using Newtonsoft.Json;
+using System;
 
 /// <summary>
 ///     The information of a lavalink track.
@@ -187,12 +187,32 @@ public class LavalinkTrack
     public virtual string TrackIdentifier { get; }
 
     /// <summary>
+    ///     Gets or sets an arbitrary object that can be used by the user for associating data with the track.
+    /// </summary>
+    /// <value>an arbitrary object that can be used by the user for associating data with the track.</value>
+    [JsonIgnore]
+    public object? Context { get; set; }
+
+    /// <summary>
     ///     Clones the current track.
     /// </summary>
     /// <returns>the cloned <see cref="LavalinkTrack"/> instance</returns>
     public LavalinkTrack Clone()
-        => new(Identifier, Author, Duration, IsLiveStream,
-            IsSeekable, Source, Title, TrackIdentifier, Provider);
+    {
+        var track = new LavalinkTrack(
+            identifier: Identifier,
+            author: Author,
+            duration: Duration,
+            isLiveStream: IsLiveStream,
+            isSeekable: IsSeekable,
+            source: Source,
+            title: Title,
+            trackIdentifier: TrackIdentifier,
+            provider: Provider);
+
+        track.Context = Context;
+        return track;
+    }
 
     /// <summary>
     ///     Clones the current track and sets the starting position to the specified <paramref name="position"/>.
