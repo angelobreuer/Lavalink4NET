@@ -44,6 +44,9 @@
   
 <span>&nbsp;&nbsp;&nbsp;</span>*and a lot more...*
 
+  
+[![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
+
 ### NuGet
 - Download [Lavalink4NET Core ![NuGet - Lavalink4NET Core](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET/) 
 - Download [Lavalink4NET for Discord.Net ![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.Discord.NET/) 
