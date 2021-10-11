@@ -44,7 +44,7 @@ using Payloads;
 /// <summary>
 ///     Used for connecting to a single lavalink node.
 /// </summary>
-public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable
+public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDisposable
 {
     private readonly bool _disconnectOnStop;
     private readonly IDiscordClientWrapper _discordClient;
@@ -142,20 +142,30 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable
     /// </summary>
     protected IDictionary<ulong, LavalinkPlayer> Players { get; }
 
-    /// <summary>
-    ///     Disposes the node.
-    /// </summary>
-    public override void Dispose()
+    /// <inheritdoc/>
+    public void Dispose()
     {
-        if (_disposed)
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore();
+
+        Dispose(disposing: false);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed ||!disposing)
         {
             return;
         }
 
         _disposed = true;
-
-        // call base handling
-        base.Dispose();
 
         // unregister event listeners
         _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
@@ -168,6 +178,34 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable
         }
 
         Players.Clear();
+
+        // call base handling
+        base.Dispose();
+    }
+
+    protected virtual async ValueTask DisposeAsyncCore()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        // unregister event listeners
+        _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
+        _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
+
+        // dispose all players
+        foreach (var player in Players)
+        {
+            await player.Value.DisposeAsync().ConfigureAwait(false);
+        }
+
+        Players.Clear();
+
+        // call base handling
+        base.Dispose();
     }
 
     /// <summary>
