@@ -41,7 +41,7 @@ using Lavalink4NET.Payloads.Player;
 /// <summary>
 ///     Controls a remote Lavalink Audio Player.
 /// </summary>
-public class LavalinkPlayer : IDisposable
+public class LavalinkPlayer : IDisposable, IAsyncDisposable
 {
     private PlayerFilterMap? _filterMap;
 
@@ -155,12 +155,25 @@ public class LavalinkPlayer : IDisposable
         return DisconnectAsync(PlayerDisconnectCause.Stop);
     }
 
-    /// <summary>
-    ///     Disposes the player.
-    /// </summary>
-    public virtual void Dispose()
+    /// <inheritdoc/>
+    public void Dispose()
     {
-        if (State == PlayerState.Destroyed)
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore();
+
+        Dispose(disposing: false);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (State is PlayerState.Destroyed ||!disposing)
         {
             return;
         }
@@ -168,6 +181,18 @@ public class LavalinkPlayer : IDisposable
         // Disconnect from voice channel and send destroy player payload to the lavalink node
         DisconnectAsync(PlayerDisconnectCause.Dispose).Wait();
         DestroyAsync().Wait();
+    }
+
+    protected virtual async ValueTask DisposeAsyncCore()
+    {
+        if (State is PlayerState.Destroyed)
+        {
+            return;
+        }
+
+            // Disconnect from voice channel and send destroy player payload to the lavalink node
+            await DisconnectAsync(PlayerDisconnectCause.Dispose).ConfigureAwait(false);
+            await DestroyAsync().ConfigureAwait(false);
     }
 
     /// <summary>
