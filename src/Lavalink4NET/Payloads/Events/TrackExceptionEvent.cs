@@ -26,8 +26,6 @@
  */
 
 namespace Lavalink4NET.Payloads.Events;
-
-using Lavalink4NET.Rest;
 using Newtonsoft.Json;
 
 /// <summary>
@@ -48,9 +46,6 @@ public sealed class TrackExceptionEvent : EventPayload
     [JsonRequired, JsonProperty("track")]
     public string TrackIdentifier { get; internal set; } = null!;
 
-    /// <summary>
-    ///     Gets the error that occurred.
-    /// </summary>
-    [JsonRequired, JsonProperty("exception")]
-    public TrackException Error { get; internal set; } = null!;
+    [JsonRequired, JsonProperty("error")]
+    public string ErrorMessage { get; internal set; } = null!;
 }

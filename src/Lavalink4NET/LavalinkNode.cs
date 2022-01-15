@@ -160,7 +160,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
 
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed ||!disposing)
+        if (_disposed || !disposing)
         {
             return;
         }
@@ -460,7 +460,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
         {
             var args = new TrackExceptionEventArgs(player,
                 trackExceptionEvent.TrackIdentifier,
-                trackExceptionEvent.Error);
+                trackExceptionEvent.ErrorMessage);
 
             await Task.WhenAll(OnTrackExceptionAsync(args),
                 player.OnTrackExceptionAsync(args));

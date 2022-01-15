@@ -28,7 +28,6 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Lavalink4NET.Rest;
 using Player;
 
 /// <summary>
@@ -42,22 +41,18 @@ public class TrackExceptionEventArgs
     /// </summary>
     /// <param name="player">the affected player</param>
     /// <param name="trackIdentifier">the identifier of the affected track</param>
-    /// <param name="exception">the error that occurred</param>
+    /// <param name="errorMessage">an error message indicating what occurred.</param>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="exception"/> is <see langword="null"/>.
-    /// </exception>
-    public TrackExceptionEventArgs(LavalinkPlayer player, string trackIdentifier, TrackException exception)
+    public TrackExceptionEventArgs(LavalinkPlayer player, string trackIdentifier, string errorMessage)
         : base(player, trackIdentifier)
-        => Exception = exception ?? throw new ArgumentNullException(nameof(exception));
+    {
+        ErrorMessage = errorMessage;
+    }
 
-    /// <summary>
-    ///     Gets the error that occurred.
-    /// </summary>
-    public TrackException Exception { get; }
+    public string ErrorMessage { get; }
 }
