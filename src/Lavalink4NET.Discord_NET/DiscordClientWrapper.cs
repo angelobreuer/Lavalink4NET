@@ -29,6 +29,7 @@ namespace Lavalink4NET.DiscordNet;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -44,14 +45,16 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic);
 
     private readonly BaseSocketClient _baseSocketClient;
+    private readonly int? _shardCount;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
     /// </summary>
     /// <param name="client">the sharded discord client</param>
     public DiscordClientWrapper(DiscordShardedClient client)
-        : this(client, client.Shards.Count)
+        : this(client as BaseSocketClient)
     {
+        // _shardCount is null here, and is retrieved dynamically from the client.
     }
 
     /// <summary>
@@ -85,17 +88,21 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     ///     thrown if the specified shard count is less than 1.
     /// </exception>
     public DiscordClientWrapper(BaseSocketClient baseSocketClient, int shards)
+        : this(baseSocketClient)
     {
         if (shards < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(shards), shards, "Shard count must be at least 1.");
         }
 
+        _shardCount = shards;
+    }
+
+    private DiscordClientWrapper(BaseSocketClient baseSocketClient)
+    {
         _baseSocketClient = baseSocketClient ?? throw new ArgumentNullException(nameof(baseSocketClient));
         _baseSocketClient.VoiceServerUpdated += OnVoiceServerUpdated;
         _baseSocketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
-
-        ShardCount = shards;
     }
 
     /// <summary>
@@ -111,12 +118,35 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     /// <summary>
     ///     Gets the current user snowflake identifier value.
     /// </summary>
-    public ulong CurrentUserId => _baseSocketClient.CurrentUser.Id;
+    public ulong CurrentUserId
+    {
+        get
+        {
+            EnsureAvailable();
+            return _baseSocketClient.CurrentUser.Id;
+        }
+    }
 
     /// <summary>
     ///     Gets the number of total shards the bot uses.
     /// </summary>
-    public int ShardCount { get; }
+    public int ShardCount
+    {
+        get
+        {
+            EnsureAvailable();
+
+            if (_shardCount.HasValue)
+            {
+                // shard count was given in constructor, or no sharding is used (-> 1)
+                return _shardCount.Value;
+            }
+
+            // retrieve shard count from client
+            Debug.Assert(_baseSocketClient is DiscordShardedClient);
+            return ((DiscordShardedClient)_baseSocketClient).Shards.Count;
+        }
+    }
 
     /// <summary>
     ///     Disposes the wrapper and unregisters all events attached to the discord client.
@@ -215,5 +245,23 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
         // invoke event
         return VoiceStateUpdated.InvokeAsync(this, new VoiceStateUpdateEventArgs(user.Id, voiceState));
+    }
+
+    private void EnsureAvailable()
+    {
+        var currentUserAvailable = _baseSocketClient.CurrentUser is not null;
+
+        if (!currentUserAvailable)
+        {
+            throw new InvalidOperationException("The underlying discord client is not ready.");
+        }
+
+        var shardsAvailable = _shardCount is not null // shard count given
+            || (_baseSocketClient is DiscordShardedClient shardedClient && shardedClient.Shards is not null);
+
+        if (!shardsAvailable)
+        {
+            throw new InvalidOperationException("The underlying discord client is not ready.");
+        }
     }
 }
