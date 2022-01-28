@@ -257,8 +257,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         }
 
         var shardsAvailable = _shardCount is not null // shard count given
-            && _baseSocketClient is DiscordShardedClient shardedClient
-            && shardedClient.Shards is not null;
+            || (_baseSocketClient is DiscordShardedClient shardedClient && shardedClient.Shards is not null);
 
         if (!shardsAvailable)
         {
