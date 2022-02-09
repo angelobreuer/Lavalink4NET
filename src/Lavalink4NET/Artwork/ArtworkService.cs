@@ -2,6 +2,8 @@
 
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Player;
@@ -18,87 +20,93 @@ public class ArtworkService : IArtworkService, IDisposable
     }
 
     /// <inheritdoc/>
-    public ValueTask<Uri?> ResolveAsync(string trackId, StreamProvider streamProvider, CancellationToken cancellationToken = default)
+    public virtual ValueTask<Uri?> ResolveAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default) => lavalinkTrack.Provider switch
     {
-        EnsureNotDisposed();
-        cancellationToken.ThrowIfCancellationRequested();
-        return ResolveInternalAsync(trackId, lavalinkTrack: null, streamProvider, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public virtual ValueTask<Uri?> ResolveAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
-    {
-        EnsureNotDisposed();
-        cancellationToken.ThrowIfCancellationRequested();
-        return ResolveInternalAsync(lavalinkTrack.TrackIdentifier, lavalinkTrack, lavalinkTrack.Provider, cancellationToken);
-    }
-
-    private ValueTask<Uri?> ResolveInternalAsync(string trackId, LavalinkTrack? lavalinkTrack, StreamProvider streamProvider, CancellationToken cancellationToken = default) => streamProvider switch
-    {
-        StreamProvider.YouTube => ResolveArtworkForYouTubeAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.SoundCloud => ResolveArtworkForSoundCloudAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.Bandcamp => ResolveArtworkForBandcampAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.Vimeo => ResolveArtworkForVimeoAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.Twitch => ResolveArtworkForTwitchAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.Local => ResolveArtworkForLocalAsync(trackId, lavalinkTrack, cancellationToken),
-        StreamProvider.Http => ResolveArtworkForHttpAsync(trackId, lavalinkTrack, cancellationToken),
-        _ => ResolveArtworkForCustomTrackAsync(trackId, lavalinkTrack, cancellationToken),
+        StreamProvider.YouTube => ResolveArtworkForYouTubeAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.SoundCloud => ResolveArtworkForSoundCloudAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.Bandcamp => ResolveArtworkForBandcampAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.Vimeo => ResolveArtworkForVimeoAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.Twitch => ResolveArtworkForTwitchAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.Local => ResolveArtworkForLocalAsync(lavalinkTrack, cancellationToken),
+        StreamProvider.Http => ResolveArtworkForHttpAsync(lavalinkTrack, cancellationToken),
+        _ => ResolveArtworkForCustomTrackAsync(lavalinkTrack, cancellationToken),
     };
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForCustomTrackAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+
+    protected virtual ValueTask<Uri?> ResolveArtworkForCustomTrackAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         return default;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForYouTubeAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForYouTubeAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
-        var uri = new Uri($"https://img.youtube.com/vi/{trackId}/maxresdefault.jpg");
+        var uri = new Uri($"https://img.youtube.com/vi/{lavalinkTrack.TrackIdentifier}/maxresdefault.jpg");
         return CreateResultFromSynchronous(uri);
     }
 
-    protected virtual async ValueTask<Uri?> ResolveArtworkForSoundCloudAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual async ValueTask<Uri?> ResolveArtworkForSoundCloudAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+
+        var cacheKey = default(string?);
+        if (_cache is not null)
+        {
+            cacheKey = $"soundcloud-artwork-{lavalinkTrack.TrackIdentifier}";
+
+            if (_cache.TryGetItem<Uri>(cacheKey, out var cacheItem))
+            {
+                return cacheItem;
+            }
+        }
+
+        var requestUri = new Uri($"https://soundcloud.com/oembed?url={lavalinkTrack.TrackIdentifier}&format=json");
+        var thumbnailUri = await FetchTrackUriFromOEmbedCompatibleResourceAsync(requestUri, cancellationToken).ConfigureAwait(false);
+
+        if (_cache is not null)
+        {
+            _cache.AddItem(cacheKey!, thumbnailUri, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+        }
+
+        return thumbnailUri;
+    }
+
+    protected virtual ValueTask<Uri?> ResolveArtworkForBandcampAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         return default;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForBandcampAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
-        return default;
-    }
-
-    protected virtual ValueTask<Uri?> ResolveArtworkForVimeoAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForVimeoAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
-        var uri = new Uri($"https://i.vimeocdn.com/video/{trackId}.png");
+        var uri = new Uri($"https://i.vimeocdn.com/video/{lavalinkTrack.TrackIdentifier}.png");
         return CreateResultFromSynchronous(uri);
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForTwitchAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForTwitchAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         return default;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForLocalAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForLocalAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         return default;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForHttpAsync(string trackId, LavalinkTrack? lavalinkTrack = null, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForHttpAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
@@ -140,6 +148,20 @@ public class ArtworkService : IArtworkService, IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    private async ValueTask<Uri?> FetchTrackUriFromOEmbedCompatibleResourceAsync(Uri requestUri, CancellationToken cancellationToken = default)
+    {
+        var httpResponse = await GetHttpClient()
+            .GetFromJsonAsync<JsonObject>(requestUri, cancellationToken)
+            .ConfigureAwait(false);
+
+        // OEmbed responses contain a thumbnail_uri property as per standard
+        var thumbnailUriNode = httpResponse?["thumbnail_url"]
+            ?? throw new InvalidOperationException("Unable to find thumbnail URI in response.");
+
+        var rawThumbnailUri = thumbnailUriNode.GetValue<string>();
+        return rawThumbnailUri is null ? default : new Uri(rawThumbnailUri);
     }
 
     private void EnsureNotDisposed()

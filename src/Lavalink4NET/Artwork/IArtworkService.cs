@@ -18,6 +18,4 @@ public interface IArtworkService
     /// <returns>a task that represents the asynchronous operation.</returns>
     /// <exception cref="OperationCanceledException">thrown if the operation was canceled.</exception>
     ValueTask<Uri?> ResolveAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default);
-
-    ValueTask<Uri?> ResolveAsync(string trackId, StreamProvider streamProvider, CancellationToken cancellationToken = default);
 }
