@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+
+	  <Description>Logging provider for Lavalink4NET using Microsoft.Extensions.Logging.</Description>
   </PropertyGroup>
 
   <Import Project="../Lavalink4NET.targets" />
