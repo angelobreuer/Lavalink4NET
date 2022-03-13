@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2022
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,80 +25,77 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Discord_NET.ExampleBot
+namespace Lavalink4NET.Discord_NET.ExampleBot;
+
+using System;
+using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+///     The main class for controlling the bot.
+/// </summary>
+public sealed class ExampleBot : IDisposable
 {
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
-    using Discord.WebSocket;
-    using Microsoft.Extensions.DependencyInjection;
+    private readonly DiscordSocketClient _client;
+    private readonly CommandService _commandService;
+    private readonly IServiceProvider _provider;
 
     /// <summary>
-    ///     The main class for controlling the bot.
+    ///     Initializes a new instance of the <see cref="ExampleBot"/> class.
     /// </summary>
-    public sealed class ExampleBot : IDisposable
+    /// <param name="provider">the service provider</param>
+    public ExampleBot(IServiceProvider provider)
     {
-        private readonly DiscordSocketClient _client;
-        private readonly CommandService _commandService;
-        private readonly IServiceProvider _provider;
+        _client = provider.GetRequiredService<DiscordSocketClient>();
+        _commandService = provider.GetRequiredService<CommandService>();
+        _client.MessageReceived += MessageReceived;
+        _provider = provider;
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ExampleBot"/> class.
-        /// </summary>
-        /// <param name="provider">the service provider</param>
-        public ExampleBot(IServiceProvider provider)
+    /// <summary>
+    ///     Unregisters the events attached to the discord client.
+    /// </summary>
+    public void Dispose() => _client.MessageReceived -= MessageReceived;
+
+    /// <summary>
+    ///     Starts the bot asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public async Task StartAsync()
+    {
+        await _client.LoginAsync(TokenType.Bot, "" /* Your Bot Token */);
+        await _client.StartAsync();
+
+        await _commandService.AddModulesAsync(GetType().Assembly, _provider);
+    }
+
+    /// <summary>
+    ///     Stops the bot asynchronously.
+    /// </summary>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public async Task StopAsync()
+    {
+        await _client.StopAsync();
+    }
+
+    private async Task MessageReceived(SocketMessage rawMessage)
+    {
+        if (rawMessage is not SocketUserMessage message || message.Source != MessageSource.User)
         {
-            _client = provider.GetRequiredService<DiscordSocketClient>();
-            _commandService = provider.GetRequiredService<CommandService>();
-            _client.MessageReceived += MessageReceived;
-            _provider = provider;
+            return;
         }
 
-        /// <summary>
-        ///     Unregisters the events attached to the discord client.
-        /// </summary>
-        public void Dispose() => _client.MessageReceived -= MessageReceived;
+        var argPos = 0;
 
-        /// <summary>
-        ///     Starts the bot asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task StartAsync()
+        if (!message.HasMentionPrefix(_client.CurrentUser, ref argPos))
         {
-            await _client.LoginAsync(TokenType.Bot, "" /* Your Bot Token */);
-            await _client.StartAsync();
-
-            await _commandService.AddModulesAsync(GetType().Assembly, _provider);
+            return;
         }
 
-        /// <summary>
-        ///     Stops the bot asynchronously.
-        /// </summary>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        public async Task StopAsync()
-        {
-            await _client.StopAsync();
-        }
-
-        private async Task MessageReceived(SocketMessage rawMessage)
-        {
-            if (!(rawMessage is SocketUserMessage message) ||
-                message.Source != MessageSource.User)
-            {
-                return;
-            }
-
-            var argPos = 0;
-
-            if (!message.HasMentionPrefix(_client.CurrentUser, ref argPos))
-            {
-                return;
-            }
-
-            var context = new SocketCommandContext(_client, message);
-            await _commandService.ExecuteAsync(context, argPos, _provider);
-        }
+        var context = new SocketCommandContext(_client, message);
+        await _commandService.ExecuteAsync(context, argPos, _provider);
     }
 }

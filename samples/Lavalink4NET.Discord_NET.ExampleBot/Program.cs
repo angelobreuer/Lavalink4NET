@@ -4,7 +4,7 @@
  *
  *  The MIT License (MIT)
  *
- *  Copyright (c) Angelo Breuer 2019
+ *  Copyright (c) Angelo Breuer 2022
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,91 +25,53 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Discord_NET.ExampleBot
+using System;
+using Discord.Commands;
+using Discord.WebSocket;
+using Lavalink4NET;
+using Lavalink4NET.Discord_NET.ExampleBot;
+using Lavalink4NET.DiscordNet;
+using Lavalink4NET.Logging.Microsoft;
+using Lavalink4NET.MemoryCache;
+using Microsoft.Extensions.DependencyInjection;
+
+using var serviceProvider = ConfigureServices();
+
+var bot = serviceProvider.GetRequiredService<ExampleBot>();
+var audio = serviceProvider.GetRequiredService<IAudioService>();
+
+await bot.StartAsync();
+await audio.InitializeAsync();
+
+while (Console.ReadKey(true).Key != ConsoleKey.Q)
 {
-    using System;
-    using System.Threading.Tasks;
-    using Discord.Commands;
-    using Discord.WebSocket;
-    using Lavalink4NET.Logging;
-    using Lavalink4NET.MemoryCache;
-    using Microsoft.Extensions.DependencyInjection;
+}
 
-    /// <summary>
-    ///     Contains the main entry point.
-    /// </summary>
-    internal sealed class Program
+await bot.StopAsync();
+
+static ServiceProvider ConfigureServices()
+{
+    var services = new ServiceCollection();
+
+    // Bot
+    services.AddSingleton<ExampleBot>();
+
+    // Discord
+    services.AddSingleton<DiscordSocketClient>();
+    services.AddSingleton<CommandService>();
+
+    // Lavalink
+    services.AddSingleton<IAudioService, LavalinkNode>();
+    services.AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>();
+    services.AddMicrosoftExtensionsLavalinkLogging();
+
+    services.AddSingleton(new LavalinkNodeOptions
     {
-        /// <summary>
-        ///     Starts the application.
-        /// </summary>
-        private static void Main()
-            => RunAsync().GetAwaiter().GetResult();
+        // Your Node Configuration
+    });
 
-        /// <summary>
-        ///     Runs the bot asynchronously.
-        /// </summary>
-        private static async Task RunAsync()
-        {
-            using (var serviceProvider = ConfigureServices())
-            {
-                var bot = serviceProvider.GetRequiredService<ExampleBot>();
-                var audio = serviceProvider.GetRequiredService<IAudioService>();
-                var logger = serviceProvider.GetRequiredService<ILogger>() as EventLogger;
-                logger.LogMessage += Log;
+    // Request Caching for Lavalink
+    services.AddSingleton<ILavalinkCache, LavalinkCache>();
 
-                await bot.StartAsync();
-                await audio.InitializeAsync();
-
-                logger.Log(bot, "Example Bot is running. Press [Q] to stop.");
-
-                while (Console.ReadKey(true).Key != ConsoleKey.Q)
-                {
-                }
-
-                await bot.StopAsync();
-            }
-        }
-
-        private static void Log(object sender, LogMessageEventArgs args)
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($"[{args.Source.GetType().Name} {args.Level}] ");
-
-            Console.ResetColor();
-            Console.WriteLine(args.Message);
-
-            if (args.Exception != null)
-            {
-                Console.WriteLine(args.Exception);
-            }
-        }
-
-        /// <summary>
-        ///     Configures the application services.
-        /// </summary>
-        /// <returns>the service provider</returns>
-        private static ServiceProvider ConfigureServices() => new ServiceCollection()
-            // Bot
-            .AddSingleton<ExampleBot>()
-
-            // Discord
-            .AddSingleton<DiscordSocketClient>()
-            .AddSingleton<CommandService>()
-
-            // Lavalink
-            .AddSingleton<IAudioService, LavalinkNode>()
-            .AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>()
-            .AddSingleton<ILogger, EventLogger>()
-
-            .AddSingleton(new LavalinkNodeOptions
-            {
-                // Your Node Configuration
-            })
-
-            // Request Caching for Lavalink
-            .AddSingleton<ILavalinkCache, LavalinkCache>()
-
-            .BuildServiceProvider();
-    }
+    return services.BuildServiceProvider();
 }
