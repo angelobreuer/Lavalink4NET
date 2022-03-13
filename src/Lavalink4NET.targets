@@ -24,6 +24,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../Lavalink4NET.png" Pack="true" PackagePath="\" />
+    <None Include="../Lavalink4NET.png" Pack="true" PackagePath="\"  Visible="false" />
   </ItemGroup>
 </Project>
