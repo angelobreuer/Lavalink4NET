@@ -60,6 +60,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private bool _disposed;
     private volatile bool _initialized;
     private ClientWebSocket? _webSocket;
+    private bool _mayResume;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkSocket"/> class.
@@ -106,7 +107,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _queue = new Queue<IPayload>();
         _reconnectionStrategy = options.ReconnectStrategy;
         _cancellationTokenSource = new CancellationTokenSource();
-        ResumeKey = Guid.NewGuid().ToString("N");
+        _mayResume = options.ResumeKey is not null;
+        ResumeKey = options.ResumeKey ?? Guid.NewGuid().ToString("N");
     }
 
     /// <summary>
@@ -120,8 +122,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     public event AsyncEventHandler<DisconnectedEventArgs>? Disconnected;
 
     /// <summary>
-    ///     An asynchronous event which is triggered when a payload was received from the
-    ///     lavalink node.
+    ///     An asynchronous event which is triggered when a payload was received from the lavalink node.
     /// </summary>
     public event AsyncEventHandler<PayloadReceivedEventArgs>? PayloadReceived;
 
@@ -209,7 +210,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
 
         // add resume header
-        if (_resume && _initialized)
+        if (_mayResume)
         {
             Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", ResumeKey), LogLevel.Debug);
             _webSocket.Options.SetRequestHeader("Resume-Key", ResumeKey);
@@ -248,7 +249,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         {
             var type = _initialized ? "Reconnected" : "Connected";
 
-            if (_resume && _initialized)
+            if (_mayResume)
             {
                 Logger?.Log(this, string.Format("{0} to Lavalink Node, Resume Key: {1}!", type, ResumeKey));
             }
@@ -263,6 +264,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
 
         // resume next session
         _initialized = true;
+        _mayResume = true;
 
         // send configure resuming payload
         if (_resume)
@@ -324,9 +326,9 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     /// </summary>
     /// <param name="payload">the payload to sent</param>
     /// <param name="forceSend">
-    ///     a value indicating whether an exception should be thrown if the connection is
-    ///     closed. If <see langword="true"/>, an exception is thrown; Otherwise payloads will
-    ///     be stored into a send queue and will be replayed (FIFO) after successful reconnection.
+    ///     a value indicating whether an exception should be thrown if the connection is closed. If
+    ///     <see langword="true"/>, an exception is thrown; Otherwise payloads will be stored into a
+    ///     send queue and will be replayed (FIFO) after successful reconnection.
     /// </param>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="InvalidOperationException">
@@ -334,8 +336,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     ///     <paramref name="forceSend"/> is <see langword="true"/>.
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    ///     thrown if the node socket has not been initialized. (Call <see
-    ///     cref="InitializeAsync"/> before sending payloads)
+    ///     thrown if the node socket has not been initialized. (Call <see cref="InitializeAsync"/>
+    ///     before sending payloads)
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public async Task SendPayloadAsync(IPayload payload, bool forceSend = false)
@@ -400,8 +402,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     ///     Ensures that the socket is initialized.
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    ///     thrown if the node socket has not been initialized. (Call <see
-    ///     cref="InitializeAsync"/> before sending payloads)
+    ///     thrown if the node socket has not been initialized. (Call <see cref="InitializeAsync"/>
+    ///     before sending payloads)
     /// </exception>
     protected void EnsureInitialized()
     {

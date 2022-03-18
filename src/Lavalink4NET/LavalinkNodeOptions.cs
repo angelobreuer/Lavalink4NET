@@ -78,6 +78,15 @@ public sealed class LavalinkNodeOptions : LavalinkRestOptions
     public int SessionTimeout { get; set; } = 60;
 
     /// <summary>
+    ///     The resume key to use when trying to initially connect to the node.
+    /// </summary>
+    /// <remarks>
+    ///     The resume key to use when trying to initially connect to the node. This property
+    ///     defaults to <see langword="null"/>.
+    /// </remarks>
+    public string? ResumeKey { get; set; }
+
+    /// <summary>
     ///     Gets or sets the Lavalink Node WebSocket host(name).
     /// </summary>
     /// <remarks>This property defaults to <c>ws://localhost:8080/</c>.</remarks>
