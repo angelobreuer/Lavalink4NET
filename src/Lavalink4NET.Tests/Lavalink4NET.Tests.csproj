@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lavalink4NET.Discord_NET\Lavalink4NET.DiscordNet.csproj" />
+    <ProjectReference Include="..\Lavalink4NET.DiscordNet\Lavalink4NET.DiscordNet.csproj" />
     <ProjectReference Include="..\Lavalink4NET.MemoryCache\Lavalink4NET.MemoryCache.csproj" />
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>

@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
 
     <!-- License -->
-    <Copyright>Angelo Breuer 2021</Copyright>
+    <Copyright>Angelo Breuer 2022</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 

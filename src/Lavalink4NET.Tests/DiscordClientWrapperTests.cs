@@ -1,4 +1,5 @@
 ﻿namespace Lavalink4NET.Tests;
+
 using System;
 using Discord.WebSocket;
 using Lavalink4NET.DiscordNet;
