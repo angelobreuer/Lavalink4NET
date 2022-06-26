@@ -28,7 +28,8 @@
 namespace Lavalink4NET.Payloads.Node;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 using Statistics;
 
 /// <summary>
@@ -40,45 +41,43 @@ public sealed class StatsUpdatePayload : IPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.NodeStats;
 
     /// <summary>
     ///     Gets the number of players the node is holding.
     /// </summary>
-    [JsonRequired, JsonProperty("players")]
-    public int Players { get; internal set; }
+    [JsonPropertyName("players")]
+    public int Players { get; init; }
 
     /// <summary>
     ///     Gets the number of players that are currently playing using the node.
     /// </summary>
-    [JsonRequired, JsonProperty("playingPlayers")]
-    public int PlayingPlayers { get; internal set; }
-
-    [JsonRequired, JsonProperty("uptime")]
-    internal long RawUptime { set => Uptime = TimeSpan.FromMilliseconds(value); }
+    [JsonPropertyName("playingPlayers")]
+    public int PlayingPlayers { get; init; }
 
     /// <summary>
     ///     Gets the uptime from the node (how long the node is online).
     /// </summary>
-    [JsonIgnore]
-    public TimeSpan Uptime { get; internal set; }
+    [JsonConverter(typeof(TimeSpanJsonConverter))]
+    [JsonPropertyName("uptime")]
+    public TimeSpan Uptime { get; init; }
 
     /// <summary>
     ///     Gets usage statistics for the memory of the node.
     /// </summary>
-    [JsonRequired, JsonProperty("memory")]
-    public MemoryStatistics Memory { get; internal set; } = null!;
+    [JsonPropertyName("memory")]
+    public MemoryStatistics Memory { get; init; } = null!;
 
     /// <summary>
     ///     Gets usage statistics for the processor of the node.
     /// </summary>
-    [JsonRequired, JsonProperty("cpu")]
-    public ProcessorStatistics Processor { get; internal set; } = null!;
+    [JsonPropertyName("cpu")]
+    public ProcessorStatistics Processor { get; init; } = null!;
 
     /// <summary>
     ///     Gets frame statistics of the node.
     /// </summary>
-    [JsonProperty("frameStats")]
-    public FrameStatistics FrameStatistics { get; internal set; } = null!;
+    [JsonPropertyName("frameStats")]
+    public FrameStatistics FrameStatistics { get; init; } = null!;
 }

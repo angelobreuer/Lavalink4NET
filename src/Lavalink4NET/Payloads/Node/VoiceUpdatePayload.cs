@@ -29,7 +29,7 @@ namespace Lavalink4NET.Payloads.Node;
 
 using System;
 using Lavalink4NET.Payloads.Events;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The representation of a voice update lavalink payload.
@@ -60,24 +60,24 @@ public sealed class VoiceUpdatePayload : IPayload, IPlayerPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.GuildVoiceUpdate;
 
     /// <summary>
     ///     Gets the guild snowflake identifier the voice update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; }
 
     /// <summary>
     ///     Gets the discord voice state session identifier received from the voice state update payload.
     /// </summary>
-    [JsonRequired, JsonProperty("sessionId")]
-    public string SessionId { get; internal set; } = null!;
+    [JsonPropertyName("sessionId")]
+    public string SessionId { get; init; } = null!;
 
     /// <summary>
     ///     Gets the voice server update event.
     /// </summary>
-    [JsonRequired, JsonProperty("event")]
-    public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; internal set; } = null!;
+    [JsonPropertyName("event")]
+    public VoiceServerUpdateEvent VoiceServerUpdateEvent { get; init; } = null!;
 }

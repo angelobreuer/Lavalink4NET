@@ -27,7 +27,8 @@
 
 namespace Lavalink4NET.Payloads;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     An abstract implementation of lavalink incoming server event payloads.
@@ -37,7 +38,7 @@ public abstract class EventPayload : IPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.Event;
 
     /// <summary>
@@ -48,6 +49,7 @@ public abstract class EventPayload : IPayload
     /// <summary>
     ///     Gets the id of the affected guild.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public ulong GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    [JsonConverter(typeof(UInt64AsStringJsonSerializer))]
+    public ulong GuildId { get; init; }
 }

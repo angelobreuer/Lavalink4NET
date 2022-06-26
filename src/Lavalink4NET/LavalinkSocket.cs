@@ -28,16 +28,16 @@
 namespace Lavalink4NET;
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Events;
 using Lavalink4NET.Logging;
 using Lavalink4NET.Payloads.Node;
-using Newtonsoft.Json;
 using Payloads;
 using Rest;
 
@@ -48,7 +48,6 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
 {
     private readonly IDiscordClientWrapper _client;
     private readonly bool _ioDebug;
-    private readonly StringBuilder _overflowBuffer;
     private readonly string _password;
     private readonly Queue<IPayload> _queue;
     private readonly byte[] _receiveBuffer;
@@ -59,9 +58,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _disposed;
     private volatile bool _initialized;
-    private ClientWebSocket? _webSocket;
     private bool _mayResume;
-
+    private ClientWebSocket? _webSocket;
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkSocket"/> class.
     /// </summary>
@@ -99,8 +97,6 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _client = client;
         _password = options.Password;
         _webSocketUri = new Uri(options.WebSocketUri);
-        _receiveBuffer = new byte[options.BufferSize];
-        _overflowBuffer = new StringBuilder();
         _resume = options.AllowResuming;
         _ioDebug = options.DebugPayloads;
         _sessionTimeout = options.SessionTimeout;
@@ -109,6 +105,12 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _cancellationTokenSource = new CancellationTokenSource();
         _mayResume = options.ResumeKey is not null;
         ResumeKey = options.ResumeKey ?? Guid.NewGuid().ToString("N");
+
+#if NET6_0_OR_GREATER
+        _receiveBuffer = GC.AllocateUninitializedArray<byte>(options.BufferSize);
+#else
+        _receiveBuffer = new byte[options.BufferSize];
+#endif
     }
 
     /// <summary>
@@ -134,8 +136,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     /// <summary>
     ///     Gets a value indicating whether the client is connected to the lavalink node.
     /// </summary>
-    public bool IsConnected => _webSocket != null
-        && _webSocket.State == WebSocketState.Open;
+    public bool IsConnected => _webSocket is not null && _webSocket.State is WebSocketState.Open;
 
     /// <summary>
     ///     Gets the logger.
@@ -269,7 +270,13 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         // send configure resuming payload
         if (_resume)
         {
-            await SendPayloadAsync(new ConfigureResumingPayload(ResumeKey, _sessionTimeout));
+            var configureResumingPayload = new ConfigureResumingPayload
+            {
+                Key = ResumeKey,
+                Timeout = _sessionTimeout,
+            };
+
+            await SendPayloadAsync(configureResumingPayload).ConfigureAwait(false);
         }
     }
 
@@ -340,10 +347,20 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     ///     before sending payloads)
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async Task SendPayloadAsync(IPayload payload, bool forceSend = false)
+    public async Task SendPayloadAsync(IPayload payload, bool forceSend = false, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
         EnsureInitialized();
+
+        using var cancellationTokenSource = cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource!.Token)
+            : null;
+
+        if (cancellationTokenSource is not null)
+        {
+            cancellationToken = cancellationTokenSource.Token;
+        }
 
         if (!IsConnected)
         {
@@ -357,36 +374,37 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
             return;
         }
 
-        // serialize the payload to json
-        var content = JsonConvert.SerializeObject(payload);
-
-        // rent a buffer from the shared array pool
-        var pooledBuffer = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(content.Length));
+        using var pooledBufferWriter = new PooledBufferWriter();
+        using (var utf8JsonWriter = new Utf8JsonWriter(pooledBufferWriter))
+        {
+            JsonSerializer.Serialize(utf8JsonWriter, payload, payload.GetType());
+        }
 
         try
         {
-            // encode the payload into the buffer
-            var length = Encoding.UTF8.GetBytes(content, 0, content.Length, pooledBuffer, 0);
-
             // send the payload
-            await _webSocket!.SendAsync(new ArraySegment<byte>(pooledBuffer, 0, length), WebSocketMessageType.Text, true, _cancellationTokenSource!.Token);
+            await _webSocket!.SendAsync(
+                buffer: pooledBufferWriter.WrittenSegment,
+                messageType: WebSocketMessageType.Text,
+                endOfMessage: true,
+                cancellationToken: cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Logger?.Log(ex, "Failed to send payload. Trying to reconnect to node...");
+            Logger?.Log(exception, "Failed to send payload. Trying to reconnect to node...");
 
             // enqueue packet that failed to sent
             _queue.Enqueue(payload);
         }
-        finally
-        {
-            // return the buffer to its pool for later reuse
-            ArrayPool<byte>.Shared.Return(pooledBuffer);
-        }
 
         if (_ioDebug)
         {
-            Logger?.Log(this, string.Format("Sent payload `{0}` to {1}.", content, _webSocketUri), LogLevel.Trace);
+            var message = string.Format(
+                "Sent payload `{0}` to {1}.",
+                Encoding.UTF8.GetString(pooledBufferWriter.WrittenSpan.ToArray()),
+                _webSocketUri);
+
+            Logger?.Log(this, message, LogLevel.Trace);
         }
     }
 
@@ -446,6 +464,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     protected virtual Task OnReconnectAttemptAsync(ReconnectAttemptEventArgs eventArgs)
         => ReconnectAttempt.InvokeAsync(this, eventArgs);
 
+    protected virtual ValueTask ProcessPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default) => default;
+
     /// <summary>
     ///     Throws an exception if the <see cref="LavalinkSocket"/> instance is disposed.
     /// </summary>
@@ -467,19 +487,22 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     /// </remarks>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    private async Task ProcessNextPayload()
+    private async Task ProcessNextPayload(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
         WebSocketReceiveResult result;
 
         try
         {
-            result = await _webSocket!.ReceiveAsync(new ArraySegment<byte>(_receiveBuffer, 0, _receiveBuffer.Length), _cancellationTokenSource!.Token);
+            result = await _webSocket!
+                .ReceiveAsync(new ArraySegment<byte>(_receiveBuffer, 0, _receiveBuffer.Length), cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (WebSocketException ex)
         {
-            if (_cancellationTokenSource!.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -493,7 +516,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         }
 
         // check if the web socket received a close frame
-        if (result.MessageType == WebSocketMessageType.Close)
+        if (result.MessageType is WebSocketMessageType.Close)
         {
             Logger?.Log(this, string.Format("Lavalink Node disconnected: {0}, {1}.", result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription), LogLevel.Warning);
             await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription, true));
@@ -503,42 +526,66 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
             return;
         }
 
-        var content = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
-
         if (!result.EndOfMessage)
         {
             // the server sent a message frame that is incomplete
-            _overflowBuffer.Append(content);
+            await CloseAsync(WebSocketCloseStatus.PolicyViolation, "An incomplete frame was received.", CancellationToken.None).ConfigureAwait(false);
             return;
         }
 
-        // check if old data exists
-        if (result.EndOfMessage && _overflowBuffer.Length > 0)
+        var payload = _receiveBuffer.AsMemory(0, result.Count);
+
+        if (_ioDebug && Logger is not null)
         {
-            _overflowBuffer.Append(content);
-            content = _overflowBuffer.ToString();
-            _overflowBuffer.Clear();
+            var content = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
+            Logger.Log(this, string.Format("Received payload: `{0}` from: {1}.", content, _webSocketUri), LogLevel.Trace);
         }
 
-        if (_ioDebug)
+        var jsonDocument = JsonDocument.Parse(payload);
+
+        if (!jsonDocument.RootElement.TryGetProperty("op", out var opCodeToken))
         {
-            Logger?.Log(this, string.Format("Received payload: `{0}` from: {1}.", content, _webSocketUri), LogLevel.Trace);
+            throw new JsonException("Invalid JSON: Expected 'op' in json object.");
         }
+
+        var opCode = opCodeToken.Deserialize<OpCode>();
+        var eventType = default(EventType?);
+
+        if (opCode == OpCode.Event)
+        {
+            if (!jsonDocument.RootElement.TryGetProperty("type", out var eventTypeToken))
+            {
+                throw new JsonException("Invalid JSON: Expected 'type' in json object.");
+            }
+
+            eventType = eventTypeToken.Deserialize<EventType>();
+        }
+
+        var guildId = jsonDocument.RootElement.TryGetProperty("guildId", out var guildIdProperty)
+            ? ulong.Parse(guildIdProperty.GetString()!, provider: CultureInfo.InvariantCulture)
+            : default(ulong?);
+
+        var payloadContext = new PayloadContext(opCode, eventType, jsonDocument.RootElement, guildId);
 
         // process data
         try
         {
-            var payload = PayloadConverter.ReadPayload(content);
-            var eventArgs = new PayloadReceivedEventArgs(payload, content);
-            await OnPayloadReceived(eventArgs);
+            await ProcessPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
+
+            var eventArgs = new PayloadReceivedEventArgs(payloadContext);
+            await OnPayloadReceived(eventArgs).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            Logger?.Log(this, string.Format("Received bad payload: {0}.", content), LogLevel.Warning, ex);
-            await CloseAsync(WebSocketCloseStatus.InvalidPayloadData);
+            if (Logger is not null)
+            {
+                var content = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
+                Logger.Log(this, string.Format("Received bad payload: {0}.", content), LogLevel.Warning, ex);
+            }
+
+            await CloseAsync(WebSocketCloseStatus.InvalidPayloadData).ConfigureAwait(false);
         }
     }
-
     /// <summary>
     ///     Runs the receive / reconnect life cycle asynchronously.
     /// </summary>
@@ -548,21 +595,22 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     {
         EnsureNotDisposed();
 
-        while (!_cancellationTokenSource!.IsCancellationRequested)
+        var cancellationToken = _cancellationTokenSource!.Token;
+        while (!cancellationToken.IsCancellationRequested)
         {
             // receive new payload until the web-socket is connected.
-            while (IsConnected && !_cancellationTokenSource.IsCancellationRequested)
+            while (IsConnected && !cancellationToken.IsCancellationRequested)
             {
-                await ProcessNextPayload();
+                await ProcessNextPayload(cancellationToken).ConfigureAwait(false);
             }
 
             var lostConnectionAt = DateTimeOffset.UtcNow;
 
             // try reconnect
-            for (var attempt = 1; !_cancellationTokenSource.IsCancellationRequested; attempt++)
+            for (var attempt = 1; !cancellationToken.IsCancellationRequested; attempt++)
             {
                 // reconnect
-                await ConnectAsync();
+                await ConnectAsync(cancellationToken).ConfigureAwait(false);
 
                 if (IsConnected)
                 {
@@ -571,7 +619,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 }
 
                 var eventArgs = new ReconnectAttemptEventArgs(_webSocketUri, attempt, _reconnectionStrategy);
-                await OnReconnectAttemptAsync(eventArgs);
+                await OnReconnectAttemptAsync(eventArgs).ConfigureAwait(false);
 
                 // give up
                 if (eventArgs.CancelReconnect)
@@ -591,7 +639,10 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 }
 
                 Logger?.Log(this, string.Format("Waiting {0} before next reconnect attempt...", delay.Value), LogLevel.Debug);
-                await Task.Delay(delay.Value);
+
+                await Task
+                    .Delay(delay.Value, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }

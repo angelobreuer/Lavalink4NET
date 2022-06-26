@@ -44,8 +44,8 @@ public sealed class LavalinkNodeOptions : LavalinkRestOptions
     /// <summary>
     ///     Gets or sets the buffer size when receiving payloads from a lavalink node.
     /// </summary>
-    /// <remarks>This property defaults to <c>1024</c> (1 KiB)</remarks>
-    public int BufferSize { get; set; } = 1024;
+    /// <remarks>This property defaults to <c>65535</c> (64 KiB)</remarks>
+    public int BufferSize { get; set; } = 64 * 1024;
 
     /// <summary>
     ///     Gets or sets a value indicating whether the player should disconnect from the voice

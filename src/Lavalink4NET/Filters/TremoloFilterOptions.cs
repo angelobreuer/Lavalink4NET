@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class TremoloFilterOptions : IFilterOptions
 {
     public const string Name = "tremolo";
@@ -37,9 +37,9 @@ public sealed class TremoloFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("frequency")]
+    [JsonPropertyName("frequency")]
     public float Frequency { get; set; } = 2.0F;
 
-    [JsonProperty("depth")]
+    [JsonPropertyName("depth")]
     public float Depth { get; set; } = 0.5F;
 }

@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Rest;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The playlist info object for the track load response.
@@ -37,12 +37,12 @@ public sealed class PlaylistInfo
     /// <summary>
     ///     Gets the name of the playlist.
     /// </summary>
-    [JsonProperty("name")]
-    public string? Name { get; internal set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; init; }
 
     /// <summary>
     ///     Gets the index of the selected track.
     /// </summary>
-    [JsonProperty("selectedTrack")]
-    public int SelectedTrack { get; internal set; }
+    [JsonPropertyName("selectedTrack")]
+    public int SelectedTrack { get; init; }
 }

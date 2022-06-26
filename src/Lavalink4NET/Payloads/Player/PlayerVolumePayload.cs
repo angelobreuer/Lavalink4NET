@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Player;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a player volume payload sent to the lavalink node
@@ -49,18 +49,18 @@ public sealed class PlayerVolumePayload : IPayload, IPlayerPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerVolume;
 
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the player should be paused.
     /// </summary>
-    [JsonRequired, JsonProperty("volume")]
-    public int Volume { get; internal set; }
+    [JsonPropertyName("volume")]
+    public int Volume { get; init; }
 }

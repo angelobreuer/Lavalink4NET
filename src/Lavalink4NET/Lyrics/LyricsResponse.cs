@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Lyrics;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The response payload returned by the lyrics API service.
@@ -37,12 +37,12 @@ public sealed class LyricsResponse
     /// <summary>
     ///     Gets an hopefully descriptive error message indicating what error occurred.
     /// </summary>
-    [JsonProperty("error")]
-    public string? ErrorMessage { get; internal set; }
+    [JsonPropertyName("error")]
+    public string? ErrorMessage { get; init; }
 
     /// <summary>
     ///     Gets the lyrics of the requested song.
     /// </summary>
-    [JsonProperty("lyrics")]
-    public string? Lyrics { get; internal set; }
+    [JsonPropertyName("lyrics")]
+    public string? Lyrics { get; init; }
 }

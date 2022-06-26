@@ -29,9 +29,8 @@ namespace Lavalink4NET.Payloads.Player;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Lavalink4NET.Filters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 /// <summary>
 ///     The strongly-typed representation of a player filters update payload sent to the
@@ -50,21 +49,21 @@ public sealed class PlayerFiltersPayload : IPlayerPayload
     public PlayerFiltersPayload(ulong guildId, IReadOnlyDictionary<string, IFilterOptions> filters)
     {
         GuildId = guildId.ToString();
-        Filters = filters.ToDictionary(x => x.Key, x => JToken.FromObject(x.Value));
+        Filters = filters.ToDictionary(x => x.Key, x => x.Value);
     }
 
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerFilters;
 
     /// <summary>
     ///     Gets the guild snowflake identifier the player equalizer update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; }
 
-    [JsonRequired, JsonExtensionData, JsonProperty("filters")]
-    internal IDictionary<string, JToken> Filters { get; set; }
+    [JsonExtensionData, JsonPropertyName("filters")]
+    internal IDictionary<string, IFilterOptions> Filters { get; set; }
 }

@@ -26,7 +26,7 @@
  */
 
 namespace Lavalink4NET.Payloads.Events;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a track exception event received from the lavalink
@@ -37,15 +37,15 @@ public sealed class TrackExceptionEvent : EventPayload
     /// <summary>
     ///     Gets the event type.
     /// </summary>
-    [JsonRequired, JsonProperty("type")]
+    [JsonPropertyName("type")]
     public override EventType Type => EventType.TrackException;
 
     /// <summary>
     ///     Gets the identifier of the track where the exception occurred.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public string TrackIdentifier { get; internal set; } = null!;
+    [JsonPropertyName("track")]
+    public string TrackIdentifier { get; init; } = null!;
 
-    [JsonRequired, JsonProperty("error")]
-    public string ErrorMessage { get; internal set; } = null!;
+    [JsonPropertyName("error")]
+    public string ErrorMessage { get; init; } = null!;
 }

@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Statistics;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     A wrapper for the statistics.memory object in the statistics update from the lavalink server.
@@ -37,24 +37,24 @@ public sealed class MemoryStatistics
     /// <summary>
     ///     The free RAM memory in bytes.
     /// </summary>
-    [JsonRequired, JsonProperty("free")]
-    public ulong FreeMemory { get; internal set; }
+    [JsonPropertyName("free")]
+    public ulong FreeMemory { get; init; }
 
     /// <summary>
     ///     The used RAM memory in bytes.
     /// </summary>
-    [JsonRequired, JsonProperty("used")]
-    public ulong UsedMemory { get; internal set; }
+    [JsonPropertyName("used")]
+    public ulong UsedMemory { get; init; }
 
     /// <summary>
     ///     The allocated RAM memory in bytes.
     /// </summary>
-    [JsonRequired, JsonProperty("allocated")]
-    public ulong AllocatedMemory { get; internal set; }
+    [JsonPropertyName("allocated")]
+    public ulong AllocatedMemory { get; init; }
 
     /// <summary>
     ///     The reservable RAM memory in bytes.
     /// </summary>
-    [JsonRequired, JsonProperty("reservable")]
-    public ulong ReservableMemory { get; internal set; }
+    [JsonPropertyName("reservable")]
+    public ulong ReservableMemory { get; init; }
 }

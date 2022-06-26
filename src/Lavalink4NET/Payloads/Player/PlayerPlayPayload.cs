@@ -28,7 +28,7 @@
 namespace Lavalink4NET.Payloads.Player;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a player play payload sent to the lavalink node (in
@@ -62,39 +62,39 @@ public sealed class PlayerPlayPayload : IPayload, IPlayerPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerPlay;
 
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; }
 
     /// <summary>
     ///     Gets the track identifier that the player should play.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public string TrackIdentifier { get; internal set; }
+    [JsonPropertyName("track")]
+    public string TrackIdentifier { get; init; }
 
     /// <summary>
     ///     Gets the track start position in milliseconds.
     /// </summary>
-    [JsonRequired]
-    [JsonProperty("startTime", NullValueHandling = NullValueHandling.Ignore)]
-    public int? StartTime { get; internal set; }
+    [JsonPropertyName("startTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? StartTime { get; init; }
 
     /// <summary>
     ///     Gets the track end position in milliseconds.
     /// </summary>
-    [JsonRequired]
-    [JsonProperty("endTime", NullValueHandling = NullValueHandling.Ignore)]
-    public int? EndTime { get; internal set; }
+    [JsonPropertyName("endTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? EndTime { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the track play should be ignored if the same track
     ///     is currently playing.
     /// </summary>
-    [JsonRequired, JsonProperty("noReplace")]
-    public bool NoReplace { get; internal set; }
+    [JsonPropertyName("noReplace")]
+    public bool NoReplace { get; init; }
 }

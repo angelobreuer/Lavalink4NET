@@ -28,19 +28,20 @@
 namespace Lavalink4NET.Filters;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 internal sealed class VolumeFilterOptionsJsonConverter : JsonConverter<VolumeFilterOptions>
 {
     /// <inheritdoc/>
-    public override VolumeFilterOptions ReadJson(JsonReader reader, Type objectType, VolumeFilterOptions existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override VolumeFilterOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return new VolumeFilterOptions() { Volume = (float)reader.Value, };
+        return new VolumeFilterOptions { Volume = reader.GetSingle(), };
     }
 
     /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, VolumeFilterOptions value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, VolumeFilterOptions value, JsonSerializerOptions options)
     {
-        writer.WriteValue(value.Volume);
+        writer.WriteNumberValue(value.Volume);
     }
 }

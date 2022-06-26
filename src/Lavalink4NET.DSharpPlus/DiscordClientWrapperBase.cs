@@ -25,133 +25,131 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.DSharpPlus
+namespace Lavalink4NET.DSharpPlus;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using global::DSharpPlus;
+using global::DSharpPlus.Entities;
+using global::DSharpPlus.EventArgs;
+using Lavalink4NET.Events;
+
+/// <summary>
+///     An abstraction used to implement a wrapper for the discord client from the "DSharpPlus"
+///     discord client library. (https://github.com/DSharpPlus/DSharpPlus)
+/// </summary>
+public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using global::DSharpPlus;
-    using global::DSharpPlus.Entities;
-    using global::DSharpPlus.EventArgs;
-    using Lavalink4NET.Events;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    /// <inheritdoc/>
+    public event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
+
+    /// <inheritdoc/>
+    public event AsyncEventHandler<Events.VoiceStateUpdateEventArgs>? VoiceStateUpdated;
+
+    /// <inheritdoc/>
+    public ulong CurrentUserId
+    {
+        get
+        {
+            if (CurrentUser is null)
+            {
+                throw new InvalidOperationException("Current user not available.");
+            }
+
+            return CurrentUser.Id;
+        }
+    }
+
+    /// <inheritdoc/>
+    public abstract int ShardCount { get; }
 
     /// <summary>
-    ///     An abstraction used to implement a wrapper for the discord client from the "DSharpPlus"
-    ///     discord client library. (https://github.com/DSharpPlus/DSharpPlus)
+    ///     Gets the current user.
     /// </summary>
-    public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
+    /// <value>the current user.</value>
+    protected abstract DiscordUser? CurrentUser { get; }
+
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public async Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
     {
-        /// <inheritdoc/>
-        public event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
+        var guild = await GetClient(guildId).GetGuildAsync(guildId).ConfigureAwait(false)
+            ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
 
-        /// <inheritdoc/>
-        public event AsyncEventHandler<Events.VoiceStateUpdateEventArgs>? VoiceStateUpdated;
+        var channel = guild.GetChannel(voiceChannelId)
+            ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
 
-        /// <inheritdoc/>
-        public ulong CurrentUserId
+        return channel.Users.Select(s => s.Id);
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public async Task InitializeAsync()
+    {
+        var startTime = DateTimeOffset.UtcNow;
+
+        // await until client is ready
+        while (CurrentUser is null)
         {
-            get
-            {
-                if (CurrentUser is null)
-                {
-                    throw new InvalidOperationException("Current user not available.");
-                }
+            await Task.Delay(10).ConfigureAwait(false);
 
-                return CurrentUser.Id;
+            // timeout exceeded
+            if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
+            {
+                throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
+                    "the discord client, before initializing the discord wrapper!");
             }
         }
+    }
 
-        /// <inheritdoc/>
-        public abstract int ShardCount { get; }
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public async Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+    {
+        var payload = new JsonObject();
+        var data = new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf);
 
-        /// <summary>
-        ///     Gets the current user.
-        /// </summary>
-        /// <value>the current user.</value>
-        protected abstract DiscordUser? CurrentUser { get; }
+        payload.Add("op", 4);
+        payload.Add("d", JsonSerializer.SerializeToNode(data));
 
-        /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
-        {
-            var guild = await GetClient(guildId).GetGuildAsync(guildId).ConfigureAwait(false)
-                ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
+        await GetClient(guildId).GetWebSocketClient().SendMessageAsync(payload.ToString()).ConfigureAwait(false);
+    }
 
-            var channel = guild.GetChannel(voiceChannelId)
-                ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
+    /// <summary>
+    ///     Gets the client that serves the guild specified by <paramref name="guildId"/>.
+    /// </summary>
+    /// <param name="guildId">the snowflake identifier of the guild.</param>
+    /// <returns>the client that serves the guild specified by <paramref name="guildId"/>.</returns>
+    protected abstract DiscordClient GetClient(ulong guildId);
 
-            return channel.Users.Select(s => s.Id);
-        }
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    protected Task OnVoiceServerUpdated(DiscordClient _, VoiceServerUpdateEventArgs voiceServer)
+    {
+        var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.GetVoiceToken(), voiceServer.Endpoint);
+        return VoiceServerUpdated.InvokeAsync(this, args);
+    }
 
-        /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task InitializeAsync()
-        {
-            var startTime = DateTimeOffset.UtcNow;
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    protected Task OnVoiceStateUpdated(DiscordClient _, global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
+    {
+        // session id is the same as the resume key so DSharpPlus should be able to give us the
+        // session key in either before or after voice state
+        var sessionId = eventArgs.Before?.GetSessionId() ?? eventArgs.After.GetSessionId();
 
-            // await until client is ready
-            while (CurrentUser is null)
-            {
-                await Task.Delay(10).ConfigureAwait(false);
+        // create voice state
+        var voiceState = new VoiceState(
+            voiceChannelId: eventArgs.After?.Channel?.Id,
+            guildId: eventArgs.Guild.Id,
+            voiceSessionId: sessionId);
 
-                // timeout exceeded
-                if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
-                {
-                    throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
-                        "the discord client, before initializing the discord wrapper!");
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        public async Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-        {
-            var payload = new JObject();
-            var data = new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf);
-
-            payload.Add("op", 4);
-            payload.Add("d", JObject.FromObject(data));
-
-            var message = JsonConvert.SerializeObject(payload, Formatting.None);
-            await GetClient(guildId).GetWebSocketClient().SendMessageAsync(message).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        ///     Gets the client that serves the guild specified by <paramref name="guildId"/>.
-        /// </summary>
-        /// <param name="guildId">the snowflake identifier of the guild.</param>
-        /// <returns>the client that serves the guild specified by <paramref name="guildId"/>.</returns>
-        protected abstract DiscordClient GetClient(ulong guildId);
-
-        /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        protected Task OnVoiceServerUpdated(DiscordClient _, VoiceServerUpdateEventArgs voiceServer)
-        {
-            var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.GetVoiceToken(), voiceServer.Endpoint);
-            return VoiceServerUpdated.InvokeAsync(this, args);
-        }
-
-        /// <inheritdoc/>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        protected Task OnVoiceStateUpdated(DiscordClient _, global::DSharpPlus.EventArgs.VoiceStateUpdateEventArgs eventArgs)
-        {
-            // session id is the same as the resume key so DSharpPlus should be able to give us the
-            // session key in either before or after voice state
-            var sessionId = eventArgs.Before?.GetSessionId() ?? eventArgs.After.GetSessionId();
-
-            // create voice state
-            var voiceState = new VoiceState(
-                voiceChannelId: eventArgs.After?.Channel?.Id,
-                guildId: eventArgs.Guild.Id,
-                voiceSessionId: sessionId);
-
-            // invoke event
-            return VoiceStateUpdated.InvokeAsync(this,
-                new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState));
-        }
+        // invoke event
+        return VoiceStateUpdated.InvokeAsync(this,
+            new Events.VoiceStateUpdateEventArgs(eventArgs.User.Id, voiceState));
     }
 }

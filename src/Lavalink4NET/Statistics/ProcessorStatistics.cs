@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Statistics;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     A wrapper for the statistics.processor object in the statistics update from the lavalink server.
@@ -37,18 +37,18 @@ public sealed class ProcessorStatistics
     /// <summary>
     ///     The number of cores the system has.
     /// </summary>
-    [JsonRequired, JsonProperty("cores")]
-    public int Cores { get; internal set; }
+    [JsonPropertyName("cores")]
+    public int Cores { get; init; }
 
     /// <summary>
     ///     The system load (percentage).
     /// </summary>
-    [JsonRequired, JsonProperty("systemLoad")]
-    public double SystemLoad { get; internal set; }
+    [JsonPropertyName("systemLoad")]
+    public double SystemLoad { get; init; }
 
     /// <summary>
     ///     The node load (percentage).
     /// </summary>
-    [JsonRequired, JsonProperty("lavalinkLoad")]
-    public double NodeLoad { get; internal set; }
+    [JsonPropertyName("lavalinkLoad")]
+    public double NodeLoad { get; init; }
 }

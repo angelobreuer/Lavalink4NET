@@ -25,38 +25,37 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Util;
+namespace Lavalink4NET.Converters;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     A Json.Net JSON converter between a milliseconds <see cref="double"/> and a <see cref="TimeSpan"/>.
 /// </summary>
-internal sealed class TimeSpanConverter : JsonConverter<TimeSpan>
+internal sealed class TimeSpanJsonConverter : JsonConverter<TimeSpan>
 {
-    /// <summary>
-    ///     Reads the JSON representation of the object.
-    /// </summary>
-    /// <param name="reader">The <see cref="JsonReader"/> to read from.</param>
-    /// <param name="objectType">Type of the object.</param>
-    /// <param name="existingValue">
-    ///     The existing value of object being read. If there is no existing value then null will
-    ///     be used.
-    /// </param>
-    /// <param name="hasExistingValue">The existing value has a value.</param>
-    /// <param name="serializer">The calling serializer.</param>
-    /// <returns>The object value.</returns>
-    public override TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!long.TryParse(reader.Value.ToString(), out var value) || value < 0)
+        if (reader.TokenType is not JsonTokenType.Number or JsonTokenType.String)
         {
-            // could not parse or time is negative
+            throw new JsonException();
+        }
+
+        if (!reader.TryGetInt64(out var value) &&
+            !long.TryParse(reader.GetString(), out value))
+        {
+            return TimeSpan.Zero;
+        }
+
+        if (value < 0)
+        {
             return TimeSpan.Zero;
         }
 
         // infinite time
-        if (value == long.MaxValue)
+        if (value is long.MaxValue)
         {
             return TimeSpan.MaxValue;
         }
@@ -64,12 +63,9 @@ internal sealed class TimeSpanConverter : JsonConverter<TimeSpan>
         return TimeSpan.FromMilliseconds(value);
     }
 
-    /// <summary>
-    ///     Writes the JSON representation of the object.
-    /// </summary>
-    /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-    /// <param name="value">The value.</param>
-    /// <param name="serializer">The calling serializer.</param>
-    public override void WriteJson(JsonWriter writer, TimeSpan value, JsonSerializer serializer)
-        => writer.WriteValue(value.TotalMilliseconds);
+    /// <inheritdoc/>
+    public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue(value.TotalMilliseconds);
+    }
 }

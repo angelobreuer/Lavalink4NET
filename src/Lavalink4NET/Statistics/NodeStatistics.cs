@@ -65,30 +65,30 @@ public sealed class NodeStatistics
     /// <summary>
     ///     Gets the number of players the node is holding.
     /// </summary>
-    public int Players { get; internal set; }
+    public int Players { get; init; }
 
     /// <summary>
     ///     Gets the number of players that are currently playing using the node.
     /// </summary>
-    public int PlayingPlayers { get; internal set; }
+    public int PlayingPlayers { get; init; }
 
     /// <summary>
     ///     Gets the uptime from the node (how long the node is online).
     /// </summary>
-    public TimeSpan Uptime { get; internal set; }
+    public TimeSpan Uptime { get; init; }
 
     /// <summary>
     ///     Gets the usage statistics for the memory of the node.
     /// </summary>
-    public MemoryStatistics Memory { get; internal set; }
+    public MemoryStatistics Memory { get; init; }
 
     /// <summary>
     ///     Gets the usage statistics for the processor of the node.
     /// </summary>
-    public ProcessorStatistics Processor { get; internal set; }
+    public ProcessorStatistics Processor { get; init; }
 
     /// <summary>
     ///     Gets the frame statistics of the node.
     /// </summary>
-    public FrameStatistics FrameStatistics { get; internal set; }
+    public FrameStatistics FrameStatistics { get; init; }
 }

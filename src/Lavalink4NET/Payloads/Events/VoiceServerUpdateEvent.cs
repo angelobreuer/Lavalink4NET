@@ -28,7 +28,7 @@
 namespace Lavalink4NET.Payloads.Events;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The update data for the voice server update that is sent to the lavalink server when it
@@ -67,18 +67,18 @@ public sealed class VoiceServerUpdateEvent
     /// <summary>
     ///     Gets the token for the voice connection.
     /// </summary>
-    [JsonProperty("token")]
-    public string Token { get; internal set; } = string.Empty;
+    [JsonPropertyName("token")]
+    public string Token { get; init; } = string.Empty;
 
     /// <summary>
     ///     Gets the id of the guild the update is for
     /// </summary>
-    [JsonProperty("guild_id")]
-    public ulong GuildId { get; internal set; }
+    [JsonPropertyName("guild_id")]
+    public ulong GuildId { get; init; }
 
     /// <summary>
     ///     Gets the endpoint of the voice server.
     /// </summary>
-    [JsonProperty("endpoint")]
-    public string Endpoint { get; internal set; } = string.Empty;
+    [JsonPropertyName("endpoint")]
+    public string Endpoint { get; init; } = string.Empty;
 }

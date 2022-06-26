@@ -28,22 +28,20 @@
 namespace Lavalink4NET.Filters;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 internal sealed class EqualizerFilterOptionsJsonConverter : JsonConverter<EqualizerFilterOptions>
 {
     /// <inheritdoc/>
-    public override bool CanRead => false;
-
-    /// <inheritdoc/>
-    public override EqualizerFilterOptions ReadJson(JsonReader reader, Type objectType, EqualizerFilterOptions existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override EqualizerFilterOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotSupportedException();
     }
 
     /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, EqualizerFilterOptions value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, EqualizerFilterOptions value, JsonSerializerOptions options)
     {
-        serializer.Serialize(writer, value.Bands);
+        JsonSerializer.Serialize(writer, value.Bands, options);
     }
 }

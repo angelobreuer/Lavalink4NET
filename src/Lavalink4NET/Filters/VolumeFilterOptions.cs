@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 [JsonConverter(typeof(VolumeFilterOptionsJsonConverter))]
 public sealed class VolumeFilterOptions : IFilterOptions
 {
@@ -38,6 +38,6 @@ public sealed class VolumeFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("volume")]
+    [JsonPropertyName("volume")]
     public float Volume { get; init; }
 }

@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Player;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a player destroy payload sent to the lavalink node
@@ -47,12 +47,12 @@ public sealed class PlayerDestroyPayload : IPlayerPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerDestroy;
 
     /// <summary>
     ///     Gets the guild snowflake identifier where the player should be destroyed.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; } = null!;
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; } = null!;
 }

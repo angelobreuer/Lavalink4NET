@@ -27,43 +27,37 @@
 
 namespace Lavalink4NET.Player;
 
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The different reason for a track ending.
 /// </summary>
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(TrackEndReasonJsonConverter))]
 public enum TrackEndReason
 {
     /// <summary>
     ///     The track finished.
     /// </summary>
-    [EnumMember(Value = "FINISHED")]
     Finished,
 
     /// <summary>
     ///     The load of the track failed.
     /// </summary>
-    [EnumMember(Value = "LOAD_FAILED")]
     LoadFailed,
 
     /// <summary>
     ///     The track was stopped.
     /// </summary>
-    [EnumMember(Value = "STOPPED")]
     Stopped,
 
     /// <summary>
     ///     The track was replaced by another.
     /// </summary>
-    [EnumMember(Value = "REPLACED")]
     Replaced,
 
     /// <summary>
     ///     The player was destroyed.
     /// </summary>
-    [EnumMember(Value = "CLEANUP")]
-    CleanUp
+    CleanUp,
 }

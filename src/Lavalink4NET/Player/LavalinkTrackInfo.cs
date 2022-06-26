@@ -28,8 +28,8 @@
 namespace Lavalink4NET.Player;
 
 using System;
-using Lavalink4NET.Util;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The information store for a lavalink track.
@@ -37,60 +37,50 @@ using Newtonsoft.Json;
 public sealed class LavalinkTrackInfo
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LavalinkTrackInfo"/> class.
-    /// </summary>
-    [JsonConstructor]
-#pragma warning disable CS8618
-    internal LavalinkTrackInfo()
-#pragma warning restore CS8618
-    {
-    }
-
-    /// <summary>
     ///     Gets the name of the track author.
     /// </summary>
-    [JsonRequired, JsonProperty("author")]
-    public string Author { get; internal set; }
+    [JsonPropertyName("author")]
+    public string Author { get; init; }
 
     /// <summary>
     ///     Gets the duration of the track.
     /// </summary>
-    [JsonProperty("length"), JsonConverter(typeof(TimeSpanConverter))]
-    public TimeSpan Duration { get; internal set; }
+    [JsonPropertyName("length"), JsonConverter(typeof(TimeSpanJsonConverter))]
+    public TimeSpan Duration { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the track is a live stream.
     /// </summary>
-    [JsonRequired, JsonProperty("isStream")]
-    public bool IsLiveStream { get; internal set; }
+    [JsonPropertyName("isStream")]
+    public bool IsLiveStream { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the track is seek-able.
     /// </summary>
-    [JsonRequired, JsonProperty("isSeekable")]
-    public bool IsSeekable { get; internal set; }
+    [JsonPropertyName("isSeekable")]
+    public bool IsSeekable { get; init; }
 
     /// <summary>
     ///     Gets the start position of the track.
     /// </summary>
-    [JsonProperty("position"), JsonConverter(typeof(TimeSpanConverter))]
-    public TimeSpan Position { get; internal set; }
+    [JsonPropertyName("position"), JsonConverter(typeof(TimeSpanJsonConverter))]
+    public TimeSpan Position { get; init; }
 
     /// <summary>
     ///     Gets the track source.
     /// </summary>
-    [JsonRequired, JsonProperty("uri")]
-    public string? Source { get; internal set; }
+    [JsonPropertyName("uri")]
+    public string? Source { get; init; }
 
     /// <summary>
     ///     Gets the title of the track.
     /// </summary>
-    [JsonRequired, JsonProperty("title")]
-    public string Title { get; internal set; }
+    [JsonPropertyName("title")]
+    public string Title { get; init; }
 
     /// <summary>
     ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
     /// </summary>
-    [JsonRequired, JsonProperty("identifier")]
-    public string TrackIdentifier { get; internal set; }
+    [JsonPropertyName("identifier")]
+    public string TrackIdentifier { get; init; }
 }

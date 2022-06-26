@@ -29,7 +29,7 @@ namespace Lavalink4NET.Filters;
 
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 [JsonConverter(typeof(EqualizerFilterOptionsJsonConverter))]
 public sealed class EqualizerFilterOptions : IFilterOptions

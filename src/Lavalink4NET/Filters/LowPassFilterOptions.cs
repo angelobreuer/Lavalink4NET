@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class LowPassFilterOptions : IFilterOptions
 {
     public const string Name = "lowPass";
@@ -37,6 +37,6 @@ public sealed class LowPassFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("smoothing")]
+    [JsonPropertyName("smoothing")]
     public float Smoothing { get; set; } = 20.0F;
 }

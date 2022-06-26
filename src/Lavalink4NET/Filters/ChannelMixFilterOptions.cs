@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class ChannelMixFilterOptions : IFilterOptions
 {
     public const string Name = "channelMix";
@@ -37,15 +37,15 @@ public sealed class ChannelMixFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("leftToLeft")]
+    [JsonPropertyName("leftToLeft")]
     public float LeftToLeft { get; init; } = 1F;
 
-    [JsonProperty("leftToRight")]
+    [JsonPropertyName("leftToRight")]
     public float LeftToRight { get; init; } = 0F;
 
-    [JsonProperty("rightToLeft")]
+    [JsonPropertyName("rightToLeft")]
     public float RightToLeft { get; init; } = 0F;
 
-    [JsonProperty("rightToRight")]
+    [JsonPropertyName("rightToRight")]
     public float RightToRight { get; init; } = 1F;
 }

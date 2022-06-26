@@ -28,7 +28,7 @@
 namespace Lavalink4NET.Payloads.Player;
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
@@ -50,18 +50,18 @@ public sealed class PlayerSeekPayload : IPayload, IPlayerPayload
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerSeek;
 
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; }
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the player should be paused.
     /// </summary>
-    [JsonRequired, JsonProperty("position")]
-    public int Position { get; internal set; }
+    [JsonPropertyName("position")]
+    public int Position { get; init; }
 }

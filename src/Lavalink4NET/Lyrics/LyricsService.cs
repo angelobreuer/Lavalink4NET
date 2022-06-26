@@ -30,11 +30,11 @@ namespace Lavalink4NET.Lyrics;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Lavalink4NET.Player;
-using Newtonsoft.Json;
 
 /// <summary>
 ///     A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
@@ -223,10 +223,17 @@ public sealed class LyricsService : IDisposable
         artist = HttpUtility.HtmlEncode(artist);
 
         // send response
-        using var response = await _httpClient.GetAsync($"{artist}/{title}", cancellationToken);
+        using var response = await _httpClient
+            .GetAsync($"{artist}/{title}", HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
 
-        var content = await response.Content.ReadAsStringAsync();
-        var payload = JsonConvert.DeserializeObject<LyricsResponse>(content);
+        using var contentStream = await response.Content
+            .ReadAsStreamAsync()
+            .ConfigureAwait(false);
+
+        var payload = await JsonSerializer
+            .DeserializeAsync<LyricsResponse>(contentStream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {

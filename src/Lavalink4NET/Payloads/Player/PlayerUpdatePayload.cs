@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Player;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a player update payload received from the lavalink
@@ -38,18 +38,18 @@ public sealed class PlayerUpdatePayload : IPlayerPayload
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
-    [JsonRequired, JsonProperty("guildId")]
-    public string GuildId { get; internal set; } = null!;
+    [JsonPropertyName("guildId")]
+    public string GuildId { get; init; } = null!;
 
     /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.PlayerUpdate;
 
     /// <summary>
     ///     Gets the player status.
     /// </summary>
-    [JsonRequired, JsonProperty("state")]
-    public PlayerStatus Status { get; internal set; }
+    [JsonPropertyName("state")]
+    public PlayerStatus Status { get; init; }
 }

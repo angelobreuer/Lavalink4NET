@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Rest;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using Player;
 
 /// <summary>
@@ -41,24 +41,24 @@ public sealed class TrackLoadResponsePayload
     /// <remarks>
     ///     This property is only available if <see cref="TrackLoadType"/> is <see cref="TrackLoadType.LoadFailed"/>.
     /// </remarks>
-    [JsonProperty("exception")]
-    public TrackLoadException? Exception { get; internal set; }
+    [JsonPropertyName("exception")]
+    public TrackLoadException? Exception { get; init; }
 
     /// <summary>
     ///     Gets the type of what was loaded.
     /// </summary>
-    [JsonRequired, JsonProperty("loadType")]
-    public TrackLoadType LoadType { get; internal set; }
+    [JsonPropertyName("loadType")]
+    public TrackLoadType LoadType { get; init; }
 
     /// <summary>
     ///     Gets the information about the playlist.
     /// </summary>
-    [JsonRequired, JsonProperty("playlistInfo")]
-    public PlaylistInfo? PlaylistInfo { get; internal set; }
+    [JsonPropertyName("playlistInfo")]
+    public PlaylistInfo? PlaylistInfo { get; init; }
 
     /// <summary>
     ///     Gets the loaded tracks.
     /// </summary>
-    [JsonRequired, JsonProperty("tracks")]
-    public LavalinkTrack[]? Tracks { get; internal set; }
+    [JsonPropertyName("tracks")]
+    public LavalinkTrack[]? Tracks { get; init; }
 }

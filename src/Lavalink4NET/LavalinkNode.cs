@@ -31,6 +31,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Events;
 using Lavalink4NET.Logging;
@@ -435,64 +436,73 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
     /// <param name="payload">the payload</param>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual async Task OnEventReceived(EventPayload payload)
+    protected virtual async ValueTask HandleEventPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
 
-        if (!Players.TryGetValue(payload.GuildId, out var player))
+        if (!Players.TryGetValue(payloadContext.GuildId!.Value, out var player))
         {
             return;
         }
 
         // a track ended
-        if (payload is TrackEndEvent trackEndEvent)
+        if (payloadContext.EventType == EventType.TrackEnd)
         {
+            var trackEndEvent = payloadContext.DeserializeAs<TrackEndEvent>();
+
             var args = new TrackEndEventArgs(player,
-                trackEndEvent.TrackIdentifier,
-                trackEndEvent.Reason);
+                trackIdentifier: trackEndEvent.TrackIdentifier,
+                reason: trackEndEvent.Reason);
 
             await Task.WhenAll(OnTrackEndAsync(args),
                 player.OnTrackEndAsync(args));
         }
-
         // an exception occurred while playing a track
-        if (payload is TrackExceptionEvent trackExceptionEvent)
+        else if (payloadContext.EventType == EventType.TrackException)
         {
+            var trackExceptionEvent = payloadContext.DeserializeAs<TrackExceptionEvent>();
+
             var args = new TrackExceptionEventArgs(player,
-                trackExceptionEvent.TrackIdentifier,
-                trackExceptionEvent.ErrorMessage);
+                trackIdentifier: trackExceptionEvent.TrackIdentifier,
+                errorMessage: trackExceptionEvent.ErrorMessage);
 
             await Task.WhenAll(OnTrackExceptionAsync(args),
                 player.OnTrackExceptionAsync(args));
         }
 
         // a track got stuck
-        if (payload is TrackStuckEvent trackStuckEvent)
+        else if (payloadContext.EventType == EventType.TrackStuck)
         {
+            var trackStuckEvent = payloadContext.DeserializeAs<TrackStuckEvent>();
+
             var args = new TrackStuckEventArgs(player,
-                trackStuckEvent.TrackIdentifier,
-                trackStuckEvent.Threshold);
+                trackIdentifier: trackStuckEvent.TrackIdentifier,
+                threshold: trackStuckEvent.Threshold);
 
             await Task.WhenAll(OnTrackStuckAsync(args),
                 player.OnTrackStuckAsync(args));
         }
 
         // a track started
-        if (payload is TrackStartEvent trackStartEvent)
+        else if (payloadContext.EventType == EventType.TrackStart)
         {
+            var trackStartEvent = payloadContext.DeserializeAs<TrackStartEvent>();
+
             var args = new TrackStartedEventArgs(player,
-                trackStartEvent.TrackIdentifier);
+                trackIdentifier: trackStartEvent.TrackIdentifier);
 
             await Task.WhenAll(OnTrackStartedAsync(args),
                 player.OnTrackStartedAsync(args));
         }
 
         // the voice web socket was closed
-        if (payload is WebSocketClosedEvent webSocketClosedEvent)
+        else if (payloadContext.EventType == EventType.WebSocketClosed)
         {
+            var webSocketClosedEvent = payloadContext.DeserializeAs<WebSocketClosedEvent>();
+
             Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
                 "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
-                payload.GuildId, webSocketClosedEvent.CloseCode,
+                payloadContext.GuildId, webSocketClosedEvent.CloseCode,
                 (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
                 webSocketClosedEvent.ByRemote ? "Yes" : "No"),
                 webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
@@ -502,45 +512,43 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
                 reason: webSocketClosedEvent.Reason,
                 byRemote: webSocketClosedEvent.ByRemote);
 
-            await OnWebSocketClosedAsync(eventArgs);
+            await OnWebSocketClosedAsync(eventArgs).ConfigureAwait(false);
         }
     }
 
-    /// <summary>
-    ///     Processes the payload and invokes the <see cref="LavalinkSocket.PayloadReceived"/>
-    ///     event asynchronously. (Can be override for event catching)
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected override async Task OnPayloadReceived(PayloadReceivedEventArgs eventArgs)
+    /// <inheritdoc/>
+    protected override sealed async ValueTask ProcessPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
-        var payload = eventArgs.Payload;
-
         // received an event
-        if (payload is EventPayload eventPayload)
+        if (payloadContext.IsEvent)
         {
-            await OnEventReceived(eventPayload);
+            await HandleEventPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
         }
 
         // received a payload for a player
-        if (payload is IPlayerPayload playerPayload)
+        else if (payloadContext.GuildId is not null)
         {
-            await OnPlayerPayloadReceived(playerPayload);
+            await HandlePlayerPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
         }
 
         // statistics update received
-        if (payload is StatsUpdatePayload statsUpdate)
+        else if (payloadContext.OpCode == OpCode.NodeStats)
         {
-            Statistics = new NodeStatistics(statsUpdate.Players, statsUpdate.PlayingPlayers,
-                statsUpdate.Uptime, statsUpdate.Memory, statsUpdate.Processor, statsUpdate.FrameStatistics);
+            var statsUpdate = payloadContext.DeserializeAs<StatsUpdatePayload>();
+
+            Statistics = new NodeStatistics(
+                players: statsUpdate.Players,
+                playingPlayers: statsUpdate.PlayingPlayers,
+                uptime: statsUpdate.Uptime,
+                memory: statsUpdate.Memory,
+                processor: statsUpdate.Processor,
+                frameStatistics: statsUpdate.FrameStatistics);
 
             await OnStatisticsUpdateAsync(new NodeStatisticsUpdateEventArgs(Statistics));
         }
-
-        await base.OnPayloadReceived(eventArgs);
     }
 
     /// <summary>
@@ -565,20 +573,26 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
     /// <param name="payload">the payload</param>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual Task OnPlayerPayloadReceived(IPlayerPayload payload)
+    protected virtual ValueTask HandlePlayerPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
 
-        var player = GetPlayer<LavalinkPlayer>(ulong.Parse(payload.GuildId));
+        var player = GetPlayer<LavalinkPlayer>(payloadContext.GuildId!.Value);
 
-        // a player update was received
-        if (player != null && payload is PlayerUpdatePayload playerUpdate)
+        if (player is null)
         {
-            player.UpdateTrackPosition(playerUpdate.Status.UpdateTime,
-                playerUpdate.Status.Position);
+            Logger?.Log(this, "Received a payload for a player that is not connected", LogLevel.Warning);
+            return default;
         }
 
-        return Task.CompletedTask;
+        // a player update was received
+        if (payloadContext.OpCode == OpCode.PlayerUpdate)
+        {
+            var playerUpdate = payloadContext.DeserializeAs<PlayerUpdatePayload>();
+            player.UpdateTrackPosition(playerUpdate.Status.UpdateTime, playerUpdate.Status.Position);
+        }
+
+        return default;
     }
 
     /// <summary>

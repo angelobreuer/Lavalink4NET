@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Events;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a track start event received from the lavalink node
@@ -38,12 +38,12 @@ public sealed class TrackStartEvent : EventPayload
     /// <summary>
     ///     Gets the identifier of the track that started.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public string TrackIdentifier { get; internal set; } = string.Empty;
+    [JsonPropertyName("track")]
+    public string TrackIdentifier { get; init; } = string.Empty;
 
     /// <summary>
     ///     Gets the event type.
     /// </summary>
-    [JsonRequired, JsonProperty("type")]
+    [JsonPropertyName("type")]
     public override EventType Type => EventType.TrackStart;
 }

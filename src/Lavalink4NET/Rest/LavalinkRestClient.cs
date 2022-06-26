@@ -32,10 +32,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Logging;
-using Newtonsoft.Json;
 using Player;
 
 /// <summary>
@@ -209,24 +210,43 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
 
         _logger?.Log(this, string.Format("Loading track '{0}'...", query), LogLevel.Debug);
 
-        using (var response = await _httpClient.GetAsync($"loadtracks?identifier={query}", cancellationToken))
+        var completionOption = _debugPayloads
+            ? HttpCompletionOption.ResponseContentRead
+            : HttpCompletionOption.ResponseHeadersRead;
+
+        using var response = await _httpClient
+            .GetAsync($"loadtracks?identifier={query}", completionOption, cancellationToken)
+            .ConfigureAwait(false);
+
+        VerifyResponse(response);
+
+        TrackLoadResponsePayload payload;
+        if (_debugPayloads)
         {
-            VerifyResponse(response);
+            var responseData = await response.Content
+                .ReadAsByteArrayAsync()
+                .ConfigureAwait(false);
 
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = Encoding.UTF8.GetString(responseData);
+            _logger?.Log(this, string.Format("Got response for track load: `{0}`: {1}.", query, responseContent), LogLevel.Debug);
 
-            if (_debugPayloads)
-            {
-                _logger?.Log(this, string.Format("Got response for track load: `{0}`: {1}.", query, responseContent), LogLevel.Debug);
-            }
-
-            var trackLoad = JsonConvert.DeserializeObject<TrackLoadResponsePayload>(responseContent);
-
-            // cache (if a cache provider is specified)
-            _cache?.AddItem("track-" + query, trackLoad, DateTimeOffset.UtcNow + _cacheTime);
-
-            return trackLoad;
+            payload = JsonSerializer.Deserialize<TrackLoadResponsePayload>(responseData)!;
         }
+        else
+        {
+            using var responseStream = await response.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            payload = (await JsonSerializer
+                .DeserializeAsync<TrackLoadResponsePayload>(responseStream)
+                .ConfigureAwait(false))!;
+        }
+
+        // cache (if a cache provider is specified)
+        _cache?.AddItem("track-" + query, payload, DateTimeOffset.UtcNow + _cacheTime);
+
+        return payload;
     }
 
     /// <summary>

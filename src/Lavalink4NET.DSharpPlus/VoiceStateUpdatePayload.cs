@@ -25,30 +25,30 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.DSharpPlus
+namespace Lavalink4NET.DSharpPlus;
+
+using System.Text.Json.Serialization;
+
+internal sealed class VoiceStateUpdatePayload
 {
-    using Newtonsoft.Json;
-
-    internal sealed class VoiceStateUpdatePayload
+    public VoiceStateUpdatePayload(ulong guildId, ulong? channelId, bool isSelfMuted = false, bool isSelfDeafened = false)
     {
-        public VoiceStateUpdatePayload(ulong guildId, ulong? channelId, bool isSelfMuted = false, bool isSelfDeafened = false)
-        {
-            GuildId = guildId;
-            ChannelId = channelId;
-            IsSelfMuted = isSelfMuted;
-            IsSelfDeafened = isSelfDeafened;
-        }
-
-        [JsonRequired, JsonProperty("guild_id")]
-        public ulong GuildId { get; }
-
-        [JsonProperty("channel_id", NullValueHandling = NullValueHandling.Include)]
-        public ulong? ChannelId { get; }
-
-        [JsonRequired, JsonProperty("self_mute")]
-        public bool IsSelfMuted { get; }
-
-        [JsonRequired, JsonProperty("self_deaf")]
-        public bool IsSelfDeafened { get; }
+        GuildId = guildId;
+        ChannelId = channelId;
+        IsSelfMuted = isSelfMuted;
+        IsSelfDeafened = isSelfDeafened;
     }
+
+    [JsonPropertyName("guild_id")]
+    public ulong GuildId { get; }
+
+    [JsonPropertyName("channel_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ulong? ChannelId { get; }
+
+    [JsonPropertyName("self_mute")]
+    public bool IsSelfMuted { get; }
+
+    [JsonPropertyName("self_deaf")]
+    public bool IsSelfDeafened { get; }
 }

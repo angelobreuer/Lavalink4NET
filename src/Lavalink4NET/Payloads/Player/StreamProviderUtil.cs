@@ -25,7 +25,7 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Util;
+namespace Lavalink4NET.Payloads.Player;
 
 using System;
 using Lavalink4NET.Player;

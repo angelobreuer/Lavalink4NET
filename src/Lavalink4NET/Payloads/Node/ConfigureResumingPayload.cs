@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Node;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a configure resuming payload which sent to the
@@ -36,33 +36,20 @@ using Newtonsoft.Json;
 public sealed class ConfigureResumingPayload : IPayload
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ConfigureResumingPayload"/> class.
-    /// </summary>
-    /// <param name="key">the resuming key</param>
-    /// <param name="timeout">
-    ///     the number of seconds after disconnecting before the session is closed anyways
-    /// </param>
-    public ConfigureResumingPayload(string key, int timeout = 60)
-    {
-        Key = key;
-        Timeout = timeout;
-    }
-
-    /// <summary>
     ///     Gets the operation code for the payload.
     /// </summary>
-    [JsonRequired, JsonProperty("op")]
+    [JsonPropertyName("op")]
     public OpCode OpCode => OpCode.ConfigureResuming;
 
     /// <summary>
     ///     Gets the resuming key.
     /// </summary>
-    [JsonRequired, JsonProperty("key")]
-    public string Key { get; internal set; } = string.Empty;
+    [JsonPropertyName("key")]
+    public string Key { get; init; } = string.Empty;
 
     /// <summary>
     ///     Gets the number of seconds after disconnecting before the session is closed anyways.
     /// </summary>
-    [JsonRequired, JsonProperty("timeout")]
-    public int Timeout { get; internal set; }
+    [JsonPropertyName("timeout")]
+    public int Timeout { get; init; }
 }

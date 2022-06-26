@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Statistics;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The frame statistics of a lavalink node.
@@ -37,18 +37,18 @@ public sealed class FrameStatistics
     /// <summary>
     ///     Gets the number of average frames sent per minute.
     /// </summary>
-    [JsonRequired, JsonProperty("sent")]
-    public int AverageFramesSent { get; internal set; }
+    [JsonPropertyName("sent")]
+    public int AverageFramesSent { get; init; }
 
     /// <summary>
     ///     Gets the number of average nulled frames per minute.
     /// </summary>
-    [JsonRequired, JsonProperty("nulled")]
-    public int AverageNulledFrames { get; internal set; }
+    [JsonPropertyName("nulled")]
+    public int AverageNulledFrames { get; init; }
 
     /// <summary>
     ///     Gets the number of average deficit frames per minute.
     /// </summary>
-    [JsonRequired, JsonProperty("deficit")]
-    public int AverageDeficitFrames { get; internal set; }
+    [JsonPropertyName("deficit")]
+    public int AverageDeficitFrames { get; init; }
 }

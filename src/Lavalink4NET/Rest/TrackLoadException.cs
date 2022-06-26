@@ -27,15 +27,13 @@
 
 namespace Lavalink4NET.Rest;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 public sealed class TrackLoadException
 {
-    [JsonRequired]
-    [JsonProperty("message")]
-    public string ErrorMessage { get; internal set; }
+    [JsonPropertyName("message")]
+    public string ErrorMessage { get; init; }
 
-    [JsonRequired]
-    [JsonProperty("severity")]
-    public string Severity { get; internal set; }
+    [JsonPropertyName("severity")]
+    public string Severity { get; init; }
 }

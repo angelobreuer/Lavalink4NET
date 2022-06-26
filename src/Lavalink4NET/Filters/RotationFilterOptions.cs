@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class RotationFilterOptions : IFilterOptions
 {
     public const string Name = "rotation";
@@ -37,6 +37,6 @@ public sealed class RotationFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("rotationHz")]
+    [JsonPropertyName("rotationHz")]
     public float Frequency { get; set; } = 0F;
 }

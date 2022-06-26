@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class DistortionFilterOptions : IFilterOptions
 {
     public const string Name = "distortion";
@@ -37,27 +37,27 @@ public sealed class DistortionFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("sinOffset")]
+    [JsonPropertyName("sinOffset")]
     public float SinOffset { get; set; } = 0F;
 
-    [JsonProperty("sinScale")]
+    [JsonPropertyName("sinScale")]
     public float SinScale { get; set; } = 1F;
 
-    [JsonProperty("cosOffset")]
+    [JsonPropertyName("cosOffset")]
     public float CosOffset { get; set; } = 0F;
 
-    [JsonProperty("cosScale")]
+    [JsonPropertyName("cosScale")]
     public float CosScale { get; set; } = 1F;
 
-    [JsonProperty("tanOffset")]
+    [JsonPropertyName("tanOffset")]
     public float TanOffset { get; set; } = 0F;
 
-    [JsonProperty("tanScale")]
+    [JsonPropertyName("tanScale")]
     public float TanScale { get; set; } = 1F;
 
-    [JsonProperty("offset")]
+    [JsonPropertyName("offset")]
     public float Offset { get; set; } = 0F;
 
-    [JsonProperty("scale")]
+    [JsonPropertyName("scale")]
     public float Scale { get; set; } = 1F;
 }

@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class TimescaleFilterOptions : IFilterOptions
 {
     public const string Name = "timescale";
@@ -37,12 +37,12 @@ public sealed class TimescaleFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("speed")]
+    [JsonPropertyName("speed")]
     public float Speed { get; set; } = 1.0F;
 
-    [JsonProperty("pitch")]
+    [JsonPropertyName("pitch")]
     public float Pitch { get; set; } = 1.0F;
 
-    [JsonProperty("rate")]
+    [JsonPropertyName("rate")]
     public float Rate { get; set; } = 1.0F;
 }

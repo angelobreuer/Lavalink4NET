@@ -27,7 +27,7 @@
 
 namespace Lavalink4NET.Payloads.Events;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     The strongly-typed representation of a track stuck event received from the lavalink node
@@ -38,18 +38,18 @@ public sealed class TrackStuckEvent : EventPayload
     /// <summary>
     ///     Gets the event type.
     /// </summary>
-    [JsonRequired, JsonProperty("type")]
+    [JsonPropertyName("type")]
     public override EventType Type => EventType.TrackStuck;
 
     /// <summary>
     ///     Gets the identifier of the track that got stuck.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public string TrackIdentifier { get; internal set; } = string.Empty;
+    [JsonPropertyName("track")]
+    public string TrackIdentifier { get; init; } = string.Empty;
 
     /// <summary>
     ///     Gets the threshold in milliseconds.
     /// </summary>
-    [JsonRequired, JsonProperty("thresholdMs")]
-    public long Threshold { get; internal set; }
+    [JsonPropertyName("thresholdMs")]
+    public long Threshold { get; init; }
 }

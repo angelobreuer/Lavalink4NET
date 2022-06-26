@@ -28,8 +28,9 @@
 namespace Lavalink4NET.Tests
 {
     using System;
-    using Lavalink4NET.Util;
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+    using Lavalink4NET.Converters;
     using Xunit;
 
     /// <summary>
@@ -44,8 +45,8 @@ namespace Lavalink4NET.Tests
         public void TestConvert(long milliseconds)
         {
             var model = new { milliseconds };
-            var payload = JsonConvert.SerializeObject(model);
-            var actual = JsonConvert.DeserializeObject<TestModel>(payload).Milliseconds;
+            var payload = JsonSerializer.Serialize(model);
+            var actual = JsonSerializer.Deserialize<TestModel>(payload).Milliseconds;
 
             Assert.Equal(milliseconds, actual.TotalMilliseconds);
         }
@@ -55,8 +56,8 @@ namespace Lavalink4NET.Tests
         public void TestConvertInfinite(long milliseconds)
         {
             var model = new { milliseconds };
-            var payload = JsonConvert.SerializeObject(model);
-            var actual = JsonConvert.DeserializeObject<TestModel>(payload).Milliseconds;
+            var payload = JsonSerializer.Serialize(model);
+            var actual = JsonSerializer.Deserialize<TestModel>(payload).Milliseconds;
 
             Assert.Equal(TimeSpan.MaxValue, actual);
         }
@@ -69,8 +70,8 @@ namespace Lavalink4NET.Tests
             /// <summary>
             ///     Gets or sets the test value.
             /// </summary>
-            [JsonConverter(typeof(TimeSpanConverter))]
-            [JsonRequired, JsonProperty("milliseconds")]
+            [JsonConverter(typeof(TimeSpanJsonConverter))]
+            [JsonPropertyName("milliseconds")]
             public TimeSpan Milliseconds { get; set; }
         }
     }

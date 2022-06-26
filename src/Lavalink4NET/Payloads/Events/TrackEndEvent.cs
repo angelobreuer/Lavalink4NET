@@ -27,8 +27,8 @@
 
 namespace Lavalink4NET.Payloads.Events;
 
+using System.Text.Json.Serialization;
 using Lavalink4NET.Player;
-using Newtonsoft.Json;
 
 /// <summary>
 ///     The strongly-typed representation of a track end event received from the lavalink node
@@ -39,18 +39,18 @@ public sealed class TrackEndEvent : EventPayload
     /// <summary>
     ///     Gets the event type.
     /// </summary>
-    [JsonRequired, JsonProperty("type")]
+    [JsonPropertyName("type")]
     public override EventType Type => EventType.TrackEnd;
 
     /// <summary>
     ///     Gets the identifier of the track that has ended.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public string TrackIdentifier { get; internal set; } = null!;
+    [JsonPropertyName("track")]
+    public string TrackIdentifier { get; init; } = null!;
 
     /// <summary>
     ///     Gets the reason why the track ended.
     /// </summary>
-    [JsonRequired, JsonProperty("reason")]
-    public TrackEndReason Reason { get; internal set; }
+    [JsonPropertyName("reason")]
+    public TrackEndReason Reason { get; init; }
 }

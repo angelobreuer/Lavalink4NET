@@ -36,35 +36,10 @@ using Payloads;
 public sealed class PayloadReceivedEventArgs
     : EventArgs
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PayloadReceivedEventArgs"/> class.
-    /// </summary>
-    /// <param name="payload">the payload that was received</param>
-    /// <param name="rawJson">the raw JSON object content of the payload</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="payload"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    ///     the specified <paramref name="rawJson"/> is blank.
-    /// </exception>
-    public PayloadReceivedEventArgs(IPayload payload, string rawJson)
+    public PayloadReceivedEventArgs(PayloadContext payloadContext)
     {
-        if (string.IsNullOrWhiteSpace(rawJson))
-        {
-            throw new ArgumentException("The specified rawJson can not be null, empty or only consists of white-spaces.", nameof(rawJson));
-        }
-
-        Payload = payload ?? throw new ArgumentNullException(nameof(payload));
-        RawJson = rawJson;
+        PayloadContext = payloadContext;
     }
 
-    /// <summary>
-    ///     Gets the payload that was received.
-    /// </summary>
-    public IPayload Payload { get; }
-
-    /// <summary>
-    ///     Gets the raw JSON object content of the payload.
-    /// </summary>
-    public string RawJson { get; }
+    public PayloadContext PayloadContext { get; }
 }

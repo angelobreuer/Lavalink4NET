@@ -29,7 +29,7 @@ namespace Lavalink4NET.Filters;
 
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 ///     Represents a lavalink equalizer band.
@@ -68,13 +68,13 @@ public sealed class EqualizerBand : IEquatable<EqualizerBand?>
     /// <summary>
     ///     Gets the equalizer band number (0-14).
     /// </summary>
-    [JsonRequired, JsonProperty("band")]
+    [JsonPropertyName("band")]
     public int Band { get; }
 
     /// <summary>
     ///     Gets the band gain (-0.25f - 1f).
     /// </summary>
-    [JsonRequired, JsonProperty("gain")]
+    [JsonPropertyName("gain")]
     public float Gain { get; }
 
     public static bool operator !=(EqualizerBand? left, EqualizerBand? right) => !(left == right);

@@ -28,13 +28,13 @@
 namespace Lavalink4NET.Rest;
 
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The possible track load types.
 /// </summary>
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(TrackLoadTypeJsonConverter))]
 public enum TrackLoadType
 {
     /// <summary>
@@ -65,5 +65,5 @@ public enum TrackLoadType
     ///     Something happened while loading the track(s).
     /// </summary>
     [EnumMember(Value = "LOAD_FAILED")]
-    LoadFailed
+    LoadFailed,
 }

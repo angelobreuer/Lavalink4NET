@@ -27,9 +27,9 @@
 
 namespace Lavalink4NET.Filters;
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+
 public sealed class KaraokeFilterOptions : IFilterOptions
 {
     public const string Name = "karaoke";
@@ -37,15 +37,15 @@ public sealed class KaraokeFilterOptions : IFilterOptions
     /// <inheritdoc/>
     string IFilterOptions.Name => Name;
 
-    [JsonProperty("level")]
+    [JsonPropertyName("level")]
     public float Level { get; set; } = 1.0F;
 
-    [JsonProperty("monoLevel")]
+    [JsonPropertyName("monoLevel")]
     public float MonoLevel { get; set; } = 1.0F;
 
-    [JsonProperty("filterBand")]
+    [JsonPropertyName("filterBand")]
     public float FilterBand { get; set; } = 220.0F;
 
-    [JsonProperty("filterWidth")]
+    [JsonPropertyName("filterWidth")]
     public float FilterWidth { get; set; } = 100.0F;
 }

@@ -27,25 +27,27 @@
 
 namespace Lavalink4NET.Player;
 
-using Lavalink4NET.Util;
-using Newtonsoft.Json;
 using System;
+using System.Text.Json.Serialization;
+using Lavalink4NET.Payloads.Player;
 
 /// <summary>
 ///     The information of a lavalink track.
 /// </summary>
 public class LavalinkTrack
 {
+    private StreamProvider? _streamProvider;
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkTrack"/> class.
     /// </summary>
     /// <param name="identifier">the track identifier</param>
-    /// <param name="info">the track info</param>
+    /// <param name="trackInformation">the track info</param>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="identifier"/> is blank.
     /// </exception>
-    public LavalinkTrack(string identifier, LavalinkTrackInfo info)
-        : this(info)
+    [JsonConstructor]
+    public LavalinkTrack(string identifier, LavalinkTrackInfo trackInformation)
     {
         if (string.IsNullOrWhiteSpace(identifier))
         {
@@ -53,6 +55,7 @@ public class LavalinkTrack
         }
 
         Identifier = identifier;
+        TrackInformation = trackInformation;
     }
 
     /// <summary>
@@ -68,7 +71,7 @@ public class LavalinkTrack
     /// <param name="trackIdentifier">
     ///     the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID)
     /// </param>
-    /// <param name="provider">the stream provider (e.g. YouTube)</param>
+    /// <param name="streamProvider">the stream provider (e.g. YouTube)</param>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="identifier"/> is <see langword="null"/>.
     /// </exception>
@@ -82,79 +85,61 @@ public class LavalinkTrack
     ///     thrown if the specified <paramref name="title"/> is <see langword="null"/>.
     /// </exception>
     public LavalinkTrack(string identifier, string author, TimeSpan duration, bool isLiveStream, bool isSeekable,
-        string? source, string title, string trackIdentifier, StreamProvider provider)
+        string? source, string title, string trackIdentifier, object? context = null, StreamProvider? streamProvider = null)
     {
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
-        TrackIdentifier = trackIdentifier ?? throw new ArgumentNullException(nameof(trackIdentifier));
-        Author = author ?? throw new ArgumentNullException(nameof(author));
-        Title = title ?? throw new ArgumentNullException(nameof(title));
-        Source = source;
+        Context = context;
 
-        Duration = duration;
-        IsSeekable = isSeekable;
-        IsLiveStream = isLiveStream;
-        Provider = provider;
-    }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="LavalinkTrack"/> class.
-    /// </summary>
-    /// <param name="info">the track info</param>
-    /// <exception cref="ArgumentNullException">
-    ///     the specified <paramref name="info"/> can not be <see langword="null"/>.
-    /// </exception>
-    [JsonConstructor]
-#pragma warning disable CS8618
-    internal LavalinkTrack(LavalinkTrackInfo info)
-#pragma warning restore CS8618
-    {
-        if (info is null)
+        TrackInformation = new LavalinkTrackInfo
         {
-            throw new ArgumentNullException(nameof(info));
-        }
+            Author = author,
+            Duration = duration,
+            IsLiveStream = isLiveStream,
+            IsSeekable = isSeekable,
+            Source = source,
+            Title = title,
+            TrackIdentifier = trackIdentifier,
+        };
 
-        Author = info.Author;
-        Title = info.Title;
-        Source = info.Source;
-        Duration = info.Duration;
-        IsLiveStream = info.IsLiveStream;
-        IsSeekable = info.IsSeekable;
-        TrackIdentifier = info.TrackIdentifier;
-
-        Provider = info.Source is null
-            ? StreamProvider.Unknown
-            : StreamProviderUtil.GetStreamProvider(info.Source);
+        _streamProvider = streamProvider;
     }
 
     /// <summary>
     ///     Gets the name of the track author.
     /// </summary>
     [JsonIgnore]
-    public virtual string Author { get; }
+    public virtual string Author => TrackInformation.Author;
+
+    /// <summary>
+    ///     Gets or sets an arbitrary object that can be used by the user for associating data with the track.
+    /// </summary>
+    /// <value>an arbitrary object that can be used by the user for associating data with the track.</value>
+    [JsonIgnore]
+    public object? Context { get; set; }
 
     /// <summary>
     ///     Gets the duration of the track.
     /// </summary>
     [JsonIgnore]
-    public virtual TimeSpan Duration { get; }
+    public virtual TimeSpan Duration => TrackInformation.Duration;
 
     /// <summary>
     ///     Gets an unique track identifier.
     /// </summary>
-    [JsonRequired, JsonProperty("track")]
-    public virtual string Identifier { get; internal set; }
+    [JsonPropertyName("track")]
+    public virtual string Identifier { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the track is a live stream.
     /// </summary>
     [JsonIgnore]
-    public virtual bool IsLiveStream { get; }
+    public virtual bool IsLiveStream => TrackInformation.IsLiveStream;
 
     /// <summary>
     ///     Gets a value indicating whether the track is seek-able.
     /// </summary>
     [JsonIgnore]
-    public virtual bool IsSeekable { get; }
+    public virtual bool IsSeekable => TrackInformation.IsSeekable;
 
     /// <summary>
     ///     Gets the start position of the track.
@@ -166,53 +151,52 @@ public class LavalinkTrack
     ///     Gets the stream provider (e.g. YouTube).
     /// </summary>
     [JsonIgnore]
-    public virtual StreamProvider Provider { get; }
+    public virtual StreamProvider Provider
+    {
+        get
+        {
+            return _streamProvider ??= Source is null
+                ? StreamProvider.Unknown
+                : StreamProviderUtil.GetStreamProvider(Source);
+        }
+    }
 
     /// <summary>
     ///     Gets the track source.
     /// </summary>
     [JsonIgnore]
-    public virtual string? Source { get; }
+    public virtual string? Source => TrackInformation.Source;
 
     /// <summary>
     ///     Gets the title of the track.
     /// </summary>
     [JsonIgnore]
-    public virtual string Title { get; }
+    public virtual string Title => TrackInformation.Title;
 
     /// <summary>
     ///     Gets the unique track identifier (Example: dQw4w9WgXcQ, YouTube Video ID).
     /// </summary>
     [JsonIgnore]
-    public virtual string TrackIdentifier { get; }
+    public virtual string TrackIdentifier => TrackInformation.TrackIdentifier;
 
-    /// <summary>
-    ///     Gets or sets an arbitrary object that can be used by the user for associating data with the track.
-    /// </summary>
-    /// <value>an arbitrary object that can be used by the user for associating data with the track.</value>
-    [JsonIgnore]
-    public object? Context { get; set; }
+    [JsonPropertyName("info")]
+    public LavalinkTrackInfo TrackInformation { get; }
 
     /// <summary>
     ///     Clones the current track.
     /// </summary>
     /// <returns>the cloned <see cref="LavalinkTrack"/> instance</returns>
-    public LavalinkTrack Clone()
-    {
-        var track = new LavalinkTrack(
-            identifier: Identifier,
-            author: Author,
-            duration: Duration,
-            isLiveStream: IsLiveStream,
-            isSeekable: IsSeekable,
-            source: Source,
-            title: Title,
-            trackIdentifier: TrackIdentifier,
-            provider: Provider);
-
-        track.Context = Context;
-        return track;
-    }
+    public LavalinkTrack Clone() => new(
+        identifier: Identifier,
+        author: Author,
+        duration: Duration,
+        isLiveStream: IsLiveStream,
+        isSeekable: IsSeekable,
+        source: Source,
+        title: Title,
+        trackIdentifier: TrackIdentifier,
+        context: Context,
+        streamProvider: Provider);
 
     /// <summary>
     ///     Clones the current track and sets the starting position to the specified <paramref name="position"/>.
