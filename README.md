@@ -52,6 +52,9 @@
 - Download [Lavalink4NET for Discord.Net ![NuGet - Lavalink4NET Discord.Net](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.Discord.NET/) 
 - Download [Lavalink4NET for DSharpPlus ![NuGet - Lavalink4NET DSharpPlus](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)
 - Download [Lavalink4NET MemoryCache ![NuGet - Lavalink4NET MemoryCache](https://img.shields.io/nuget/vpre/Lavalink4NET.MemoryCache.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.MemoryCache/)
+- Download [Lavalink4NET Microsoft.Extensions.Logging Provider ![NuGet - Lavalink4NET Microsoft.Extensions.Logging Provider](https://img.shields.io/nuget/vpre/Lavalink4NET.Logging.Microsoft.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.Logging.Microsoft/)
+- Download [Lavalink4NET NLog Provider ![NuGet - Lavalink4NET NLog Provider](https://img.shields.io/nuget/vpre/Lavalink4NET.Logging.NLog.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.Logging.NLog/)
+- Download [Lavalink4NET SponsorBlock Integration ![NuGet - Lavalink4NET SponsorBlock Integration](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.SponsorBlock.svg?style=flat-square)](https://www.nuget.org/packages/Lavalink4NET.Integrations.SponsorBlock/)
 
 ### Prerequisites
 - One or more Lavalink Nodes
@@ -107,7 +110,7 @@ client.Ready += () => audioService.InitializeAsync();
 ```csharp
 // get player
 var player = _audioService.GetPlayer<LavalinkPlayer>(guildId) 
-    ?? await _audioService.JoinAsync(guildId, voiceChannelId);
+    ?? await _audioService.JoinAsync<LavalinkPlayer>(guildId, voiceChannelId);
 
 // resolve a track from youtube
 var myTrack = await _audioService.GetTrackAsync("<search query>", SearchMode.YouTube);
@@ -117,8 +120,3 @@ await player.PlayAsync(myTrack);
 ```
 
 For **more documentation, see: [Lavalink4NET Wiki](https://github.com/angelobreuer/Lavalink4NET/wiki)** or you could also **take a look at [Upcoming Features](https://github.com/angelobreuer/Lavalink4NET/projects?query=is%3Aopen)**.
-
-___
-
-### Dependencies
-- [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
