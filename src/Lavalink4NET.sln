@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DiscordNet", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.Discord_NET.ExampleBot.csproj", "{BB6D9A9D-5635-407A-9DA1-D53A9230A197}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.SponsorBlock", "Lavalink4NET.SponsorBlock\Lavalink4NET.SponsorBlock.csproj", "{0EB293A7-B71F-4927-BD71-84669627A318}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{BB6D9A9D-5635-407A-9DA1-D53A9230A197}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB6D9A9D-5635-407A-9DA1-D53A9230A197}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB6D9A9D-5635-407A-9DA1-D53A9230A197}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EB293A7-B71F-4927-BD71-84669627A318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EB293A7-B71F-4927-BD71-84669627A318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EB293A7-B71F-4927-BD71-84669627A318}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EB293A7-B71F-4927-BD71-84669627A318}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
