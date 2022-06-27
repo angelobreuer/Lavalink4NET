@@ -163,7 +163,8 @@ public static class TrackDecoder
                 throw new InvalidDataException("Content version is missing from track identifier.");
             }
 
-            version = buffer[5];
+            version = buffer[4];
+            buffer = buffer.Slice(1);
         }
 
         var size = header & 0x3FFFFFFF;
