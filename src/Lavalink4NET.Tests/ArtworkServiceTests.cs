@@ -34,7 +34,7 @@ using Xunit;
 
 public sealed class ArtworkServiceTests
 {
-    [Theory]
+    [Theory(Skip = "Requires Networking")]
     [InlineData("https://soundcloud.com/luudeofficial/men-at-work-down-under-luude-remix-1", "https://i1.sndcdn.com/artworks-0WkSQsT8dR9bGMnj-aZU27w-t500x500.jpg")]
     public async Task TestResolveSoundCloudAsync(string uri, string thumbnail)
     {
