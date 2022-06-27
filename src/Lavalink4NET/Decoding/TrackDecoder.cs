@@ -28,7 +28,9 @@
 namespace Lavalink4NET.Decoding;
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
+using System.Text;
 using Lavalink4NET.Player;
 
 /// <summary>
@@ -44,7 +46,7 @@ public static class TrackDecoder
     /// <returns>the decoded track</returns>
     /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
     public static LavalinkTrack DecodeTrack(string identifier, bool verify = true)
-        => new(identifier, DecodeTrackInfo(identifier, verify));
+        => new(identifier, Decode(identifier, verify));
 
     /// <summary>
     ///     Decodes a lavalink track identifier.
@@ -53,8 +55,8 @@ public static class TrackDecoder
     /// <param name="verify">a value indicating whether the track header should be verified</param>
     /// <returns>the decoded track info</returns>
     /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-    public static LavalinkTrackInfo DecodeTrackInfo(string identifier, bool verify = true)
-        => DecodeTrackInfo(Convert.FromBase64String(identifier), verify);
+    public static LavalinkTrackInfo Decode(string identifier, bool verify = true)
+        => Decode(Convert.FromBase64String(identifier), verify);
 
     /// <summary>
     ///     Decodes a lavalink track identifier.
@@ -66,24 +68,16 @@ public static class TrackDecoder
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
     /// </exception>
-    public static LavalinkTrackInfo DecodeTrackInfo(byte[] buffer, bool verify = true)
+    public static LavalinkTrackInfo Decode(ReadOnlySpan<byte> buffer, bool verify = true)
     {
-        if (buffer is null)
-        {
-            throw new ArgumentNullException(nameof(buffer));
-        }
+        ReadHeader(ref buffer, verify);
 
-        using var memoryStream = new MemoryStream(buffer);
-        using var reader = new DataInputReader(memoryStream);
-
-        ReadHeader(reader, buffer.Length, verify);
-
-        var title = reader.ReadString();
-        var author = reader.ReadString();
-        var length = reader.ReadInt64();
-        var identifier = reader.ReadString();
-        var isStream = reader.ReadBoolean();
-        var uri = reader.ReadBoolean() ? reader.ReadString() : null;
+        var title = ReadString(ref buffer);
+        var author = ReadString(ref buffer);
+        var length = ReadInt64(ref buffer);
+        var identifier = ReadString(ref buffer);
+        var isStream = ReadBoolean(ref buffer);
+        var uri = ReadBoolean(ref buffer) ? ReadString(ref buffer) : null;
 
         return new LavalinkTrackInfo
         {
@@ -97,40 +91,91 @@ public static class TrackDecoder
         };
     }
 
-    /// <summary>
-    ///     Reads the track header.
-    /// </summary>
-    /// <param name="reader">the reader to read from</param>
-    /// <param name="length">the length of raw binary data</param>
-    /// <param name="verify">a value indicating whether the track header should be verified</param>
-    /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="reader"/> is <see langword="null"/>.
-    /// </exception>
-    private static void ReadHeader(DataInputReader reader, int length, bool verify = true)
+    private static bool ReadBoolean(ref ReadOnlySpan<byte> buffer)
     {
-        if (reader is null)
+        if (buffer.IsEmpty)
         {
-            throw new ArgumentNullException(nameof(reader));
+            throw new EndOfStreamException("Failed to read boolean, found EOF.");
+        }
+
+        var value = buffer[0] is not 0;
+        buffer = buffer.Slice(1);
+        return value;
+    }
+
+    private static long ReadInt64(ref ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.Length < 8)
+        {
+            throw new EndOfStreamException("Failed to read UInt64, found EOF.");
+        }
+
+        var value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
+        buffer = buffer.Slice(8);
+        return value;
+    }
+
+    private static string ReadString(ref ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.Length < 2)
+        {
+            throw new EndOfStreamException("Failed to read string length, found EOF.");
+        }
+
+        var length = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
+        buffer = buffer.Slice(2);
+
+        if (buffer.Length < length)
+        {
+            var bytesMissing = length - buffer.Length;
+            throw new EndOfStreamException($"Failed to read string, found EOF, expected {bytesMissing} more byte(s).");
+        }
+
+        var stringBuffer = buffer.Slice(0, length);
+        buffer = buffer.Slice(length);
+
+#if NETSTANDARD2_1_OR_GREATER
+        return Encoding.UTF8.GetString(stringBuffer);
+#else
+        return Encoding.UTF8.GetString(stringBuffer.ToArray());
+#endif
+    }
+
+    private static void ReadHeader(ref ReadOnlySpan<byte> buffer, bool verify = true)
+    {
+        if (buffer.Length is < 4)
+        {
+            throw new InvalidDataException("Header is missing from track identifier.");
         }
 
         // the header is four bytes long, subtract
-        length -= 4;
+        var header = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+        buffer = buffer.Slice(4);
 
-        var header = reader.ReadInt32();
         var flags = (int)((header & 0xC0000000L) >> 30);
-        var hasVersion = (flags & 1) != 0;
-        var version = hasVersion ? reader.ReadSByte() : 1;
+        var hasVersion = (flags & 1) is not 0;
+
+        var version = 1;
+        if (hasVersion)
+        {
+            if (buffer.IsEmpty)
+            {
+                throw new InvalidDataException("Content version is missing from track identifier.");
+            }
+
+            version = buffer[5];
+        }
+
         var size = header & 0x3FFFFFFF;
 
         // verify size
-        if (verify && size != length)
+        if (verify && size != buffer.Length)
         {
-            throw new InvalidOperationException($"Error while verifying track header: Track Identifier length was {length}, but expected: {size}");
+            throw new InvalidOperationException($"Error while verifying track header: Track Identifier length was {buffer.Length}, but expected: {size}");
         }
 
         // verify version
-        if (verify && version != 2)
+        if (verify && version is not 2)
         {
             throw new InvalidOperationException($"Error while verifying track header: Invalid track version: Was: {version}, expected: 2.");
         }
