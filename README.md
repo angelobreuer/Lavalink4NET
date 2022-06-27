@@ -117,8 +117,3 @@ await player.PlayAsync(myTrack);
 ```
 
 For **more documentation, see: [Lavalink4NET Wiki](https://github.com/angelobreuer/Lavalink4NET/wiki)** or you could also **take a look at [Upcoming Features](https://github.com/angelobreuer/Lavalink4NET/projects?query=is%3Aopen)**.
-
-___
-
-### Dependencies
-- [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/) *(for Payload Serialization)*
