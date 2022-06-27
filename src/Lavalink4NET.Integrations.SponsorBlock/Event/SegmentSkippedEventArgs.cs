@@ -1,6 +1,7 @@
-﻿namespace Lavalink4NET.SponsorBlock.Event;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock.Event;
 
 using System;
+using Lavalink4NET.Integrations.SponsorBlock;
 using Lavalink4NET.Player;
 
 public sealed class SegmentSkippedEventArgs : EventArgs

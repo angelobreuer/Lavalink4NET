@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.SponsorBlock;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;

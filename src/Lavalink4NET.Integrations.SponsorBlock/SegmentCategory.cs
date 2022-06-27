@@ -1,7 +1,7 @@
-﻿namespace Lavalink4NET.SponsorBlock;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System.Text.Json.Serialization;
-using Lavalink4NET.SponsorBlock.Converters;
+using Lavalink4NET.Integrations.SponsorBlock.Converters;
 
 [JsonConverter(typeof(SegmentCategoryJsonConverter))]
 public enum SegmentCategory : byte

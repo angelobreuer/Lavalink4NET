@@ -1,7 +1,7 @@
 ﻿namespace Lavalink4NET.Player;
 
 using System;
-using Lavalink4NET.SponsorBlock;
+using Lavalink4NET.Integrations.SponsorBlock;
 
 public static class LavalinkPlayerExtensions
 {

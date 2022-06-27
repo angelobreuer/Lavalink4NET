@@ -1,8 +1,8 @@
-﻿namespace Lavalink4NET.SponsorBlock;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System.Collections.Immutable;
 using Lavalink4NET.Events;
-using Lavalink4NET.SponsorBlock.Event;
+using Lavalink4NET.Integrations.SponsorBlock.Event;
 
 public interface ISponsorBlockIntegration
 {

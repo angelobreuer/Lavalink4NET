@@ -1,6 +1,7 @@
-﻿namespace Lavalink4NET.SponsorBlock.Converters;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock.Converters;
 
 using Lavalink4NET.Converters;
+using Lavalink4NET.Integrations.SponsorBlock;
 
 internal sealed class SegmentCategoryJsonConverter : StaticJsonStringEnumConverter<SegmentCategory>
 {

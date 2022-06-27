@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.SponsorBlock;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System;
 using System.Collections.Concurrent;
@@ -10,9 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
+using Lavalink4NET.Integrations.SponsorBlock.Event;
+using Lavalink4NET.Integrations.SponsorBlock.Payloads;
 using Lavalink4NET.Payloads;
-using Lavalink4NET.SponsorBlock.Event;
-using Lavalink4NET.SponsorBlock.Payloads;
 
 internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBlockIntegration
 {

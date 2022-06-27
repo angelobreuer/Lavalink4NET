@@ -1,6 +1,6 @@
 ﻿namespace Lavalink4NET;
 
-using Lavalink4NET.SponsorBlock;
+using Lavalink4NET.Integrations.SponsorBlock;
 
 public static class AudioServiceExtensions
 {
