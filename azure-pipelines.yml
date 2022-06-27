@@ -39,7 +39,6 @@ steps:
     allowPackageConflicts: true
     verbosityPush: 'Normal'
 - task: NuGetCommand@2
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: 'Push to NuGet feed'
   inputs:
     arguments: '--skip-duplicate'
