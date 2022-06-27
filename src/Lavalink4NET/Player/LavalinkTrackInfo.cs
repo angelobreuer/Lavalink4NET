@@ -30,6 +30,7 @@ namespace Lavalink4NET.Player;
 using System;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Converters;
+using Lavalink4NET.Decoding;
 
 /// <summary>
 ///     The information store for a lavalink track.
@@ -83,4 +84,10 @@ public sealed class LavalinkTrackInfo
     /// </summary>
     [JsonPropertyName("identifier")]
     public string TrackIdentifier { get; init; }
+
+    public LavalinkTrack CreateTrack()
+    {
+        var identifier = TrackEncoder.Encode(this);
+        return new LavalinkTrack(identifier, this);
+    }
 }
