@@ -107,7 +107,7 @@ client.Ready += () => audioService.InitializeAsync();
 ```csharp
 // get player
 var player = _audioService.GetPlayer<LavalinkPlayer>(guildId) 
-    ?? await _audioService.JoinAsyncr<LavalinkPlayer>(guildId, voiceChannelId);
+    ?? await _audioService.JoinAsync<LavalinkPlayer>(guildId, voiceChannelId);
 
 // resolve a track from youtube
 var myTrack = await _audioService.GetTrackAsync("<search query>", SearchMode.YouTube);
