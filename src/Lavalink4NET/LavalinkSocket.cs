@@ -208,6 +208,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _webSocket.Options.SetRequestHeader("Authorization", _password);
         _webSocket.Options.SetRequestHeader("Num-Shards", _client.ShardCount.ToString());
         _webSocket.Options.SetRequestHeader("User-Id", _client.CurrentUserId.ToString());
+        _webSocket.Options.SetRequestHeader("Client-Name", "Lavalink4NET");
         _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
 
         // add resume header
