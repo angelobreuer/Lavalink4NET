@@ -30,6 +30,7 @@ namespace Lavalink4NET.Cluster;
 using System;
 using System.Threading.Tasks;
 using Events;
+using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
 
 /// <summary>
@@ -57,7 +58,7 @@ public sealed class LavalinkClusterNode : LavalinkNode
     /// </exception>
     public LavalinkClusterNode(
         LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-        int id, ILogger? logger = null, ILavalinkCache? cache = null)
+        int id, IIntegrationCollection integrationCollection, ILogger? logger = null, ILavalinkCache? cache = null)
         : base(options, client, logger, cache)
     {
         if (options is null)
@@ -78,6 +79,7 @@ public sealed class LavalinkClusterNode : LavalinkNode
         Id = id;
         Cluster = cluster ?? throw new ArgumentNullException(nameof(cluster));
         LastUsage = DateTimeOffset.MinValue;
+        Integrations = integrationCollection;
     }
 
     /// <summary>

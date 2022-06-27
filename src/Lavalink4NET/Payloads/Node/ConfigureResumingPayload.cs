@@ -33,14 +33,8 @@ using System.Text.Json.Serialization;
 ///     The strongly-typed representation of a configure resuming payload which sent to the
 ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class ConfigureResumingPayload : IPayload
+public sealed class ConfigureResumingPayload
 {
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.ConfigureResuming;
-
     /// <summary>
     ///     Gets the resuming key.
     /// </summary>

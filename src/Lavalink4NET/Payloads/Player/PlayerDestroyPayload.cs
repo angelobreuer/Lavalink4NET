@@ -28,31 +28,18 @@
 namespace Lavalink4NET.Payloads.Player;
 
 using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The strongly-typed representation of a player destroy payload sent to the lavalink node
 ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class PlayerDestroyPayload : IPlayerPayload
+public sealed class PlayerDestroyPayload
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PlayerDestroyPayload"/> class.
-    /// </summary>
-    /// <param name="guildId">
-    ///     the guild snowflake identifier where the player should be destroyed
-    /// </param>
-    public PlayerDestroyPayload(ulong guildId)
-        => GuildId = guildId.ToString();
-
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.PlayerDestroy;
-
     /// <summary>
     ///     Gets the guild snowflake identifier where the player should be destroyed.
     /// </summary>
     [JsonPropertyName("guildId")]
-    public string GuildId { get; init; } = null!;
+    [JsonConverter(typeof(UInt64AsStringJsonSerializer))]
+    public ulong GuildId { get; init; }
 }

@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lavalink4NET.Filters;
+using Lavalink4NET.Payloads;
 using Lavalink4NET.Payloads.Player;
 
 public sealed class PlayerFilterMap
@@ -51,12 +52,14 @@ public sealed class PlayerFilterMap
             return;
         }
 
-        var payload = new PlayerFiltersPayload(
-            guildId: _player.GuildId,
-            filters: Filters);
+        var payload = new PlayerFiltersPayload
+        {
+            GuildId = _player.GuildId,
+            Filters = Filters,
+        };
 
         await _player.LavalinkSocket
-            .SendPayloadAsync(payload)
+            .SendPayloadAsync(OpCode.PlayerFilters, payload)
             .ConfigureAwait(false);
     }
 

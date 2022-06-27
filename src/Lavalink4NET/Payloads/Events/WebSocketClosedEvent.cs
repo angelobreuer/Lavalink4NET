@@ -34,14 +34,8 @@ using System.Text.Json.Serialization;
 ///     The strongly-typed representation of a web socket closed event received from the
 ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class WebSocketClosedEvent : EventPayload
+public sealed class WebSocketClosedEvent
 {
-    /// <summary>
-    ///     Gets the event type.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public override EventType Type => EventType.WebSocketClosed;
-
     /// <summary>
     ///     Gets the web-socket close code.
     /// </summary>

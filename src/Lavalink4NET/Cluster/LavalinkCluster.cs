@@ -33,6 +33,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
+using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
 using Lavalink4NET.Player;
 using Rest;
@@ -83,6 +84,8 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
         _nodesLock = new object();
         StayOnline = options.StayOnline;
         _nodes = options.Nodes.Select(CreateNode).ToList();
+
+        Integrations = new IntegrationCollection();
     }
 
     /// <inheritdoc/>
@@ -140,6 +143,8 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     ///     disconnected node to a new.
     /// </remarks>
     public bool StayOnline { get; set; }
+
+    public IIntegrationCollection Integrations { get; }
 
     /// <summary>
     ///     Dynamically adds a node to the cluster asynchronously.
@@ -407,8 +412,14 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     /// </summary>
     /// <param name="nodeOptions">the node options</param>
     /// <returns>the created node</returns>
-    private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions)
-        => new(this, nodeOptions, _client, _nodeId++, _logger, _cache);
+    private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions) => new(
+        cluster: this,
+        options: nodeOptions,
+        client: _client,
+        id: _nodeId++,
+        integrationCollection: Integrations,
+        logger: _logger,
+        cache: _cache);
 
     /// <summary>
     ///     Throws an exception if the <see cref="LavalinkCluster"/> instance is disposed.

@@ -34,14 +34,8 @@ using Lavalink4NET.Player;
 ///     The strongly-typed representation of a track end event received from the lavalink node
 ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class TrackEndEvent : EventPayload
+public sealed class TrackEndEvent
 {
-    /// <summary>
-    ///     Gets the event type.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public override EventType Type => EventType.TrackEnd;
-
     /// <summary>
     ///     Gets the identifier of the track that has ended.
     /// </summary>

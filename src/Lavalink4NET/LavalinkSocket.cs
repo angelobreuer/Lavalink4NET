@@ -33,9 +33,11 @@ using System.Globalization;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Events;
+using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
 using Lavalink4NET.Payloads.Node;
 using Payloads;
@@ -49,7 +51,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private readonly IDiscordClientWrapper _client;
     private readonly bool _ioDebug;
     private readonly string _password;
-    private readonly Queue<IPayload> _queue;
+    private readonly Queue<JsonNode> _queue;
     private readonly byte[] _receiveBuffer;
     private readonly ReconnectStrategy _reconnectionStrategy;
     private readonly bool _resume;
@@ -58,8 +60,10 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _disposed;
     private volatile bool _initialized;
+    private IIntegrationCollection? _integrations;
     private bool _mayResume;
     private ClientWebSocket? _webSocket;
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkSocket"/> class.
     /// </summary>
@@ -100,10 +104,11 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _resume = options.AllowResuming;
         _ioDebug = options.DebugPayloads;
         _sessionTimeout = options.SessionTimeout;
-        _queue = new Queue<IPayload>();
+        _queue = new Queue<JsonNode>();
         _reconnectionStrategy = options.ReconnectStrategy;
         _cancellationTokenSource = new CancellationTokenSource();
         _mayResume = options.ResumeKey is not null;
+
         ResumeKey = options.ResumeKey ?? Guid.NewGuid().ToString("N");
 
 #if NET6_0_OR_GREATER
@@ -132,6 +137,12 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     ///     An asynchronous event which is triggered when a new reconnection attempt is made.
     /// </summary>
     public event AsyncEventHandler<ReconnectAttemptEventArgs>? ReconnectAttempt;
+
+    public IIntegrationCollection Integrations
+    {
+        get => _integrations ??= new IntegrationCollection();
+        protected set => _integrations = value;
+    }
 
     /// <summary>
     ///     Gets a value indicating whether the client is connected to the lavalink node.
@@ -179,7 +190,6 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         // trigger event
         await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, closeStatus, reason, false));
     }
-
     /// <summary>
     ///     Connects to the lavalink node asynchronously.
     /// </summary>
@@ -277,7 +287,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 Timeout = _sessionTimeout,
             };
 
-            await SendPayloadAsync(configureResumingPayload).ConfigureAwait(false);
+            await SendPayloadAsync(OpCode.ConfigureResuming, configureResumingPayload).ConfigureAwait(false);
         }
     }
 
@@ -318,10 +328,10 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         }
 
         // await discord client initialization
-        await _client.InitializeAsync();
+        await _client.InitializeAsync().ConfigureAwait(false);
 
         // connect to the node
-        await ConnectAsync();
+        await ConnectAsync().ConfigureAwait(false);
 
         // start life-cycle
         _ = RunLifeCycleAsync();
@@ -329,84 +339,20 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _initialized = true;
     }
 
-    /// <summary>
-    ///     Sends a payload to the lavalink node asynchronously.
-    /// </summary>
-    /// <param name="payload">the payload to sent</param>
-    /// <param name="forceSend">
-    ///     a value indicating whether an exception should be thrown if the connection is closed. If
-    ///     <see langword="true"/>, an exception is thrown; Otherwise payloads will be stored into a
-    ///     send queue and will be replayed (FIFO) after successful reconnection.
-    /// </param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown if the connection to the node is closed (see: <see cref="IsConnected"/>) and
-    ///     <paramref name="forceSend"/> is <see langword="true"/>.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown if the node socket has not been initialized. (Call <see cref="InitializeAsync"/>
-    ///     before sending payloads)
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async Task SendPayloadAsync(IPayload payload, bool forceSend = false, CancellationToken cancellationToken = default)
+    public async ValueTask SendPayloadAsync<T>(OpCode opCode, T payload, bool forceSend = false, CancellationToken cancellationToken = default)
+        where T : notnull
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
-        EnsureInitialized();
+        var node = JsonSerializer.SerializeToNode(payload)!;
+        node["op"] = opCode.Value;
 
-        using var cancellationTokenSource = cancellationToken.CanBeCanceled
-            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource!.Token)
-            : null;
-
-        if (cancellationTokenSource is not null)
+        foreach (var pair in Integrations)
         {
-            cancellationToken = cancellationTokenSource.Token;
+            await pair.Value
+                .InterceptPayloadAsync(node, cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        if (!IsConnected)
-        {
-            if (forceSend)
-            {
-                throw new InvalidOperationException("The connection is closed.");
-            }
-
-            // store payload into send queue, so the events will be replayed when reconnected
-            _queue.Enqueue(payload);
-            return;
-        }
-
-        using var pooledBufferWriter = new PooledBufferWriter();
-        using (var utf8JsonWriter = new Utf8JsonWriter(pooledBufferWriter))
-        {
-            JsonSerializer.Serialize(utf8JsonWriter, payload, payload.GetType());
-        }
-
-        try
-        {
-            // send the payload
-            await _webSocket!.SendAsync(
-                buffer: pooledBufferWriter.WrittenSegment,
-                messageType: WebSocketMessageType.Text,
-                endOfMessage: true,
-                cancellationToken: cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            Logger?.Log(exception, "Failed to send payload. Trying to reconnect to node...");
-
-            // enqueue packet that failed to sent
-            _queue.Enqueue(payload);
-        }
-
-        if (_ioDebug)
-        {
-            var message = string.Format(
-                "Sent payload `{0}` to {1}.",
-                Encoding.UTF8.GetString(pooledBufferWriter.WrittenSpan.ToArray()),
-                _webSocketUri);
-
-            Logger?.Log(this, message, LogLevel.Trace);
-        }
+        await SendPayloadAsync(node, forceSend, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -566,12 +512,28 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
             ? ulong.Parse(guildIdProperty.GetString()!, provider: CultureInfo.InvariantCulture)
             : default(ulong?);
 
-        var payloadContext = new PayloadContext(opCode, eventType, jsonDocument.RootElement, guildId);
+        var payloadContext = new PayloadContext(this, opCode, eventType, jsonDocument.RootElement, guildId);
 
         // process data
         try
         {
-            await ProcessPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
+            var payloadHandled = false;
+            foreach (var pair in Integrations)
+            {
+                payloadHandled = await pair.Value
+                    .ProcessPayloadAsync(payloadContext, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (payloadHandled)
+                {
+                    break;
+                }
+            }
+
+            if (!payloadHandled)
+            {
+                await ProcessPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
+            }
 
             var eventArgs = new PayloadReceivedEventArgs(payloadContext);
             await OnPayloadReceived(eventArgs).ConfigureAwait(false);
@@ -587,6 +549,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
             await CloseAsync(WebSocketCloseStatus.InvalidPayloadData).ConfigureAwait(false);
         }
     }
+
     /// <summary>
     ///     Runs the receive / reconnect life cycle asynchronously.
     /// </summary>
@@ -645,6 +608,86 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                     .Delay(delay.Value, cancellationToken)
                     .ConfigureAwait(false);
             }
+        }
+    }
+
+    /// <summary>
+    ///     Sends a payload to the lavalink node asynchronously.
+    /// </summary>
+    /// <param name="payload">the payload to sent</param>
+    /// <param name="forceSend">
+    ///     a value indicating whether an exception should be thrown if the connection is closed. If
+    ///     <see langword="true"/>, an exception is thrown; Otherwise payloads will be stored into a
+    ///     send queue and will be replayed (FIFO) after successful reconnection.
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the connection to the node is closed (see: <see cref="IsConnected"/>) and
+    ///     <paramref name="forceSend"/> is <see langword="true"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the node socket has not been initialized. (Call <see cref="InitializeAsync"/>
+    ///     before sending payloads)
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    private async ValueTask SendPayloadAsync(JsonNode node, bool forceSend = false, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        EnsureInitialized();
+
+        using var cancellationTokenSource = cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cancellationTokenSource!.Token)
+            : null;
+
+        if (cancellationTokenSource is not null)
+        {
+            cancellationToken = cancellationTokenSource.Token;
+        }
+
+        if (!IsConnected)
+        {
+            if (forceSend)
+            {
+                throw new InvalidOperationException("The connection is closed.");
+            }
+
+            // store payload into send queue, so the events will be replayed when reconnected
+            _queue.Enqueue(node);
+            return;
+        }
+
+        using var pooledBufferWriter = new PooledBufferWriter();
+        using (var utf8JsonWriter = new Utf8JsonWriter(pooledBufferWriter))
+        {
+            JsonSerializer.Serialize(utf8JsonWriter, node);
+        }
+
+        try
+        {
+            // send the payload
+            await _webSocket!.SendAsync(
+                buffer: pooledBufferWriter.WrittenSegment,
+                messageType: WebSocketMessageType.Text,
+                endOfMessage: true,
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            Logger?.Log(exception, "Failed to send payload. Trying to reconnect to node...");
+
+            // enqueue packet that failed to sent
+            _queue.Enqueue(node);
+        }
+
+        if (_ioDebug)
+        {
+            var message = string.Format(
+                "Sent payload `{0}` to {1}.",
+                Encoding.UTF8.GetString(pooledBufferWriter.WrittenSpan.ToArray()),
+                _webSocketUri);
+
+            Logger?.Log(this, message, LogLevel.Trace);
         }
     }
 }

@@ -33,14 +33,8 @@ using System.Text.Json.Serialization;
 ///     The strongly-typed representation of a track stuck event received from the lavalink node
 ///     (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class TrackStuckEvent : EventPayload
+public sealed class TrackStuckEvent
 {
-    /// <summary>
-    ///     Gets the event type.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public override EventType Type => EventType.TrackStuck;
-
     /// <summary>
     ///     Gets the identifier of the track that got stuck.
     /// </summary>

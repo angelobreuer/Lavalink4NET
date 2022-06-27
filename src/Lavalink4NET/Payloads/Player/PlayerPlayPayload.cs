@@ -29,47 +29,20 @@ namespace Lavalink4NET.Payloads.Player;
 
 using System;
 using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The strongly-typed representation of a player play payload sent to the lavalink node (in
 ///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class PlayerPlayPayload : IPayload, IPlayerPayload
+public sealed class PlayerPlayPayload
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PlayerPlayPayload"/> class.
-    /// </summary>
-    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-    /// <param name="trackIdentifier">the track identifier that the player should play</param>
-    /// <param name="startTime">the track start position</param>
-    /// <param name="endTime">the track end position</param>
-    /// <param name="noReplace">
-    ///     a value indicating whether the track play should be ignored if the same track is
-    ///     currently playing
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>
-    /// </exception>
-    public PlayerPlayPayload(ulong guildId, string trackIdentifier, TimeSpan? startTime = null, TimeSpan? endTime = null, bool noReplace = false)
-    {
-        GuildId = guildId.ToString();
-        TrackIdentifier = trackIdentifier ?? throw new ArgumentNullException(nameof(trackIdentifier));
-        StartTime = (int?)startTime?.TotalMilliseconds;
-        EndTime = (int?)endTime?.TotalMilliseconds;
-        NoReplace = noReplace;
-    }
-
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.PlayerPlay;
-
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
     [JsonPropertyName("guildId")]
-    public string GuildId { get; init; }
+    [JsonConverter(typeof(UInt64AsStringJsonSerializer))]
+    public ulong GuildId { get; init; }
 
     /// <summary>
     ///     Gets the track identifier that the player should play.
@@ -82,14 +55,16 @@ public sealed class PlayerPlayPayload : IPayload, IPlayerPayload
     /// </summary>
     [JsonPropertyName("startTime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? StartTime { get; init; }
+    [JsonConverter(typeof(TimeSpanJsonConverter))]
+    public TimeSpan? StartTime { get; init; }
 
     /// <summary>
     ///     Gets the track end position in milliseconds.
     /// </summary>
     [JsonPropertyName("endTime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? EndTime { get; init; }
+    [JsonConverter(typeof(TimeSpanJsonConverter))]
+    public TimeSpan? EndTime { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the track play should be ignored if the same track

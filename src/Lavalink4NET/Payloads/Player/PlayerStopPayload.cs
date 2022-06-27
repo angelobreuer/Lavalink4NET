@@ -28,29 +28,18 @@
 namespace Lavalink4NET.Payloads.Player;
 
 using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The strongly-typed representation of a player stop payload sent to the lavalink node (in
 ///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class PlayerStopPayload : IPayload, IPlayerPayload
+public sealed class PlayerStopPayload
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PlayerStopPayload"/> class.
-    /// </summary>
-    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-    public PlayerStopPayload(ulong guildId)
-        => GuildId = guildId.ToString();
-
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.PlayerStop;
-
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
     [JsonPropertyName("guildId")]
-    public string GuildId { get; init; }
+    [JsonConverter(typeof(UInt64AsStringJsonSerializer))]
+    public ulong GuildId { get; init; }
 }

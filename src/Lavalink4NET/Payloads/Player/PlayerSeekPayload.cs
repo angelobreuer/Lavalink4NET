@@ -29,39 +29,25 @@ namespace Lavalink4NET.Payloads.Player;
 
 using System;
 using System.Text.Json.Serialization;
+using Lavalink4NET.Converters;
 
 /// <summary>
 ///     The strongly-typed representation of a player seek payload sent to the lavalink node (in
 ///     serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class PlayerSeekPayload : IPayload, IPlayerPayload
+public sealed class PlayerSeekPayload
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PlayerSeekPayload"/> class.
-    /// </summary>
-    /// <param name="guildId">the guild snowflake identifier the voice update is for</param>
-    /// <param name="position">the seek position</param>
-    public PlayerSeekPayload(ulong guildId, TimeSpan position)
-    {
-        GuildId = guildId.ToString();
-        Position = (int)position.TotalMilliseconds;
-    }
-
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.PlayerSeek;
-
     /// <summary>
     ///     Gets the guild snowflake identifier the player update is for.
     /// </summary>
     [JsonPropertyName("guildId")]
-    public string GuildId { get; init; }
+    [JsonConverter(typeof(UInt64AsStringJsonSerializer))]
+    public ulong GuildId { get; init; }
 
     /// <summary>
     ///     Gets a value indicating whether the player should be paused.
     /// </summary>
     [JsonPropertyName("position")]
-    public int Position { get; init; }
+    [JsonConverter(typeof(TimeSpanJsonConverter))]
+    public TimeSpan Position { get; init; }
 }

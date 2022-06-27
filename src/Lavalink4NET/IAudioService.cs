@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
+using Lavalink4NET.Integrations;
 using Player;
 using Rest;
 
@@ -58,6 +59,8 @@ public interface IAudioService : IDisposable, ILavalinkRestClient
     ///     An asynchronous event which is triggered when a track got stuck.
     /// </summary>
     event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
+
+    IIntegrationCollection Integrations { get; }
 
     /// <summary>
     ///     Gets the audio player for the specified <paramref name="guildId"/>.

@@ -36,14 +36,8 @@ using Statistics;
 ///     The strongly-typed representation of a node statistics payload received from the
 ///     lavalink node (in serialized JSON format). For more reference see https://github.com/freyacodes/Lavalink/blob/master/IMPLEMENTATION.md
 /// </summary>
-public sealed class StatsUpdatePayload : IPayload
+public sealed class StatsUpdatePayload
 {
-    /// <summary>
-    ///     Gets the operation code for the payload.
-    /// </summary>
-    [JsonPropertyName("op")]
-    public OpCode OpCode => OpCode.NodeStats;
-
     /// <summary>
     ///     Gets the number of players the node is holding.
     /// </summary>

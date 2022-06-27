@@ -29,11 +29,11 @@ namespace Lavalink4NET.Player;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Events;
 using Lavalink4NET.Filters;
+using Lavalink4NET.Payloads;
 using Lavalink4NET.Payloads.Events;
 using Lavalink4NET.Payloads.Node;
 using Lavalink4NET.Payloads.Player;
@@ -120,7 +120,10 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
     /// <returns>a task that represents the asynchronous operation</returns>
     public virtual async Task ConnectAsync(ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
     {
-        await Client.SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute);
+        await Client
+            .SendVoiceUpdateAsync(GuildId, voiceChannelId, selfDeaf, selfMute)
+            .ConfigureAwait(false);
+
         VoiceChannelId = voiceChannelId;
 
         State = PlayerState.NotPlaying;
@@ -139,7 +142,11 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
         State = PlayerState.Destroyed;
 
         // send destroy payload
-        await LavalinkSocket.SendPayloadAsync(new PlayerDestroyPayload(GuildId));
+        var destroyPayload = new PlayerDestroyPayload { GuildId = GuildId, };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerDestroy, destroyPayload)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -173,7 +180,7 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (State is PlayerState.Destroyed ||!disposing)
+        if (State is PlayerState.Destroyed || !disposing)
         {
             return;
         }
@@ -190,9 +197,9 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             return;
         }
 
-            // Disconnect from voice channel and send destroy player payload to the lavalink node
-            await DisconnectAsync(PlayerDisconnectCause.Dispose).ConfigureAwait(false);
-            await DestroyAsync().ConfigureAwait(false);
+        // Disconnect from voice channel and send destroy player payload to the lavalink node
+        await DisconnectAsync(PlayerDisconnectCause.Dispose).ConfigureAwait(false);
+        await DestroyAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -274,7 +281,12 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             throw new InvalidOperationException("The current playing track is not playing.");
         }
 
-        await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, true));
+        var pausePayload = new PlayerPausePayload { GuildId = GuildId, Pause = true, };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerPause, pausePayload)
+            .ConfigureAwait(false);
+
         State = PlayerState.Paused;
     }
 
@@ -293,8 +305,11 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
     ///     thrown if the player is not connected to a voice channel
     /// </exception>
     /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-    public virtual async Task PlayAsync(LavalinkTrack track, TimeSpan? startTime = null,
-        TimeSpan? endTime = null, bool noReplace = false)
+    public virtual async Task PlayAsync(
+        LavalinkTrack track,
+        TimeSpan? startTime = null,
+        TimeSpan? endTime = null,
+        bool noReplace = false)
     {
         EnsureNotDestroyed();
         EnsureConnected();
@@ -302,8 +317,18 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
         CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
         startTime ??= track.Position;
 
-        await LavalinkSocket.SendPayloadAsync(new PlayerPlayPayload(GuildId, track.Identifier,
-            startTime, endTime, noReplace));
+        var playPayload = new PlayerPlayPayload
+        {
+            GuildId = GuildId,
+            TrackIdentifier = track.Identifier,
+            StartTime = startTime,
+            EndTime = endTime,
+            NoReplace = noReplace,
+        };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerPlay, playPayload)
+            .ConfigureAwait(false);
 
         State = PlayerState.Playing;
     }
@@ -350,7 +375,12 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             throw new InvalidOperationException("There is no track paused.");
         }
 
-        await LavalinkSocket.SendPayloadAsync(new PlayerPausePayload(GuildId, false));
+        var pausePayload = new PlayerPausePayload { GuildId = GuildId, Pause = false, };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerPause, pausePayload)
+            .ConfigureAwait(false);
+
         State = PlayerState.Playing;
     }
 
@@ -365,7 +395,7 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
     ///     thrown if the current playing track does not support seeking.
     /// </exception>
     /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-    public virtual Task SeekPositionAsync(TimeSpan position)
+    public virtual async Task SeekPositionAsync(TimeSpan position)
     {
         EnsureNotDestroyed();
         EnsureConnected();
@@ -375,7 +405,11 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             throw new InvalidOperationException("There is no track paused or playing.");
         }
 
-        return LavalinkSocket.SendPayloadAsync(new PlayerSeekPayload(GuildId, position));
+        var seekPayload = new PlayerSeekPayload { GuildId = GuildId, Position = position, };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerSeek, seekPayload)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -422,8 +456,15 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             return;
         }
 
-        var payload = new PlayerVolumePayload(GuildId, (int)(volume * 100));
-        await LavalinkSocket.SendPayloadAsync(payload);
+        var volumePayload = new PlayerVolumePayload
+        {
+            GuildId = GuildId,
+            Volume = (int)Math.Round(volume * 100F),
+        };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerVolume, volumePayload)
+            .ConfigureAwait(false);
 
         Volume = volume;
     }
@@ -444,11 +485,15 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
         EnsureNotDestroyed();
         EnsureConnected();
 
-        await LavalinkSocket.SendPayloadAsync(new PlayerStopPayload(GuildId));
+        var stopPayload = new PlayerStopPayload { GuildId = GuildId, };
+
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerStop, stopPayload)
+            .ConfigureAwait(false);
 
         if (disconnect)
         {
-            await DisconnectAsync(PlayerDisconnectCause.Stop);
+            await DisconnectAsync(PlayerDisconnectCause.Stop).ConfigureAwait(false);
         }
 
         State = PlayerState.NotPlaying;
@@ -590,9 +635,19 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
             return;
         }
 
+        var voiceServerUpdateEvent = new VoiceServerUpdateEvent(VoiceServer);
+
+        var voiceUpdatePayload = new VoiceUpdatePayload
+        {
+            GuildId = GuildId,
+            SessionId = VoiceState.VoiceSessionId,
+            VoiceServerUpdateEvent = voiceServerUpdateEvent,
+        };
+
         // send voice update payload
-        await LavalinkSocket.SendPayloadAsync(new VoiceUpdatePayload(VoiceState.GuildId,
-            VoiceState.VoiceSessionId, new VoiceServerUpdateEvent(VoiceServer)));
+        await LavalinkSocket
+            .SendPayloadAsync(OpCode.GuildVoiceUpdate, voiceUpdatePayload)
+            .ConfigureAwait(false);
 
         if (State is PlayerState.NotConnected or PlayerState.Destroyed)
         {
@@ -603,7 +658,7 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
         }
 
         // trigger event
-        await OnConnectedAsync(VoiceServer, VoiceState);
+        await OnConnectedAsync(VoiceServer, VoiceState).ConfigureAwait(false);
     }
 
     internal void UpdateTrackPosition(DateTimeOffset positionUpdateTime, TimeSpan position)
