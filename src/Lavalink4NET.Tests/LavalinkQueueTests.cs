@@ -29,6 +29,7 @@ namespace Lavalink4NET.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Lavalink4NET.Player;
     using Xunit;
 
@@ -408,8 +409,6 @@ namespace Lavalink4NET.Tests
             var queue = new LavalinkQueue();
             Assert.Empty(queue);
 
-            queue.Shuffle();
-
             for (var i = 0; i < 10; i++)
             {
                 queue.Add(DummyTrack);
@@ -417,17 +416,12 @@ namespace Lavalink4NET.Tests
             }
 
             Assert.Equal(20, queue.Count);
-            Assert.Equal(DummyTrack, queue[0]);
-            Assert.Equal(DummyTrack2, queue[1]);
-            Assert.Equal(DummyTrack, queue[2]);
-            Assert.Equal(DummyTrack2, queue[3]);
+
+            var originalQueue = queue.ToArray();
 
             queue.Shuffle();
 
-            Assert.True(queue[0] != DummyTrack
-                || queue[1] != DummyTrack2
-                || queue[2] != DummyTrack
-                || queue[3] != DummyTrack2);
+            Assert.NotEqual(queue.ToArray(), originalQueue);
         }
 
         /// <summary>
