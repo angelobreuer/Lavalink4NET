@@ -21,7 +21,7 @@ public static class TrackEncoder
         WriteString(pooledBufferWriter, trackInfo.Author);
 
         var lengthBuffer = pooledBufferWriter.GetSpan(8);
-        BinaryPrimitives.WriteInt64LittleEndian(lengthBuffer, (long)trackInfo.Duration.TotalMilliseconds);
+        BinaryPrimitives.WriteInt64BigEndian(lengthBuffer, (long)trackInfo.Duration.TotalMilliseconds);
         pooledBufferWriter.Advance(8);
 
         WriteString(pooledBufferWriter, trackInfo.TrackIdentifier);
@@ -38,8 +38,8 @@ public static class TrackEncoder
 
         var segment = pooledBufferWriter.WrittenSegment;
 
-        // subtract 5 for the header
-        EncodeHeader(segment.AsSpan(0, 5), pooledBufferWriter.WrittenCount - 5);
+        // subtract 4 for the header (version does also count to length)
+        EncodeHeader(segment.AsSpan(0, 5), pooledBufferWriter.WrittenCount - 4);
 
         return Convert.ToBase64String(segment.Array, segment.Offset, segment.Count);
     }
@@ -60,7 +60,7 @@ public static class TrackEncoder
         var bytesWritten = Encoding.UTF8.GetBytes(value, stringSpan);
 #endif
 
-        BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)bytesWritten);
+        BinaryPrimitives.WriteUInt16BigEndian(span, (ushort)bytesWritten);
 
         bufferWriter.Advance(bytesWritten + 2);
     }
@@ -74,7 +74,7 @@ public static class TrackEncoder
 
         // Set "has version" in header
         var header = 0b01000000000000000000000000000000 | length;
-        BinaryPrimitives.WriteInt32LittleEndian(buffer, header);
+        BinaryPrimitives.WriteInt32BigEndian(buffer, header);
 
         // version
         buffer[4] = 2;

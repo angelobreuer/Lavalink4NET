@@ -110,7 +110,7 @@ public static class TrackDecoder
             throw new EndOfStreamException("Failed to read UInt64, found EOF.");
         }
 
-        var value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
+        var value = BinaryPrimitives.ReadInt64BigEndian(buffer);
         buffer = buffer.Slice(8);
         return value;
     }
@@ -122,7 +122,7 @@ public static class TrackDecoder
             throw new EndOfStreamException("Failed to read string length, found EOF.");
         }
 
-        var length = BinaryPrimitives.ReadUInt16LittleEndian(buffer);
+        var length = BinaryPrimitives.ReadUInt16BigEndian(buffer);
         buffer = buffer.Slice(2);
 
         if (buffer.Length < length)
@@ -149,11 +149,18 @@ public static class TrackDecoder
         }
 
         // the header is four bytes long, subtract
-        var header = BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+        var header = BinaryPrimitives.ReadUInt32BigEndian(buffer);
         buffer = buffer.Slice(4);
 
         var flags = (int)((header & 0xC0000000L) >> 30);
         var hasVersion = (flags & 1) is not 0;
+
+        // verify size
+        var size = header & 0x3FFFFFFF;
+        if (verify && size != buffer.Length)
+        {
+            throw new InvalidOperationException($"Error while verifying track header: Track Identifier length was {buffer.Length}, but expected: {size}");
+        }
 
         var version = 1;
         if (hasVersion)
@@ -163,17 +170,10 @@ public static class TrackDecoder
                 throw new InvalidDataException("Content version is missing from track identifier.");
             }
 
-            version = buffer[4];
+            version = buffer[0];
             buffer = buffer.Slice(1);
         }
 
-        var size = header & 0x3FFFFFFF;
-
-        // verify size
-        if (verify && size != buffer.Length)
-        {
-            throw new InvalidOperationException($"Error while verifying track header: Track Identifier length was {buffer.Length}, but expected: {size}");
-        }
 
         // verify version
         if (verify && version is not 2)
