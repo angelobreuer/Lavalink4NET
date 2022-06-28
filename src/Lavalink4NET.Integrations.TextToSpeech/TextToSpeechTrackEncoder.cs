@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Integrations.TextToSpeech;
 
+using System;
 using System.Text;
 using System.Text.Json;
 using System.Web;
@@ -50,7 +51,8 @@ internal sealed class TextToSpeechTrackEncoder
             utf8JsonWriter.WriteEndObject();
         }
 
-        var configurationString = Encoding.UTF8.GetString(pooledBufferWriter.WrittenSegment);
+        var writtenSegment = pooledBufferWriter.WrittenSegment;
+        var configurationString = Encoding.UTF8.GetString(writtenSegment.Array, writtenSegment.Offset, writtenSegment.Count);
         return new Uri($"tts://?config={HttpUtility.UrlEncode(configurationString)}");
     }
 }

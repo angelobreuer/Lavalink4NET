@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Rest;
 
+using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Integrations.TextToSpeech;
 using Lavalink4NET.Integrations.TextToSpeech.Synthesis;
