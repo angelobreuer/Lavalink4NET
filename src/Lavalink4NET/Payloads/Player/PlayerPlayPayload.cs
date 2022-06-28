@@ -71,5 +71,6 @@ public sealed class PlayerPlayPayload
     ///     is currently playing.
     /// </summary>
     [JsonPropertyName("noReplace")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool NoReplace { get; init; }
 }
