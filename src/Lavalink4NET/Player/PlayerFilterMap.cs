@@ -30,6 +30,7 @@ namespace Lavalink4NET.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Payloads;
@@ -143,8 +144,10 @@ public sealed class PlayerFilterMap
         _changesToCommit = true;
     }
 
-    public async Task CommitAsync(bool force = false)
+    public async Task CommitAsync(bool force = false, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!_changesToCommit && !force)
         {
             return;
@@ -157,7 +160,7 @@ public sealed class PlayerFilterMap
         };
 
         await _player.LavalinkSocket
-            .SendPayloadAsync(OpCode.PlayerFilters, payload)
+            .SendPayloadAsync(OpCode.PlayerFilters, payload, forceSend: false, cancellationToken)
             .ConfigureAwait(false);
     }
 }
