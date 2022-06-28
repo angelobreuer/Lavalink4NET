@@ -35,11 +35,16 @@
 - ✳️ **Extensible**
 - 🎤 **Lyrics**
 - 🗳️ **Queueing / Voting-System**
-- 🎵 **Track Decoding**
+- 🎵 **Track Decoding and Encoding**
 - 🔄 **Auto-Reconnect and Resuming**
 - 📝 **Logging** *(optional)*
 - ⚡ **Request Caching** *(optional)*
 - ⏱️ **Inactivity Tracking** *(optional)*
+- 🖋️ **Supports Lavalink plugins**
+- 🎶 **Custom players**
+- 🖼️ **Artwork resolution**
+- 🎚️ **Audio filter support**
+- 📊 **Statistics tracking support**
 - ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).**
   
 <span>&nbsp;&nbsp;&nbsp;</span>*and a lot more...*
