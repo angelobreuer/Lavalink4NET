@@ -8,4 +8,9 @@ public static class PlayerFilterMapExtensions
     {
         filterMap[EchoFilterOptions.Name] = filterOptions;
     }
+
+    public static EchoFilterOptions? Echo(this PlayerFilterMap filterMap)
+    {
+        return filterMap[EchoFilterOptions.Name] as EchoFilterOptions;
+    }
 }
