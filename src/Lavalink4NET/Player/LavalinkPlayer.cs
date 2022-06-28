@@ -315,7 +315,11 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
         EnsureConnected();
 
         CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
-        startTime ??= track.Position;
+
+        if (startTime is null && track.Position.Ticks is not 0)
+        {
+            startTime = track.Position;
+        }
 
         var playPayload = new PlayerPlayPayload
         {
