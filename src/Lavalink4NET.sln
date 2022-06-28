@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integrations", "Integration
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.SponsorBlock", "Lavalink4NET.Integrations.SponsorBlock\Lavalink4NET.Integrations.SponsorBlock.csproj", "{7AE7CA17-09C5-47E1-9E91-0DE27796583B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.ExtraFilters", "Lavalink4NET.Integrations.ExtraFilters\Lavalink4NET.Integrations.ExtraFilters.csproj", "{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,6 +80,10 @@ Global
 		{7AE7CA17-09C5-47E1-9E91-0DE27796583B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AE7CA17-09C5-47E1-9E91-0DE27796583B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AE7CA17-09C5-47E1-9E91-0DE27796583B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{3FE82A70-8805-4E9A-AE5A-47E6924D0ECE} = {5FAEC63E-9752-48C4-8BC9-B101E0DBDBD3}
 		{B317A50A-EB36-441E-8F21-BAC2A6F8314B} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{7AE7CA17-09C5-47E1-9E91-0DE27796583B} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
+		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}
