@@ -30,7 +30,6 @@ namespace Lavalink4NET.Payloads.Player;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Converters;
-using Lavalink4NET.Filters;
 
 /// <summary>
 ///     The strongly-typed representation of a player filters update payload sent to the
@@ -47,5 +46,5 @@ public sealed class PlayerFiltersPayload
     public ulong GuildId { get; init; }
 
     [JsonExtensionData, JsonPropertyName("filters")]
-    public IDictionary<string, IFilterOptions> Filters { get; set; }
+    public Dictionary<string, object?> Filters { get; set; }
 }
