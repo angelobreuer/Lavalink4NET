@@ -29,6 +29,7 @@ namespace Lavalink4NET.Player;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Payloads;
@@ -55,7 +56,7 @@ public sealed class PlayerFilterMap
         var payload = new PlayerFiltersPayload
         {
             GuildId = _player.GuildId,
-            Filters = Filters,
+            Filters = Filters.ToDictionary(x => x.Key, x => (object?)x.Value),
         };
 
         await _player.LavalinkSocket
