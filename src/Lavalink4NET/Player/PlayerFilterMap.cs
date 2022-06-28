@@ -46,28 +46,16 @@ public sealed class PlayerFilterMap
         Filters = new Dictionary<string, IFilterOptions>();
     }
 
-    public async Task CommitAsync(bool force = false)
+    public ChannelMixFilterOptions? ChannelMix
     {
-        if (!_changesToCommit && !force)
-        {
-            return;
-        }
-
-        var payload = new PlayerFiltersPayload
-        {
-            GuildId = _player.GuildId,
-            Filters = Filters.ToDictionary(x => x.Key, x => (object?)x.Value),
-        };
-
-        await _player.LavalinkSocket
-            .SendPayloadAsync(OpCode.PlayerFilters, payload)
-            .ConfigureAwait(false);
+        get => this[ChannelMixFilterOptions.Name] as ChannelMixFilterOptions;
+        set => this[ChannelMixFilterOptions.Name] = value;
     }
 
-    public VolumeFilterOptions? Volume
+    public DistortionFilterOptions? Distortion
     {
-        get => this[VolumeFilterOptions.Name] as VolumeFilterOptions;
-        set => this[VolumeFilterOptions.Name] = value;
+        get => this[DistortionFilterOptions.Name] as DistortionFilterOptions;
+        set => this[DistortionFilterOptions.Name] = value;
     }
 
     public EqualizerFilterOptions? Equalizer
@@ -80,6 +68,18 @@ public sealed class PlayerFilterMap
     {
         get => this[KaraokeFilterOptions.Name] as KaraokeFilterOptions;
         set => this[KaraokeFilterOptions.Name] = value;
+    }
+
+    public LowPassFilterOptions? LowPass
+    {
+        get => this[LowPassFilterOptions.Name] as LowPassFilterOptions;
+        set => this[LowPassFilterOptions.Name] = value;
+    }
+
+    public RotationFilterOptions? Rotation
+    {
+        get => this[RotationFilterOptions.Name] as RotationFilterOptions;
+        set => this[RotationFilterOptions.Name] = value;
     }
 
     public TimescaleFilterOptions? Timescale
@@ -100,28 +100,10 @@ public sealed class PlayerFilterMap
         set => this[VibratoFilterOptions.Name] = value;
     }
 
-    public RotationFilterOptions? Rotation
+    public VolumeFilterOptions? Volume
     {
-        get => this[RotationFilterOptions.Name] as RotationFilterOptions;
-        set => this[RotationFilterOptions.Name] = value;
-    }
-
-    public DistortionFilterOptions? Distortion
-    {
-        get => this[DistortionFilterOptions.Name] as DistortionFilterOptions;
-        set => this[DistortionFilterOptions.Name] = value;
-    }
-
-    public ChannelMixFilterOptions? ChannelMix
-    {
-        get => this[ChannelMixFilterOptions.Name] as ChannelMixFilterOptions;
-        set => this[ChannelMixFilterOptions.Name] = value;
-    }
-
-    public LowPassFilterOptions? LowPass
-    {
-        get => this[LowPassFilterOptions.Name] as LowPassFilterOptions;
-        set => this[LowPassFilterOptions.Name] = value;
+        get => this[VolumeFilterOptions.Name] as VolumeFilterOptions;
+        set => this[VolumeFilterOptions.Name] = value;
     }
 
     internal Dictionary<string, IFilterOptions> Filters { get; set; }
@@ -148,5 +130,34 @@ public sealed class PlayerFilterMap
             Filters[name] = value!;
             _changesToCommit = true;
         }
+    }
+
+    public void Clear()
+    {
+        if (Filters.Count is 0)
+        {
+            return;
+        }
+
+        Filters.Clear();
+        _changesToCommit = true;
+    }
+
+    public async Task CommitAsync(bool force = false)
+    {
+        if (!_changesToCommit && !force)
+        {
+            return;
+        }
+
+        var payload = new PlayerFiltersPayload
+        {
+            GuildId = _player.GuildId,
+            Filters = Filters.ToDictionary(x => x.Key, x => (object?)x.Value),
+        };
+
+        await _player.LavalinkSocket
+            .SendPayloadAsync(OpCode.PlayerFilters, payload)
+            .ConfigureAwait(false);
     }
 }
