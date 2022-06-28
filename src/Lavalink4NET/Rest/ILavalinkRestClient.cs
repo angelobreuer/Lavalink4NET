@@ -55,8 +55,11 @@ public interface ILavalinkRestClient : IDisposable
     ///     a task that represents the asynchronous operation. The task result is the track
     ///     found for the specified <paramref name="query"/>
     /// </returns>
-    Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default);
+    ValueTask<LavalinkTrack?> GetTrackAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
@@ -75,8 +78,11 @@ public interface ILavalinkRestClient : IDisposable
     ///     a task that represents the asynchronous operation. The task result are the tracks
     ///     found for the specified <paramref name="query"/>
     /// </returns>
-    Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default);
+    ValueTask<IEnumerable<LavalinkTrack>> GetTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.
@@ -95,6 +101,9 @@ public interface ILavalinkRestClient : IDisposable
     ///     a task that represents the asynchronous operation. The task result is the request
     ///     response for the specified <paramref name="query"/>.
     /// </returns>
-    Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default);
+    ValueTask<TrackLoadResponsePayload> LoadTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default);
 }

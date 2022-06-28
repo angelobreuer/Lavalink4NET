@@ -135,9 +135,14 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     ///     a task that represents the asynchronous operation. The task result is the track
     ///     found for the specified <paramref name="query"/>
     /// </returns>
-    public async Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default)
-        => (await GetTracksAsync(query, mode, noCache, cancellationToken))?.FirstOrDefault();
+    public async ValueTask<LavalinkTrack?> GetTrackAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default)
+    {
+        return (await GetTracksAsync(query, mode, noCache, cancellationToken))?.FirstOrDefault();
+    }
 
     /// <summary>
     ///     Gets the tracks for the specified <paramref name="query"/> asynchronously.
@@ -156,9 +161,14 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     ///     a task that represents the asynchronous operation. The task result are the tracks
     ///     found for the specified <paramref name="query"/>
     /// </returns>
-    public async Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default)
-        => (await LoadTracksAsync(query, mode, noCache, cancellationToken)).Tracks ?? Enumerable.Empty<LavalinkTrack>();
+    public async ValueTask<IEnumerable<LavalinkTrack>> GetTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default)
+    {
+        return (await LoadTracksAsync(query, mode, noCache, cancellationToken)).Tracks ?? Enumerable.Empty<LavalinkTrack>();
+    }
 
     /// <summary>
     ///     Loads the tracks specified by the <paramref name="query"/> asynchronously.
@@ -177,8 +187,11 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     ///     a task that represents the asynchronous operation. The task result is the request
     ///     response for the specified <paramref name="query"/>.
     /// </returns>
-    public async Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default)
+    public async ValueTask<TrackLoadResponsePayload> LoadTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

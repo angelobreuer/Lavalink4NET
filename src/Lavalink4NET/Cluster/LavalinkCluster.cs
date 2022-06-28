@@ -271,7 +271,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
 
     /// <inheritdoc/>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
+    public ValueTask<LavalinkTrack?> GetTrackAsync(string query, SearchMode mode = SearchMode.None,
         bool noCache = false, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
@@ -280,8 +280,11 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
 
     /// <inheritdoc/>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<IEnumerable<LavalinkTrack>> GetTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default)
+    public ValueTask<IEnumerable<LavalinkTrack>> GetTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return GetPreferredNode(NodeRequestType.LoadTrack).GetTracksAsync(query, mode, noCache, cancellationToken);
@@ -329,8 +332,11 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
 
     /// <inheritdoc/>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<TrackLoadResponsePayload> LoadTracksAsync(string query, SearchMode mode = SearchMode.None,
-        bool noCache = false, CancellationToken cancellationToken = default)
+    public ValueTask<TrackLoadResponsePayload> LoadTracksAsync(
+        string query,
+        SearchMode mode = SearchMode.None,
+        bool noCache = false,
+        CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return GetPreferredNode(NodeRequestType.LoadTrack).LoadTracksAsync(query, mode, noCache, cancellationToken);
