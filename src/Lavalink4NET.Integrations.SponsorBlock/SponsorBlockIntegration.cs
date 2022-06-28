@@ -49,14 +49,11 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
 
         var guildId = ulong.Parse(guildIdNode.GetValue<string>(), CultureInfo.InvariantCulture);
 
-        if (!_skipCategories.TryGetValue(guildId, out var skipCategories))
-        {
-            return default;
-        }
+        var skipCategories = _skipCategories.TryGetValue(guildId, out var guildSkipCategories)
+            ? guildSkipCategories.Resolve()
+            : DefaultSkipCategories;
 
-        var categories = skipCategories.Resolve();
-
-        if (categories.IsDefaultOrEmpty)
+        if (skipCategories.IsDefaultOrEmpty)
         {
             return default;
         }
