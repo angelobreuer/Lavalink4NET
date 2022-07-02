@@ -99,7 +99,7 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
     /// <summary>
     ///     Gets the communication lavalink socket.
     /// </summary>
-    internal LavalinkSocket LavalinkSocket { get; set; } = null!; // Lazy-initialized
+    public LavalinkSocket LavalinkSocket { get; internal set; } = null!; // Lazy-initialized
 
     internal VoiceServer? VoiceServer { get; set; }
 
@@ -209,6 +209,14 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
     /// <param name="voiceState">the voice state</param>
     /// <returns>a task that represents the asynchronous operation</returns>
     public virtual Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
+        => Task.CompletedTask;
+
+    /// <summary>
+    ///     Asynchronously triggered when the player has changed the node.
+    /// </summary>
+    /// <param name="eventArgs">the socket change event arguments</param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    public virtual Task OnSocketChanged(SocketChangedEventArgs eventArgs) 
         => Task.CompletedTask;
 
     /// <summary>

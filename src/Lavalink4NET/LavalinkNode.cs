@@ -742,7 +742,9 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
         await player.DestroyAsync();
 
         // update the communication node
+        var oldLavalinkSocket = player.LavalinkSocket;
         player.LavalinkSocket = node;
+        await player.OnSocketChanged(new SocketChangedEventArgs(oldLavalinkSocket, node));
 
         // resend voice update to the new node
         await player.UpdateAsync();
