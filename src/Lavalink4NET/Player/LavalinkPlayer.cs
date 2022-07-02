@@ -324,15 +324,16 @@ public class LavalinkPlayer : IDisposable, IAsyncDisposable
 
         CurrentTrack = track ?? throw new ArgumentNullException(nameof(track));
 
-        if (startTime is null && track.Position.Ticks is not 0)
+        var playableTrack = await track.GetPlayableTrack();
+        if (startTime is null && playableTrack.Position.Ticks is not 0)
         {
-            startTime = track.Position;
+            startTime = playableTrack.Position;
         }
 
         var playPayload = new PlayerPlayPayload
         {
             GuildId = GuildId,
-            TrackIdentifier = track.Identifier,
+            TrackIdentifier = playableTrack.Identifier,
             StartTime = startTime,
             EndTime = endTime,
             NoReplace = noReplace,
