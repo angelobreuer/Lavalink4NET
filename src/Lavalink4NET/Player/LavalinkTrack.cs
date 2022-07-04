@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Player;
 
 using System;
+using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Payloads.Player;
 
@@ -208,5 +209,13 @@ public class LavalinkTrack
         var clone = Clone();
         clone.Position = position;
         return clone;
+    }
+
+    /// <summary>
+    ///     Allows you to override a track that will be sent to Lavalink for playback
+    /// </summary>
+    /// <returns>Track which will be sent to Lavalink node</returns>
+    public virtual ValueTask<LavalinkTrack> GetPlayableTrack() {
+        return new ValueTask<LavalinkTrack>(this);
     }
 }
