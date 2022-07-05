@@ -50,7 +50,7 @@ public sealed class LavalinkClusterOptions
     /// <summary>
     ///     Gets or sets cluster node factory.
     /// </summary>
-    public ClusterNodeFactory<LavalinkClusterNode> NodeFactory { get; set; }
+    public ClusterNodeFactory NodeFactory { get; set; }
         = LavalinkClusterNode.ClusterNodeFactory;
 
     /// <summary>

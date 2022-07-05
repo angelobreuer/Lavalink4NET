@@ -12,7 +12,6 @@ namespace Lavalink4NET.Cluster;
 /// <param name="logger">the logger</param>
 /// <param name="cache">an optional cache that caches track requests</param>
 /// <param name="id">the node number</param>
-public delegate T ClusterNodeFactory<T>(
+public delegate LavalinkClusterNode ClusterNodeFactory(
     LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-    int id, IIntegrationCollection integrationCollection, ILogger? logger = null, ILavalinkCache? cache = null)
-    where T : LavalinkClusterNode;
+    int id, IIntegrationCollection integrationCollection, ILogger? logger = null, ILavalinkCache? cache = null);

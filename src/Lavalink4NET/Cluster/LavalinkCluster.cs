@@ -52,7 +52,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     private bool _disposed;
     private bool _initialized;
     private volatile int _nodeId;
-    private readonly ClusterNodeFactory<LavalinkClusterNode> _nodeFactory;
+    private readonly ClusterNodeFactory _nodeFactory;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.

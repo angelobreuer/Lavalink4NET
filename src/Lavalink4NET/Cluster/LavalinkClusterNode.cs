@@ -85,7 +85,7 @@ public class LavalinkClusterNode : LavalinkNode
     /// <summary>
     ///     Gets the <see cref="ClusterNodeFactory"/> for this type.
     /// </summary>
-    public static ClusterNodeFactory<LavalinkClusterNode> ClusterNodeFactory { get; } =
+    public static ClusterNodeFactory ClusterNodeFactory { get; } =
         (cluster, options, client, id, integrationCollection, logger, cache) =>
             new LavalinkClusterNode(cluster, options, client, id, integrationCollection, logger, cache);
 
