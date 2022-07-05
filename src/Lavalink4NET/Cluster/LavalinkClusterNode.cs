@@ -36,7 +36,7 @@ using Lavalink4NET.Logging;
 /// <summary>
 ///     A clustered lavalink node with additional information.
 /// </summary>
-public sealed class LavalinkClusterNode : LavalinkNode
+public class LavalinkClusterNode : LavalinkNode
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
@@ -81,6 +81,13 @@ public sealed class LavalinkClusterNode : LavalinkNode
         LastUsage = DateTimeOffset.MinValue;
         Integrations = integrationCollection;
     }
+
+    /// <summary>
+    ///     Gets the <see cref="ClusterNodeFactory"/> for this type.
+    /// </summary>
+    public static ClusterNodeFactory ClusterNodeFactory { get; } =
+        (cluster, options, client, id, integrationCollection, logger, cache) =>
+            new LavalinkClusterNode(cluster, options, client, id, integrationCollection, logger, cache);
 
     /// <summary>
     ///     Gets the cluster owning the node.

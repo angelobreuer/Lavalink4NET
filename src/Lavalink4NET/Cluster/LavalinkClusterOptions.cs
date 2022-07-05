@@ -48,6 +48,12 @@ public sealed class LavalinkClusterOptions
         = Array.Empty<LavalinkNodeOptions>();
 
     /// <summary>
+    ///     Gets or sets cluster node factory.
+    /// </summary>
+    public ClusterNodeFactory NodeFactory { get; set; }
+        = LavalinkClusterNode.ClusterNodeFactory;
+
+    /// <summary>
     ///     Gets or sets a value indicating whether players should be moved to a new node if a
     ///     node disconnects accidentally.
     /// </summary>
