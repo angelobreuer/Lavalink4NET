@@ -52,6 +52,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     private bool _disposed;
     private bool _initialized;
     private volatile int _nodeId;
+    private readonly ClusterNodeFactory<LavalinkClusterNode> _nodeFactory;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkCluster"/> class.
@@ -84,6 +85,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
         _nodesLock = new object();
         StayOnline = options.StayOnline;
         _nodes = options.Nodes.Select(CreateNode).ToList();
+        _nodeFactory = options.NodeFactory;
 
         Integrations = new IntegrationCollection();
     }
@@ -418,7 +420,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     /// </summary>
     /// <param name="nodeOptions">the node options</param>
     /// <returns>the created node</returns>
-    private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions) => new(
+    private LavalinkClusterNode CreateNode(LavalinkNodeOptions nodeOptions) => _nodeFactory(
         cluster: this,
         options: nodeOptions,
         client: _client,
