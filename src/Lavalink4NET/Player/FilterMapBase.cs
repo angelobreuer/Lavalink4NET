@@ -70,7 +70,7 @@ public class FilterMapBase
         set => this[VolumeFilterOptions.Name] = value;
     }
 
-    internal Dictionary<string, IFilterOptions> Filters { get; set; }
+    protected internal Dictionary<string, IFilterOptions> Filters { get; set; }
 
     public virtual IFilterOptions? this[string name]
     {
