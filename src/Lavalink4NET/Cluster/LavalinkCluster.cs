@@ -84,8 +84,8 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
         _cache = cache;
         _nodesLock = new object();
         StayOnline = options.StayOnline;
-        _nodes = options.Nodes.Select(CreateNode).ToList();
         _nodeFactory = options.NodeFactory;
+        _nodes = options.Nodes.Select(CreateNode).ToList();
 
         Integrations = new IntegrationCollection();
     }
