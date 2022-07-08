@@ -28,8 +28,8 @@
 namespace Lavalink4NET.Player;
 
 using System;
-using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Lavalink4NET.Payloads.Player;
 
 /// <summary>
@@ -38,6 +38,7 @@ using Lavalink4NET.Payloads.Player;
 public class LavalinkTrack
 {
     private StreamProvider? _streamProvider;
+    private TimeSpan? _position;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LavalinkTrack"/> class.
@@ -85,8 +86,19 @@ public class LavalinkTrack
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="title"/> is <see langword="null"/>.
     /// </exception>
-    public LavalinkTrack(string identifier, string author, TimeSpan duration, bool isLiveStream, bool isSeekable,
-        string? source, string title, string trackIdentifier, object? context = null, StreamProvider? streamProvider = null)
+    public LavalinkTrack(
+        string identifier,
+        string author,
+        TimeSpan duration,
+        bool isLiveStream,
+        bool isSeekable,
+        Uri? uri,
+        string? sourceName,
+        TimeSpan position,
+        string title,
+        string trackIdentifier,
+        object? context = null,
+        StreamProvider? streamProvider = null)
     {
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
         Context = context;
@@ -97,7 +109,9 @@ public class LavalinkTrack
             Duration = duration,
             IsLiveStream = isLiveStream,
             IsSeekable = isSeekable,
-            Source = source,
+            SourceName = sourceName,
+            Uri = uri,
+            Position = position,
             Title = title,
             TrackIdentifier = trackIdentifier,
         };
@@ -146,7 +160,11 @@ public class LavalinkTrack
     ///     Gets the start position of the track.
     /// </summary>
     [JsonIgnore]
-    public virtual TimeSpan Position { get; private set; }
+    public virtual TimeSpan Position
+    {
+        get => _position ?? TrackInformation.Position;
+        private set => _position = value;
+    }
 
     /// <summary>
     ///     Gets the stream provider (e.g. YouTube).
@@ -156,17 +174,46 @@ public class LavalinkTrack
     {
         get
         {
-            return _streamProvider ??= Source is null
-                ? StreamProvider.Unknown
-                : StreamProviderUtil.GetStreamProvider(Source);
+            if (_streamProvider is not null)
+            {
+                return _streamProvider.Value;
+            }
+
+            var streamProvider = StreamProvider.Unknown;
+            if (SourceName is not null)
+            {
+                streamProvider = StreamProviderUtil.GetStreamProvider(SourceName);
+            }
+
+            if (Uri is not null && streamProvider is StreamProvider.Unknown)
+            {
+                streamProvider = StreamProviderUtil.GetStreamProvider(Uri);
+            }
+
+            _streamProvider  = streamProvider;
+            return streamProvider;
         }
+
+        internal set => _streamProvider = value;
     }
+
+    /// <summary>
+    ///     Gets the URI of the track.
+    /// </summary>
+    [JsonIgnore]
+    public virtual Uri? Uri => TrackInformation.Uri;
 
     /// <summary>
     ///     Gets the track source.
     /// </summary>
+    [Obsolete("Please use the 'Uri' property.")]
+    public string? Source => Uri?.ToString();
+
+    /// <summary>
+    ///     Gets the name of the source (e.g. youtube, mp3, ...).
+    /// </summary>
     [JsonIgnore]
-    public virtual string? Source => TrackInformation.Source;
+    public virtual string? SourceName => TrackInformation.SourceName;
 
     /// <summary>
     ///     Gets the title of the track.
@@ -193,7 +240,9 @@ public class LavalinkTrack
         duration: Duration,
         isLiveStream: IsLiveStream,
         isSeekable: IsSeekable,
-        source: Source,
+        uri: Uri,
+        sourceName: SourceName,
+        position: Position,
         title: Title,
         trackIdentifier: TrackIdentifier,
         context: Context,
@@ -215,7 +264,8 @@ public class LavalinkTrack
     ///     Allows you to override a track that will be sent to Lavalink for playback
     /// </summary>
     /// <returns>Track which will be sent to Lavalink node</returns>
-    public virtual ValueTask<LavalinkTrack> GetPlayableTrack() {
+    public virtual ValueTask<LavalinkTrack> GetPlayableTrack()
+    {
         return new ValueTask<LavalinkTrack>(this);
     }
 }

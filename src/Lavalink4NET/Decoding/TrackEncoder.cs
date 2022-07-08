@@ -28,13 +28,19 @@ public static class TrackEncoder
 
         var streamAndUriPresentSpan = pooledBufferWriter.GetSpan(2);
         streamAndUriPresentSpan[0] = (byte)(trackInfo.IsLiveStream ? 1 : 0);
-        streamAndUriPresentSpan[1] = (byte)(trackInfo.Source is not null ? 1 : 0);
+        streamAndUriPresentSpan[1] = (byte)(trackInfo.Uri is not null ? 1 : 0);
         pooledBufferWriter.Advance(2);
 
-        if (trackInfo.Source is not null)
+        if (trackInfo.Uri is not null)
         {
-            WriteString(pooledBufferWriter, trackInfo.Source);
+            WriteString(pooledBufferWriter, trackInfo.Uri.ToString());
         }
+
+        WriteString(pooledBufferWriter, trackInfo.SourceName ?? string.Empty);
+
+        var positionSpan = pooledBufferWriter.GetSpan(8);
+        BinaryPrimitives.WriteInt64BigEndian(positionSpan, (long)trackInfo.Position.TotalMilliseconds);
+        pooledBufferWriter.Advance(8);
 
         var segment = pooledBufferWriter.WrittenSegment;
 

@@ -58,9 +58,24 @@ public enum StreamProvider
     Vimeo,
 
     /// <summary>
+    ///     A stream from getyarn.io.
+    /// </summary>
+    GetYarn,
+
+    /// <summary>
     ///     A stream from Twitch.
     /// </summary>
     Twitch,
+
+    /// <summary>
+    ///     A stream from niconico.
+    /// </summary>
+    NicoNico,
+
+    /// <summary>
+    ///     A stream from beam.pro.
+    /// </summary>
+    Beam,
 
     /// <summary>
     ///     A stream from a local file.

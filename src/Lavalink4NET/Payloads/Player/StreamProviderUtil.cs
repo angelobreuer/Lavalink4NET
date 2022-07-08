@@ -33,7 +33,7 @@ using Lavalink4NET.Player;
 /// <summary>
 ///     An utility class for detecting the stream provider for a lavaplayer URI.
 /// </summary>
-public sealed class StreamProviderUtil
+public static class StreamProviderUtil
 {
     /// <summary>
     ///     Gets the stream provider that has the characters for the specified <paramref name="uri"/>.
@@ -43,28 +43,37 @@ public sealed class StreamProviderUtil
     /// <exception cref="ArgumentException">
     ///     thrown if the specified <paramref name="uri"/> is blank.
     /// </exception>
-    public static StreamProvider GetStreamProvider(string uri)
+    public static StreamProvider GetStreamProvider(Uri? uri)
     {
-        if (string.IsNullOrWhiteSpace(uri))
+        if (uri is null)
         {
-            throw new ArgumentException("The specified uri is blank.", nameof(uri));
+            return StreamProvider.Unknown;
         }
 
-        if (Uri.TryCreate(uri, UriKind.Absolute, out var result))
+        // local file stream
+        if (uri.IsFile)
         {
-            // local file stream
-            if (result.IsFile)
-            {
-                return StreamProvider.Local;
-            }
-
-            // get stream provider
-            return GetStreamProvider(result.Host, result.AbsolutePath);
+            return StreamProvider.Local;
         }
 
-        // uri can not be parsed
-        return StreamProvider.Unknown;
+        // get stream provider
+        return GetStreamProvider(uri.Host, uri.AbsolutePath);
     }
+
+    public static StreamProvider GetStreamProvider(string sourceName) => sourceName?.ToUpperInvariant() switch
+    {
+        "SOUNDCLOUD" => StreamProvider.SoundCloud,
+        "YOUTUBE" => StreamProvider.YouTube,
+        "BANDCAMP" => StreamProvider.Bandcamp,
+        "TWITCH" => StreamProvider.Twitch,
+        "HTTP" => StreamProvider.Http,
+        "NICONICO" => StreamProvider.NicoNico,
+        "VIMEO" => StreamProvider.Vimeo,
+        "GETYARN.IO" => StreamProvider.GetYarn,
+        "LOCAL" => StreamProvider.Local,
+        "BEAM.PRO" => StreamProvider.Beam,
+        _ => StreamProvider.Unknown,
+    };
 
     /// <summary>
     ///     Gets a value indicating whether the specified <paramref name="path"/> is a HTTP
@@ -144,6 +153,18 @@ public sealed class StreamProviderUtil
         if (host.Equals("www.twitch.tv", StringComparison.InvariantCultureIgnoreCase))
         {
             return StreamProvider.Twitch;
+        }
+
+        // GetYarn.io
+        if (host.Equals("www.getyarn.io", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return StreamProvider.GetYarn;
+        }
+
+        // nicovideo.jp
+        if (host.Equals("www.nicovideo.jp", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return StreamProvider.NicoNico;
         }
 
         // .mp3, .flac, .wav, .webm, .mp4/.m4a, .ogg, .3gb/.mpg/.mpeg/.m4b, m3u/pls external sources.

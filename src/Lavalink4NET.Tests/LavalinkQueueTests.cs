@@ -44,7 +44,7 @@ namespace Lavalink4NET.Tests
         private static readonly LavalinkTrack DummyTrack = new LavalinkTrack("A", new LavalinkTrackInfo
         {
             Author = "John Doe",
-            Source = "http://example.com",
+            SourceName = "http://example.com",
             Title = "My Track",
             TrackIdentifier = "abc"
         });
@@ -55,7 +55,7 @@ namespace Lavalink4NET.Tests
         private static readonly LavalinkTrack DummyTrack2 = new LavalinkTrack("A", new LavalinkTrackInfo
         {
             Author = "Maria Doe",
-            Source = "http://example.org",
+            SourceName = "http://example.org",
             Title = "My Track 2",
             TrackIdentifier = "abcd"
         });

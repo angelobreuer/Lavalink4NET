@@ -64,14 +64,15 @@ public sealed class LavalinkTrackInfo
     /// <summary>
     ///     Gets the start position of the track.
     /// </summary>
-    [JsonPropertyName("position"), JsonConverter(typeof(TimeSpanJsonConverter))]
+    [JsonPropertyName("position")]
+    [JsonConverter(typeof(TimeSpanJsonConverter))]
     public TimeSpan Position { get; init; }
 
     /// <summary>
-    ///     Gets the track source.
+    ///     Gets the URI of the track.
     /// </summary>
     [JsonPropertyName("uri")]
-    public string? Source { get; init; }
+    public Uri? Uri { get; init; }
 
     /// <summary>
     ///     Gets the title of the track.
@@ -84,6 +85,12 @@ public sealed class LavalinkTrackInfo
     /// </summary>
     [JsonPropertyName("identifier")]
     public string TrackIdentifier { get; init; }
+
+    /// <summary>
+    ///     Gets the name of the source (e.g. youtube, mp3, ...).
+    /// </summary>
+    [JsonPropertyName("sourceName")]
+    public string? SourceName { get; init; }
 
     public LavalinkTrack CreateTrack()
     {

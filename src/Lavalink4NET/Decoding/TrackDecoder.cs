@@ -28,7 +28,10 @@
 namespace Lavalink4NET.Decoding;
 
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
+using System.Buffers.Text;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Lavalink4NET.Player;
@@ -38,88 +41,219 @@ using Lavalink4NET.Player;
 /// </summary>
 public static class TrackDecoder
 {
-    /// <summary>
-    ///     Decodes a lavalink track identifier.
-    /// </summary>
-    /// <param name="identifier">the track identifier (encoded in base64)</param>
-    /// <param name="verify">a value indicating whether the track header should be verified</param>
-    /// <returns>the decoded track</returns>
-    /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-    public static LavalinkTrack DecodeTrack(string identifier, bool verify = true)
-        => new(identifier, Decode(identifier, verify));
-
-    /// <summary>
-    ///     Decodes a lavalink track identifier.
-    /// </summary>
-    /// <param name="identifier">the track identifier (encoded in base64)</param>
-    /// <param name="verify">a value indicating whether the track header should be verified</param>
-    /// <returns>the decoded track info</returns>
-    /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-    public static LavalinkTrackInfo Decode(string identifier, bool verify = true)
-        => Decode(Convert.FromBase64String(identifier), verify);
-
-    /// <summary>
-    ///     Decodes a lavalink track identifier.
-    /// </summary>
-    /// <param name="buffer">the raw track identifier</param>
-    /// <param name="verify">a value indicating whether the track header should be verified</param>
-    /// <returns>the decoded track info</returns>
-    /// <exception cref="InvalidOperationException">thrown if the track header is invalid</exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-    /// </exception>
-    public static LavalinkTrackInfo Decode(ReadOnlySpan<byte> buffer, bool verify = true)
+    public static LavalinkTrack DecodeTrack(string identifier)
     {
-        ReadHeader(ref buffer, verify);
+        var operationStatus = TryDecodeTrack(identifier, out var track);
 
-        var title = ReadString(ref buffer);
-        var author = ReadString(ref buffer);
-        var length = ReadInt64(ref buffer);
-        var identifier = ReadString(ref buffer);
-        var isStream = ReadBoolean(ref buffer);
-        var uri = ReadBoolean(ref buffer) ? ReadString(ref buffer) : null;
-
-        return new LavalinkTrackInfo
+        if (operationStatus is not OperationStatus.Done)
         {
-            Title = title,
-            Author = author,
-            Duration = TimeSpan.FromMilliseconds(length),
-            TrackIdentifier = identifier,
-            IsLiveStream = isStream,
-            IsSeekable = !isStream,
-            Source = uri
-        };
+            throw new InvalidDataException($"An error occurred while decoding the track: {operationStatus}");
+        }
+
+        return track!;
     }
 
-    private static bool ReadBoolean(ref ReadOnlySpan<byte> buffer)
+    public static LavalinkTrackInfo Decode(string identifier)
+    {
+        var operationStatus = TryDecode(identifier, out var trackInfo);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            throw new InvalidDataException($"An error occurred while decoding the track: {operationStatus}");
+        }
+
+        return trackInfo!;
+    }
+
+    public static LavalinkTrackInfo Decode(ReadOnlySpan<byte> buffer)
+    {
+        var operationStatus = TryDecode(buffer, out var trackInfo);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            throw new InvalidDataException($"An error occurred while decoding the track: {operationStatus}");
+        }
+
+        return trackInfo!;
+    }
+
+    public static OperationStatus TryDecodeTrack(string identifier, out LavalinkTrack? track)
+    {
+        var operationStatus = TryDecode(identifier, out var trackInfo);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            track = default;
+            return operationStatus;
+        }
+
+        track = new LavalinkTrack(identifier, trackInfo!);
+        return OperationStatus.Done;
+    }
+
+    public static OperationStatus TryDecode(string identifier, out LavalinkTrackInfo? trackInfo)
+    {
+        var maxDecodedUtf8Length = Encoding.UTF8.GetMaxByteCount(identifier.Length);
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(maxDecodedUtf8Length);
+
+        try
+        {
+            var utf8BytesWritten = Encoding.UTF8.GetBytes(
+                s: identifier,
+                charIndex: 0,
+                charCount: identifier.Length,
+                bytes: pooledBuffer,
+                byteIndex: 0);
+
+            var operationStatus = Base64.DecodeFromUtf8InPlace(
+                buffer: pooledBuffer.AsSpan(0, utf8BytesWritten),
+                bytesWritten: out var bytesWritten);
+
+            if (operationStatus is not OperationStatus.Done)
+            {
+                trackInfo = default;
+                return operationStatus;
+            }
+
+            return TryDecode(pooledBuffer.AsSpan(0, bytesWritten), out trackInfo);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
+        }
+    }
+
+    public static OperationStatus TryDecode(ReadOnlySpan<byte> buffer, out LavalinkTrackInfo? trackInfo)
+    {
+        var operationStatus = TryReadHeader(ref buffer);
+        trackInfo = default;
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadString(ref buffer, out var title);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadString(ref buffer, out var author);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadInt64(ref buffer, out var length);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadString(ref buffer, out var identifier);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadBoolean(ref buffer, out var isStream);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        operationStatus = TryReadOptionalString(ref buffer, out var rawUri);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
+        }
+
+        var uri = default(Uri?);
+        if (rawUri is not null && !Uri.TryCreate(rawUri, UriKind.Absolute, out uri))
+        {
+            return OperationStatus.InvalidData;
+        }
+
+        var sourceName = default(string?);
+        if (!buffer.IsEmpty)
+        {
+            operationStatus = TryReadString(ref buffer, out sourceName);
+
+            if (operationStatus is not OperationStatus.Done)
+            {
+                return operationStatus;
+            }
+        }
+
+        var position = 0L;
+        if (!buffer.IsEmpty)
+        {
+            operationStatus = TryReadInt64(ref buffer, out position);
+
+            if (operationStatus is not OperationStatus.Done)
+            {
+                return operationStatus;
+            }
+        }
+
+        // Ensure there is no rest data
+        Debug.Assert(buffer.IsEmpty);
+
+        trackInfo = new LavalinkTrackInfo
+        {
+            Title = title!,
+            Author = author!,
+            Duration = TimeSpan.FromMilliseconds(length),
+            TrackIdentifier = identifier!,
+            IsLiveStream = isStream,
+            IsSeekable = !isStream,
+            Uri = uri,
+            Position = TimeSpan.FromMilliseconds(position),
+            SourceName = sourceName,
+        };
+
+        return OperationStatus.Done;
+    }
+
+    private static OperationStatus TryReadBoolean(ref ReadOnlySpan<byte> buffer, out bool value)
     {
         if (buffer.IsEmpty)
         {
-            throw new EndOfStreamException("Failed to read boolean, found EOF.");
+            value = default;
+            return OperationStatus.NeedMoreData;
         }
 
-        var value = buffer[0] is not 0;
+        value = buffer[0] is not 0;
         buffer = buffer.Slice(1);
-        return value;
+        return OperationStatus.Done;
     }
 
-    private static long ReadInt64(ref ReadOnlySpan<byte> buffer)
+    private static OperationStatus TryReadInt64(ref ReadOnlySpan<byte> buffer, out long value)
     {
         if (buffer.Length < 8)
         {
-            throw new EndOfStreamException("Failed to read UInt64, found EOF.");
+            value = default;
+            return OperationStatus.NeedMoreData;
         }
 
-        var value = BinaryPrimitives.ReadInt64BigEndian(buffer);
+        value = BinaryPrimitives.ReadInt64BigEndian(buffer);
         buffer = buffer.Slice(8);
-        return value;
+        return OperationStatus.Done;
     }
 
-    private static string ReadString(ref ReadOnlySpan<byte> buffer)
+    private static OperationStatus TryReadString(ref ReadOnlySpan<byte> buffer, out string? value)
     {
         if (buffer.Length < 2)
         {
-            throw new EndOfStreamException("Failed to read string length, found EOF.");
+            value = default;
+            return OperationStatus.NeedMoreData;
         }
 
         var length = BinaryPrimitives.ReadUInt16BigEndian(buffer);
@@ -128,20 +262,42 @@ public static class TrackDecoder
         if (buffer.Length < length)
         {
             var bytesMissing = length - buffer.Length;
-            throw new EndOfStreamException($"Failed to read string, found EOF, expected {bytesMissing} more byte(s).");
+            value = default;
+            return OperationStatus.NeedMoreData;
         }
 
         var stringBuffer = buffer.Slice(0, length);
         buffer = buffer.Slice(length);
 
 #if NETSTANDARD2_1_OR_GREATER
-        return Encoding.UTF8.GetString(stringBuffer);
+        value = Encoding.UTF8.GetString(stringBuffer);
 #else
-        return Encoding.UTF8.GetString(stringBuffer.ToArray());
+        value = Encoding.UTF8.GetString(stringBuffer.ToArray());
 #endif
+
+        return OperationStatus.Done;
     }
 
-    private static void ReadHeader(ref ReadOnlySpan<byte> buffer, bool verify = true)
+    private static OperationStatus TryReadOptionalString(ref ReadOnlySpan<byte> buffer, out string? value)
+    {
+        var operationStatus = TryReadBoolean(ref buffer, out var isPresent);
+
+        if (operationStatus is not OperationStatus.Done)
+        {
+            value = default;
+            return operationStatus;
+        }
+
+        if (!isPresent)
+        {
+            value = null;
+            return OperationStatus.Done;
+        }
+
+        return TryReadString(ref buffer, out value);
+    }
+
+    private static OperationStatus TryReadHeader(ref ReadOnlySpan<byte> buffer)
     {
         if (buffer.Length is < 4)
         {
@@ -157,9 +313,9 @@ public static class TrackDecoder
 
         // verify size
         var size = header & 0x3FFFFFFF;
-        if (verify && size != buffer.Length)
+        if (size != buffer.Length)
         {
-            throw new InvalidOperationException($"Error while verifying track header: Track Identifier length was {buffer.Length}, but expected: {size}");
+            return OperationStatus.InvalidData;
         }
 
         var version = 1;
@@ -167,18 +323,19 @@ public static class TrackDecoder
         {
             if (buffer.IsEmpty)
             {
-                throw new InvalidDataException("Content version is missing from track identifier.");
+                return OperationStatus.NeedMoreData;
             }
 
             version = buffer[0];
             buffer = buffer.Slice(1);
         }
 
-
         // verify version
-        if (verify && version is not 2)
+        if (version is not 2)
         {
-            throw new InvalidOperationException($"Error while verifying track header: Invalid track version: Was: {version}, expected: 2.");
+            return OperationStatus.InvalidData;
         }
+
+        return OperationStatus.Done;
     }
 }

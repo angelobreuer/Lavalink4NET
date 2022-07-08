@@ -27,6 +27,7 @@
 
 namespace Lavalink4NET.Tests;
 
+using System;
 using System.Threading.Tasks;
 using Lavalink4NET.Artwork;
 using Lavalink4NET.Player;
@@ -39,7 +40,21 @@ public sealed class ArtworkServiceTests
     public async Task TestResolveSoundCloudAsync(string uri, string thumbnail)
     {
         using var artworkService = new ArtworkService();
-        var track = new LavalinkTrack(string.Empty, string.Empty, default, false, false, uri, string.Empty, uri, StreamProvider.SoundCloud);
+
+        var track = new LavalinkTrack(
+            identifier: string.Empty,
+            author: string.Empty,
+            duration: default,
+            isLiveStream: false,
+            isSeekable: false,
+            uri: new Uri(uri),
+            sourceName: "soundcloud",
+            position: TimeSpan.Zero,
+            title: string.Empty,
+            trackIdentifier: uri,
+            context: null,
+            streamProvider: StreamProvider.SoundCloud);
+
         var artwork = await artworkService.ResolveAsync(track);
         Assert.Equal(thumbnail, artwork.OriginalString);
     }
