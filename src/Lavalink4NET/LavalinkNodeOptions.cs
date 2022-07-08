@@ -99,12 +99,4 @@ public sealed class LavalinkNodeOptions : LavalinkRestOptions
     ///     If <see langword="true"/> then all "Connection to Lavalink Node failed" will be hidden from log
     /// </remarks>
     public bool SuppressReconnectionEntries { get; set; } = false;
-
-    /// <summary>
-    ///     Gets or sets value indicating whether all waiting before next reconnect shouldn't be logged
-    /// </summary>
-    /// <remarks>
-    ///     If <see langword="true"/> then all "Waiting X before next reconnect attempt" will be hidden from log
-    /// </remarks>
-    public bool HideWaitingBeforeNextReconnectFromLog { get; set; } = false;
 }
