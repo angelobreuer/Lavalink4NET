@@ -29,16 +29,15 @@ namespace Lavalink4NET.Discord_NET.ExampleBot;
 
 using System;
 using System.Threading.Tasks;
-using Discord.Commands;
+using Discord.Interactions;
 using Lavalink4NET.Player;
 using Lavalink4NET.Rest;
 
 /// <summary>
 ///     Presents some of the main features of the Lavalink4NET-Library.
 /// </summary>
-[Name("Music")]
 [RequireContext(ContextType.Guild)]
-public sealed class MusicModule : ModuleBase<SocketCommandContext>
+public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
 
@@ -56,7 +55,7 @@ public sealed class MusicModule : ModuleBase<SocketCommandContext>
     ///     Disconnects from the current voice channel connected to asynchronously.
     /// </summary>
     /// <returns>a task that represents the asynchronous operation</returns>
-    [Command("disconnect", RunMode = RunMode.Async)]
+    [SlashCommand("disconnect", "Disconnects from the current voice channel connected to", runMode: RunMode.Async)]
     public async Task Disconnect()
     {
         var player = await GetPlayerAsync();
@@ -73,12 +72,12 @@ public sealed class MusicModule : ModuleBase<SocketCommandContext>
     }
 
     /// <summary>
-    ///     Plays music from YouTube asynchronously.
+    ///     Plays music asynchronously.
     /// </summary>
     /// <param name="query">the search query</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    [Command("play", RunMode = RunMode.Async)]
-    public async Task Play([Remainder] string query)
+    [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
+    public async Task Play(string query)
     {
         var player = await GetPlayerAsync();
 
@@ -111,7 +110,7 @@ public sealed class MusicModule : ModuleBase<SocketCommandContext>
     ///     Shows the track position asynchronously.
     /// </summary>
     /// <returns>a task that represents the asynchronous operation</returns>
-    [Command("position", RunMode = RunMode.Async)]
+    [SlashCommand("position", description: "Shows the track position", runMode: RunMode.Async)]
     public async Task Position()
     {
         var player = await GetPlayerAsync();
@@ -134,10 +133,10 @@ public sealed class MusicModule : ModuleBase<SocketCommandContext>
     ///     Stops the current track asynchronously.
     /// </summary>
     /// <returns>a task that represents the asynchronous operation</returns>
-    [Command("stop", RunMode = RunMode.Async)]
+    [SlashCommand("stop", description: "Stops the current track", runMode: RunMode.Async)]
     public async Task Stop()
     {
-        var player = await GetPlayerAsync();
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
 
         if (player == null)
         {
@@ -159,7 +158,7 @@ public sealed class MusicModule : ModuleBase<SocketCommandContext>
     /// </summary>
     /// <param name="volume">the volume (1 - 1000)</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    [Command("volume", RunMode = RunMode.Async)]
+    [SlashCommand("volume", description: "Sets the player volume (0 - 1000%)", runMode: RunMode.Async)]
     public async Task Volume(int volume = 100)
     {
         if (volume is > 1000 or < 0)

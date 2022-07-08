@@ -26,7 +26,7 @@
  */
 
 using System;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Lavalink4NET;
 using Lavalink4NET.Discord_NET.ExampleBot;
@@ -34,14 +34,20 @@ using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Logging.Microsoft;
 using Lavalink4NET.MemoryCache;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using var serviceProvider = ConfigureServices();
 
 var bot = serviceProvider.GetRequiredService<ExampleBot>();
-var audio = serviceProvider.GetRequiredService<IAudioService>();
+var interactionService = serviceProvider.GetRequiredService<InteractionService>();
+
+var audioService = serviceProvider.GetRequiredService<IAudioService>();
 
 await bot.StartAsync();
-await audio.InitializeAsync();
+await audioService.InitializeAsync();
+
+// Put your guild id to test on here:
+await interactionService.RegisterCommandsToGuildAsync(894533462428635146);
 
 while (Console.ReadKey(true).Key != ConsoleKey.Q)
 {
@@ -58,12 +64,14 @@ static ServiceProvider ConfigureServices()
 
     // Discord
     services.AddSingleton<DiscordSocketClient>();
-    services.AddSingleton<CommandService>();
+    services.AddSingleton<InteractionService>();
 
     // Lavalink
     services.AddSingleton<IAudioService, LavalinkNode>();
     services.AddSingleton<IDiscordClientWrapper, DiscordClientWrapper>();
     services.AddMicrosoftExtensionsLavalinkLogging();
+
+    services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
     services.AddSingleton(new LavalinkNodeOptions
     {

@@ -30,7 +30,7 @@ namespace Lavalink4NET.Discord_NET.ExampleBot;
 using System;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,25 +40,27 @@ using Microsoft.Extensions.DependencyInjection;
 public sealed class ExampleBot : IDisposable
 {
     private readonly DiscordSocketClient _client;
-    private readonly CommandService _commandService;
-    private readonly IServiceProvider _provider;
+    private readonly InteractionService _interactionService;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ExampleBot"/> class.
     /// </summary>
-    /// <param name="provider">the service provider</param>
-    public ExampleBot(IServiceProvider provider)
+    /// <param name="serviceProvider">the service provider</param>
+    public ExampleBot(IServiceProvider serviceProvider)
     {
-        _client = provider.GetRequiredService<DiscordSocketClient>();
-        _commandService = provider.GetRequiredService<CommandService>();
-        _client.MessageReceived += MessageReceived;
-        _provider = provider;
+        _client = serviceProvider.GetRequiredService<DiscordSocketClient>();
+        _interactionService = serviceProvider.GetRequiredService<InteractionService>();
+        _serviceProvider = serviceProvider;
+
+        _client.InteractionCreated += InteractionCreated;
     }
 
-    /// <summary>
-    ///     Unregisters the events attached to the discord client.
-    /// </summary>
-    public void Dispose() => _client.MessageReceived -= MessageReceived;
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _client.InteractionCreated -= InteractionCreated;
+    }
 
     /// <summary>
     ///     Starts the bot asynchronously.
@@ -66,10 +68,11 @@ public sealed class ExampleBot : IDisposable
     /// <returns>a task that represents the asynchronous operation</returns>
     public async Task StartAsync()
     {
-        await _client.LoginAsync(TokenType.Bot, "" /* Your Bot Token */);
+        // Insert your bot token here:
+        await _client.LoginAsync(TokenType.Bot, "");
         await _client.StartAsync();
 
-        await _commandService.AddModulesAsync(GetType().Assembly, _provider);
+        await _interactionService.AddModulesAsync(GetType().Assembly, _serviceProvider);
     }
 
     /// <summary>
@@ -81,21 +84,9 @@ public sealed class ExampleBot : IDisposable
         await _client.StopAsync();
     }
 
-    private async Task MessageReceived(SocketMessage rawMessage)
+    private Task InteractionCreated(SocketInteraction interaction)
     {
-        if (rawMessage is not SocketUserMessage message || message.Source != MessageSource.User)
-        {
-            return;
-        }
-
-        var argPos = 0;
-
-        if (!message.HasMentionPrefix(_client.CurrentUser, ref argPos))
-        {
-            return;
-        }
-
-        var context = new SocketCommandContext(_client, message);
-        await _commandService.ExecuteAsync(context, argPos, _provider);
+        var ctx = new SocketInteractionContext(_client, interaction);
+        return _interactionService.ExecuteCommandAsync(ctx, _serviceProvider);
     }
 }
