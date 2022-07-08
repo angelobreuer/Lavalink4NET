@@ -57,11 +57,14 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private readonly bool _resume;
     private readonly int _sessionTimeout;
     private readonly Uri _webSocketUri;
+    private readonly bool _hideReconnectionEntriesFromLog;
+    private readonly bool _hideWaitingBeforeNextReconnectFromLog;
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _disposed;
     private volatile bool _initialized;
     private IIntegrationCollection? _integrations;
     private bool _mayResume;
+    private bool _isConnectFailed;
     private ClientWebSocket? _webSocket;
 
     /// <summary>
@@ -108,6 +111,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _reconnectionStrategy = options.ReconnectStrategy;
         _cancellationTokenSource = new CancellationTokenSource();
         _mayResume = options.ResumeKey is not null;
+        _hideReconnectionEntriesFromLog = options.HideReconnectionEntriesFromLog;
+        _hideWaitingBeforeNextReconnectFromLog = options.HideWaitingBeforeNextReconnectFromLog;
 
         ResumeKey = options.ResumeKey ?? Guid.NewGuid().ToString("N");
 
@@ -224,7 +229,8 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         // add resume header
         if (_mayResume)
         {
-            Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", ResumeKey), LogLevel.Debug);
+            if (!_hideReconnectionEntriesFromLog || !_isConnectFailed)
+                Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", ResumeKey), LogLevel.Debug);
             _webSocket.Options.SetRequestHeader("Resume-Key", ResumeKey);
         }
 
@@ -232,6 +238,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         {
             // connect to the lavalink node
             await _webSocket.ConnectAsync(_webSocketUri, cancellationToken);
+            _isConnectFailed = false;
         }
         catch (Exception ex)
         {
@@ -240,14 +247,17 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 throw;
             }
 
-            Logger.Log(this, string.Format("Connection to Lavalink Node `{0}` failed!", _webSocketUri), LogLevel.Error, ex);
+            if (!_hideReconnectionEntriesFromLog || !_isConnectFailed)
+                Logger.Log(this, string.Format("Connection to Lavalink Node `{0}` failed!", _webSocketUri), LogLevel.Error, ex);
+
+            _isConnectFailed = true;
             return;
         }
 
         // replay payloads
         if (_queue.Count > 0)
         {
-            Logger?.Log(this, string.Format("Replaying {0} payload(s)...", _queue.Count), LogLevel.Debug);
+            Logger?.Log(this, string.Format("Replaying {0} payload(s) to `{1}`...", _queue.Count, _webSocketUri), LogLevel.Debug);
 
             // replay (FIFO)
             while (_queue.Count > 0)
@@ -263,11 +273,11 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
 
             if (_mayResume)
             {
-                Logger?.Log(this, string.Format("{0} to Lavalink Node, Resume Key: {1}!", type, ResumeKey));
+                Logger?.Log(this, string.Format("{0} to Lavalink Node `{1}`, Resume Key: {2}!", type, _webSocketUri, ResumeKey));
             }
             else
             {
-                Logger?.Log(this, string.Format("{0} to Lavalink Node!", type));
+                Logger?.Log(this, string.Format("{0} to Lavalink Node `{1}`!", type, _webSocketUri));
             }
         }
 
@@ -465,7 +475,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         // check if the web socket received a close frame
         if (result.MessageType is WebSocketMessageType.Close)
         {
-            Logger?.Log(this, string.Format("Lavalink Node disconnected: {0}, {1}.", result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription), LogLevel.Warning);
+            Logger?.Log(this, string.Format("Lavalink Node `{0}` disconnected: {1}, {2}.", _webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription), LogLevel.Warning);
             await OnDisconnectedAsync(new DisconnectedEventArgs(_webSocketUri, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription, true));
 
             _webSocket.Dispose();
@@ -543,7 +553,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
             if (Logger is not null)
             {
                 var content = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
-                Logger.Log(this, string.Format("Received bad payload: {0}.", content), LogLevel.Warning, ex);
+                Logger.Log(this, string.Format("Received bad payload from `{0}`: {1}.", _webSocketUri, content), LogLevel.Warning, ex);
             }
 
             await CloseAsync(WebSocketCloseStatus.InvalidPayloadData).ConfigureAwait(false);
@@ -588,7 +598,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 // give up
                 if (eventArgs.CancelReconnect)
                 {
-                    Logger?.Log(this, "Reconnection aborted due event.");
+                    Logger?.Log(this, string.Format("Reconnection to {0} aborted due event.", _webSocketUri));
                     return;
                 }
 
@@ -598,11 +608,12 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 // reconnection give up
                 if (delay is null)
                 {
-                    Logger?.Log(this, "Reconnection failed! .. giving up.", LogLevel.Warning);
+                    Logger?.Log(this, string.Format("Reconnection to `{0}` failed! .. giving up.", _webSocketUri), LogLevel.Warning);
                     return;
                 }
 
-                Logger?.Log(this, string.Format("Waiting {0} before next reconnect attempt...", delay.Value), LogLevel.Debug);
+                if (!_hideWaitingBeforeNextReconnectFromLog)
+                    Logger?.Log(this, string.Format("Waiting {0} before next reconnect attempt to `{1}`...", delay.Value, _webSocketUri), LogLevel.Debug);
 
                 await Task
                     .Delay(delay.Value, cancellationToken)
@@ -674,7 +685,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         }
         catch (Exception exception)
         {
-            Logger?.Log(exception, "Failed to send payload. Trying to reconnect to node...");
+            Logger?.Log(exception, string.Format("Failed to send payload. Trying to reconnect to node `{0}`...", _webSocketUri));
 
             // enqueue packet that failed to sent
             _queue.Enqueue(node);
