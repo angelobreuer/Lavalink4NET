@@ -57,14 +57,13 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     private readonly bool _resume;
     private readonly int _sessionTimeout;
     private readonly Uri _webSocketUri;
-    private readonly bool _hideReconnectionEntriesFromLog;
-    private readonly bool _hideWaitingBeforeNextReconnectFromLog;
+    private readonly bool _suppressReconnectionEntries;
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _disposed;
     private volatile bool _initialized;
     private IIntegrationCollection? _integrations;
     private bool _mayResume;
-    private bool _isConnectFailed;
+    private bool _previousConnectionAttemptFailed;
     private ClientWebSocket? _webSocket;
 
     /// <summary>
@@ -111,8 +110,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         _reconnectionStrategy = options.ReconnectStrategy;
         _cancellationTokenSource = new CancellationTokenSource();
         _mayResume = options.ResumeKey is not null;
-        _hideReconnectionEntriesFromLog = options.HideReconnectionEntriesFromLog;
-        _hideWaitingBeforeNextReconnectFromLog = options.HideWaitingBeforeNextReconnectFromLog;
+        _suppressReconnectionEntries = options.SuppressReconnectionEntries;
 
         ResumeKey = options.ResumeKey ?? Guid.NewGuid().ToString("N");
 
@@ -229,8 +227,10 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         // add resume header
         if (_mayResume)
         {
-            if (!_hideReconnectionEntriesFromLog || !_isConnectFailed)
+            if (!_suppressReconnectionEntries || !_previousConnectionAttemptFailed)
+            {
                 Logger?.Log(this, string.Format("Trying to resume Lavalink Session ... Key: {0}.", ResumeKey), LogLevel.Debug);
+            }
             _webSocket.Options.SetRequestHeader("Resume-Key", ResumeKey);
         }
 
@@ -238,7 +238,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
         {
             // connect to the lavalink node
             await _webSocket.ConnectAsync(_webSocketUri, cancellationToken);
-            _isConnectFailed = false;
+            _previousConnectionAttemptFailed = false;
         }
         catch (Exception ex)
         {
@@ -247,10 +247,12 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                 throw;
             }
 
-            if (!_hideReconnectionEntriesFromLog || !_isConnectFailed)
+            if (!_suppressReconnectionEntries || !_previousConnectionAttemptFailed)
+            {
                 Logger.Log(this, string.Format("Connection to Lavalink Node `{0}` failed!", _webSocketUri), LogLevel.Error, ex);
+            }
 
-            _isConnectFailed = true;
+            _previousConnectionAttemptFailed = true;
             return;
         }
 
@@ -612,8 +614,10 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
                     return;
                 }
 
-                if (!_hideWaitingBeforeNextReconnectFromLog)
+                if (!_suppressReconnectionEntries)
+                {
                     Logger?.Log(this, string.Format("Waiting {0} before next reconnect attempt to `{1}`...", delay.Value, _webSocketUri), LogLevel.Debug);
+                }
 
                 await Task
                     .Delay(delay.Value, cancellationToken)
