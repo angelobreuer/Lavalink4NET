@@ -91,4 +91,12 @@ public sealed class LavalinkNodeOptions : LavalinkRestOptions
     /// </summary>
     /// <remarks>This property defaults to <c>ws://localhost:8080/</c>.</remarks>
     public string WebSocketUri { get; set; } = "ws://localhost:8080/";
+
+    /// <summary>
+    ///     Gets or sets value indicating whether all duplicate reconnect attempts shouldn't be logged
+    /// </summary>
+    /// <remarks>
+    ///     If <see langword="true"/> then all "Connection to Lavalink Node failed" will be hidden from log
+    /// </remarks>
+    public bool SuppressReconnectionEntries { get; set; } = false;
 }
