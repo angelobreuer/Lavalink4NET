@@ -36,6 +36,7 @@ using System.Threading.Tasks;
 using global::DSharpPlus;
 using global::DSharpPlus.Entities;
 using global::DSharpPlus.EventArgs;
+using global::DSharpPlus.Exceptions;
 using Lavalink4NET.Events;
 
 /// <summary>
@@ -77,11 +78,23 @@ public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public async Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
     {
-        var guild = await GetClient(guildId).GetGuildAsync(guildId).ConfigureAwait(false)
-            ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
+        DiscordChannel channel;
+        try
+        {
+            channel = await GetClient(guildId)
+                .GetChannelAsync(guildId)
+                .ConfigureAwait(false);
+        }
+        catch (UnauthorizedException)
+        {
+            // The channel was possibly deleted
+            return Enumerable.Empty<ulong>();
+        }
 
-        var channel = guild.GetChannel(voiceChannelId)
-            ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
+        if (channel is null)
+        {
+            return Enumerable.Empty<ulong>();
+        }
 
         return channel.Users.Select(s => s.Id);
     }

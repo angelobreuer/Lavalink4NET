@@ -169,11 +169,21 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     /// </returns>
     public Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
     {
-        var guild = _baseSocketClient.GetGuild(guildId)
-           ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
+        var guild = _baseSocketClient.GetGuild(guildId);
 
-        var channel = guild.GetVoiceChannel(voiceChannelId)
-            ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
+        if (guild is null)
+        {
+            // It may be that the guild has been deleted while there was a player for it, return no users
+            return Task.FromResult(Enumerable.Empty<ulong>());
+        }
+
+        var channel = guild.GetVoiceChannel(voiceChannelId);
+
+        if (channel is null)
+        {
+            // It may be that the channel has been deleted while there was a player for it, return no users
+            return Task.FromResult(Enumerable.Empty<ulong>());
+        }
 
         return Task.FromResult(channel.Users.Select(s => s.Id));
     }
