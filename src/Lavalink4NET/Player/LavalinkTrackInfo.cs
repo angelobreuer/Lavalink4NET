@@ -92,6 +92,14 @@ public sealed class LavalinkTrackInfo
     [JsonPropertyName("sourceName")]
     public string? SourceName { get; init; }
 
+    /// <summary>
+    ///     Gets or initializes the container probe information of the track
+    ///     for HTTP and local audio source managers. Must be set manually if
+    ///     the track was requested over the REST API of Lavalink.
+    /// </summary>
+    [JsonPropertyName("probeInfo")]
+    public string? ProbeInfo { get; init; }
+
     public LavalinkTrack CreateTrack()
     {
         var identifier = TrackEncoder.Encode(this);

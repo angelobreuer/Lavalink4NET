@@ -11,6 +11,25 @@ public static class TrackEncoder
 {
     public static string Encode(LavalinkTrackInfo trackInfo)
     {
+        if (trackInfo is null)
+        {
+            throw new ArgumentNullException(nameof(trackInfo));
+        }
+
+        if (trackInfo.SourceName is null)
+        {
+            throw new InvalidOperationException("When encoding a track a source name must be given.");
+        }
+
+        var isProbingAudioTrack =
+            trackInfo.SourceName.Equals("http", StringComparison.OrdinalIgnoreCase) ||
+            trackInfo.SourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
+
+        if (isProbingAudioTrack && trackInfo.ProbeInfo is null)
+        {
+            throw new InvalidOperationException("For the HTTP and local source audio manager, a probe info must be given.");
+        }
+
         using var pooledBufferWriter = new PooledBufferWriter();
 
         // reserve 5 bytes for the header
@@ -33,10 +52,15 @@ public static class TrackEncoder
 
         if (trackInfo.Uri is not null)
         {
-            WriteString(pooledBufferWriter, trackInfo.Uri.ToString());
+            WriteString(pooledBufferWriter, trackInfo.Uri.OriginalString);
         }
 
-        WriteString(pooledBufferWriter, trackInfo.SourceName ?? string.Empty);
+        WriteString(pooledBufferWriter, trackInfo.SourceName);
+
+        if (isProbingAudioTrack)
+        {
+            WriteString(pooledBufferWriter, trackInfo.ProbeInfo!);
+        }
 
         var positionSpan = pooledBufferWriter.GetSpan(8);
         BinaryPrimitives.WriteInt64BigEndian(positionSpan, (long)trackInfo.Position.TotalMilliseconds);

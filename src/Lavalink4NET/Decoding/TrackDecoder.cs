@@ -181,10 +181,21 @@ public static class TrackDecoder
             return OperationStatus.InvalidData;
         }
 
-        var sourceName = default(string?);
-        if (!buffer.IsEmpty)
+        operationStatus = TryReadString(ref buffer, out var sourceName);
+
+        if (operationStatus is not OperationStatus.Done)
         {
-            operationStatus = TryReadString(ref buffer, out sourceName);
+            return operationStatus;
+        }
+
+        var isProbingAudioTrack =
+            sourceName.Equals("http", StringComparison.OrdinalIgnoreCase) ||
+            sourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
+
+        var containerProbeInformation = default(string?);
+        if (isProbingAudioTrack)
+        {
+            operationStatus = TryReadString(ref buffer, out containerProbeInformation);
 
             if (operationStatus is not OperationStatus.Done)
             {
@@ -192,15 +203,11 @@ public static class TrackDecoder
             }
         }
 
-        var position = 0L;
-        if (!buffer.IsEmpty)
-        {
-            operationStatus = TryReadInt64(ref buffer, out position);
+        operationStatus = TryReadInt64(ref buffer, out var position);
 
-            if (operationStatus is not OperationStatus.Done)
-            {
-                return operationStatus;
-            }
+        if (operationStatus is not OperationStatus.Done)
+        {
+            return operationStatus;
         }
 
         // Ensure there is no rest data
@@ -217,6 +224,7 @@ public static class TrackDecoder
             Uri = uri,
             Position = TimeSpan.FromMilliseconds(position),
             SourceName = sourceName,
+            ProbeInfo = containerProbeInformation,
         };
 
         return OperationStatus.Done;
