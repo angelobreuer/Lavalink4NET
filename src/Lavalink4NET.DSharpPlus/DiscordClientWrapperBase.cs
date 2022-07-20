@@ -82,7 +82,7 @@ public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
         try
         {
             channel = await GetClient(guildId)
-                .GetChannelAsync(guildId)
+                .GetChannelAsync(voiceChannelId)
                 .ConfigureAwait(false);
         }
         catch (UnauthorizedException)
