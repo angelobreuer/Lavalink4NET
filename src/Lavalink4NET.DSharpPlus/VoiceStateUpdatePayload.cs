@@ -43,7 +43,6 @@ internal sealed class VoiceStateUpdatePayload
     public ulong GuildId { get; }
 
     [JsonPropertyName("channel_id")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ulong? ChannelId { get; }
 
     [JsonPropertyName("self_mute")]
