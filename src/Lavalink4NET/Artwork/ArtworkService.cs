@@ -92,8 +92,19 @@ public class ArtworkService : IArtworkService, IDisposable
             }
         }
 
-        var requestUri = new Uri($"https://soundcloud.com/oembed?url={lavalinkTrack.TrackIdentifier}&format=json");
-        var thumbnailUri = await FetchTrackUriFromOEmbedCompatibleResourceAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        // the track uri is nullable, but in my testing it always returns one for soundcloud
+        if (lavalinkTrack.Uri is null)
+            return null;
+        var requestUri = new Uri($"https://soundcloud.com/oembed?url={lavalinkTrack.Uri.AbsoluteUri}&format=json");
+        Uri? thumbnailUri;
+        try
+        {
+            thumbnailUri = await FetchTrackUriFromOEmbedCompatibleResourceAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
 
         if (_cache is not null)
         {
