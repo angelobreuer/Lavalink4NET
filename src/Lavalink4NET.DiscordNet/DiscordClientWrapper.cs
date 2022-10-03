@@ -185,7 +185,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return Task.FromResult(Enumerable.Empty<ulong>());
         }
 
-        return Task.FromResult(channel.Users.Select(s => s.Id));
+        return Task.FromResult(channel.ConnectedUsers.Select(s => s.Id));
     }
 
     /// <summary>
