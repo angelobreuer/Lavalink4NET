@@ -185,7 +185,11 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return Task.FromResult(Enumerable.Empty<ulong>());
         }
 
-        return Task.FromResult(channel.ConnectedUsers.Select(s => s.Id));
+        var users = channel.ConnectedUsers
+            .Where(x => !x.IsBot)
+            .Select(s => s.Id);
+
+        return Task.FromResult(users);
     }
 
     /// <summary>
