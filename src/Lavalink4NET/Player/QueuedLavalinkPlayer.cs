@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Player;
 
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 
@@ -51,19 +52,20 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     }
 
     /// <summary>
-    ///     Defines the loop mode of the player.
+    ///     Gets or sets the loop mode for this player.
     /// </summary>
-    public enum PlayerLoopMode
-    {
-        None,
-        Track,
-        Queue
-    }
+    public PlayerLoopMode LoopMode { get; set; }
 
     /// <summary>
     ///     Gets or sets a value indicating whether the current playing track should be looped.
     /// </summary>
-    public PlayerLoopMode LoopMode { get; set; }
+    [Obsolete("Use LoopMode instead. This property will be removed in future versions.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool IsLooping
+    {
+        get => LoopMode is not PlayerLoopMode.None;
+        set => LoopMode = value ? PlayerLoopMode.Track : PlayerLoopMode.None;
+    }
 
     /// <summary>
     ///     Gets the track queue.
