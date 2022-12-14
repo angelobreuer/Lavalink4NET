@@ -51,9 +51,19 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     }
 
     /// <summary>
+    ///     Defines the loop mode of the player.
+    /// </summary>
+    public enum PlayerLoopMode
+    {
+        None,
+        Track,
+        Queue
+    }
+
+    /// <summary>
     ///     Gets or sets a value indicating whether the current playing track should be looped.
     /// </summary>
-    public bool IsLooping { get; set; }
+    public PlayerLoopMode LoopMode { get; set; }
 
     /// <summary>
     ///     Gets the track queue.
@@ -230,18 +240,34 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         EnsureNotDestroyed();
         EnsureConnected();
 
-        // the looping option is enabled, repeat current track, does not matter how often we skip
-        if (IsLooping && CurrentTrack != null)
+        // the looping track is enabled, repeat current track, does not matter how often we skip
+        if (LoopMode != PlayerLoopMode.None && CurrentTrack != null)
         {
-            return PlayAsync(CurrentTrack, false);
+            if (LoopMode == PlayerLoopMode.Track)
+            {
+                // return if we are just looping track
+                return PlayAsync(CurrentTrack, false);
+            }
+            else if (LoopMode == PlayerLoopMode.Queue)
+            {
+                // queue ths track at the end
+                PlayAsync(CurrentTrack, enqueue: true);
+            }
         }
+
         // tracks are enqueued
-        else if (!Queue.IsEmpty)
+        if (!Queue.IsEmpty)
         {
             LavalinkTrack? track = null;
 
             while (count-- > 0)
             {
+                if (LoopMode == PlayerLoopMode.Queue && track != null)
+                {
+                    // add us to the end if we're looping queue
+                    PlayAsync(track, enqueue: true);
+                }
+
                 // no more tracks in queue
                 if (Queue.Count < 1)
                 {
