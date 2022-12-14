@@ -28,6 +28,7 @@
 namespace Lavalink4NET.Player;
 
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 
@@ -51,9 +52,20 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     }
 
     /// <summary>
+    ///     Gets or sets the loop mode for this player.
+    /// </summary>
+    public PlayerLoopMode LoopMode { get; set; }
+
+    /// <summary>
     ///     Gets or sets a value indicating whether the current playing track should be looped.
     /// </summary>
-    public bool IsLooping { get; set; }
+    [Obsolete("Use LoopMode instead. This property will be removed in future versions.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool IsLooping
+    {
+        get => LoopMode is not PlayerLoopMode.None;
+        set => LoopMode = value ? PlayerLoopMode.Track : PlayerLoopMode.None;
+    }
 
     /// <summary>
     ///     Gets the track queue.
@@ -230,18 +242,34 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         EnsureNotDestroyed();
         EnsureConnected();
 
-        // the looping option is enabled, repeat current track, does not matter how often we skip
-        if (IsLooping && CurrentTrack != null)
+        // the looping track is enabled, repeat current track, does not matter how often we skip
+        if (LoopMode != PlayerLoopMode.None && CurrentTrack != null)
         {
-            return PlayAsync(CurrentTrack, false);
+            if (LoopMode == PlayerLoopMode.Track)
+            {
+                // return if we are just looping track
+                return PlayAsync(CurrentTrack, false);
+            }
+            else if (LoopMode == PlayerLoopMode.Queue)
+            {
+                // queue ths track at the end
+                PlayAsync(CurrentTrack, enqueue: true);
+            }
         }
+
         // tracks are enqueued
-        else if (!Queue.IsEmpty)
+        if (!Queue.IsEmpty)
         {
             LavalinkTrack? track = null;
 
             while (count-- > 0)
             {
+                if (LoopMode == PlayerLoopMode.Queue && track != null)
+                {
+                    // add us to the end if we're looping queue
+                    PlayAsync(track, enqueue: true);
+                }
+
                 // no more tracks in queue
                 if (Queue.Count < 1)
                 {
