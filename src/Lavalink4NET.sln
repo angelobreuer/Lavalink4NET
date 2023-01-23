@@ -36,7 +36,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integrations", "Integration
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.SponsorBlock", "Lavalink4NET.Integrations.SponsorBlock\Lavalink4NET.Integrations.SponsorBlock.csproj", "{7AE7CA17-09C5-47E1-9E91-0DE27796583B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.ExtraFilters", "Lavalink4NET.Integrations.ExtraFilters\Lavalink4NET.Integrations.ExtraFilters.csproj", "{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.ExtraFilters", "Lavalink4NET.Integrations.ExtraFilters\Lavalink4NET.Integrations.ExtraFilters.csproj", "{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Protocol", "Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj", "{A25831AC-326B-4E17-989A-7C3AAFE34D84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Protocol.Tests", "..\tests\Lavalink4NET.Protocol.Tests\Lavalink4NET.Protocol.Tests.csproj", "{E588348C-FC2A-4F1F-8601-9C297349DD04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +88,14 @@ Global
 		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A25831AC-326B-4E17-989A-7C3AAFE34D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A25831AC-326B-4E17-989A-7C3AAFE34D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A25831AC-326B-4E17-989A-7C3AAFE34D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A25831AC-326B-4E17-989A-7C3AAFE34D84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E588348C-FC2A-4F1F-8601-9C297349DD04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E588348C-FC2A-4F1F-8601-9C297349DD04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E588348C-FC2A-4F1F-8601-9C297349DD04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E588348C-FC2A-4F1F-8601-9C297349DD04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
