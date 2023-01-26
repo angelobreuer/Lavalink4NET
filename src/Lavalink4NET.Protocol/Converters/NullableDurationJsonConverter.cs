@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Protocol.Converters;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -34,6 +35,7 @@ internal sealed class NullableDurationJsonConverter : JsonConverter<TimeSpan?>
             writer.WriteNumberValue((long)Math.Round(value.Value.TotalMilliseconds));
         }
 
+        [DoesNotReturn]
         void ThrowNegative() => throw new ArgumentOutOfRangeException(nameof(value), value, "The duration must not be negative.");
     }
 }

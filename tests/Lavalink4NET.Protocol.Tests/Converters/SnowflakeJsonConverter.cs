@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Protocol.Tests;
+namespace Lavalink4NET.Protocol.Tests.Converters;
 
 using System.Buffers;
 using System.Text.Json;
