@@ -22,11 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Requests\" />
+    <ProjectReference Include="..\..\src\Lavalink4NET.Rest\Lavalink4NET.Rest.csproj" />
   </ItemGroup>
 
 </Project>

@@ -52,7 +52,7 @@ public sealed class SnowflakeJsonConverterTests
     public void TestWrite()
     {
         // Arrange
-        var expectedData = "1667857581613"u8;
+        var expectedData = "\"1667857581613\""u8;
         var arrayBufferWriter = new ArrayBufferWriter<byte>();
         var jsonConverter = new SnowflakeJsonConverter();
 

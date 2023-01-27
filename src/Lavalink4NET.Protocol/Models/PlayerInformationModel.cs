@@ -4,20 +4,27 @@ using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
 
 public sealed record class PlayerInformationModel(
-    [property: JsonPropertyName("guildId")]
     [property: JsonRequired]
+    [property: JsonPropertyName("guildId")]
     [property: JsonConverter<SnowflakeJsonConverter>]
     ulong GuildId,
 
     [property: JsonPropertyName("track")]
-    [property: JsonConverter<SnowflakeJsonConverter>]
     TrackModel? CurrentTrack,
 
-    [property: JsonPropertyName("volume")]
     [property: JsonRequired]
+    [property: JsonPropertyName("volume")]
     [property: JsonConverter<VolumeJsonConverter>]
     float Volume,
 
-    [property: JsonPropertyName("paused")]
     [property: JsonRequired]
-    bool IsPaused); // TODO
+    [property: JsonPropertyName("paused")]
+    bool IsPaused,
+
+    [property: JsonRequired]
+    [property: JsonPropertyName("voice")]
+    VoiceStateModel VoiceState,
+
+    [property: JsonRequired]
+    [property: JsonPropertyName("filters")]
+    PlayerFilterMapModel Filters);

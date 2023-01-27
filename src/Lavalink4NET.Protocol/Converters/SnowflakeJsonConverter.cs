@@ -26,6 +26,7 @@ internal sealed class SnowflakeJsonConverter : JsonConverter<ulong>
         ArgumentNullException.ThrowIfNull(writer);
         ArgumentNullException.ThrowIfNull(options);
 
-        writer.WriteNumberValue(value);
+        // Lavalink/Lavaplayer seems to prefer snowflakes serialized as strings
+        writer.WriteStringValue(value.ToString());
     }
 }
