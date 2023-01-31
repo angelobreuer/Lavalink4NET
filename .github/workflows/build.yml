@@ -49,7 +49,7 @@ jobs:
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:./src/coverage/**/coverage.cobertura.xml -targetdir:src/coverage/ -sourcedirs:src/ "-reporttypes:TextSummary;HtmlSummary;MarkdownDeltaSummary" -historydir:coverage/history
-        cat coverage/Summary.txt
+        cat src/coverage/Summary.txt
         
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
