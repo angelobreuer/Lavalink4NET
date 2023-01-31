@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using Events;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 /// <summary>
 ///     A clustered lavalink node with additional information.
@@ -58,7 +59,7 @@ public class LavalinkClusterNode : LavalinkNode
     /// </exception>
     public LavalinkClusterNode(
         LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-        int id, IIntegrationCollection integrationCollection, ILogger? logger = null, ILavalinkCache? cache = null)
+        int id, IIntegrationCollection integrationCollection, ILogger? logger = null, IMemoryCache? cache = null)
         : base(options, client, logger, cache)
     {
         if (options is null)

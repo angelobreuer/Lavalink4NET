@@ -34,14 +34,15 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Player;
+using Microsoft.Extensions.Caching.Memory;
 
 public class ArtworkService : IArtworkService, IDisposable
 {
-    private readonly ILavalinkCache? _cache;
+    private readonly IMemoryCache? _cache;
     private HttpClient? _httpClient;
     private bool _disposed;
 
-    public ArtworkService(ILavalinkCache? cache = null)
+    public ArtworkService(IMemoryCache? cache = null)
     {
         _cache = cache;
     }
@@ -86,15 +87,17 @@ public class ArtworkService : IArtworkService, IDisposable
         {
             cacheKey = $"soundcloud-artwork-{lavalinkTrack.TrackIdentifier}";
 
-            if (_cache.TryGetItem<Uri>(cacheKey, out var cacheItem))
+            if (_cache.TryGetValue<Uri>(cacheKey, out var cacheItem))
             {
                 return cacheItem;
             }
         }
 
-        // the track uri is nullable, but in my testing it always returns one for soundcloud
         if (lavalinkTrack.Uri is null)
+        {
             return null;
+        }
+
         var requestUri = new Uri($"https://soundcloud.com/oembed?url={lavalinkTrack.Uri.AbsoluteUri}&format=json");
         Uri? thumbnailUri;
         try
@@ -106,10 +109,7 @@ public class ArtworkService : IArtworkService, IDisposable
             return null;
         }
 
-        if (_cache is not null)
-        {
-            _cache.AddItem(cacheKey!, thumbnailUri, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
-        }
+        _cache?.Set(cacheKey!, thumbnailUri, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
 
         return thumbnailUri;
     }

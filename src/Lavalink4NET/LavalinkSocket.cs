@@ -40,6 +40,7 @@ using Events;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
 using Lavalink4NET.Payloads.Node;
+using Microsoft.Extensions.Caching.Memory;
 using Payloads;
 using Rest;
 
@@ -73,7 +74,7 @@ public class LavalinkSocket : LavalinkRestClient, IDisposable
     /// <param name="client">the discord client</param>
     /// <param name="logger">the logger</param>
     /// <param name="cache">an optional cache that caches track requests</param>
-    public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
+    public LavalinkSocket(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, IMemoryCache? cache = null)
         : base(options, logger, cache)
     {
         Logger = logger;

@@ -40,6 +40,7 @@ using Lavalink4NET.Payloads.Node;
 using Lavalink4NET.Payloads.Player;
 using Lavalink4NET.Player;
 using Lavalink4NET.Statistics;
+using Microsoft.Extensions.Caching.Memory;
 using Payloads;
 
 /// <summary>
@@ -64,7 +65,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
     /// </exception>
-    public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
+    public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, IMemoryCache? cache = null)
         : base(options, client, logger, cache)
     {
         if (options is null)

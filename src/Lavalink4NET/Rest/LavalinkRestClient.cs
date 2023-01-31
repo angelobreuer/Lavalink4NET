@@ -37,6 +37,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using Player;
 
 /// <summary>
@@ -51,7 +52,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     /// </summary>
     private const string VersionHeaderName = "Lavalink-Api-Version";
 
-    private readonly ILavalinkCache? _cache;
+    private readonly IMemoryCache? _cache;
     private readonly TimeSpan _cacheTime;
     private readonly bool _debugPayloads;
     private readonly HttpClient _httpClient;
@@ -70,7 +71,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     ///     thrown if the track cache time ( <see cref="RestClientOptions.CacheTime"/>) is equal
     ///     or less than <see cref="TimeSpan.Zero"/>.
     /// </exception>
-    public LavalinkRestClient(LavalinkRestOptions options, ILogger? logger = null, ILavalinkCache? cache = null)
+    public LavalinkRestClient(LavalinkRestOptions options, ILogger? logger = null, IMemoryCache? cache = null)
     {
         if (options is null)
         {
@@ -215,7 +216,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
 
         // check if a cache provider is specified in constructor and the track request is cached
         // and caching is wanted (see: "noCache" method parameter)
-        if (_cache != null && !noCache && _cache.TryGetItem<TrackLoadResponsePayload>("track-" + query, out var track))
+        if (_cache != null && !noCache && _cache.TryGetValue<TrackLoadResponsePayload>("track-" + query, out var track))
         {
             _logger?.Log(this, string.Format("Loaded track from cache `{0}`.", query), LogLevel.Debug);
             return track;
@@ -257,7 +258,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
         }
 
         // cache (if a cache provider is specified)
-        _cache?.AddItem("track-" + query, payload, DateTimeOffset.UtcNow + _cacheTime);
+        _cache?.Set("track-" + query, payload, DateTimeOffset.UtcNow + _cacheTime);
 
         return payload;
     }

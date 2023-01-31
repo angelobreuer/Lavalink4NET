@@ -1,5 +1,6 @@
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Lavalink4NET.Cluster;
 
@@ -14,4 +15,4 @@ namespace Lavalink4NET.Cluster;
 /// <param name="id">the node number</param>
 public delegate LavalinkClusterNode ClusterNodeFactory(
     LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-    int id, IIntegrationCollection integrationCollection, ILogger? logger = null, ILavalinkCache? cache = null);
+    int id, IIntegrationCollection integrationCollection, ILogger? logger = null, IMemoryCache? cache = null);

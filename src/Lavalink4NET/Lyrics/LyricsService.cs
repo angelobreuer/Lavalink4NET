@@ -35,13 +35,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Lavalink4NET.Player;
+using Microsoft.Extensions.Caching.Memory;
 
 /// <summary>
 ///     A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
 /// </summary>
 public sealed class LyricsService : IDisposable
 {
-    private readonly ILavalinkCache? _cache;
+    private readonly IMemoryCache? _cache;
     private readonly TimeSpan _cacheTime;
     private readonly HttpClient _httpClient;
     private readonly bool _suppressExceptions;
@@ -55,7 +56,7 @@ public sealed class LyricsService : IDisposable
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
     /// </exception>
-    public LyricsService(LyricsOptions options, ILavalinkCache? cache = null)
+    public LyricsService(LyricsOptions options, IMemoryCache? cache = null)
     {
         if (options is null)
         {
@@ -150,13 +151,13 @@ public sealed class LyricsService : IDisposable
         var key = $"lyrics-{artist}-{title}";
 
         // check if the item is cached
-        if (_cache != null && _cache.TryGetItem<string>(key, out var item))
+        if (_cache != null && _cache.TryGetValue<string>(key, out var item))
         {
             return item;
         }
 
         var response = await RequestLyricsAsync(artist, title, cancellationToken);
-        _cache?.AddItem(key, response, DateTimeOffset.UtcNow + _cacheTime);
+        _cache?.Set(key, response, DateTimeOffset.UtcNow + _cacheTime);
         return response;
     }
 

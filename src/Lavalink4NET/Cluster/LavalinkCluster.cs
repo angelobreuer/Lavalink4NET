@@ -36,6 +36,7 @@ using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Logging;
 using Lavalink4NET.Player;
+using Microsoft.Extensions.Caching.Memory;
 using Rest;
 
 /// <summary>
@@ -43,7 +44,7 @@ using Rest;
 /// </summary>
 public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
 {
-    private readonly ILavalinkCache? _cache;
+    private readonly IMemoryCache? _cache;
     private readonly IDiscordClientWrapper _client;
     private readonly LoadBalancingStrategy _loadBalacingStrategy;
     private readonly ILogger? _logger;
@@ -70,7 +71,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
     /// </exception>
-    public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
+    public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger? logger = null, IMemoryCache? cache = null)
     {
         if (options is null)
         {
