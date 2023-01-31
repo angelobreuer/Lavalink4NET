@@ -8,7 +8,7 @@ public sealed record ServerFrameStatisticsModel(
     int SentFrames,
 
     [property: JsonRequired]
-    [property: JsonPropertyName("sent")]
+    [property: JsonPropertyName("nulled")]
     int NulledFrames,
 
     [property: JsonRequired]
