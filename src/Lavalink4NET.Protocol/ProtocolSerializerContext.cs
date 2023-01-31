@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Models.Usage;
 using Lavalink4NET.Protocol.Payloads;
+using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Responses;
 using Lavalink4NET.Protocol.Tests.Models;
 
@@ -12,6 +13,8 @@ using Lavalink4NET.Protocol.Tests.Models;
 [JsonSerializable(typeof(LavalinkServerInformationModel))]
 [JsonSerializable(typeof(LavalinkServerStatisticsModel))]
 [JsonSerializable(typeof(IPayload))]
+[JsonSerializable(typeof(ReadyPayload))]
+[JsonSerializable(typeof(WebSocketClosedEventPayload))]
 internal sealed partial class ProtocolSerializerContext : JsonSerializerContext
 {
 }

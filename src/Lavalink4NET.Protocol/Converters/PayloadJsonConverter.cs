@@ -72,7 +72,7 @@ internal sealed class PayloadJsonConverter : JsonConverter<IPayload>
         var payloadType = default(Type?);
         if (operationCode.Equals("event", StringComparison.OrdinalIgnoreCase))
         {
-            var eventName = node["event"]?.GetValue<string>();
+            var eventName = node["type"]?.GetValue<string>();
 
             if (eventName is null || !_eventsMap.TryGetValue(eventName, out payloadType))
             {
@@ -111,7 +111,7 @@ internal sealed class PayloadJsonConverter : JsonConverter<IPayload>
             }
 
             newNode["op"] = "event";
-            newNode["event"] = eventName;
+            newNode["type"] = eventName;
         }
         else
         {
@@ -120,7 +120,7 @@ internal sealed class PayloadJsonConverter : JsonConverter<IPayload>
 
         foreach (var (propertyName, propertyValue) in node!.AsObject())
         {
-            newNode[propertyName] = propertyValue;
+            newNode[propertyName] = propertyValue.Deserialize<JsonNode>(); // TODO
         }
 
         newNode.WriteTo(writer, options);
