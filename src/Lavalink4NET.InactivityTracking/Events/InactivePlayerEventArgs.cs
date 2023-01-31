@@ -1,7 +1,8 @@
-namespace Lavalink4NET.Tracking;
+namespace Lavalink4NET.InactivityTracking.Events;
 
 using System;
 using Lavalink4NET.Player;
+using Lavalink4NET.Tracking;
 
 /// <summary>
 ///     The event arguments for the <see cref="InactivityTrackingService.InactivePlayer"/>.

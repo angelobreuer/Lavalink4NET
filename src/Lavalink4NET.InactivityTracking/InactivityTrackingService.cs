@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
+using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.Player;
 using Microsoft.Extensions.Logging;
 
