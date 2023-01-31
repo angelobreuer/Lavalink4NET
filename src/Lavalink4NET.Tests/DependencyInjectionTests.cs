@@ -65,7 +65,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkClusterOptions>()
                 .AddSingleton<IAudioService, LavalinkCluster>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
 
             serviceProvider.GetRequiredService<IAudioService>();
@@ -83,7 +83,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<IAudioService, LavalinkCluster>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
                 .AddSingleton<ILogger, NullLogger>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
 
             serviceProvider.GetRequiredService<IAudioService>();
@@ -132,7 +132,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkNodeOptions>()
                 .AddSingleton<IAudioService, LavalinkNode>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
 
             serviceProvider.GetRequiredService<IAudioService>();
@@ -166,7 +166,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<IAudioService, LavalinkNode>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
                 .AddSingleton<ILogger, NullLogger>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<IAudioService>();
         }
@@ -194,7 +194,7 @@ namespace Lavalink4NET.Tests
             using var serviceProvider = new ServiceCollection()
                 .AddSingleton<LavalinkRestOptions>()
                 .AddSingleton<ILavalinkRestClient, LavalinkRestClient>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<ILavalinkRestClient>();
         }
@@ -209,7 +209,7 @@ namespace Lavalink4NET.Tests
             using var serviceProvider = new ServiceCollection()
                 .AddSingleton<LavalinkRestOptions>()
                 .AddSingleton<ILavalinkRestClient, LavalinkRestClient>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .AddSingleton<ILogger, NullLogger>()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<ILavalinkRestClient>();
@@ -253,7 +253,7 @@ namespace Lavalink4NET.Tests
             using var serviceProvider = new ServiceCollection()
                 .AddSingleton<LyricsOptions>()
                 .AddSingleton<LyricsService>()
-                .AddSingleton<IMemoryCache, MemoryCache>()
+                .AddMemoryCache()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<LyricsService>();
         }
