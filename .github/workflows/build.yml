@@ -42,17 +42,22 @@ jobs:
       run: java -jar ./Lavalink.jar & dotnet test ../src/Lavalink4NET.sln --no-build --configuration ${{ matrix.configuration }} --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage && fg
       shell: bash
 
-    - name: Download previous Code Coverage History
-      uses: actions/download-artifact@v3
-      continue-on-error: true
+    - name: Download artifact
+      id: download-artifact
+      if: github.event_name == 'pull_request' && matrix.configuration == 'Release'
+      uses: dawidd6/action-download-artifact@v2
       with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        commit: ${{github.event.pull_request.base.sha}}
         name: CoverageHistory.html
         path: coverage/history/
+        search_artifacts: true
+        if_no_artifact_found: ignore
 
     - name: Code Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/ -sourcedirs:src/ "-reporttypes:TextSummary;HtmlSummary;MarkdownDeltaSummary" -historydir:history
+        reportgenerator -reports:coverage/**/coverage.cobertura.xml -targetdir:coverage/ -sourcedirs:src/ "-reporttypes:TextSummary;HtmlSummary;MarkdownDeltaSummary" -historydir:coverage/history
         cat coverage/Summary.txt
         
     - name: Archive code coverage results
