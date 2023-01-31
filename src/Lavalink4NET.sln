@@ -36,8 +36,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Rest", "Lavali
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Rest.Tests", "..\tests\Lavalink4NET.Rest.Tests\Lavalink4NET.Rest.Tests.csproj", "{30F036B1-5161-4E7D-92A9-11A73E50F51A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Decoding", "Lavalink4NET.Decoding\Lavalink4NET.Decoding.csproj", "{CF83DF75-448C-49E5-964A-F31356FF2E8B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Abstractions", "Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj", "{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Abstractions.Tests", "..\tests\Lavalink4NET.Abstractions.Tests\Lavalink4NET.Abstractions.Tests.csproj", "{79900A58-D849-4ADC-8956-C59D4B9BAA15}"
@@ -98,10 +96,6 @@ Global
 		{30F036B1-5161-4E7D-92A9-11A73E50F51A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30F036B1-5161-4E7D-92A9-11A73E50F51A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30F036B1-5161-4E7D-92A9-11A73E50F51A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CF83DF75-448C-49E5-964A-F31356FF2E8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CF83DF75-448C-49E5-964A-F31356FF2E8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CF83DF75-448C-49E5-964A-F31356FF2E8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CF83DF75-448C-49E5-964A-F31356FF2E8B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
