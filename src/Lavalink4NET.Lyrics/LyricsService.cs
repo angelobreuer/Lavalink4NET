@@ -28,90 +28,58 @@
 namespace Lavalink4NET.Lyrics;
 
 using System;
-using System.Net;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Lavalink4NET.Player;
+using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 /// <summary>
 ///     A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
 /// </summary>
-public sealed class LyricsService : IDisposable
+public sealed class LyricsService
 {
-    private readonly IMemoryCache? _cache;
-    private readonly TimeSpan _cacheTime;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache? _memoryCache;
+    private readonly TimeSpan _cacheDuration;
     private readonly bool _suppressExceptions;
-    private bool _disposed;
+    private readonly Uri _baseAddress;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LyricsService"/> class.
     /// </summary>
     /// <param name="options">the lyrics service options</param>
-    /// <param name="cache">the request cache</param>
+    /// <param name="memoryCache">the request cache</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="httpClientFactory"/> parameter is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
     /// </exception>
-    public LyricsService(LyricsOptions options, IMemoryCache? cache = null)
+    public LyricsService(
+        IHttpClientFactory httpClientFactory,
+        IOptions<LyricsOptions> options,
+        IMemoryCache? memoryCache = null)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(httpClientFactory);
+        ArgumentNullException.ThrowIfNull(options);
 
-        if (options.CacheTime <= TimeSpan.Zero)
+        if (options.Value.CacheDuration <= TimeSpan.Zero)
         {
-            throw new InvalidOperationException("The cache time is negative or zero. Please do not " +
+            throw new InvalidOperationException(
+                "The cache time is negative or zero. Please do not " +
                 "specify a cache in the constructor instead of using a zero cache time.");
         }
 
-        // initialize HTTP client handler
-        var httpHandler = new HttpClientHandler();
+        _httpClientFactory = httpClientFactory;
+        _memoryCache = memoryCache;
 
-        // check if automatic decompression should be used
-        if (options.Decompression)
-        {
-            // setup compression
-            httpHandler.AutomaticDecompression = DecompressionMethods.GZip
-                | DecompressionMethods.Deflate;
-        }
-
-        // disables cookies
-        httpHandler.UseCookies = false;
-
-        // initialize HTTP client
-        _httpClient = new HttpClient(httpHandler)
-        {
-            BaseAddress = new Uri(options.RestUri)
-        };
-
-        // add user-agent request header
-        if (!string.IsNullOrWhiteSpace(options.UserAgent))
-        {
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
-        }
-
-        _cache = cache;
-        _cacheTime = options.CacheTime;
-        _suppressExceptions = options.SuppressExceptions;
-    }
-
-    /// <summary>
-    ///     Disposes the underlying HTTP client.
-    /// </summary>
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-        _httpClient.Dispose();
+        _baseAddress = options.Value.BaseAddress;
+        _cacheDuration = options.Value.CacheDuration;
+        _suppressExceptions = options.Value.SuppressExceptions;
     }
 
     /// <summary>
@@ -134,37 +102,30 @@ public sealed class LyricsService : IDisposable
     ///     thrown if the specified <paramref name="title"/> is blank.
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-    public async Task<string?> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
+    public async ValueTask<string?> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
     {
-        EnsureNotDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentException.ThrowIfNullOrEmpty(artist);
+        ArgumentException.ThrowIfNullOrEmpty(title);
 
-        if (string.IsNullOrWhiteSpace(artist))
-        {
-            throw new ArgumentException("The specified artist cannot be blank.", nameof(artist));
-        }
-
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new ArgumentException("The specified title cannot be blank.", nameof(title));
-        }
         // the cache key
         var key = $"lyrics-{artist}-{title}";
 
         // check if the item is cached
-        if (_cache != null && _cache.TryGetValue<string>(key, out var item))
+        if (_memoryCache != null && _memoryCache.TryGetValue<string>(key, out var item))
         {
             return item;
         }
 
         var response = await RequestLyricsAsync(artist, title, cancellationToken);
-        _cache?.Set(key, response, DateTimeOffset.UtcNow + _cacheTime);
+        _memoryCache?.Set(key, response, DateTimeOffset.UtcNow + _cacheDuration);
         return response;
     }
 
     /// <summary>
     ///     Gets the lyrics for a track asynchronously (cached).
     /// </summary>
-    /// <param name="trackInfo">the track information to get the lyrics for</param>
+    /// <param name="track">the track information to get the lyrics for</param>
     /// <param name="cancellationToken">
     ///     a cancellation token that can be used by other objects or threads to receive notice
     ///     of cancellation.
@@ -174,13 +135,18 @@ public sealed class LyricsService : IDisposable
     ///     found for the query
     /// </returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-    public Task<string?> GetLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
-        => GetLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
+    public ValueTask<string?> GetLyricsAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+
+        return GetLyricsAsync(track.Author, track.Title, cancellationToken);
+    }
 
     /// <summary>
     ///     Gets the lyrics for a track asynchronously (no caching).
     /// </summary>
-    /// <param name="trackInfo">the track information to get the lyrics for</param>
+    /// <param name="track">the track information to get the lyrics for</param>
     /// <param name="cancellationToken">
     ///     a cancellation token that can be used by other objects or threads to receive notice
     ///     of cancellation.
@@ -190,8 +156,13 @@ public sealed class LyricsService : IDisposable
     ///     found for the query
     /// </returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-    public Task<string?> RequestLyricsAsync(LavalinkTrackInfo trackInfo, CancellationToken cancellationToken = default)
-        => RequestLyricsAsync(trackInfo.Author, trackInfo.Title, cancellationToken);
+    public ValueTask<string?> RequestLyricsAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+
+        return RequestLyricsAsync(track.Author, track.Title, cancellationToken);
+    }
 
     /// <summary>
     ///     Gets the lyrics for a track asynchronously (no caching).
@@ -213,27 +184,26 @@ public sealed class LyricsService : IDisposable
     ///     thrown if the specified <paramref name="title"/> is blank.
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-    public async Task<string?> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
+    public async ValueTask<string?> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
     {
-        EnsureNotDisposed();
-
         cancellationToken.ThrowIfCancellationRequested();
+        ArgumentException.ThrowIfNullOrEmpty(artist);
+        ArgumentException.ThrowIfNullOrEmpty(title);
 
         // encode query parameters
         title = HttpUtility.HtmlEncode(title);
         artist = HttpUtility.HtmlEncode(artist);
 
         // send response
-        using var response = await _httpClient
+        using var httpClient = _httpClientFactory.CreateClient();
+        httpClient.BaseAddress = _baseAddress;
+
+        using var response = await httpClient
             .GetAsync($"{artist}/{title}", HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
-        using var contentStream = await response.Content
-            .ReadAsStreamAsync()
-            .ConfigureAwait(false);
-
-        var payload = await JsonSerializer
-            .DeserializeAsync<LyricsResponse>(contentStream, cancellationToken: cancellationToken)
+        var payload = await response.Content
+            .ReadFromJsonAsync(LyricsJsonSerializerContext.Default.LyricsResponse, cancellationToken)
             .ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -244,21 +214,9 @@ public sealed class LyricsService : IDisposable
                 return null;
             }
 
-            throw new Exception($"Error while requesting: {response.RequestMessage.RequestUri}\n\t\t{payload.ErrorMessage}");
+            throw new Exception($"Error while requesting: {response.RequestMessage?.RequestUri}\n\t\t{payload.ErrorMessage}");
         }
 
-        return payload.Lyrics;
-    }
-
-    /// <summary>
-    ///     Throws an exception if the <see cref="LyricsService"/> instance is disposed.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed.</exception>
-    private void EnsureNotDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(LyricsService));
-        }
+        return payload!.Lyrics;
     }
 }

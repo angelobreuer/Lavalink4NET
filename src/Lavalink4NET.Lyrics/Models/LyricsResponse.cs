@@ -1,5 +1,5 @@
 /*
- *  File:   LyricsOptions.cs
+ *  File:   LyricsResponse.cs
  *  Author: Angelo Breuer
  *
  *  The MIT License (MIT)
@@ -25,31 +25,24 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Lyrics;
+namespace Lavalink4NET.Lyrics.Models;
 
-using Lavalink4NET.Rest;
+using System.Text.Json.Serialization;
 
 /// <summary>
-///     The service options for the <see cref="LyricsService"/> class.
+///     The response payload returned by the lyrics API service.
 /// </summary>
-public sealed class LyricsOptions : RestClientOptions
+public sealed record class LyricsResponse
 {
     /// <summary>
-    ///     Gets or sets the base endpoint of the Lyrics API service ("lyrics.ovh"). This
-    ///     property can be useful when using a local lyrics.ovh API service.
+    ///     Gets an hopefully descriptive error message indicating what error occurred.
     /// </summary>
-    /// <remarks>
-    ///     This property defaults to <c>"https://api.lyrics.ovh/v1/"</c>. Note this is an
-    ///     absolute URI and can not be <see langword="null"/>.
-    /// </remarks>
-    public override string RestUri { get; set; } = "https://api.lyrics.ovh/v1/";
+    [JsonPropertyName("error")]
+    public string? ErrorMessage { get; init; }
 
     /// <summary>
-    ///     Gets or sets a value indicating whether an exception should be thrown when a response
-    ///     to the lyrics.ovh API service failed (returned with a non-2xx / success HTTP status
-    ///     code). (For example the lyrics.ovh API service returns with a 404 Not Found, if the
-    ///     lyrics for a song were not found.)
+    ///     Gets the lyrics of the requested song.
     /// </summary>
-    /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-    public bool SuppressExceptions { get; set; } = true;
+    [JsonPropertyName("lyrics")]
+    public string? Lyrics { get; init; }
 }
