@@ -39,7 +39,7 @@ jobs:
 
     - name: Run tests
       working-directory: ci
-      run: java -jar ./Lavalink.jar & dotnet test ../src/Lavalink4NET.sln --no-build --configuration ${{ matrix.configuration }} --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage && fg
+      run: java -jar ./Lavalink.jar & dotnet test ../src/Lavalink4NET.sln --no-build --configuration ${{ matrix.configuration }} --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage
       shell: bash
 
     - name: Download artifact
