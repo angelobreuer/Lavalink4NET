@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Payloads\Events\" />
     <Folder Include="Requests\" />
   </ItemGroup>
 
