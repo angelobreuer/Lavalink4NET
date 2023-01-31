@@ -33,8 +33,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
-using Lavalink4NET.Logging;
 using Lavalink4NET.Player;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
@@ -43,7 +43,7 @@ public class InactivityTrackingService : IDisposable
 {
     private readonly IAudioService _audioService;
     private readonly IDiscordClientWrapper _clientWrapper;
-    private readonly ILogger? _logger;
+    private readonly ILogger<InactivityTrackingService>? _logger;
     private readonly InactivityTrackingOptions _options;
     private readonly IDictionary<ulong, DateTimeOffset> _players;
     private readonly IList<InactivityTracker> _trackers;
@@ -69,7 +69,7 @@ public class InactivityTrackingService : IDisposable
     /// </exception>
     public InactivityTrackingService(
         IAudioService audioService, IDiscordClientWrapper clientWrapper,
-        InactivityTrackingOptions options, ILogger? logger = null)
+        InactivityTrackingOptions options, ILogger<InactivityTrackingService>? logger = null)
     {
         _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
         _clientWrapper = clientWrapper ?? throw new ArgumentNullException(nameof(clientWrapper));
@@ -79,11 +79,11 @@ public class InactivityTrackingService : IDisposable
         _trackersLock = new object();
 
         _trackers = new List<InactivityTracker>
-            {
-                // add default trackers
-                DefaultInactivityTrackers.UsersInactivityTracker,
-                DefaultInactivityTrackers.ChannelInactivityTracker
-            };
+        {
+            // add default trackers
+            DefaultInactivityTrackers.UsersInactivityTracker,
+            DefaultInactivityTrackers.ChannelInactivityTracker
+        };
 
         if (options.TrackInactivity)
         {
@@ -255,7 +255,7 @@ public class InactivityTrackingService : IDisposable
                     // mark as tracked
                     _players.Add(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay);
 
-                    _logger?.Log(this, string.Format("Tracked player {0} as inactive.", player.GuildId), LogLevel.Debug);
+                    _logger?.LogDebug("Tracked player {0} as inactive.", player.GuildId);
 
                     // trigger event
                     await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
@@ -267,7 +267,7 @@ public class InactivityTrackingService : IDisposable
                 // the player is active again, remove from tracking list
                 if (_players.Remove(player.GuildId))
                 {
-                    _logger?.Log(this, string.Format("Removed player {0} from tracking list.", player.GuildId), LogLevel.Debug);
+                    _logger?.LogDebug("Removed player {0} from tracking list.", player.GuildId);
 
                     // remove from tracking list
                     await UntrackPlayerAsync(player);
@@ -302,7 +302,7 @@ public class InactivityTrackingService : IDisposable
                     continue;
                 }
 
-                _logger?.Log(this, string.Format("Destroyed player {0} due inactivity.", player.Key), LogLevel.Debug);
+                _logger?.LogDebug("Destroyed player {0} due inactivity.", player.Key);
 
                 // dispose the player
                 trackedPlayer.Dispose();
@@ -438,9 +438,9 @@ public class InactivityTrackingService : IDisposable
         {
             PollAsync().GetAwaiter().GetResult();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger?.Log(this, "Inactivity tracking poll failed!", LogLevel.Warning, ex);
+            _logger?.LogWarning(exception, "Inactivity tracking poll failed!");
         }
     }
 

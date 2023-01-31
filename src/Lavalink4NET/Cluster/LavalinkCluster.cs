@@ -34,9 +34,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
-using Lavalink4NET.Logging;
 using Lavalink4NET.Player;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Rest;
 
 /// <summary>
@@ -47,7 +47,8 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     private readonly IMemoryCache? _cache;
     private readonly IDiscordClientWrapper _client;
     private readonly LoadBalancingStrategy _loadBalacingStrategy;
-    private readonly ILogger? _logger;
+    private readonly ILogger<LavalinkCluster>? _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly List<LavalinkClusterNode> _nodes;
     private readonly object _nodesLock;
     private bool _disposed;
@@ -60,7 +61,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     /// </summary>
     /// <param name="options">the cluster options</param>
     /// <param name="client">the discord client</param>
-    /// <param name="logger">the logger</param>
+    /// <param name="loggerFactory">the logger</param>
     /// <param name="cache">
     ///     a cache that is shared between the different lavalink rest clients. If the cache is
     ///     <see langword="null"/>, no cache will be used.
@@ -71,17 +72,16 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
     /// </exception>
-    public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILogger? logger = null, IMemoryCache? cache = null)
+    public LavalinkCluster(LavalinkClusterOptions options, IDiscordClientWrapper client, ILoggerFactory? loggerFactory = null, IMemoryCache? cache = null)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(client);
 
-        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _client = client;
 
         _loadBalacingStrategy = options.LoadBalacingStrategy;
-        _logger = logger;
+        _logger = loggerFactory?.CreateLogger<LavalinkCluster>();
+        _loggerFactory = loggerFactory;
         _cache = cache;
         _nodesLock = new object();
         StayOnline = options.StayOnline;
@@ -393,7 +393,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
         // stay-online feature
         if (StayOnline && eventArgs.ByRemote)
         {
-            _logger?.Log(this, "(Stay-Online) Node died! Moving players to a new node...", LogLevel.Warning);
+            _logger?.LogWarning("(Stay-Online) Node died! Moving players to a new node...");
 
             var players = eventArgs.Node.GetPlayers<LavalinkPlayer>();
 
@@ -427,7 +427,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
         client: _client,
         id: _nodeId++,
         integrationCollection: Integrations,
-        logger: _logger,
+        logger: _loggerFactory.CreateLogger<LavalinkClusterNode>(),
         cache: _cache);
 
     /// <summary>
@@ -471,7 +471,7 @@ public class LavalinkCluster : IAudioService, ILavalinkRestClient, IDisposable
 
         if (!Nodes.Any(s => s.IsConnected))
         {
-            _logger?.Log(this, $"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
+            _logger?.LogInformation($"(Stay-Online) No node available for player {player.GuildId}, dropping player...");
 
             // invoke event
             await OnPlayerMovedAsync(new PlayerMovedEventArgs(sourceNode, null, player));

@@ -1,7 +1,0 @@
-﻿<Project>
-	<ItemGroup>
-		<Compile Update="@(Compile)">
-			<Visible Condition="'%(NuGetItemType)' == 'Compile' AND '%(NuGetPackageId)' == 'Lavalink4NET.Logging.Microsoft'">false</Visible>
-		</Compile>
-	</ItemGroup>
-</Project>

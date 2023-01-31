@@ -34,13 +34,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Events;
-using Lavalink4NET.Logging;
 using Lavalink4NET.Payloads.Events;
 using Lavalink4NET.Payloads.Node;
 using Lavalink4NET.Payloads.Player;
 using Lavalink4NET.Player;
 using Lavalink4NET.Statistics;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Payloads;
 
 /// <summary>
@@ -65,16 +65,14 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
     /// </exception>
-    public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, IMemoryCache? cache = null)
+    public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger<LavalinkNode>? logger = null, IMemoryCache? cache = null)
         : base(options, client, logger, cache)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(client);
 
         Label = options.Label;
-        _discordClient = client ?? throw new ArgumentNullException(nameof(client));
+        _discordClient = client;
         Players = new ConcurrentDictionary<ulong, LavalinkPlayer>();
 
         _disconnectOnStop = options.DisconnectOnStop;
@@ -356,7 +354,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
         await Task.WhenAll(players.Select(player => MovePlayerInternalAsync(player.Value, node)));
 
         // log
-        Logger?.Log(this, string.Format("Moved {0} player(s) to a new node.", players.Length), LogLevel.Debug);
+        Logger?.LogDebug("Moved {0} player(s) to a new node.", players.Length);
     }
 
     /// <summary>
@@ -420,7 +418,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
         await MovePlayerInternalAsync(player, node);
 
         // log
-        Logger?.Log(this, string.Format("Moved player for guild {0} to new node.", player.GuildId), LogLevel.Debug);
+        Logger?.LogDebug("Moved player for guild {0} to new node.", player.GuildId);
     }
 
     /// <summary>
@@ -500,13 +498,16 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
         else if (payloadContext.EventType == EventType.WebSocketClosed)
         {
             var webSocketClosedEvent = payloadContext.DeserializeAs<WebSocketClosedEvent>();
+            var logLevel = webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug;
 
-            Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
-                "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
-                payloadContext.GuildId, webSocketClosedEvent.CloseCode,
-                (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
-                webSocketClosedEvent.ByRemote ? "Yes" : "No"),
-                webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
+            Logger?.Log(
+                logLevel,
+                "Voice WebSocket was closed for player: {0}\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
+                payloadContext.GuildId,
+                webSocketClosedEvent.CloseCode,
+                (int)webSocketClosedEvent.CloseCode,
+                webSocketClosedEvent.Reason,
+                webSocketClosedEvent.ByRemote ? "Yes" : "No");
 
             var eventArgs = new WebSocketClosedEventArgs(
                 closeCode: webSocketClosedEvent.CloseCode,
@@ -582,7 +583,7 @@ public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDi
 
         if (player is null)
         {
-            Logger?.Log(this, "Received a payload for a player that is not connected", LogLevel.Warning);
+            Logger?.LogWarning("Received a payload for a player that is not connected");
             return default;
         }
 

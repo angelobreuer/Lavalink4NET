@@ -36,8 +36,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Player;
 
 /// <summary>
@@ -71,7 +71,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
     ///     thrown if the track cache time ( <see cref="RestClientOptions.CacheTime"/>) is equal
     ///     or less than <see cref="TimeSpan.Zero"/>.
     /// </exception>
-    public LavalinkRestClient(LavalinkRestOptions options, ILogger? logger = null, IMemoryCache? cache = null)
+    public LavalinkRestClient(LavalinkRestOptions options, ILogger<LavalinkRestClient>? logger = null, IMemoryCache? cache = null)
     {
         if (options is null)
         {
@@ -218,11 +218,11 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
         // and caching is wanted (see: "noCache" method parameter)
         if (_cache != null && !noCache && _cache.TryGetValue<TrackLoadResponsePayload>("track-" + query, out var track))
         {
-            _logger?.Log(this, string.Format("Loaded track from cache `{0}`.", query), LogLevel.Debug);
+            _logger?.LogDebug("Loaded track from cache `{Query}`.", query);
             return track;
         }
 
-        _logger?.Log(this, string.Format("Loading track '{0}'...", query), LogLevel.Debug);
+        _logger?.LogDebug("Loading track '{Query}'...", query);
 
         var completionOption = _debugPayloads
             ? HttpCompletionOption.ResponseContentRead
@@ -242,7 +242,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
                 .ConfigureAwait(false);
 
             var responseContent = Encoding.UTF8.GetString(responseData);
-            _logger?.Log(this, string.Format("Got response for track load: `{0}`: {1}.", query, responseContent), LogLevel.Debug);
+            _logger?.LogDebug("Got response for track load: `{0}`: {1}.", query, responseContent);
 
             payload = JsonSerializer.Deserialize<TrackLoadResponsePayload>(responseData)!;
         }
@@ -279,7 +279,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
 
         if (!response.Headers.TryGetValues(VersionHeaderName, out var values))
         {
-            _logger?.Log(this, string.Format("Expected header `{0}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName), LogLevel.Warning);
+            _logger?.LogWarning("Expected header `{0}` on Lavalink HTTP response. Make sure you're using the Lavalink-Server >= 3.0", VersionHeaderName);
             return;
         }
 
@@ -287,7 +287,7 @@ public class LavalinkRestClient : ILavalinkRestClient, IDisposable
 
         if (!int.TryParse(rawVersion, out var version) || version <= 2)
         {
-            _logger?.Log(this, string.Format("Invalid version {0}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version), LogLevel.Warning);
+            _logger?.LogWarning("Invalid version {0}, supported version >= 3. Make sure you're using the Lavalink-Server >= 3.0", version);
         }
     }
 }

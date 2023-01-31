@@ -28,11 +28,12 @@
 namespace Lavalink4NET.Tests
 {
     using Lavalink4NET.Cluster;
-    using Lavalink4NET.Logging;
     using Lavalink4NET.Lyrics;
     using Lavalink4NET.Rest;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Xunit;
 
     /// <summary>
@@ -82,7 +83,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkClusterOptions>()
                 .AddSingleton<IAudioService, LavalinkCluster>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .AddMemoryCache()
                 .BuildServiceProvider();
 
@@ -100,7 +101,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkClusterOptions>()
                 .AddSingleton<IAudioService, LavalinkCluster>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .BuildServiceProvider();
 
             serviceProvider.GetRequiredService<IAudioService>();
@@ -149,7 +150,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkNodeOptions>()
                 .AddSingleton<IAudioService, LavalinkNode>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<IAudioService>();
         }
@@ -165,9 +166,10 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkNodeOptions>()
                 .AddSingleton<IAudioService, LavalinkNode>()
                 .AddSingleton<IDiscordClientWrapper, NullDiscordClientWrapper>()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .AddMemoryCache()
                 .BuildServiceProvider();
+
             serviceProvider.GetRequiredService<IAudioService>();
         }
 
@@ -210,7 +212,7 @@ namespace Lavalink4NET.Tests
                 .AddSingleton<LavalinkRestOptions>()
                 .AddSingleton<ILavalinkRestClient, LavalinkRestClient>()
                 .AddMemoryCache()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .BuildServiceProvider();
             serviceProvider.GetRequiredService<ILavalinkRestClient>();
         }
@@ -225,8 +227,9 @@ namespace Lavalink4NET.Tests
             using var serviceProvider = new ServiceCollection()
                 .AddSingleton<LavalinkRestOptions>()
                 .AddSingleton<ILavalinkRestClient, LavalinkRestClient>()
-                .AddSingleton<ILogger, NullLogger>()
+                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
                 .BuildServiceProvider();
+
             serviceProvider.GetRequiredService<ILavalinkRestClient>();
         }
 

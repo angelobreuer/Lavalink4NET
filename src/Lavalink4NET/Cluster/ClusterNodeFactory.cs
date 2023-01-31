@@ -1,8 +1,9 @@
-using Lavalink4NET.Integrations;
-using Lavalink4NET.Logging;
-using Microsoft.Extensions.Caching.Memory;
-
 namespace Lavalink4NET.Cluster;
+
+using Lavalink4NET.Integrations;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+
 
 /// <summary>
 ///     A factory used to create cluster nodes.
@@ -14,5 +15,10 @@ namespace Lavalink4NET.Cluster;
 /// <param name="cache">an optional cache that caches track requests</param>
 /// <param name="id">the node number</param>
 public delegate LavalinkClusterNode ClusterNodeFactory(
-    LavalinkCluster cluster, LavalinkNodeOptions options, IDiscordClientWrapper client,
-    int id, IIntegrationCollection integrationCollection, ILogger? logger = null, IMemoryCache? cache = null);
+    LavalinkCluster cluster,
+    LavalinkNodeOptions options,
+    IDiscordClientWrapper client,
+    int id,
+    IIntegrationCollection integrationCollection,
+    ILogger<LavalinkClusterNode>? logger = null,
+    IMemoryCache? cache = null);
