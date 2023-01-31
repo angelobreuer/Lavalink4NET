@@ -1,0 +1,71 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Install .NET 7.0
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+
+    - name: Restore dependencies
+      working-directory: src
+      run: dotnet restore
+      
+    - name: Build
+      working-directory: src
+      run: dotnet build --no-restore
+      
+    - name: Test
+      working-directory: src
+      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage
+      
+    - name: Download previous Code Coverage History
+      uses: actions/download-artifact@v3
+      continue-on-error: true
+      with:
+        name: CoverageHistory.html
+        path: coverage/history/
+
+    - name: Code Coverage Report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:coverage/ -sourcedirs:. -reporttypes:TextSummary`;HtmlSummary`;MarkdownDeltaSummary -historydir:coverage/history
+        cat coverage/Summary.txt
+        
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: CoverageSummary.html
+        path: coverage/summary.html
+        
+    - name: Archive code coverage history
+      uses: actions/upload-artifact@v3
+      with:
+        name: CoverageHistory.html
+        path: coverage/history/*.xml
+        
+    - name: Add Coverage Pull Request Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: coverage/DeltaSummary.md
