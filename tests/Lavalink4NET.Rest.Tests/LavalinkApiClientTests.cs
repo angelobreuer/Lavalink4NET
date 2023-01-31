@@ -23,7 +23,7 @@ public class LavalinkApiClientTests
 
         // Assert
         Assert.Equal(
-            expected: "d208324989e9c069cc84bbc583d912738949e379-SNAPSHOT",
+            expected: "3.7.3",
             actual: version);
     }
 
