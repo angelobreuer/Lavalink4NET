@@ -25,15 +25,13 @@
  *  THE SOFTWARE.
  */
 
-namespace Lavalink4NET.Player;
+namespace Lavalink4NET.Tracks;
 
 /// <summary>
 ///     A set of different stream providers supported by lavaplayer (https://github.com/sedmelluq/lavaplayer).
 /// </summary>
 public enum StreamProvider : byte
 {
-    Unknown,
-
     /// <summary>
     ///     A stream from YouTube.
     /// </summary>
