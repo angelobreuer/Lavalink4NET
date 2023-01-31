@@ -36,36 +36,36 @@ jobs:
       
     - name: Test
       working-directory: src
-      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage
+      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
       
     - name: Download previous Code Coverage History
       uses: actions/download-artifact@v3
       continue-on-error: true
       with:
         name: CoverageHistory.html
-        path: coverage/history/
+        path: src/coverage/history/
 
     - name: Code Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:coverage/ -sourcedirs:. -reporttypes:TextSummary`;HtmlSummary`;MarkdownDeltaSummary -historydir:coverage/history
+        reportgenerator -reports:./src/coverage/**/coverage.cobertura.xml -targetdir:src/coverage/ -sourcedirs:src/ -reporttypes:TextSummary`;HtmlSummary`;MarkdownDeltaSummary -historydir:coverage/history
         cat coverage/Summary.txt
         
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
       with:
         name: CoverageSummary.html
-        path: coverage/summary.html
+        path: src/coverage/summary.html
         
     - name: Archive code coverage history
       uses: actions/upload-artifact@v3
       with:
         name: CoverageHistory.html
-        path: coverage/history/*.xml
+        path: src/coverage/history/*.xml
         
     - name: Add Coverage Pull Request Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
         recreate: true
-        path: coverage/DeltaSummary.md
+        path: src/coverage/DeltaSummary.md
