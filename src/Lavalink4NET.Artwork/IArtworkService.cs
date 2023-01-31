@@ -30,7 +30,7 @@ namespace Lavalink4NET.Artwork;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Player;
+using Lavalink4NET.Tracks;
 
 /// <summary>
 ///     A service that can be used to resolve artworks for tracks.

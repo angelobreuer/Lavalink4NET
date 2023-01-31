@@ -33,18 +33,25 @@ using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Player;
+using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Caching.Memory;
 
 public class ArtworkService : IArtworkService, IDisposable
 {
     private readonly IMemoryCache? _cache;
-    private HttpClient? _httpClient;
     private bool _disposed;
+    private HttpClient? _httpClient;
 
     public ArtworkService(IMemoryCache? cache = null)
     {
         _cache = cache;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc/>
@@ -61,6 +68,34 @@ public class ArtworkService : IArtworkService, IDisposable
     };
 
 
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            _httpClient?.Dispose();
+        }
+    }
+
+    protected HttpClient GetHttpClient()
+    {
+        EnsureNotDisposed();
+        return _httpClient ??= new HttpClient();
+    }
+
+    protected virtual ValueTask<Uri?> ResolveArtworkForBandcampAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        return default;
+    }
+
     protected virtual ValueTask<Uri?> ResolveArtworkForCustomTrackAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -68,13 +103,18 @@ public class ArtworkService : IArtworkService, IDisposable
         return default;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForYouTubeAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForHttpAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
+        return default;
+    }
 
-        var uri = new Uri($"https://img.youtube.com/vi/{lavalinkTrack.TrackIdentifier}/maxresdefault.jpg");
-        return CreateResultFromSynchronous(uri);
+    protected virtual ValueTask<Uri?> ResolveArtworkForLocalAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
+        return default;
     }
 
     protected virtual async ValueTask<Uri?> ResolveArtworkForSoundCloudAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
@@ -85,7 +125,7 @@ public class ArtworkService : IArtworkService, IDisposable
         var cacheKey = default(string?);
         if (_cache is not null)
         {
-            cacheKey = $"soundcloud-artwork-{lavalinkTrack.TrackIdentifier}";
+            cacheKey = $"soundcloud-artwork-{lavalinkTrack.Identifier}";
 
             if (_cache.TryGetValue<Uri>(cacheKey, out var cacheItem))
             {
@@ -114,7 +154,7 @@ public class ArtworkService : IArtworkService, IDisposable
         return thumbnailUri;
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForBandcampAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForTwitchAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
@@ -126,66 +166,25 @@ public class ArtworkService : IArtworkService, IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
-        var uri = new Uri($"https://i.vimeocdn.com/video/{lavalinkTrack.TrackIdentifier}.png");
-        return CreateResultFromSynchronous(uri);
+        var uri = new Uri($"https://i.vimeocdn.com/video/{lavalinkTrack.Identifier}.png");
+        return ValueTask.FromResult<Uri?>(uri);
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForTwitchAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForYouTubeAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
-        return default;
+
+        var uri = new Uri($"https://img.youtube.com/vi/{lavalinkTrack.Identifier}/maxresdefault.jpg");
+        return ValueTask.FromResult<Uri?>(uri);
     }
 
-    protected virtual ValueTask<Uri?> ResolveArtworkForLocalAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
-        return default;
-    }
-
-    protected virtual ValueTask<Uri?> ResolveArtworkForHttpAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
-        return default;
-    }
-
-    private static ValueTask<Uri?> CreateResultFromSynchronous(Uri? resultUri = null)
-    {
-#if NET5_0_OR_GREATER
-        return ValueTask.FromResult(resultUri);
-#else
-        return new ValueTask<Uri?>(Task.FromResult<Uri?>(resultUri));
-#endif
-    }
-
-    protected HttpClient GetHttpClient()
-    {
-        EnsureNotDisposed();
-        return _httpClient ??= new HttpClient();
-    }
-
-    protected virtual void Dispose(bool disposing)
+    private void EnsureNotDisposed()
     {
         if (_disposed)
         {
-            return;
+            throw new ObjectDisposedException(nameof(ArtworkService));
         }
-
-        _disposed = true;
-
-        if (disposing)
-        {
-            _httpClient?.Dispose();
-        }
-    }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 
     private async ValueTask<Uri?> FetchTrackUriFromOEmbedCompatibleResourceAsync(Uri requestUri, CancellationToken cancellationToken = default)
@@ -200,13 +199,5 @@ public class ArtworkService : IArtworkService, IDisposable
 
         var rawThumbnailUri = thumbnailUriNode.GetValue<string>();
         return rawThumbnailUri is null ? default : new Uri(rawThumbnailUri);
-    }
-
-    private void EnsureNotDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(ArtworkService));
-        }
     }
 }
