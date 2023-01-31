@@ -32,11 +32,11 @@ jobs:
       
     - name: Build
       working-directory: src
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration $env:Configuration
       
     - name: Test
       working-directory: src
-      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      run: dotnet test --no-build --configuration $env:Configuration --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
       
     - name: Download previous Code Coverage History
       uses: actions/download-artifact@v3
