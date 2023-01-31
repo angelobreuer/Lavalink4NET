@@ -46,17 +46,9 @@ jobs:
         path: src/coverage/history/
 
     - name: Code Coverage Report
-      if: runner.os == 'Windows'
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:./src/coverage/**/coverage.cobertura.xml -targetdir:src/coverage/ -sourcedirs:src/ -reporttypes:TextSummary`;HtmlSummary`;MarkdownDeltaSummary -historydir:coverage/history
-        cat coverage/Summary.txt
-
-    - name: Code Coverage Report
-      if: runner.os != 'Windows'
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:./src/coverage/**/coverage.cobertura.xml -targetdir:src/coverage/ -sourcedirs:src/ -reporttypes:TextSummary;HtmlSummary;MarkdownDeltaSummary -historydir:coverage/history
+        reportgenerator -reports:./src/coverage/**/coverage.cobertura.xml -targetdir:src/coverage/ -sourcedirs:src/ "-reporttypes:TextSummary;HtmlSummary;MarkdownDeltaSummary" -historydir:coverage/history
         cat coverage/Summary.txt
         
     - name: Archive code coverage results
