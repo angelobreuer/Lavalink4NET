@@ -11,4 +11,8 @@ public sealed record class TrackEndEventPayload(
 
     [property: JsonRequired]
     [property: JsonPropertyName("encodedTrack")]
-    string TrackData) : IEventPayload; // TODO: reason
+    string TrackData,
+
+    [property: JsonRequired]
+    [property: JsonPropertyName("reason")]
+    TrackEndReason Reason) : IEventPayload;
