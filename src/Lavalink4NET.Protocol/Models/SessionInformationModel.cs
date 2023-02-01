@@ -8,5 +8,5 @@ public sealed record class SessionInformationModel(
     string? ResumingKey,
 
     [property: JsonPropertyName("timeout")]
-    [property: JsonConverter<DurationJsonConverter>]
+    [property: JsonConverter(typeof(DurationJsonConverter))]
     TimeSpan Timeout);

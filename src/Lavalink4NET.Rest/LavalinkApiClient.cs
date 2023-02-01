@@ -3,12 +3,14 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using Lavalink4NET.Protocol;
+using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest.Entities.Server;
 using Lavalink4NET.Rest.Entities.Usage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-public sealed class LavalinkApiClient : LavalinkApiClientBase
+public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClient
 {
     private readonly LavalinkApiClientEndpoints _endpoints;
 
@@ -59,5 +61,20 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase
             .ConfigureAwait(false);
 
         return LavalinkServerStatistics.FromModel(model!);
+    }
+
+    public async ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(properties);
+
+        var requestUri = _endpoints.Player(sessionId, guildId);
+        using var httpClient = CreateHttpClient();
+
+        var model = await httpClient
+            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
+            .ConfigureAwait(false);
+
+        return model!;
     }
 }

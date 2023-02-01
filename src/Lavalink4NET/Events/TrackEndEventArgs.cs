@@ -1,7 +1,8 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Player;
+using Lavalink4NET.Players;
+using Lavalink4NET.Protocol.Payloads.Events;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/> event.
@@ -33,6 +34,5 @@ public class TrackEndEventArgs
     /// <summary>
     ///     Gets a value indicating whether the player should play the next track.
     /// </summary>
-    public bool MayStartNext => Reason is TrackEndReason.Finished
-        or TrackEndReason.LoadFailed;
+    public bool MayStartNext => Reason is TrackEndReason.Finished or TrackEndReason.LoadFailed;
 }

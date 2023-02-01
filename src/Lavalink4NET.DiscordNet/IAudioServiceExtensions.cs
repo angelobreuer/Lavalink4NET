@@ -1,90 +1,66 @@
 namespace Lavalink4NET.DiscordNet;
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Discord;
-using Lavalink4NET.Player;
+using global::Discord;
+using Lavalink4NET.Players;
 
 /// <summary>
-///     A set of different extension methods for the <see cref="IAudioService"/> class.
+///     A set of different extension methods for the <see cref="IPlayerManager"/> class.
 /// </summary>
-public static class IAudioServiceExtensions
+public static class PlayerManagerExtensions
 {
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guild"/>.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to use</typeparam>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="guild">the guild to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    public static TPlayer? GetPlayer<TPlayer>(this IAudioService audioService, IGuild guild) where TPlayer : LavalinkPlayer
-        => audioService.GetPlayer<TPlayer>(guild.Id);
+    public static ValueTask<T?> GetPlayerAsync<T>(this IPlayerManager playerManager, IGuild guild, CancellationToken cancellationToken = default) where T : class, ILavalinkPlayer
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(guild);
 
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guild"/>.
-    /// </summary>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="guild">the guild to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    public static LavalinkPlayer? GetPlayer(this IAudioService audioService, IGuild guild)
-        => audioService.GetPlayer(guild.Id);
+        return playerManager.GetPlayerAsync<T>(guild.Id, cancellationToken);
+    }
 
-    /// <summary>
-    ///     Gets a value indicating whether a player is created for the specified <paramref name="guild"/>.
-    /// </summary>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="guild">the guild to create the player for</param>
-    /// <returns>
-    ///     a value indicating whether a player is created for the specified <paramref name="guild"/>
-    /// </returns>
-    public static bool HasPlayer(this IAudioService audioService, IGuild guild)
-        => audioService.HasPlayer(guild.Id);
+    public static ValueTask<ILavalinkPlayer?> GetPlayerAsync(this IPlayerManager playerManager, IGuild guild, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(guild);
 
-    /// <summary>
-    ///     Joins the specified <paramref name="audioService"/> asynchronously.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to create</typeparam>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="voiceChannel">the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    public static Task<TPlayer> JoinAsync<TPlayer>(this IAudioService audioService, IVoiceChannel voiceChannel,
-        bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
-        => audioService.JoinAsync<TPlayer>(voiceChannel.GuildId, voiceChannel.Id, selfDeaf, selfMute);
+        return playerManager.GetPlayerAsync(guild.Id, cancellationToken);
+    }
 
-    /// <summary>
-    ///     Joins the specified <paramref name="audioService"/> asynchronously.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to create</typeparam>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="playerFactory">the player factory</param>
-    /// <param name="voiceChannel">the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    public static Task<TPlayer> JoinAsync<TPlayer>(
-        this IAudioService audioService, PlayerFactory<TPlayer> playerFactory, IVoiceChannel voiceChannel,
-        bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer
-        => audioService.JoinAsync(playerFactory, voiceChannel.GuildId, voiceChannel.Id, selfDeaf, selfMute);
+    public static bool HasPlayer(this IPlayerManager playerManager, IGuild guild)
+    {
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(guild);
 
-    /// <summary>
-    ///     Joins the specified <paramref name="audioService"/> asynchronously.
-    /// </summary>
-    /// <param name="audioService">the audio service</param>
-    /// <param name="voiceChannel">the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    public static Task JoinAsync(this IAudioService audioService, IVoiceChannel voiceChannel,
-        bool selfDeaf = false, bool selfMute = false)
-        => audioService.JoinAsync(voiceChannel.GuildId, voiceChannel.Id, selfDeaf, selfMute);
+        return playerManager.HasPlayer(guild.Id);
+    }
+
+    public static ValueTask<T> JoinAsync<T>(this IPlayerManager playerManager, IVoiceChannel voiceChannel, PlayerFactory<T> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default) where T : ILavalinkPlayer
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(voiceChannel);
+
+        return playerManager.JoinAsync<T>(voiceChannel.GuildId, voiceChannel.Id, playerFactory, options, cancellationToken);
+    }
+
+    public static ValueTask<ILavalinkPlayer> JoinAsync(this IPlayerManager playerManager, IVoiceChannel voiceChannel, PlayerFactory<ILavalinkPlayer> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(voiceChannel);
+
+        return playerManager.JoinAsync(voiceChannel.GuildId, voiceChannel.Id, playerFactory, options, cancellationToken);
+    }
+
+    public static ValueTask<ILavalinkPlayer> JoinAsync(this IPlayerManager playerManager, IVoiceChannel voiceChannel, PlayerJoinOptions options = default, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(voiceChannel);
+
+        return playerManager.JoinAsync(voiceChannel.GuildId, voiceChannel.Id, options, cancellationToken);
+    }
 }

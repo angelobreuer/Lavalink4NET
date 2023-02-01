@@ -1,7 +1,8 @@
 namespace Lavalink4NET.Tracking;
 
 using System.Threading.Tasks;
-using Lavalink4NET.Player;
+using Lavalink4NET.Clients;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     A delegate for an asynchronous player inactivity tracker.
@@ -12,4 +13,4 @@ using Lavalink4NET.Player;
 ///     a task that represents the asynchronous task. The task result is a value indicating
 ///     whether the specified <paramref name="player"/> is inactive.
 /// </returns>
-public delegate Task<bool> InactivityTracker(LavalinkPlayer player, IDiscordClientWrapper client);
+public delegate ValueTask<bool> InactivityTracker(ILavalinkPlayer player, IDiscordClientWrapper client, CancellationToken cancellationToken = default);

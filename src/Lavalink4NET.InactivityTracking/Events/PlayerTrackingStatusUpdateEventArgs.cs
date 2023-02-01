@@ -1,7 +1,7 @@
 namespace Lavalink4NET.InactivityTracking.Events;
 
 using System;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 
 /// <summary>
@@ -19,10 +19,16 @@ public sealed class PlayerTrackingStatusUpdateEventArgs : EventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
     /// </exception>
-    public PlayerTrackingStatusUpdateEventArgs(IAudioService audioService,
-        LavalinkPlayer player, InactivityTrackingStatus trackingStatus)
+    public PlayerTrackingStatusUpdateEventArgs(
+        IAudioService audioService,
+        ulong guildId,
+        ILavalinkPlayer? player,
+        InactivityTrackingStatus trackingStatus)
     {
-        AudioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+        ArgumentNullException.ThrowIfNull(audioService);
+
+        AudioService = audioService;
+        GuildId = guildId;
         Player = player;
         TrackingStatus = trackingStatus;
     }
@@ -32,10 +38,12 @@ public sealed class PlayerTrackingStatusUpdateEventArgs : EventArgs
     /// </summary>
     public IAudioService AudioService { get; }
 
+    public ulong GuildId { get; }
+
     /// <summary>
     ///     Gets the affected player (may be <see langword="null"/>).
     /// </summary>
-    public LavalinkPlayer Player { get; }
+    public ILavalinkPlayer? Player { get; }
 
     /// <summary>
     ///     Gets the new tracking status of the player.

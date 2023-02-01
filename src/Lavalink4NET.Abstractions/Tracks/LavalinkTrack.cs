@@ -5,11 +5,25 @@ public partial record class LavalinkTrack
     private StreamProvider? _cachedProvider;
     private bool _providerCached;
 
-    public required string Author { get; init; }
+#if NET7_0_OR_GREATER
+    required
+#endif
+    public string Title
+    { get; init; } = null!;
 
-    public required string Title { get; init; }
+#if NET7_0_OR_GREATER
+    required
+#endif
 
-    public required string Identifier { get; init; }
+    public string Identifier
+    { get; init; }
+
+#if NET7_0_OR_GREATER
+    required
+#endif
+
+    public string Author
+    { get; init; }
 
     public TimeSpan Duration { get; init; }
 

@@ -1,7 +1,7 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Player;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackStuck"/> event.
@@ -20,9 +20,11 @@ public class TrackStuckEventArgs : TrackEventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    public TrackStuckEventArgs(LavalinkPlayer player, string trackIdentifier, long threshold)
+    public TrackStuckEventArgs(ILavalinkPlayer player, string trackIdentifier, long threshold)
         : base(player, trackIdentifier)
-        => Threshold = threshold;
+    {
+        Threshold = threshold;
+    }
 
     /// <summary>
     ///     Gets the threshold in milliseconds.

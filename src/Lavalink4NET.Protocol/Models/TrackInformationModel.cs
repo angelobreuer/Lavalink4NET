@@ -19,16 +19,16 @@ public sealed record class TrackInformationModel(
 
     [property: JsonRequired]
     [property: JsonPropertyName("length")]
-    [property: JsonConverter<DurationJsonConverter>]
-    TimeSpan Length,
+    [property: JsonConverter(typeof(DurationJsonConverter))]
+    TimeSpan Duration,
 
     [property: JsonRequired]
     [property: JsonPropertyName("isStream")]
-    bool IsStream,
+    bool IsLiveStream,
 
     [property: JsonRequired]
     [property: JsonPropertyName("position")]
-    [property: JsonConverter<DurationJsonConverter>]
+    [property: JsonConverter(typeof(DurationJsonConverter))]
     TimeSpan Position,
 
     [property: JsonRequired]

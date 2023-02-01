@@ -1,18 +1,16 @@
 ﻿namespace Lavalink4NET.Integrations.ExtraFilters;
 
-using System.Text.Json.Serialization;
 using Lavalink4NET.Filters;
+using Lavalink4NET.Protocol.Models;
 
-public sealed class EchoFilterOptions : IFilterOptions
+public sealed record class EchoFilterOptions(
+    float? Delay = null,
+    float? Decay = null) : IFilterOptions
 {
-    public const string Name = "echo";
+    public bool IsDefault => this is { Delay: null, Decay: null, };
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("delay")]
-    public float Delay { get; init; } = 1.0F;
-
-    [JsonPropertyName("decay")]
-    public float Decay { get; init; } = 0.5F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        throw new System.NotImplementedException(); // TODO
+    }
 }

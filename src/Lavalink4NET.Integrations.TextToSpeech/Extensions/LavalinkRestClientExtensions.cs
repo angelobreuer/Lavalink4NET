@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Integrations.TextToSpeech;
 using Lavalink4NET.Integrations.TextToSpeech.Synthesis;
-using Lavalink4NET.Player;
+using Lavalink4NET.Tracks;
 
 public static class LavalinkRestClientExtensions
 {

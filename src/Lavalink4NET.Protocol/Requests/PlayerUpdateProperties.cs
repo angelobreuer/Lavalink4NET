@@ -6,38 +6,40 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
 
-public sealed record class PlayerUpdateProperties(
-    [property: JsonPropertyName("encodedTrack")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<string?> TrackData,
+public sealed record class PlayerUpdateProperties
+{
+    [JsonPropertyName("encodedTrack")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<string?> TrackData { get; set; }
 
-    [property: JsonPropertyName("identifier")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<string?> Identifier,
+    [JsonPropertyName("identifier")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<string?> Identifier { get; set; }
 
-    [property: JsonPropertyName("position")]
-    [property: JsonConverter<DurationJsonConverter>]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<TimeSpan> Position,
+    [JsonPropertyName("position")]
+    [JsonConverter(typeof(DurationJsonConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<TimeSpan> Position { get; set; }
 
-    [property: JsonPropertyName("endTime")]
-    [property: JsonConverter<DurationJsonConverter>]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<TimeSpan> EndTime,
+    [JsonPropertyName("endTime")]
+    [JsonConverter(typeof(DurationJsonConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<TimeSpan> EndTime { get; set; }
 
-    [property: JsonPropertyName("volume")]
-    [property: JsonConverter<VolumeJsonConverter>]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<float> Volume,
+    [JsonPropertyName("volume")]
+    [JsonConverter(typeof(VolumeJsonConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<float> Volume { get; set; }
 
-    [property: JsonPropertyName("paused")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<bool> IsPaused,
+    [JsonPropertyName("paused")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<bool> IsPaused { get; set; }
 
-    [property: JsonPropertyName("filters")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<IDictionary<string, JsonObject>> Filters,
+    [JsonPropertyName("filters")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<IDictionary<string, JsonObject>> Filters { get; set; }
 
-    [property: JsonPropertyName("voice")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    Optional<VoiceStateProperties> VoiceState);
+    [JsonPropertyName("voice")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Optional<VoiceStateProperties> VoiceState { get; set; }
+}

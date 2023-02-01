@@ -1,13 +1,12 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Player;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackException"/> event.
 /// </summary>
-public class TrackExceptionEventArgs
-     : TrackEventArgs
+public class TrackExceptionEventArgs : TrackEventArgs
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="TrackExceptionEventArgs"/> class.
@@ -21,7 +20,7 @@ public class TrackExceptionEventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    public TrackExceptionEventArgs(LavalinkPlayer player, string trackIdentifier, string errorMessage)
+    public TrackExceptionEventArgs(ILavalinkPlayer player, string trackIdentifier, string errorMessage)
         : base(player, trackIdentifier)
     {
         ErrorMessage = errorMessage;

@@ -1,7 +1,7 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     Abstraction for event arguments where a player is affected.
@@ -15,11 +15,15 @@ public abstract class PlayerEventArgs : EventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
     /// </exception>
-    protected PlayerEventArgs(LavalinkPlayer player)
-        => Player = player ?? throw new ArgumentNullException(nameof(player));
+    protected PlayerEventArgs(ILavalinkPlayer player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+
+        Player = player;
+    }
 
     /// <summary>
     ///     Gets the affected player.
     /// </summary>
-    public LavalinkPlayer Player { get; }
+    public ILavalinkPlayer Player { get; }
 }

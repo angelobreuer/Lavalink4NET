@@ -11,18 +11,22 @@
     </Description>
 
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
-
-    <!-- Documentation -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" Condition=" '$(TargetFramework)' == 'netstandard2.0' " />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.0" />
     <PackageReference Include="System.Buffers" Version="4.5.1" Condition=" '$(TargetFramework)' == 'netstandard2.0' " />
     <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" Condition=" '$(TargetFramework)' == 'netstandard2.0' " />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj" />
+    <ProjectReference Include="..\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
+    <ProjectReference Include="..\Lavalink4NET.Rest\Lavalink4NET.Rest.csproj" />
   </ItemGroup>
 
   <Import Project="../Lavalink4NET.targets" />

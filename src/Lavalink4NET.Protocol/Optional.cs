@@ -40,4 +40,6 @@ public readonly struct Optional<T>
         _value = value;
         IsPresent = true;
     }
+
+    public static implicit operator Optional<T>(T value) => new(value);
 }

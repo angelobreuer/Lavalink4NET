@@ -6,7 +6,7 @@ using Lavalink4NET.Protocol.Converters;
 public sealed record class PlayerInformationModel(
     [property: JsonRequired]
     [property: JsonPropertyName("guildId")]
-    [property: JsonConverter<SnowflakeJsonConverter>]
+    [property: JsonConverter(typeof(SnowflakeJsonConverter))]
     ulong GuildId,
 
     [property: JsonPropertyName("track")]
@@ -14,7 +14,7 @@ public sealed record class PlayerInformationModel(
 
     [property: JsonRequired]
     [property: JsonPropertyName("volume")]
-    [property: JsonConverter<VolumeJsonConverter>]
+    [property: JsonConverter(typeof(VolumeJsonConverter))]
     float Volume,
 
     [property: JsonRequired]

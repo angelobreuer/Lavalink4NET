@@ -1,7 +1,7 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     Event arguments for the <see cref="LavalinkNode.PlayerDisconnected"/> event.
@@ -19,7 +19,7 @@ public sealed class PlayerDisconnectedEventArgs : PlayerEventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
     /// </exception>
-    public PlayerDisconnectedEventArgs(LavalinkPlayer player, ulong voiceChannelId, PlayerDisconnectCause disconnectCause) : base(player)
+    public PlayerDisconnectedEventArgs(ILavalinkPlayer player, ulong voiceChannelId, PlayerDisconnectCause disconnectCause) : base(player)
     {
         VoiceChannelId = voiceChannelId;
         DisconnectCause = disconnectCause;

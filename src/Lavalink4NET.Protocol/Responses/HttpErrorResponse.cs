@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 public sealed record class HttpErrorResponse(
     [property: JsonRequired]
     [property: JsonPropertyName("timestamp")]
-    [property: JsonConverter<UnixTimestampJsonConverter>]
+    [property: JsonConverter(typeof(UnixTimestampJsonConverter))]
     DateTimeOffset Timestamp,
 
     [property: JsonRequired]

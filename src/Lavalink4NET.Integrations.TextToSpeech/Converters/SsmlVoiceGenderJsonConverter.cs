@@ -1,16 +1,37 @@
 ﻿namespace Lavalink4NET.Integrations.TextToSpeech.Converters;
 
-using Lavalink4NET.Converters;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Lavalink4NET.Integrations.TextToSpeech.Synthesis;
 
-internal sealed class SsmlVoiceGenderJsonConverter : StaticJsonStringEnumConverter<SsmlVoiceGender>
+internal sealed class SsmlVoiceGenderJsonConverter : JsonConverter<SsmlVoiceGender>
 {
-    /// <inheritdoc/>
-    protected override void RegisterMappings(RegistrationContext registrationContext)
+    public override SsmlVoiceGender Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        registrationContext.Register("SSML_VOICE_GENDER_UNSPECIFIED", SsmlVoiceGender.Unspecified);
-        registrationContext.Register("MALE", SsmlVoiceGender.Male);
-        registrationContext.Register("FEMALE", SsmlVoiceGender.Female);
-        registrationContext.Register("NEUTRAL", SsmlVoiceGender.Neutral);
+        var value = reader.GetString()!;
+
+        return value.ToUpperInvariant() switch
+        {
+            "SSML_VOICE_GENDER_UNSPECIFIED" => SsmlVoiceGender.Unspecified,
+            "MALE" => SsmlVoiceGender.Male,
+            "FEMALE" => SsmlVoiceGender.Female,
+            "NEUTRAL" => SsmlVoiceGender.Neutral,
+            _ => throw new JsonException(),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, SsmlVoiceGender value, JsonSerializerOptions options)
+    {
+        var serializedValue = value switch
+        {
+            SsmlVoiceGender.Unspecified => "SSML_VOICE_GENDER_UNSPECIFIED",
+            SsmlVoiceGender.Male => "MALE",
+            SsmlVoiceGender.Female => "FEMALE",
+            SsmlVoiceGender.Neutral => "NEUTRAL",
+            _ => throw new JsonException(),
+        };
+
+        writer.WriteStringValue(serializedValue);
     }
 }

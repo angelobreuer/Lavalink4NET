@@ -10,5 +10,5 @@ public sealed record class SessionUpdateRequest(
 
     [property: JsonPropertyName("timeout")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [property: JsonConverter<DurationJsonConverter>]
+    [property: JsonConverter(typeof(DurationJsonConverter))]
     Optional<TimeSpan> Timeout);

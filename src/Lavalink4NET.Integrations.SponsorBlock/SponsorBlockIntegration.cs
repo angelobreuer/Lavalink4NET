@@ -3,16 +3,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
-using Lavalink4NET.Integrations.SponsorBlock.Event;
+using Lavalink4NET.Integrations.SponsorBlock.Events;
 using Lavalink4NET.Integrations.SponsorBlock.Payloads;
-using Lavalink4NET.Payloads;
+using Lavalink4NET.Protocol.Converters;
+using Lavalink4NET.Protocol.Payloads;
 
 internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBlockIntegration
 {
@@ -21,6 +19,12 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
     public SponsorBlockIntegration()
     {
         _skipCategories = new ConcurrentDictionary<ulong, ISkipCategories>();
+
+        // Register events
+        PayloadJsonConverter.RegisterEvent<SegmentsLoadedEventPayload>("SegmentsLoaded");
+        PayloadJsonConverter.RegisterEvent<SegmentSkippedEventPayload>("SegmentSkipped");
+
+        throw new NotSupportedException("The SponsorBlock integration is currently not available for the newest Lavalink4NET. The support is blocked by https://github.com/TopiSenpai/Sponsorblock-Plugin/pull/6.");
     }
 
     public event AsyncEventHandler<SegmentSkippedEventArgs>? SegmentSkipped;
@@ -34,79 +38,31 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
         return _skipCategories.GetOrAdd(guildId, _ => new SkipCategoriesCollection(this));
     }
 
-    /// <inheritdoc/>
-    public ValueTask InterceptPayloadAsync(JsonNode jsonNode, CancellationToken cancellationToken = default)
+    async ValueTask ILavalinkIntegration.ProcessPayloadAsync(IPayload payload, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(payload);
 
-        var opCodeNode = jsonNode["op"];
-        var guildIdNode = jsonNode["guildId"];
-
-        if (opCodeNode is null || guildIdNode is null || !opCodeNode.GetValue<string>().Equals(OpCode.PlayerPlay.Value, StringComparison.Ordinal))
+        if (payload is SegmentSkippedEventPayload segmentSkippedEventPayload)
         {
-            return default;
-        }
-
-        var guildId = ulong.Parse(guildIdNode.GetValue<string>(), CultureInfo.InvariantCulture);
-
-        var skipCategories = _skipCategories.TryGetValue(guildId, out var guildSkipCategories)
-            ? guildSkipCategories.Resolve()
-            : DefaultSkipCategories;
-
-        if (skipCategories.IsDefaultOrEmpty)
-        {
-            return default;
-        }
-
-        jsonNode["skipSegments"] = JsonSerializer.SerializeToNode(skipCategories);
-
-        return default;
-    }
-
-    /// <inheritdoc/>
-    public async ValueTask<bool> ProcessPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (!payloadContext.IsEvent || payloadContext.GuildId is null)
-        {
-            return false;
-        }
-
-        if (payloadContext.EventType!.Value.Value.Equals("SegmentsLoaded", StringComparison.OrdinalIgnoreCase))
-        {
-            var segmentsLoadedEvent = payloadContext.DeserializeAs<SegmentsLoadedEvent>();
-
-            var eventArgs = new SegmentsLoadedEventArgs(
-                guildId: payloadContext.GuildId.Value,
-                player: payloadContext.AssociatedPlayer,
-                segments: segmentsLoadedEvent.Segments);
-
-            await OnSegmentsLoadedAsync(eventArgs).ConfigureAwait(false);
-
-            return true;
-        }
-
-        if (payloadContext.EventType!.Value.Value.Equals("SegmentSkipped", StringComparison.OrdinalIgnoreCase))
-        {
-            var segmentSkippedEvent = payloadContext.DeserializeAs<SegmentSkippedEvent>();
-
             var eventArgs = new SegmentSkippedEventArgs(
-                guildId: payloadContext.GuildId.Value,
-                player: payloadContext.AssociatedPlayer,
-                skippedSegment: segmentSkippedEvent.Segment);
+                guildId: segmentSkippedEventPayload.GuildId,
+                skippedSegment: segmentSkippedEventPayload.Segment);
 
-            await OnSegmentSkippedAsync(eventArgs).ConfigureAwait(false);
-
-            return true;
+            await SegmentSkipped
+                .InvokeAsync(this, eventArgs)
+                .ConfigureAwait(false);
         }
 
-        return false;
+        if (payload is SegmentsLoadedEventPayload segmentsLoadedEventPayload)
+        {
+            var eventArgs = new SegmentsLoadedEventArgs(
+                guildId: segmentsLoadedEventPayload.GuildId,
+                segments: segmentsLoadedEventPayload.Segments);
+
+            await SegmentsLoaded
+                .InvokeAsync(this, eventArgs)
+                .ConfigureAwait(false);
+        }
     }
-
-    private Task OnSegmentSkippedAsync(SegmentSkippedEventArgs eventArgs)
-        => SegmentSkipped.InvokeAsync(this, eventArgs);
-
-    private Task OnSegmentsLoadedAsync(SegmentsLoadedEventArgs eventArgs)
-        => SegmentsLoaded.InvokeAsync(this, eventArgs);
 }

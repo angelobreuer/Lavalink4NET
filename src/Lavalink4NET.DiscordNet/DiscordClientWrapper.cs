@@ -1,12 +1,16 @@
 namespace Lavalink4NET.DiscordNet;
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
-using Discord.WebSocket;
+using global::Discord.WebSocket;
+using Lavalink4NET.Clients;
+using Lavalink4NET.Clients.Events;
+using Lavalink4NET.Discord;
 using Lavalink4NET.Events;
 
 /// <summary>
@@ -15,9 +19,10 @@ using Lavalink4NET.Events;
 public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 {
     private static readonly MethodInfo _disconnectMethod = typeof(SocketGuild)
-        .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+        .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private readonly BaseSocketClient _baseSocketClient;
+    private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
     private readonly int? _shardCount;
 
     /// <summary>
@@ -73,53 +78,34 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
     private DiscordClientWrapper(BaseSocketClient baseSocketClient)
     {
-        _baseSocketClient = baseSocketClient ?? throw new ArgumentNullException(nameof(baseSocketClient));
+        ArgumentNullException.ThrowIfNull(baseSocketClient);
+
+        _baseSocketClient = baseSocketClient;
         _baseSocketClient.VoiceServerUpdated += OnVoiceServerUpdated;
         _baseSocketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
+
+        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        if (baseSocketClient is DiscordShardedClient discordShardedClient)
+        {
+            discordShardedClient.ShardReady += OnShardReady;
+        }
+
+        if (baseSocketClient is DiscordSocketClient discordSocketClient)
+        {
+            discordSocketClient.Ready += OnClientReady;
+        }
     }
 
     /// <summary>
     ///     An asynchronous event which is triggered when the voice server was updated.
     /// </summary>
-    public event AsyncEventHandler<VoiceServer>? VoiceServerUpdated;
+    public event AsyncEventHandler<VoiceServerUpdatedEventArgs>? VoiceServerUpdated;
 
     /// <summary>
     ///     An asynchronous event which is triggered when a user voice state was updated.
     /// </summary>
-    public event AsyncEventHandler<VoiceStateUpdateEventArgs>? VoiceStateUpdated;
-
-    /// <summary>
-    ///     Gets the current user snowflake identifier value.
-    /// </summary>
-    public ulong CurrentUserId
-    {
-        get
-        {
-            EnsureAvailable();
-            return _baseSocketClient.CurrentUser.Id;
-        }
-    }
-
-    /// <summary>
-    ///     Gets the number of total shards the bot uses.
-    /// </summary>
-    public int ShardCount
-    {
-        get
-        {
-            EnsureAvailable();
-
-            if (_shardCount.HasValue)
-            {
-                // shard count was given in constructor, or no sharding is used (-> 1)
-                return _shardCount.Value;
-            }
-
-            // retrieve shard count from client
-            Debug.Assert(_baseSocketClient is DiscordShardedClient);
-            return ((DiscordShardedClient)_baseSocketClient).Shards.Count;
-        }
-    }
+    public event AsyncEventHandler<VoiceStateUpdatedEventArgs>? VoiceStateUpdated;
 
     /// <summary>
     ///     Disposes the wrapper and unregisters all events attached to the discord client.
@@ -128,6 +114,16 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         _baseSocketClient.VoiceServerUpdated -= OnVoiceServerUpdated;
         _baseSocketClient.UserVoiceStateUpdated -= OnVoiceStateUpdated;
+
+        if (_baseSocketClient is DiscordShardedClient discordShardedClient)
+        {
+            discordShardedClient.ShardReady -= OnShardReady;
+        }
+
+        if (_baseSocketClient is DiscordSocketClient discordSocketClient)
+        {
+            discordSocketClient.Ready -= OnClientReady;
+        }
     }
 
     /// <summary>
@@ -140,14 +136,16 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     ///     a task that represents the asynchronous operation
     ///     <para>the snowflake identifier values of the users in the voice channel</para>
     /// </returns>
-    public Task<IEnumerable<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId)
+    public ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var guild = _baseSocketClient.GetGuild(guildId);
 
         if (guild is null)
         {
             // It may be that the guild has been deleted while there was a player for it, return no users
-            return Task.FromResult(Enumerable.Empty<ulong>());
+            return ValueTask.FromResult(ImmutableArray<ulong>.Empty);
         }
 
         var channel = guild.GetVoiceChannel(voiceChannelId);
@@ -155,36 +153,15 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         if (channel is null)
         {
             // It may be that the channel has been deleted while there was a player for it, return no users
-            return Task.FromResult(Enumerable.Empty<ulong>());
+            return ValueTask.FromResult(ImmutableArray<ulong>.Empty);
         }
 
         var users = channel.ConnectedUsers
             .Where(x => !x.IsBot)
-            .Select(s => s.Id);
+            .Select(s => s.Id)
+            .ToImmutableArray();
 
-        return Task.FromResult(users);
-    }
-
-    /// <summary>
-    ///     Awaits the initialization of the discord client asynchronously.
-    /// </summary>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    public async Task InitializeAsync()
-    {
-        var startTime = DateTimeOffset.UtcNow;
-
-        // await until current user arrived
-        while (_baseSocketClient.CurrentUser is null)
-        {
-            await Task.Delay(10);
-
-            // timeout exceeded
-            if (DateTimeOffset.UtcNow - startTime > TimeSpan.FromSeconds(10))
-            {
-                throw new TimeoutException("Waited 10 seconds for current user to arrive! Make sure you start " +
-                    "the discord client, before initializing the discord wrapper!");
-            }
-        }
+        return ValueTask.FromResult(users);
     }
 
     /// <summary>
@@ -198,8 +175,10 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
     /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    public Task SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false)
+    public async ValueTask SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var guild = _baseSocketClient.GetGuild(guildId)
             ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
 
@@ -208,16 +187,76 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             var channel = guild.GetVoiceChannel(voiceChannelId.Value)
                 ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
 
-            return channel.ConnectAsync(selfDeaf, selfMute, external: true);
+            await channel
+                .ConnectAsync(selfDeaf, selfMute, external: true)
+                .WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return;
         }
 
-        return (Task)_disconnectMethod.Invoke(guild, new object[0]);
+        var task = (Task)_disconnectMethod.Invoke(guild, Array.Empty<object>())!;
+        await task.WaitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public ValueTask<ClientInformation> WaitForReadyAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return new(_readyTaskCompletionSource.Task.WaitAsync(cancellationToken));
+    }
+
+    private int GetShardCount()
+    {
+        if (_shardCount.HasValue)
+        {
+            // shard count was given in constructor, or no sharding is used (-> 1)
+            return _shardCount.Value;
+        }
+
+        // retrieve shard count from client
+        Debug.Assert(_baseSocketClient is DiscordShardedClient);
+        return ((DiscordShardedClient)_baseSocketClient).Shards.Count;
+    }
+
+    private Task OnClientReady()
+    {
+        var clientInformation = new ClientInformation(
+            Label: "discord.net",
+            CurrentUserId: _baseSocketClient.CurrentUser.Id,
+            ShardCount: GetShardCount());
+
+        _readyTaskCompletionSource.TrySetResult(clientInformation);
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnShardReady(DiscordSocketClient client)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var clientInformation = new ClientInformation(
+            Label: "discord.net",
+            CurrentUserId: client.CurrentUser.Id,
+            ShardCount: GetShardCount());
+
+        _readyTaskCompletionSource.TrySetResult(clientInformation);
+        return Task.CompletedTask;
     }
 
     private Task OnVoiceServerUpdated(SocketVoiceServer voiceServer)
     {
-        var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.Token, voiceServer.Endpoint);
-        return VoiceServerUpdated.InvokeAsync(this, args);
+        ArgumentNullException.ThrowIfNull(voiceServer);
+
+        var server = new VoiceServer(
+            Token: voiceServer.Token,
+            Endpoint: voiceServer.Endpoint);
+
+        var eventArgs = new VoiceServerUpdatedEventArgs(
+            guildId: voiceServer.Guild.Id,
+            voiceServer: server);
+
+        return VoiceServerUpdated.InvokeAsync(this, eventArgs);
     }
 
     private Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState oldSocketVoiceState, SocketVoiceState socketVoiceState)
@@ -226,29 +265,14 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
         // create voice state
         var voiceState = new VoiceState(
-            voiceChannelId: socketVoiceState.VoiceChannel?.Id,
+            VoiceChannelId: socketVoiceState.VoiceChannel?.Id,
+            SessionId: socketVoiceState.VoiceSessionId);
+
+        var eventArgs = new VoiceStateUpdatedEventArgs(
             guildId: guildId,
-            voiceSessionId: socketVoiceState.VoiceSessionId);
+            voiceState: voiceState);
 
         // invoke event
-        return VoiceStateUpdated.InvokeAsync(this, new VoiceStateUpdateEventArgs(user.Id, voiceState));
-    }
-
-    private void EnsureAvailable()
-    {
-        var currentUserAvailable = _baseSocketClient.CurrentUser is not null;
-
-        if (!currentUserAvailable)
-        {
-            throw new InvalidOperationException("The underlying discord client is not ready.");
-        }
-
-        var shardsAvailable = _shardCount is not null // shard count given
-            || (_baseSocketClient is DiscordShardedClient shardedClient && shardedClient.Shards is not null);
-
-        if (!shardsAvailable)
-        {
-            throw new InvalidOperationException("The underlying discord client is not ready.");
-        }
+        return VoiceStateUpdated.InvokeAsync(this, eventArgs);
     }
 }

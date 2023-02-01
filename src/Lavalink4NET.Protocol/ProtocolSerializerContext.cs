@@ -21,6 +21,7 @@ using Lavalink4NET.Protocol.Tests.Models;
 [JsonSerializable(typeof(TrackExceptionEventPayload))]
 [JsonSerializable(typeof(TrackStuckEventPayload))]
 [JsonSerializable(typeof(WebSocketClosedEventPayload))]
+[JsonSerializable(typeof(PlayerInformationModel))]
 internal sealed partial class ProtocolSerializerContext : JsonSerializerContext
 {
 }

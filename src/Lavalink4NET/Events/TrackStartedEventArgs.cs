@@ -1,7 +1,7 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     The event arguments ( <see cref="EventArgs"/>) for the <see
@@ -20,7 +20,7 @@ public sealed class TrackStartedEventArgs : TrackEventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    public TrackStartedEventArgs(LavalinkPlayer player, string trackIdentifier) : base(player, trackIdentifier)
+    public TrackStartedEventArgs(ILavalinkPlayer player, string trackIdentifier) : base(player, trackIdentifier)
     {
     }
 }

@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -185,7 +186,7 @@ public class InactivityTrackingService : IDisposable
     /// <param name="player">the player</param>
     /// <returns>the inactivity tracking status of the player</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public InactivityTrackingStatus GetStatus(LavalinkPlayer player)
+    public InactivityTrackingStatus GetStatus(ILavalinkPlayer player)
     {
         EnsureNotDisposed();
 
@@ -210,18 +211,18 @@ public class InactivityTrackingService : IDisposable
     /// </summary>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public virtual async Task PollAsync()
+    public virtual async Task PollAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
         // get all created player instances in the audio service
-        var players = _audioService.GetPlayers<LavalinkPlayer>();
+        var players = _audioService.Players.Players;
 
-        // iterate through players that are connected to a voice channel
-        foreach (var player in players.Where(s => s.VoiceChannelId.HasValue))
+        foreach (var player in players)
         {
             // check if the player is inactive
-            if (await IsInactiveAsync(player))
+            if (await IsInactiveAsync(player, cancellationToken).ConfigureAwait(false))
             {
                 // add the player to tracking list
                 if (!_players.ContainsKey(player.GuildId))
@@ -232,8 +233,13 @@ public class InactivityTrackingService : IDisposable
                     _logger?.LogDebug("Tracked player {0} as inactive.", player.GuildId);
 
                     // trigger event
-                    await OnPlayerTrackingStatusUpdated(new PlayerTrackingStatusUpdateEventArgs(_audioService,
-                        player, InactivityTrackingStatus.Tracked));
+                    var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
+                        audioService: _audioService,
+                        guildId: player.GuildId,
+                        player: player,
+                        trackingStatus: InactivityTrackingStatus.Tracked);
+
+                    await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
                 }
             }
             else
@@ -244,7 +250,7 @@ public class InactivityTrackingService : IDisposable
                     _logger?.LogDebug("Removed player {0} from tracking list.", player.GuildId);
 
                     // remove from tracking list
-                    await UntrackPlayerAsync(player);
+                    await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -255,20 +261,26 @@ public class InactivityTrackingService : IDisposable
             // check if player is inactive and the delay was exceeded
             if (player.Value < DateTimeOffset.UtcNow)
             {
-                var trackedPlayer = _audioService.GetPlayer<LavalinkPlayer>(player.Key);
+                var trackedPlayer = await _audioService.Players
+                    .GetPlayerAsync(player.Key, cancellationToken)
+                    .ConfigureAwait(false);
 
                 // player does not exists, remove it from the tracking list and continue.
                 if (trackedPlayer is null)
                 {
                     // remove from tracking list
-                    await UntrackPlayerAsync(player.Key);
+                    await UntrackPlayerAsync(
+                        guildId: player.Key,
+                        player: null,
+                        cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
 
                     continue;
                 }
 
                 // trigger event
                 var eventArgs = new InactivePlayerEventArgs(_audioService, trackedPlayer);
-                await OnInactivePlayerAsync(eventArgs);
+                await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
 
                 // it is wanted that the player should not stop.
                 if (!eventArgs.ShouldStop)
@@ -279,10 +291,14 @@ public class InactivityTrackingService : IDisposable
                 _logger?.LogDebug("Destroyed player {0} due inactivity.", player.Key);
 
                 // dispose the player
-                trackedPlayer.Dispose();
+                // TODO: trackedPlayer.Dispose();
 
                 // remove from tracking list
-                await UntrackPlayerAsync(trackedPlayer);
+                await UntrackPlayerAsync(
+                    guildId: player.Key,
+                    player: trackedPlayer,
+                    cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }
@@ -338,18 +354,22 @@ public class InactivityTrackingService : IDisposable
     ///     a task that represents the asynchronous operation. The task result is a value
     ///     indicating whether the player was removed from the tracking list.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<bool> UntrackPlayerAsync(LavalinkPlayer player)
+    public async ValueTask UntrackPlayerAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default)
     {
-        if (player is null)
-        {
-            throw new ArgumentNullException(nameof(player));
-        }
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDisposed();
 
-        return UntrackPlayerAsync(player.GuildId);
+        _players.Remove(guildId);
+
+        // trigger event
+        var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
+            audioService: _audioService,
+            guildId: guildId,
+            player: player,
+            trackingStatus: InactivityTrackingStatus.Untracked);
+
+        await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -361,15 +381,16 @@ public class InactivityTrackingService : IDisposable
     ///     indicating whether the specified <paramref name="player"/> is inactive.
     /// </returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual async Task<bool> IsInactiveAsync(LavalinkPlayer player)
+    protected virtual async ValueTask<bool> IsInactiveAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
 
         // iterate through the trackers
         foreach (var tracker in Trackers)
         {
             // check if the player is inactivity
-            if (await tracker(player, _clientWrapper))
+            if (await tracker(player, _clientWrapper).ConfigureAwait(false))
             {
                 return true;
             }
@@ -416,32 +437,5 @@ public class InactivityTrackingService : IDisposable
         {
             _logger?.LogWarning(exception, "Inactivity tracking poll failed!");
         }
-    }
-
-    private async Task<bool> UntrackPlayerAsync(ulong guildId)
-    {
-        EnsureNotDisposed();
-
-        if (!_players.Remove(guildId))
-        {
-            // player was not tracked
-            return false;
-        }
-
-        var player = _audioService.GetPlayer(guildId);
-
-        if (player is null)
-        {
-            // unknown player
-            return false;
-        }
-
-        // trigger event
-        var args = new PlayerTrackingStatusUpdateEventArgs(
-            _audioService, player, InactivityTrackingStatus.Untracked);
-
-        await OnPlayerTrackingStatusUpdated(args);
-
-        return true;
     }
 }

@@ -1,7 +1,7 @@
 namespace Lavalink4NET.Tests;
 
 using System;
-using Discord.WebSocket;
+using global::Discord.WebSocket;
 using Lavalink4NET.DiscordNet;
 using Xunit;
 
@@ -25,16 +25,5 @@ public sealed class DiscordClientWrapperTests
     {
         var client = new DiscordShardedClient();
         _ = new DiscordClientWrapper(client, shards);
-    }
-
-    [Fact]
-    public void TestUnavailableAccessThrows()
-    {
-        var client = new DiscordShardedClient();
-
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            _ = new DiscordClientWrapper(client).ShardCount;
-        });
     }
 }

@@ -1,18 +1,17 @@
 namespace Lavalink4NET.Events;
 
 using System;
-using Payloads;
+using Lavalink4NET.Protocol.Payloads;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkSocket.PayloadReceived"/> event.
 /// </summary>
-public sealed class PayloadReceivedEventArgs
-    : EventArgs
+public sealed class PayloadReceivedEventArgs : EventArgs
 {
-    public PayloadReceivedEventArgs(PayloadContext payloadContext)
+    public PayloadReceivedEventArgs(IPayload payload)
     {
-        PayloadContext = payloadContext;
+        Payload = payload;
     }
 
-    public PayloadContext PayloadContext { get; }
+    public IPayload Payload { get; }
 }

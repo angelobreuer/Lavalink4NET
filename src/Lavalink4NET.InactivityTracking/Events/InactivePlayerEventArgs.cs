@@ -1,7 +1,7 @@
 namespace Lavalink4NET.InactivityTracking.Events;
 
 using System;
-using Lavalink4NET.Player;
+using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 
 /// <summary>
@@ -14,10 +14,13 @@ public sealed class InactivePlayerEventArgs : EventArgs
     /// </summary>
     /// <param name="audioService">the audio service</param>
     /// <param name="player">the affected player</param>
-    public InactivePlayerEventArgs(IAudioService audioService, LavalinkPlayer player)
+    public InactivePlayerEventArgs(IAudioService audioService, ILavalinkPlayer player)
     {
-        AudioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
-        Player = player ?? throw new ArgumentNullException(nameof(player));
+        ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(player);
+
+        AudioService = audioService;
+        Player = player;
     }
 
     /// <summary>
@@ -28,7 +31,7 @@ public sealed class InactivePlayerEventArgs : EventArgs
     /// <summary>
     ///     Gets the affected player.
     /// </summary>
-    public LavalinkPlayer Player { get; }
+    public ILavalinkPlayer Player { get; }
 
     /// <summary>
     ///     Gets a value indicating whether the player should be stopped.

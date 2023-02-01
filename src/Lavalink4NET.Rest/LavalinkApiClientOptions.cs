@@ -8,9 +8,13 @@ public sealed record class LavalinkApiClientOptions
 
     private static readonly Uri _defaultBaseAddress = new("http://localhost:2333/");
 
-    public string Passphrase { get; set; } = DefaultPassphrase;
+    public string Passphrase { get; init; } = DefaultPassphrase;
 
-    public string HttpClientName { get; set; } = Options.DefaultName;
+    public string HttpClientName { get; init; } = Options.DefaultName;
 
-    public Uri BaseAddress { get; set; } = _defaultBaseAddress;
+    public Uri BaseAddress { get; init; } = _defaultBaseAddress;
+
+    public int ShardCount { get; init; } = 1;
+
+    public ulong UserId { get; init; }
 }

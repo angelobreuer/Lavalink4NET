@@ -9,7 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Unicode;
 
-public partial record class LavalinkTrack : ISpanParsable<LavalinkTrack>
+public partial record class LavalinkTrack
+#if NET7_0_OR_GREATER
+    : ISpanParsable<LavalinkTrack>
+#endif
 {
     public static LavalinkTrack Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {

@@ -1,120 +1,15 @@
 namespace Lavalink4NET;
 
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
-using Player;
-using Rest;
+using Lavalink4NET.Players;
 
 /// <summary>
 ///     The interface for a lavalink audio provider service.
 /// </summary>
-public interface IAudioService : IDisposable, ILavalinkRestClient
+public interface IAudioService : IDisposable
 {
-    /// <summary>
-    ///     An asynchronous event which is triggered when a track ended.
-    /// </summary>
-    event AsyncEventHandler<TrackEndEventArgs>? TrackEnd;
-
-    /// <summary>
-    ///     An asynchronous event which is triggered when an exception occurred while playing a track.
-    /// </summary>
-    event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
-
-    /// <summary>
-    ///     Asynchronous event which is dispatched when a track started.
-    /// </summary>
-    event AsyncEventHandler<TrackStartedEventArgs>? TrackStarted;
-
-    /// <summary>
-    ///     An asynchronous event which is triggered when a track got stuck.
-    /// </summary>
-    event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
-
     IIntegrationCollection Integrations { get; }
 
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to use</typeparam>
-    /// <param name="guildId">the guild identifier to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    TPlayer? GetPlayer<TPlayer>(ulong guildId) where TPlayer : LavalinkPlayer;
-
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <param name="guildId">the guild identifier to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    LavalinkPlayer? GetPlayer(ulong guildId);
-
-    /// <summary>
-    ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
-    /// </summary>
-    /// <typeparam name="TPlayer">
-    ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
-    /// </typeparam>
-    /// <returns>the player list</returns>
-    IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer;
-
-    /// <summary>
-    ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <param name="guildId">
-    ///     the snowflake identifier of the guild to create the player for
-    /// </param>
-    /// <returns>
-    ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
-    /// </returns>
-    bool HasPlayer(ulong guildId);
-
-    /// <summary>
-    ///     Initializes the audio service asynchronously.
-    /// </summary>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    Task InitializeAsync();
-
-    /// <summary>
-    ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to create</typeparam>
-    /// <param name="guildId">the guild snowflake identifier</param>
-    /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new();
-
-    /// <summary>
-    ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to create</typeparam>
-    /// <param name="playerFactory">the factory used to create the player instance</param>
-    /// <param name="guildId">the guild snowflake identifier</param>
-    /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    Task<TPlayer> JoinAsync<TPlayer>(PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer;
-
-    /// <summary>
-    ///     Joins the channel specified by <paramref name="voiceChannelId"/> asynchronously.
-    /// </summary>
-    /// <param name="guildId">the guild snowflake identifier</param>
-    /// <param name="voiceChannelId">the snowflake identifier of the voice channel to join</param>
-    /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
-    /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
-    /// <returns>
-    ///     a task that represents the asynchronous operation
-    ///     <para>the audio player</para>
-    /// </returns>
-    Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false);
+    IPlayerManager Players { get; }
 }

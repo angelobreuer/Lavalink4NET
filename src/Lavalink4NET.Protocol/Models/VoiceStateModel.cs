@@ -23,5 +23,5 @@ public sealed record class VoiceStateModel(
 
     [property: JsonRequired]
     [property: JsonPropertyName("ping")]
-    [property: JsonConverter<NullableDurationJsonConverter>]
+    [property: JsonConverter(typeof(NullableDurationJsonConverter))]
     TimeSpan? Latency);

@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Protocol.Payloads.Events;
 
-internal sealed class PayloadJsonConverter : JsonConverter<IPayload>
+public sealed class PayloadJsonConverter : JsonConverter<IPayload>
 {
     private static readonly Dictionary<Type, string> _events;
     private static readonly Dictionary<string, Type> _eventsMap;
