@@ -1,15 +1,16 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-public sealed class LowPassFilterOptions : IFilterOptions
+public sealed record class LowPassFilterOptions(float? Smoothing) : IFilterOptions
 {
-    public const string Name = "lowPass";
+    public bool IsDefault => Smoothing is null or <= 1.0F;
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("smoothing")]
-    public float Smoothing { get; set; } = 20.0F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with
+        {
+            LowPass = new LowPassFilterModel(Smoothing),
+        };
+    }
 }

@@ -1,24 +1,30 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-public sealed class ChannelMixFilterOptions : IFilterOptions
+public sealed record class ChannelMixFilterOptions(
+    float? LeftToLeft = null,
+    float? LeftToRight = null,
+    float? RightToLeft = null,
+    float? RightToRight = null) : IFilterOptions
 {
-    public const string Name = "channelMix";
+    public bool IsDefault => this is
+    {
+        LeftToLeft: 1F or null,
+        LeftToRight: 0F or null,
+        RightToLeft: 0F or null,
+        RightToRight: 1F or null,
+    };
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("leftToLeft")]
-    public float LeftToLeft { get; init; } = 1F;
-
-    [JsonPropertyName("leftToRight")]
-    public float LeftToRight { get; init; } = 0F;
-
-    [JsonPropertyName("rightToLeft")]
-    public float RightToLeft { get; init; } = 0F;
-
-    [JsonPropertyName("rightToRight")]
-    public float RightToRight { get; init; } = 1F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with
+        {
+            ChannelMix = new ChannelMixFilterModel(
+                LeftToLeft: LeftToLeft,
+                LeftToRight: LeftToRight,
+                RightToLeft: RightToLeft,
+                RightToRight: RightToRight),
+        };
+    }
 }

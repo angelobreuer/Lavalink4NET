@@ -1,21 +1,24 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-public sealed class TimescaleFilterOptions : IFilterOptions
+public sealed record class TimescaleFilterOptions(
+    float? Speed = null,
+    float? Pitch = null,
+    float? Rate = null) : IFilterOptions
 {
-    public const string Name = "timescale";
+    public bool IsDefault => this is
+    {
+        Speed: null or 1.0F,
+        Pitch: null or 1.0F,
+        Rate: null or 1.0F,
+    };
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("speed")]
-    public float Speed { get; set; } = 1.0F;
-
-    [JsonPropertyName("pitch")]
-    public float Pitch { get; set; } = 1.0F;
-
-    [JsonPropertyName("rate")]
-    public float Rate { get; set; } = 1.0F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with
+        {
+            Timescale = new TimescaleFilterModel(Speed, Pitch, Rate),
+        };
+    }
 }

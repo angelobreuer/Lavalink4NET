@@ -1,16 +1,13 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-[JsonConverter(typeof(VolumeFilterOptionsJsonConverter))]
-public sealed class VolumeFilterOptions : IFilterOptions
+public sealed record class VolumeFilterOptions(float? Volume = null) : IFilterOptions
 {
-    public const string Name = "volume";
+    public bool IsDefault => Volume is null or 1.0F;
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("volume")]
-    public float Volume { get; init; }
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with { Volume = Volume, };
+    }
 }

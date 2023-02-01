@@ -1,15 +1,16 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-public sealed class RotationFilterOptions : IFilterOptions
+public sealed record class RotationFilterOptions(float? Frequency = null) : IFilterOptions
 {
-    public const string Name = "rotation";
+    public bool IsDefault => Frequency is null;
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("rotationHz")]
-    public float Frequency { get; set; } = 0F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with
+        {
+            Rotation = new RotationFilterModel(Frequency),
+        };
+    }
 }

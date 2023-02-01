@@ -1,18 +1,20 @@
 namespace Lavalink4NET.Filters;
 
-using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
-
-public sealed class TremoloFilterOptions : IFilterOptions
+public sealed record class TremoloFilterOptions(
+    float? Frequency = null,
+    float? Depth = null) : IFilterOptions
 {
-    public const string Name = "tremolo";
+    public bool IsDefault => this is { Frequency: null, Depth: null, };
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
-
-    [JsonPropertyName("frequency")]
-    public float Frequency { get; set; } = 2.0F;
-
-    [JsonPropertyName("depth")]
-    public float Depth { get; set; } = 0.5F;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        filterMap = filterMap with
+        {
+            Tremolo = new TremoloFilterModel(
+                Frequency: Frequency,
+                Depth: Depth),
+        };
+    }
 }
