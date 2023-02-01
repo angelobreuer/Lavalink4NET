@@ -16,7 +16,11 @@ public sealed class NodeStatisticsUpdateEventArgs : EventArgs
     ///     thrown if the specified <paramref name="statistics"/> parameter is <see langword="null"/>.
     /// </exception>
     public NodeStatisticsUpdateEventArgs(NodeStatistics statistics)
-        => Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
+    {
+        ArgumentNullException.ThrowIfNull(statistics);
+
+        Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
+    }
 
     /// <summary>
     ///     Gets the statistics for the node.
