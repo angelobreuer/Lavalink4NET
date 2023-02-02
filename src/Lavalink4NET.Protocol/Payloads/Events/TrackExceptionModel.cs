@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Protocol.Payloads;
 
 using System.Text.Json.Serialization;
+using Lavalink4NET.Protocol.Models;
 
 public sealed record class TrackExceptionModel(
     [property: JsonRequired]
@@ -9,8 +10,9 @@ public sealed record class TrackExceptionModel(
 
     [property: JsonRequired]
     [property: JsonPropertyName("severity")]
-    string Severity, // TODO
+    ExceptionSeverity Severity,
 
     [property: JsonRequired]
     [property: JsonPropertyName("cause")]
-    string Cause);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Cause);

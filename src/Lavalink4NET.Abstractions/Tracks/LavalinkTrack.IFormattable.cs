@@ -15,6 +15,12 @@ public partial record class LavalinkTrack : ISpanFormattable
 
     public string ToString(string? format, IFormatProvider? formatProvider = null)
     {
+        // The ToString method is culture-neutral and format-neutral
+        if (_trackData is not null)
+        {
+            return _trackData;
+        }
+
         Span<char> buffer = stackalloc char[256];
 
         int charsWritten;
@@ -23,7 +29,7 @@ public partial record class LavalinkTrack : ISpanFormattable
             buffer = GC.AllocateUninitializedArray<char>(buffer.Length * 2);
         }
 
-        return new string(buffer[..charsWritten]);
+        return _trackData = new string(buffer[..charsWritten]);
     }
 
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)

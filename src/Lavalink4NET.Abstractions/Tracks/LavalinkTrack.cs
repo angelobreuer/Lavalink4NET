@@ -2,6 +2,7 @@
 
 public partial record class LavalinkTrack
 {
+    private string? _trackData;
     private StreamProvider? _cachedProvider;
     private bool _providerCached;
 
@@ -53,6 +54,12 @@ public partial record class LavalinkTrack
 
             return _cachedProvider;
         }
+    }
+
+    internal string? TrackData
+    {
+        get => _trackData;
+        init => _trackData = value;
     }
 
     /// <summary>

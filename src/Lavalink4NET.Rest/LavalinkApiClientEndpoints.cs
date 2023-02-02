@@ -14,6 +14,7 @@ internal sealed class LavalinkApiClientEndpoints
         Statistics = Build($"v{version}/stats");
         Information = Build($"v{version}/info");
         Sessions = Build($"v{version}/sessions");
+        LoadTracks = Build($"v{version}/loadtracks");
     }
 
     public Uri Version { get; }
@@ -23,6 +24,8 @@ internal sealed class LavalinkApiClientEndpoints
     public Uri Statistics { get; }
 
     public Uri Information { get; }
+
+    public Uri LoadTracks { get; }
 
     public Uri Player(string sessionId, ulong guildId)
     {
