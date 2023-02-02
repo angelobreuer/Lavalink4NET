@@ -36,17 +36,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Rest", "Lavali
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Rest.Tests", "..\tests\Lavalink4NET.Rest.Tests\Lavalink4NET.Rest.Tests.csproj", "{30F036B1-5161-4E7D-92A9-11A73E50F51A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Abstractions", "Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj", "{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Abstractions", "Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj", "{3749455E-4BF3-4D62-A6E6-F3FD555D30E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Abstractions.Tests", "..\tests\Lavalink4NET.Abstractions.Tests\Lavalink4NET.Abstractions.Tests.csproj", "{79900A58-D849-4ADC-8956-C59D4B9BAA15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Abstractions.Tests", "..\tests\Lavalink4NET.Abstractions.Tests\Lavalink4NET.Abstractions.Tests.csproj", "{79900A58-D849-4ADC-8956-C59D4B9BAA15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Artwork", "Lavalink4NET.Artwork\Lavalink4NET.Artwork.csproj", "{91D39A34-0EA2-429F-89E6-B48FA9CDD8A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Artwork", "Lavalink4NET.Artwork\Lavalink4NET.Artwork.csproj", "{91D39A34-0EA2-429F-89E6-B48FA9CDD8A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Artwork.Tests", "..\tests\Lavalink4NET.Artwork.Tests\Lavalink4NET.Artwork.Tests.csproj", "{7C54154A-A179-4A03-9D93-5E4A7A12C140}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Artwork.Tests", "..\tests\Lavalink4NET.Artwork.Tests\Lavalink4NET.Artwork.Tests.csproj", "{7C54154A-A179-4A03-9D93-5E4A7A12C140}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Lyrics", "Lavalink4NET.Lyrics\Lavalink4NET.Lyrics.csproj", "{AE5DFE15-F4EE-49B8-A4FD-504C4F378DFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Lyrics", "Lavalink4NET.Lyrics\Lavalink4NET.Lyrics.csproj", "{AE5DFE15-F4EE-49B8-A4FD-504C4F378DFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.InactivityTracking", "Lavalink4NET.InactivityTracking\Lavalink4NET.InactivityTracking.csproj", "{9D586380-304B-48DA-BE4E-E54706EA1D62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.InactivityTracking", "Lavalink4NET.InactivityTracking\Lavalink4NET.InactivityTracking.csproj", "{9D586380-304B-48DA-BE4E-E54706EA1D62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{B9402D29-5B12-4672-97B8-570A60C0F878}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.ExampleCustomPlayer", "..\samples\Lavalink4NET.ExampleCustomPlayer\Lavalink4NET.ExampleCustomPlayer.csproj", "{9B0FA1BD-196F-47A4-8518-B6738CB67B24}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus.ExampleBot", "..\samples\Lavalink4NET.DSharpPlus.ExampleBot\Lavalink4NET.DSharpPlus.ExampleBot.csproj", "{3ADB4B42-2567-4E43-BA6A-622E1377594A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.Discord_NET.ExampleBot.csproj", "{E25DD08C-483A-4060-B316-6DC6D11CE150}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,6 +130,18 @@ Global
 		{9D586380-304B-48DA-BE4E-E54706EA1D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D586380-304B-48DA-BE4E-E54706EA1D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D586380-304B-48DA-BE4E-E54706EA1D62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B0FA1BD-196F-47A4-8518-B6738CB67B24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B0FA1BD-196F-47A4-8518-B6738CB67B24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B0FA1BD-196F-47A4-8518-B6738CB67B24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B0FA1BD-196F-47A4-8518-B6738CB67B24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ADB4B42-2567-4E43-BA6A-622E1377594A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ADB4B42-2567-4E43-BA6A-622E1377594A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ADB4B42-2567-4E43-BA6A-622E1377594A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ADB4B42-2567-4E43-BA6A-622E1377594A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E25DD08C-483A-4060-B316-6DC6D11CE150}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E25DD08C-483A-4060-B316-6DC6D11CE150}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E25DD08C-483A-4060-B316-6DC6D11CE150}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E25DD08C-483A-4060-B316-6DC6D11CE150}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +152,9 @@ Global
 		{B317A50A-EB36-441E-8F21-BAC2A6F8314B} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{7AE7CA17-09C5-47E1-9E91-0DE27796583B} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{1B145E61-DD8A-47AA-85C5-7A79C1A9BCEB} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
+		{9B0FA1BD-196F-47A4-8518-B6738CB67B24} = {B9402D29-5B12-4672-97B8-570A60C0F878}
+		{3ADB4B42-2567-4E43-BA6A-622E1377594A} = {B9402D29-5B12-4672-97B8-570A60C0F878}
+		{E25DD08C-483A-4060-B316-6DC6D11CE150} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}

@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Discord;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
 

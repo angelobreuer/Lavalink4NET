@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Discord;
+namespace Lavalink4NET.Clients;
 
 /// <summary>
 ///     Represents the information for a discord user voice state.

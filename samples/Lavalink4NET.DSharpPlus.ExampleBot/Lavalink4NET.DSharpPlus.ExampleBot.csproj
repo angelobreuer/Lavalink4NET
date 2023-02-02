@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +13,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lavalink4NET.DSharpPlus\Lavalink4NET.DSharpPlus.csproj" />
-    <ProjectReference Include="..\..\src\Lavalink4NET.MemoryCache\Lavalink4NET.MemoryCache.csproj" />
   </ItemGroup>
 </Project>

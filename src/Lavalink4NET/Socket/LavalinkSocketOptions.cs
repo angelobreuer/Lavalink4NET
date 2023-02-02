@@ -5,9 +5,9 @@ using Microsoft.Extensions.Options;
 
 public sealed record class LavalinkSocketOptions
 {
-    private static readonly Uri _defaultAddress = new("ws://localhost:2333/");
+    internal static readonly Uri DefaultAddress = new("ws://localhost:2333/");
 
-    public Uri Uri { get; init; } = _defaultAddress;
+    public Uri Uri { get; init; } = DefaultAddress;
 
     public string HttpClientName { get; init; } = Options.DefaultName;
 

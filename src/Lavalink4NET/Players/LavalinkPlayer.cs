@@ -154,6 +154,13 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         return SeekAsync(targetPosition, cancellationToken);
     }
 
+    public virtual async ValueTask SetVolumeAsync(float volume, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var properties = new PlayerUpdateProperties { Volume = volume, };
+        await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+    }
     public virtual ValueTask StopAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();

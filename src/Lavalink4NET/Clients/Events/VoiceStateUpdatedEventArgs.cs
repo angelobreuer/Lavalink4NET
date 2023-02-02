@@ -1,7 +1,7 @@
 ﻿namespace Lavalink4NET.Clients.Events;
 
 using System;
-using Lavalink4NET.Discord;
+using Lavalink4NET.Clients;
 
 public sealed class VoiceStateUpdatedEventArgs : EventArgs
 {
