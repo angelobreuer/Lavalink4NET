@@ -50,10 +50,9 @@ internal sealed class LavalinkSocket : IDisposable
 
         var buffer = GC.AllocateUninitializedArray<byte>(32 * 1024);
 
-        static async ValueTask<WebSocket> ConnectWithRetryAsync(Uri uri, CancellationToken cancellationToken = default)
+        async ValueTask<WebSocket> ConnectWithRetryAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ArgumentNullException.ThrowIfNull(uri);
 
             var attempt = 0;
 
@@ -61,7 +60,7 @@ internal sealed class LavalinkSocket : IDisposable
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using var webSocket = new ClientWebSocket();
+                _logger.LogDebug("Attempting to connect to Lavalink node...");
 
                 var webSocket = new ClientWebSocket();
 
@@ -73,13 +72,20 @@ internal sealed class LavalinkSocket : IDisposable
                 try
                 {
                     await webSocket
-                        .ConnectAsync(uri, cancellationToken)
+                        .ConnectAsync(_options.Value.Uri, cancellationToken)
                         .ConfigureAwait(false);
+
+                    _logger.LogDebug("Connection to Lavalink node established.");
 
                     return webSocket;
                 }
-                catch (Exception) when (attempt++ < 10)
+                catch (Exception exception) when (attempt++ < 10)
                 {
+                    await Task
+                        .Delay(2500, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    _logger.LogDebug(exception, "Failed to connect to the Lavalink node.");
                     continue;
                 }
             }
@@ -88,7 +94,6 @@ internal sealed class LavalinkSocket : IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             using var webSocket = await ConnectWithRetryAsync(
-                uri: _options.Value.Uri,
                 cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
@@ -100,6 +105,7 @@ internal sealed class LavalinkSocket : IDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(webSocket);
+        Debug.Assert(webSocket.State is WebSocketState.Open);
 
         using var _ = webSocket;
 
