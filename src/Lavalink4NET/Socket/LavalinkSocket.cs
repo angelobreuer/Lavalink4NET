@@ -63,6 +63,13 @@ internal sealed class LavalinkSocket : IDisposable
 
                 using var webSocket = new ClientWebSocket();
 
+                var webSocket = new ClientWebSocket();
+
+                var assemblyVersion = typeof(LavalinkSocket).Assembly.GetName().Version;
+                webSocket.Options.SetRequestHeader("Authorization", _options.Value.Passphrase);
+                webSocket.Options.SetRequestHeader("User-Id", _options.Value.UserId.ToString());
+                webSocket.Options.SetRequestHeader("Client-Name", $"Lavalink4NET/{assemblyVersion}");
+
                 try
                 {
                     await webSocket

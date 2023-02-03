@@ -9,6 +9,8 @@ public sealed record class LavalinkSocketOptions
 
     public Uri Uri { get; init; } = DefaultAddress;
 
+    public string Passphrase { get; set; } = "youshallnotpass";
+
     public string HttpClientName { get; init; } = Options.DefaultName;
 
     public int ShardCount { get; init; } = 1;
