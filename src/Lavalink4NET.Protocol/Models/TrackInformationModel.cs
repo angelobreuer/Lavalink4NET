@@ -40,5 +40,13 @@ public sealed record class TrackInformationModel(
     Uri? Uri,
 
     [property: JsonRequired]
+    [property: JsonPropertyName("artworkUrl")]
+    Uri? ArtworkUri,
+
+    [property: JsonRequired]
+    [property: JsonPropertyName("isrc")]
+    string? Isrc,
+
+    [property: JsonRequired]
     [property: JsonPropertyName("sourceName")]
     string SourceName);
