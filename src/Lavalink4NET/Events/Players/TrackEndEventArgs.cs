@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Events;
+namespace Lavalink4NET.Events.Players;
 
 using System;
 using Lavalink4NET.Players;
@@ -7,8 +7,7 @@ using Lavalink4NET.Protocol.Payloads.Events;
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/> event.
 /// </summary>
-public class TrackEndEventArgs
-     : TrackEventArgs
+public class TrackEndEventArgs : TrackEventArgs
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="TrackEndEventArgs"/> class.

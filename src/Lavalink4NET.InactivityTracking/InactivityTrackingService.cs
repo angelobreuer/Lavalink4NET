@@ -2,7 +2,9 @@ namespace Lavalink4NET.Tracking;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
@@ -141,14 +143,14 @@ public class InactivityTrackingService : IDisposable
     {
         EnsureNotDisposed();
 
-        if (_timer != null)
+        if (_timer is not null)
         {
             throw new InvalidOperationException("Already tracking.");
         }
 
         // initialize the timer that polls inactive players
         var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
-        _timer = new Timer(PollTimerCallback, null, pollDelay, _options.PollInterval);
+        _timer = new Timer(PollTimerCallback, this, pollDelay, _options.PollInterval);
     }
 
     /// <summary>
@@ -404,7 +406,7 @@ public class InactivityTrackingService : IDisposable
     /// </summary>
     /// <param name="eventArgs">the event arguments</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnInactivePlayerAsync(InactivePlayerEventArgs eventArgs)
+    protected virtual ValueTask OnInactivePlayerAsync(InactivePlayerEventArgs eventArgs)
         => InactivePlayer.InvokeAsync(this, eventArgs);
 
     /// <summary>
@@ -412,7 +414,7 @@ public class InactivityTrackingService : IDisposable
     /// </summary>
     /// <param name="eventArgs">the event arguments</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnPlayerTrackingStatusUpdated(PlayerTrackingStatusUpdateEventArgs eventArgs)
+    protected virtual ValueTask OnPlayerTrackingStatusUpdated(PlayerTrackingStatusUpdateEventArgs eventArgs)
         => PlayerTrackingStatusUpdated.InvokeAsync(this, eventArgs);
 
     /// <summary>
@@ -427,11 +429,14 @@ public class InactivityTrackingService : IDisposable
         }
     }
 
-    private void PollTimerCallback(object state)
+    private void PollTimerCallback(object? state)
     {
+        Debug.Assert(state is InactivityTrackingService);
+        var instance = Unsafe.As<object?, InactivityTrackingService>(ref state);
+
         try
         {
-            PollAsync().GetAwaiter().GetResult();
+            instance.PollAsync().GetAwaiter().GetResult();
         }
         catch (Exception exception)
         {

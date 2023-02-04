@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Events;
+namespace Lavalink4NET.Events.Players;
 
 using System;
 using Lavalink4NET.Players;

@@ -11,6 +11,8 @@ using Lavalink4NET.Tracks;
 
 public interface ILavalinkApiClient
 {
+    LavalinkApiEndpoints Endpoints { get; }
+
     ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,

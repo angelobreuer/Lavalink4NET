@@ -14,6 +14,7 @@ internal sealed class LavalinkPlayerHandle
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
     private readonly ulong _guildId;
+    private readonly IDiscordClientWrapper _client;
     private readonly ILavalinkApiClient _apiClient;
     private readonly string _sessionId;
     private readonly Func<PlayerProperties, ILavalinkPlayer> _playerFactory;
@@ -21,7 +22,8 @@ internal sealed class LavalinkPlayerHandle
 
     public LavalinkPlayerHandle(
         ulong guildId,
-        ILavalinkApiClient apiClient,
+        IDiscordClientWrapper client,
+        ILavalinkApiClient apiClient, // TODO: aggregate session id, client and api client
         string sessionId,
         Func<PlayerProperties, ILavalinkPlayer> playerFactory)
     {
@@ -31,6 +33,7 @@ internal sealed class LavalinkPlayerHandle
 
         _value = new TaskCompletionSource<ILavalinkPlayer>(TaskCreationOptions.RunContinuationsAsynchronously);
         _guildId = guildId;
+        _client = client;
         _apiClient = apiClient;
         _sessionId = sessionId;
         _playerFactory = playerFactory;
@@ -87,10 +90,12 @@ internal sealed class LavalinkPlayerHandle
         {
             var properties = new PlayerProperties(
                 ApiClient: _apiClient,
+                Client: _client,
                 GuildId: _guildId,
                 VoiceChannelId: _voiceState.Value.VoiceChannelId.Value,
                 SessionId: _sessionId,
-                Model: model);
+                Model: model,
+                DisconnectOnStop: false); // TODO: disconnect on stop
 
             var player = _playerFactory(properties);
             taskCompletionSource.TrySetResult(player);

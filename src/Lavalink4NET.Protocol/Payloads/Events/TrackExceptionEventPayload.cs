@@ -2,6 +2,7 @@
 
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
+using Lavalink4NET.Protocol.Models;
 
 public sealed record class TrackExceptionEventPayload(
     [property: JsonRequired]
@@ -10,8 +11,8 @@ public sealed record class TrackExceptionEventPayload(
     ulong GuildId,
 
     [property: JsonRequired]
-    [property: JsonPropertyName("encodedTrack")]
-    string TrackData,
+    [property: JsonPropertyName("track")]
+    TrackModel Track,
 
     [property: JsonRequired]
     [property: JsonPropertyName("exception")]

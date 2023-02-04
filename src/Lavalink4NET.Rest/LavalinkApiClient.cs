@@ -19,7 +19,6 @@ using Microsoft.Extensions.Options;
 
 public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClient
 {
-    private readonly LavalinkApiClientEndpoints _endpoints;
     private readonly IMemoryCache _memoryCache;
 
     public LavalinkApiClient(
@@ -33,10 +32,11 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _endpoints = new LavalinkApiClientEndpoints(options.Value.BaseAddress);
+        Endpoints = new LavalinkApiEndpoints(options.Value.BaseAddress);
         _memoryCache = memoryCache;
     }
 
+    public LavalinkApiEndpoints Endpoints { get; }
     public async ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,
@@ -51,25 +51,6 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return trackLoadResult.IsSuccess ? trackLoadResult.Track : null;
-    }
-
-    private async ValueTask<TrackLoadResponse> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(identifier);
-
-        var queryParameters = HttpUtility.ParseQueryString(string.Empty);
-        queryParameters["identifier"] = identifier;
-
-        var requestUri = new UriBuilder(_endpoints.LoadTracks) { Query = queryParameters.ToString(), }.Uri;
-
-        using var httpClient = CreateHttpClient();
-
-        var model = await httpClient
-            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.TrackLoadResponse, cancellationToken)
-            .ConfigureAwait(false);
-
-        return model!;
     }
 
     public async ValueTask<TrackLoadResult> LoadTracksAsync(
@@ -135,7 +116,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         using var httpClient = CreateHttpClient();
 
         var model = await httpClient
-            .GetFromJsonAsync(_endpoints.Information, ProtocolSerializerContext.Default.LavalinkServerInformationModel, cancellationToken)
+            .GetFromJsonAsync(Endpoints.Information, ProtocolSerializerContext.Default.LavalinkServerInformationModel, cancellationToken)
             .ConfigureAwait(false);
 
         return LavalinkServerInformation.FromModel(model!);
@@ -148,7 +129,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         using var httpClient = CreateHttpClient();
 
         var model = await httpClient
-            .GetFromJsonAsync(_endpoints.Statistics, ProtocolSerializerContext.Default.LavalinkServerStatisticsModel, cancellationToken)
+            .GetFromJsonAsync(Endpoints.Statistics, ProtocolSerializerContext.Default.LavalinkServerStatisticsModel, cancellationToken)
             .ConfigureAwait(false);
 
         return LavalinkServerStatistics.FromModel(model!);
@@ -161,7 +142,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         using var httpClient = CreateHttpClient();
 
         return await httpClient
-            .GetStringAsync(_endpoints.Version, cancellationToken)
+            .GetStringAsync(Endpoints.Version, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -170,11 +151,19 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(properties);
 
-        var requestUri = _endpoints.Player(sessionId, guildId);
+        var requestUri = Endpoints.Player(sessionId, guildId);
         using var httpClient = CreateHttpClient();
 
-        var model = await httpClient
-            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
+        using var jsonContent = JsonContent.Create(properties); // TODO: metadata
+
+        var responseMessage = await httpClient
+            .PatchAsync(requestUri, jsonContent, cancellationToken)
+            .ConfigureAwait(false);
+
+        responseMessage.EnsureSuccessStatusCode();
+
+        var model = await responseMessage.Content
+            .ReadFromJsonAsync(ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         return model!;
@@ -238,4 +227,23 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         TrackData = track.Data,
         Author = track.Information.Author,
     };
+
+    private async ValueTask<TrackLoadResponse> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(identifier);
+
+        var queryParameters = HttpUtility.ParseQueryString(string.Empty);
+        queryParameters["identifier"] = identifier;
+
+        var requestUri = new UriBuilder(Endpoints.LoadTracks) { Query = queryParameters.ToString(), }.Uri;
+
+        using var httpClient = CreateHttpClient();
+
+        var model = await httpClient
+            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.TrackLoadResponse, cancellationToken)
+            .ConfigureAwait(false);
+
+        return model!;
+    }
 }

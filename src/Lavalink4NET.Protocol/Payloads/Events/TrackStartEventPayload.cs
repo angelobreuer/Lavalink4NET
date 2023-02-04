@@ -2,6 +2,7 @@
 
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
+using Lavalink4NET.Protocol.Models;
 
 public sealed record class TrackStartEventPayload(
     [property: JsonRequired]
@@ -10,5 +11,5 @@ public sealed record class TrackStartEventPayload(
     ulong GuildId,
 
     [property: JsonRequired]
-    [property: JsonPropertyName("encodedTrack")]
-    string TrackData) : IEventPayload;
+    [property: JsonPropertyName("track")]
+    TrackModel Track) : IEventPayload;

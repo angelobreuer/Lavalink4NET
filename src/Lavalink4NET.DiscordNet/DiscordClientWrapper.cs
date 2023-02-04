@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using global::Discord.WebSocket;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
-using Lavalink4NET.Discord;
 using Lavalink4NET.Events;
 
 /// <summary>
@@ -256,7 +255,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             guildId: voiceServer.Guild.Id,
             voiceServer: server);
 
-        return VoiceServerUpdated.InvokeAsync(this, eventArgs);
+        return VoiceServerUpdated.InvokeAsync(this, eventArgs).AsTask();
     }
 
     private Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState oldSocketVoiceState, SocketVoiceState socketVoiceState)
@@ -273,6 +272,6 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             voiceState: voiceState);
 
         // invoke event
-        return VoiceStateUpdated.InvokeAsync(this, eventArgs);
+        return VoiceStateUpdated.InvokeAsync(this, eventArgs).AsTask();
     }
 }

@@ -3,7 +3,7 @@ namespace Lavalink4NET.DiscordNet;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using global::Discord;
+using Discord;
 using Lavalink4NET.Players;
 
 /// <summary>

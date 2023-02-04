@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Events;
+namespace Lavalink4NET.Events.Players;
 
 /// <summary>
 ///     A set of possible player disconnection causes.

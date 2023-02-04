@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Events.Players;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
@@ -161,7 +162,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         var properties = new PlayerUpdateProperties { Volume = volume, };
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
-    public virtual ValueTask StopAsync(CancellationToken cancellationToken = default)
+
+    public virtual ValueTask StopAsync(bool disconnect, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
@@ -179,6 +181,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 #endif
     }
+
+    protected virtual ValueTask OnTrackEndAsync(TrackEndEventArgs eventArgs) => default;
+
+    protected virtual ValueTask OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs) => default;
+
+    protected virtual ValueTask OnTrackStartedAsync(TrackStartedEventArgs eventArgs) => default;
+
+    protected virtual ValueTask OnTrackStuckAsync(TrackStuckEventArgs eventArgs) => default;
 
     private async ValueTask PerformUpdateAsync(PlayerUpdateProperties properties, CancellationToken cancellationToken = default)
     {

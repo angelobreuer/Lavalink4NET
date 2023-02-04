@@ -1,33 +1,30 @@
-namespace Lavalink4NET.Events;
+namespace Lavalink4NET.Events.Players;
 
 using System;
 using Lavalink4NET.Players;
 
 /// <summary>
-///     The event arguments for the <see cref="LavalinkNode.TrackStuck"/> event.
+///     The event arguments for the <see cref="LavalinkNode.TrackException"/> event.
 /// </summary>
-public class TrackStuckEventArgs : TrackEventArgs
+public class TrackExceptionEventArgs : TrackEventArgs
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="TrackStuckEventArgs"/> class.
+    ///     Initializes a new instance of the <see cref="TrackExceptionEventArgs"/> class.
     /// </summary>
     /// <param name="player">the affected player</param>
     /// <param name="trackIdentifier">the identifier of the affected track</param>
-    /// <param name="threshold">the threshold in milliseconds</param>
+    /// <param name="errorMessage">an error message indicating what occurred.</param>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    public TrackStuckEventArgs(ILavalinkPlayer player, string trackIdentifier, long threshold)
+    public TrackExceptionEventArgs(ILavalinkPlayer player, string trackIdentifier, string errorMessage)
         : base(player, trackIdentifier)
     {
-        Threshold = threshold;
+        ErrorMessage = errorMessage;
     }
 
-    /// <summary>
-    ///     Gets the threshold in milliseconds.
-    /// </summary>
-    public long Threshold { get; }
+    public string ErrorMessage { get; }
 }

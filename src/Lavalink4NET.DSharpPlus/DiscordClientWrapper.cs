@@ -14,7 +14,6 @@ using global::DSharpPlus.EventArgs;
 using global::DSharpPlus.Exceptions;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
-using Lavalink4NET.Discord;
 using Lavalink4NET.Events;
 
 public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
@@ -175,7 +174,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             guildId: voiceServerUpdateEventArgs.Guild.Id,
             voiceServer: server);
 
-        return VoiceServerUpdated.InvokeAsync(this, eventArgs);
+        return VoiceServerUpdated.InvokeAsync(this, eventArgs).AsTask();
     }
     private Task OnVoiceStateUpdated(DiscordClient discordClient, VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
     {
@@ -197,6 +196,6 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             guildId: voiceStateUpdateEventArgs.Guild.Id,
             voiceState: voiceState);
 
-        return VoiceStateUpdated.InvokeAsync(this, eventArgs);
+        return VoiceStateUpdated.InvokeAsync(this, eventArgs).AsTask();
     }
 }

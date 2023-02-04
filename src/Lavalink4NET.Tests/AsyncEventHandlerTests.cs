@@ -24,7 +24,7 @@ public sealed class AsyncEventHandlerTests
         Event += (sender, args) => Task.Delay(100);
         Event += (sender, args) => Task.Delay(1000);
 
-        var task = Event.InvokeAsync(this);
+        var task = Event.InvokeAsync(this).AsTask();
 
         // ensure that the task did not complete in 300 milliseconds
         Assert.NotSame(task, await Task.WhenAny(Task.Delay(300), task));

@@ -36,5 +36,5 @@ public interface ILavalinkPlayer
 
     ValueTask SeekAsync(TimeSpan position, SeekOrigin seekOrigin, CancellationToken cancellationToken = default);
 
-    ValueTask StopAsync(CancellationToken cancellationToken = default);
+    ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default);
 }
