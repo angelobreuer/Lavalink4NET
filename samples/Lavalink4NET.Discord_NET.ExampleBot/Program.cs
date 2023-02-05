@@ -15,9 +15,6 @@ var interactionService = serviceProvider.GetRequiredService<InteractionService>(
 
 await bot.StartAsync();
 
-// Put your guild id to test on here:
-await interactionService.RegisterCommandsToGuildAsync(894533462428635146);
-
 while (Console.ReadKey(true).Key != ConsoleKey.Q)
 {
 }

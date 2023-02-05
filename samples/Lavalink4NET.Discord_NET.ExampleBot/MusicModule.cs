@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Discord.Interactions;
 using Lavalink4NET.Players;
+using Lavalink4NET.Players.Vote;
 using Lavalink4NET.Rest.Entities.Tracks;
 
 /// <summary>
@@ -52,7 +53,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task Play(string query)
     {
-        var player = await GetPlayerAsync().ConfigureAwait(false);
+        var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
 
         if (player is null)
         {
@@ -69,7 +70,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var position = await player.PlayAsync(track, enqueue: true).ConfigureAwait(false);
+        await player.PlayAsync(track).ConfigureAwait(false);
+        var position = 0; // TODO
 
         if (position is 0)
         {
@@ -101,7 +103,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        await ReplyAsync($"Position: {player.Position.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
+        await ReplyAsync($"Position: {player.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -149,7 +151,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        await player.setv(volume / 100f).ConfigureAwait(false);
+        await player.SetVolumeAsync(volume / 100f).ConfigureAwait(false);
         await ReplyAsync($"Volume updated: {volume}%").ConfigureAwait(false);
     }
 
@@ -168,7 +170,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .GetPlayerAsync<VoteLavalinkPlayer>(Context.Guild.Id)
             .ConfigureAwait(false);
 
-        if (player is null && player.State is not PlayerState.Destroyed)
+        if (player is not null && player.State is not PlayerState.Destroyed)
         {
             return player;
         }
@@ -188,7 +190,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         }
 
         return await _audioService.Players
-            .JoinAsync<VoteLavalinkPlayer>(user.Guild.Id, user.VoiceChannel.Id)
+            .JoinAsync(user.Guild.Id, user.VoiceChannel.Id, playerFactory: VoteLavalinkPlayer.Factory)
             .ConfigureAwait(false);
     }
 }

@@ -18,6 +18,12 @@ public sealed class MyCustomPlayer : LavalinkPlayer
     /// </remarks>
     private readonly static Dictionary<ulong, float> _volumes = new();
 
+    public MyCustomPlayer(PlayerProperties properties)
+        : base(properties)
+    {
+        // TODO: restore volume
+    }
+
     public override async ValueTask SetVolumeAsync(float volume = 1, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
@@ -29,23 +35,5 @@ public sealed class MyCustomPlayer : LavalinkPlayer
 
         // store the volume of the player
         _volumes[GuildId] = volume;
-    }
-
-    /// <summary>
-    ///     Asynchronously triggered when the player has connected to a voice channel.
-    /// </summary>
-    /// <param name="voiceServer">the voice server connected to</param>
-    /// <param name="voiceState">the voice state</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    public async override Task OnConnectedAsync(VoiceServer voiceServer, VoiceState voiceState)
-    {
-        // check if a volume has been stored
-        if (_volumes.TryGetValue(GuildId, out var volume) && Volume != volume)
-        {
-            // here the volume is restored
-            await SetVolumeAsync(volume);
-        }
-
-        await base.OnConnectedAsync(voiceServer, voiceState);
     }
 }
