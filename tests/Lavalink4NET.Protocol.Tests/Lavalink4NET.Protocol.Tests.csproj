@@ -25,8 +25,4 @@
     <ProjectReference Include="..\..\src\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Requests\" />
-  </ItemGroup>
-
 </Project>
