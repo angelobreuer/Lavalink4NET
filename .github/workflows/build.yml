@@ -28,7 +28,7 @@ jobs:
         
     - name: Download Lavalink Server
       working-directory: ./ci
-      run: wget https://github.com/freyacodes/Lavalink/releases/download/3.7.3/Lavalink.jar
+      run: wget --content-disposition https://dl.angelobreuer.de/2NJ5G5
       shell: bash
     
     - name: Restore dependencies
