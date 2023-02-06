@@ -1,13 +1,11 @@
 namespace Lavalink4NET.Players.Queued;
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Payloads.Events;
-using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
 
 /// <summary>
@@ -15,7 +13,6 @@ using Lavalink4NET.Tracks;
 /// </summary>
 public class QueuedLavalinkPlayer : LavalinkPlayer
 {
-    private readonly ILavalinkApiClient _apiClient;
     private readonly bool _disconnectOnStop;
 
     /// <summary>
@@ -26,7 +23,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        _apiClient = properties.ApiClient;
         _disconnectOnStop = properties.DisconnectOnStop;
 
         Queue = new TrackQueue(); // TODO: setting to adjust capacity
@@ -43,6 +39,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     public TrackRepeatMode RepeatMode { get; set; }
 
     public bool Shuffle { get; set; }
+
     /// <summary>
     ///     Skips the current track asynchronously.
     /// </summary>
@@ -120,10 +117,8 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
             }
         }
 
-        if (count > 0)
+        if (count >= 0)
         {
-            Debug.Assert(count is 1);
-
             if (!Queue.TryDequeue(shuffle: Shuffle, out var peekedTrack))
             {
                 return Optional<ITrackQueueItem>.Default; // do nothing
