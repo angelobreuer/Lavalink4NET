@@ -260,6 +260,13 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
     private Task OnVoiceStateUpdated(SocketUser user, SocketVoiceState oldSocketVoiceState, SocketVoiceState socketVoiceState)
     {
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (user.Id != _baseSocketClient.CurrentUser.Id)
+        {
+            return Task.CompletedTask;
+        }
+
         var guildId = oldSocketVoiceState.VoiceChannel?.Guild?.Id ?? socketVoiceState.VoiceChannel.Guild.Id;
 
         // create voice state
