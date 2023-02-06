@@ -253,6 +253,196 @@ public sealed class QueuedLavalinkPlayerTests
         apiClientMock.Verify();
     }
 
+    [Fact]
+    public async Task TestPlayerRepeatsTrackIfRepeatModeIsTrackAsync()
+    {
+        // Arrange
+        var sessionId = "abc";
+        var guildId = 0UL;
+
+        var apiClientMock = new Mock<ILavalinkApiClient>(MockBehavior.Strict);
+
+        var playerModel = new PlayerInformationModel(
+            GuildId: guildId,
+            CurrentTrack: new TrackModel(
+                Data: "track1",
+                Information: CreateDummyTrack()),
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: CreateVoiceState(),
+            Filters: new PlayerFilterMapModel());
+
+        var resultModel = playerModel with
+        {
+            CurrentTrack = new TrackModel(
+                Data: "track1",
+                Information: CreateDummyTrack()),
+        };
+
+        apiClientMock
+            .Setup(x => x.UpdatePlayerAsync(
+                sessionId,
+                guildId,
+                It.IsAny<PlayerUpdateProperties>(),
+                It.IsAny<CancellationToken>()))
+            .Callback(static (string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken token) =>
+            {
+                // In this case the track data is used because the track has been already resolved
+                Assert.True(properties.TrackData.IsPresent);
+                Assert.Equal("QAAAMQIABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAGbWFudWFsAAAAAAAAJxA=", properties.TrackData.Value);
+            })
+            .ReturnsAsync(resultModel)
+            .Verifiable();
+
+        var discordClientMock = new Mock<IDiscordClientWrapper>();
+
+        var playerProperties = new PlayerProperties(
+            ApiClient: apiClientMock.Object,
+            Client: discordClientMock.Object,
+            SessionId: sessionId,
+            VoiceChannelId: 0,
+            Model: playerModel,
+            DisconnectOnStop: false);
+
+        var player = new QueuedLavalinkPlayer(playerProperties);
+        player.RepeatMode = TrackRepeatMode.Track;
+
+        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+
+        var listener = (ILavalinkPlayerListener)player;
+
+        // Act
+        await listener
+            .NotifyTrackEndedAsync(player.CurrentTrack!, TrackEndReason.Finished)
+            .ConfigureAwait(false);
+
+        // Assert
+        apiClientMock.Verify();
+    }
+
+    [Fact]
+    public async Task TestPlayerRepeatsTrackIfRepeatModeIsTrackOnSkipAsync()
+    {
+        // Arrange
+        var sessionId = "abc";
+        var guildId = 0UL;
+
+        var apiClientMock = new Mock<ILavalinkApiClient>(MockBehavior.Strict);
+
+        var playerModel = new PlayerInformationModel(
+            GuildId: guildId,
+            CurrentTrack: new TrackModel(
+                Data: "track1",
+                Information: CreateDummyTrack()),
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: CreateVoiceState(),
+            Filters: new PlayerFilterMapModel());
+
+        var resultModel = playerModel with
+        {
+            CurrentTrack = new TrackModel(
+                Data: "track1",
+                Information: CreateDummyTrack()),
+        };
+
+        apiClientMock
+            .Setup(x => x.UpdatePlayerAsync(
+                sessionId,
+                guildId,
+                It.IsAny<PlayerUpdateProperties>(),
+                It.IsAny<CancellationToken>()))
+            .Callback(static (string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken token) =>
+            {
+                // In this case the track data is used because the track has been already resolved
+                Assert.True(properties.TrackData.IsPresent);
+                Assert.Equal("QAAAMQIABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAGbWFudWFsAAAAAAAAJxA=", properties.TrackData.Value);
+            })
+            .ReturnsAsync(resultModel)
+            .Verifiable();
+
+        var discordClientMock = new Mock<IDiscordClientWrapper>();
+
+        var playerProperties = new PlayerProperties(
+            ApiClient: apiClientMock.Object,
+            Client: discordClientMock.Object,
+            SessionId: sessionId,
+            VoiceChannelId: 0,
+            Model: playerModel,
+            DisconnectOnStop: false);
+
+        var player = new QueuedLavalinkPlayer(playerProperties);
+        player.RepeatMode = TrackRepeatMode.Track;
+
+        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+
+        // Act
+        await player
+            .SkipAsync()
+            .ConfigureAwait(false);
+
+        // Assert
+        apiClientMock.Verify();
+    }
+
+    [Fact]
+    public async Task TestPlayerStopsTrackIfRepeatModeIsTrackButNoTrackIsPlayingOnSkipAsync()
+    {
+        // Arrange
+        var sessionId = "abc";
+        var guildId = 0UL;
+
+        var apiClientMock = new Mock<ILavalinkApiClient>(MockBehavior.Strict);
+
+        var playerModel = new PlayerInformationModel(
+            GuildId: guildId,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: CreateVoiceState(),
+            Filters: new PlayerFilterMapModel());
+
+        var resultModel = playerModel with
+        {
+            CurrentTrack = null,
+        };
+
+        apiClientMock
+            .Setup(x => x.UpdatePlayerAsync(
+                sessionId,
+                guildId,
+                It.IsAny<PlayerUpdateProperties>(),
+                It.IsAny<CancellationToken>()))
+            .Callback(static (string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken token) =>
+            {
+                Assert.True(properties.TrackData.IsPresent);
+                Assert.Null(properties.TrackData.Value);
+            })
+            .ReturnsAsync(resultModel)
+            .Verifiable();
+
+        var discordClientMock = new Mock<IDiscordClientWrapper>();
+
+        var playerProperties = new PlayerProperties(
+            ApiClient: apiClientMock.Object,
+            Client: discordClientMock.Object,
+            SessionId: sessionId,
+            VoiceChannelId: 0,
+            Model: playerModel,
+            DisconnectOnStop: false);
+
+        var player = new QueuedLavalinkPlayer(playerProperties);
+        player.RepeatMode = TrackRepeatMode.Track;
+
+        // Act
+        await player
+            .SkipAsync()
+            .ConfigureAwait(false);
+
+        // Assert
+        apiClientMock.Verify();
+    }
+
     private static TrackInformationModel CreateDummyTrack()
     {
         return new TrackInformationModel(
