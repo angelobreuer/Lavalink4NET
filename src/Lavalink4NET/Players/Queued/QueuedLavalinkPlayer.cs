@@ -4,9 +4,11 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Events.Players;
+using Lavalink4NET.Extensions;
 using Lavalink4NET.Protocol;
+using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Rest;
+using Lavalink4NET.Tracks;
 
 /// <summary>
 ///     A lavalink player with a queuing system.
@@ -81,20 +83,19 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         return base.StopAsync(disconnect, cancellationToken);
     }
 
-    /// <summary>
-    ///     Asynchronously triggered when a track ends.
-    /// </summary>
-    /// <param name="eventArgs">the track event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected override ValueTask OnTrackEndAsync(TrackEndEventArgs eventArgs)
+    protected override ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
-        if (eventArgs.MayStartNext)
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+
+        if (endReason.MayStartNext())
         {
-            return SkipAsync();
+            return SkipAsync(count: 1, cancellationToken);
         }
 
-        return default;
+        return ValueTask.CompletedTask;
     }
+
     private Optional<ITrackQueueItem> GetNextTrack(int count = 1)
     {
         var track = default(Optional<ITrackQueueItem>);

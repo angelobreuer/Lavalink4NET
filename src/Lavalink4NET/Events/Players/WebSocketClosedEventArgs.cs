@@ -1,14 +1,19 @@
-namespace Lavalink4NET.Events;
+namespace Lavalink4NET.Events.Players;
 
 using System;
 using System.Net.WebSockets;
+using Lavalink4NET.Players;
 
-public sealed class WebSocketClosedEventArgs : EventArgs
+public sealed class WebSocketClosedEventArgs : PlayerEventArgs
 {
-    public WebSocketClosedEventArgs(WebSocketCloseStatus closeCode, string reason, bool byRemote)
+    public WebSocketClosedEventArgs(ILavalinkPlayer player, WebSocketCloseStatus closeCode, string reason, bool byRemote)
+        : base(player)
     {
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(reason);
+
         CloseCode = closeCode;
-        Reason = reason ?? throw new ArgumentNullException(nameof(reason));
+        Reason = reason;
         ByRemote = byRemote;
     }
 

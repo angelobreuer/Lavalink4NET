@@ -3,14 +3,15 @@ namespace Lavalink4NET.Events.Players;
 using System;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Payloads.Events;
+using Lavalink4NET.Tracks;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/> event.
 /// </summary>
-public class TrackEndEventArgs : TrackEventArgs
+public class TrackEndedEventArgs : TrackEventArgs
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="TrackEndEventArgs"/> class.
+    ///     Initializes a new instance of the <see cref="TrackEndedEventArgs"/> class.
     /// </summary>
     /// <param name="player">the affected player</param>
     /// <param name="trackIdentifier">the identifier of the affected track</param>
@@ -21,9 +22,11 @@ public class TrackEndEventArgs : TrackEventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    public TrackEndEventArgs(LavalinkPlayer player, string trackIdentifier, TrackEndReason reason)
-        : base(player, trackIdentifier)
-        => Reason = reason;
+    public TrackEndedEventArgs(ILavalinkPlayer player, LavalinkTrack track, TrackEndReason reason)
+        : base(player, track)
+    {
+        Reason = reason;
+    }
 
     /// <summary>
     ///     Gets the reason why the track ended.

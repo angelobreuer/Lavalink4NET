@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
-using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players.Queued;
+using Lavalink4NET.Protocol.Payloads.Events;
+using Lavalink4NET.Tracks;
 
 /// <summary>
 ///     A lavalink player with a queuing and voting system.
@@ -87,14 +88,13 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer
         return new UserVoteSkipInfo(info.Votes, info.TotalUsers, false, true);
     }
 
-    /// <summary>
-    ///     Asynchronously triggered when a track ends.
-    /// </summary>
-    /// <param name="eventArgs">the track event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected override ValueTask OnTrackEndAsync(TrackEndEventArgs eventArgs)
+    protected override ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+
         ClearVotes();
-        return base.OnTrackEndAsync(eventArgs);
+
+        return base.OnTrackEndedAsync(track, endReason, cancellationToken);
     }
 }

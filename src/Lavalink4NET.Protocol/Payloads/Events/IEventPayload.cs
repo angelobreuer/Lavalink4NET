@@ -2,5 +2,5 @@
 
 public interface IEventPayload : IPayload
 {
-    ulong GuildId { get; }
+    ulong GuildId { get; init; }
 }

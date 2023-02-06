@@ -5,10 +5,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Lavalink4NET.Events.Players;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
 
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
@@ -54,6 +55,34 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         EnsureNotDestroyed();
         VoiceChannelId = voiceChannelId;
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+        return OnTrackEndedAsync(track, endReason, cancellationToken);
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+        return OnTrackExceptionAsync(track, exception, cancellationToken);
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+        return OnTrackStartedAsync(track, cancellationToken);
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
+        return OnTrackStuckAsync(track, threshold, cancellationToken);
     }
 
     public virtual async ValueTask PauseAsync(CancellationToken cancellationToken = default)
@@ -182,13 +211,13 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 #endif
     }
 
-    protected virtual ValueTask OnTrackEndAsync(TrackEndEventArgs eventArgs) => default;
+    protected virtual ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default) => default;
 
-    protected virtual ValueTask OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs) => default;
+    protected virtual ValueTask OnTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken = default) => default;
 
-    protected virtual ValueTask OnTrackStartedAsync(TrackStartedEventArgs eventArgs) => default;
+    protected virtual ValueTask OnTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default) => default;
 
-    protected virtual ValueTask OnTrackStuckAsync(TrackStuckEventArgs eventArgs) => default;
+    protected virtual ValueTask OnTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default) => default;
 
     private async ValueTask PerformUpdateAsync(PlayerUpdateProperties properties, CancellationToken cancellationToken = default)
     {

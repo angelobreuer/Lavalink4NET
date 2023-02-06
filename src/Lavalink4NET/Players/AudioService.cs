@@ -8,23 +8,27 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
+using Lavalink4NET.Events.Players;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Protocol;
+using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Payloads;
+using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Rest;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Socket;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-public sealed partial class AudioService : IAudioService
+public partial class AudioService : IAudioService
 {
-    private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
-    private readonly ILogger<AudioService> _logger;
-    private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ILavalinkApiClient _apiClient;
+    private readonly IDiscordClientWrapper _clientWrapper;
+    private readonly ILogger<AudioService> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly LavalinkNodeOptions _options;
+    private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
 
     public AudioService(
         IDiscordClientWrapper clientWrapper,
@@ -59,14 +63,10 @@ public sealed partial class AudioService : IAudioService
         _ = ReceiveAsync(); // TODO
     }
 
-    public string? SessionId { get; private set; }
-
-    public bool IsReady => _readyTaskCompletionSource.Task.IsCompletedSuccessfully;
-
-    public IPlayerManager Players { get; }
-
     public IIntegrationCollection Integrations { get; }
-
+    public bool IsReady => _readyTaskCompletionSource.Task.IsCompletedSuccessfully;
+    public IPlayerManager Players { get; }
+    public string? SessionId { get; private set; }
     public ITrackManager Tracks { get; }
 
     public void Dispose()
@@ -88,12 +88,19 @@ public sealed partial class AudioService : IAudioService
         return new ValueTask(task);
     }
 
-    private async ValueTask ProcessEventAsync(IEventPayload payload, CancellationToken cancellationToken = default)
+    private static LavalinkTrack CreateTrack(TrackModel track) => new()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(payload);
-
-    }
+        Duration = track.Information.Duration,
+        Identifier = track.Information.Identifier,
+        IsLiveStream = track.Information.IsLiveStream,
+        IsSeekable = track.Information.IsSeekable,
+        SourceName = track.Information.SourceName,
+        StartPosition = track.Information.Position,
+        Title = track.Information.Title,
+        Uri = track.Information.Uri,
+        TrackData = track.Data,
+        Author = track.Information.Author,
+    };
 
     private static string SerializePayload(IPayload payload)
     {
@@ -111,6 +118,34 @@ public sealed partial class AudioService : IAudioService
         JsonSerializer.Serialize(utf8JsonWriter, payload, ProtocolSerializerContext.Default.IPayload);
 
         return Encoding.UTF8.GetString(arrayBufferWriter.WrittenSpan);
+    }
+
+    private async ValueTask ProcessEventAsync(IEventPayload payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(payload);
+
+        var player = await Players
+            .GetPlayerAsync(payload.GuildId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (player is null)
+        {
+            _logger.LogDebug("Received an event payload for a non-registered player: {GuildId}.", payload.GuildId);
+            return;
+        }
+
+        var task = payload switch
+        {
+            TrackEndEventPayload trackEvent => ProcessTrackEndEventAsync(player, trackEvent, cancellationToken),
+            TrackStartEventPayload trackEvent => ProcessTrackStartEventAsync(player, trackEvent, cancellationToken),
+            TrackStuckEventPayload trackEvent => ProcessTrackStuckEventAsync(player, trackEvent, cancellationToken),
+            TrackExceptionEventPayload trackEvent => ProcessTrackExceptionEventAsync(player, trackEvent, cancellationToken),
+            WebSocketClosedEventPayload closedEvent => ProcessWebSocketClosedEventAsync(player, closedEvent, cancellationToken),
+            _ => ValueTask.CompletedTask,
+        };
+
+        await task.ConfigureAwait(false);
     }
 
     private async ValueTask ProcessPayloadAsync(IPayload payload, CancellationToken cancellationToken = default)
@@ -158,6 +193,110 @@ public sealed partial class AudioService : IAudioService
         }
     }
 
+    private async ValueTask ProcessTrackEndEventAsync(ILavalinkPlayer player, TrackEndEventPayload trackEndEvent, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(trackEndEvent);
+
+        var track = CreateTrack(trackEndEvent.Track);
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyTrackEndedAsync(track, trackEndEvent.Reason, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var eventArgs = new TrackEndedEventArgs(
+            player: player,
+            track: track,
+            reason: trackEndEvent.Reason);
+
+        await OnTrackEndedAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask ProcessTrackExceptionEventAsync(ILavalinkPlayer player, TrackExceptionEventPayload trackExceptionEvent, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(trackExceptionEvent);
+
+        var track = CreateTrack(trackExceptionEvent.Track);
+
+        var exception = new TrackException(
+            Severity: trackExceptionEvent.Exception.Severity,
+            Message: trackExceptionEvent.Exception.Message,
+            Cause: trackExceptionEvent.Exception.Cause);
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyTrackExceptionAsync(track, exception, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var eventArgs = new TrackExceptionEventArgs(
+            player: player,
+            track: track,
+            exception: exception);
+
+        await OnTrackExceptionAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask ProcessTrackStartEventAsync(ILavalinkPlayer player, TrackStartEventPayload trackStartEvent, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(trackStartEvent);
+
+        var track = CreateTrack(trackStartEvent.Track);
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyTrackStartedAsync(track, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var eventArgs = new TrackStartedEventArgs(
+            player: player,
+            track: track);
+
+        await OnTrackStartedAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask ProcessTrackStuckEventAsync(ILavalinkPlayer player, TrackStuckEventPayload trackStuckEvent, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(trackStuckEvent);
+
+        var track = CreateTrack(trackStuckEvent.Track);
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyTrackStuckAsync(track, trackStuckEvent.ExceededThreshold, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var eventArgs = new TrackStuckEventArgs(
+            player: player,
+            track: track,
+            threshold: trackStuckEvent.ExceededThreshold);
+
+        await OnTrackStuckAsync(eventArgs, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask ProcessWebSocketClosedEventAsync(ILavalinkPlayer player, WebSocketClosedEventPayload webSocketClosedEvent, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(webSocketClosedEvent);
+
+        // TODO
+    }
     private async Task ReceiveAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

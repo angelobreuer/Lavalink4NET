@@ -2,6 +2,7 @@ namespace Lavalink4NET.Events.Players;
 
 using System;
 using Lavalink4NET.Players;
+using Lavalink4NET.Tracks;
 
 /// <summary>
 ///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/>.
@@ -19,22 +20,22 @@ public abstract class TrackEventArgs : EventArgs
     /// <exception cref="ArgumentNullException">
     ///     thrown if the specified <paramref name="trackIdentifier"/> is <see langword="null"/>.
     /// </exception>
-    protected TrackEventArgs(ILavalinkPlayer player, string trackIdentifier)
+    protected TrackEventArgs(ILavalinkPlayer player, LavalinkTrack track)
     {
         ArgumentNullException.ThrowIfNull(player);
-        ArgumentNullException.ThrowIfNull(trackIdentifier);
+        ArgumentNullException.ThrowIfNull(track);
 
         Player = player;
-        TrackIdentifier = trackIdentifier;
+        Track = track;
     }
-
-    /// <summary>
-    ///     Gets the identifier of the affected track.
-    /// </summary>
-    public string TrackIdentifier { get; }
 
     /// <summary>
     ///     Gets the affected player.
     /// </summary>
     public ILavalinkPlayer Player { get; }
+
+    /// <summary>
+    ///     Gets the affected track.
+    /// </summary>
+    public LavalinkTrack Track { get; }
 }
