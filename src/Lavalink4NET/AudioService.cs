@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Players;
+﻿namespace Lavalink4NET;
 
 using System;
 using System.Buffers;
@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Integrations;
+using Lavalink4NET.Players;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Payloads;
@@ -297,6 +298,7 @@ public partial class AudioService : IAudioService
 
         // TODO
     }
+
     private async Task ReceiveAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

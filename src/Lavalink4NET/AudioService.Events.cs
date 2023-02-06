@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Players;
+﻿namespace Lavalink4NET;
 
 using System;
 using System.Threading;
