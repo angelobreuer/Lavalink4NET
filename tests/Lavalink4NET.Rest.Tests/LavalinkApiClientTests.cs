@@ -89,4 +89,71 @@ public class LavalinkApiClientTests
             .RetrieveServerInformationAsync()
             .ConfigureAwait(false);
     }
+
+    [Fact]
+    public async Task TestRetrieveStatistics()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: Mock.Of<IMemoryCache>(),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        _ = await client
+            .RetrieveStatisticsAsync()
+            .ConfigureAwait(false);
+    }
+
+    [Fact]
+    public async Task TestLoadTrackAsync()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var track = await client
+            .LoadTrackAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.NotNull(track);
+        Assert.Contains("Rick Astley", track.Title);
+    }
+
+    [Fact]
+    public async Task TestSearchTrackAsync()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        var loadOptions = new TrackLoadOptions(
+            SearchMode: TrackSearchMode.YouTube);
+
+        // Act
+        var track = await client
+            .LoadTrackAsync("Never gonna give you up", loadOptions)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.NotNull(track);
+        Assert.Contains("Rick Astley", track.Title);
+    }
 }
