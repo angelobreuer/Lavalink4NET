@@ -7,8 +7,7 @@ using Lavalink4NET.Rest;
 public sealed record class PlayerProperties(
     ILavalinkApiClient ApiClient,
     IDiscordClientWrapper Client,
-    ulong GuildId,
-    ulong VoiceChannelId,
     string SessionId,
     PlayerInformationModel Model,
+    ulong VoiceChannelId,
     bool DisconnectOnStop);

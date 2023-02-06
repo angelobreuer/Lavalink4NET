@@ -91,7 +91,6 @@ internal sealed class LavalinkPlayerHandle
             var properties = new PlayerProperties(
                 ApiClient: _apiClient,
                 Client: _client,
-                GuildId: _guildId,
                 VoiceChannelId: _voiceState.Value.VoiceChannelId.Value,
                 SessionId: _sessionId,
                 Model: model,

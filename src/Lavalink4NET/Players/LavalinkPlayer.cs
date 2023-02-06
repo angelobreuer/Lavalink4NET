@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
@@ -25,7 +26,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         _sessionId = properties.SessionId;
         _apiClient = properties.ApiClient;
-        GuildId = properties.GuildId;
+        GuildId = properties.Model.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
         Refresh(properties.Model);
@@ -196,7 +197,13 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
-        return default;
+
+        var properties = new PlayerUpdateProperties
+        {
+            TrackData = new Optional<string?>(null),
+        };
+
+        return PerformUpdateAsync(properties, cancellationToken);
     }
 
     protected void EnsureNotDestroyed()
@@ -234,6 +241,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     private void Refresh(PlayerInformationModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.GuildId == GuildId);
 
         IsPaused = model.IsPaused;
