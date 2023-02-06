@@ -10,32 +10,39 @@ using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Rest;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 internal sealed class PlayerManager : IPlayerManager
 {
     private readonly ILavalinkApiClient _apiClient;
     private readonly TaskCompletionSource<string> _sessionIdTaskCompletionSource;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<PlayerManager> _logger;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IDiscordClientWrapper _clientWrapper;
-    private readonly ConcurrentDictionary<ulong, LavalinkPlayerHandle> _handles;
+    private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
 
     public PlayerManager(
-        IDiscordClientWrapper clientWrapper,
+        IServiceProvider serviceProvider,
+        IDiscordClientWrapper discordClient,
         ILavalinkApiClient apiClient,
         TaskCompletionSource<string> sessionIdTaskCompletionSource,
-        ILogger<PlayerManager> logger)
+        ILoggerFactory loggerFactory)
     {
-        ArgumentNullException.ThrowIfNull(clientWrapper);
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(sessionIdTaskCompletionSource);
-        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(loggerFactory);
 
-        _handles = new ConcurrentDictionary<ulong, LavalinkPlayerHandle>();
+        _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
 
-        _clientWrapper = clientWrapper;
+        _serviceProvider = serviceProvider;
+        _clientWrapper = discordClient;
         _apiClient = apiClient;
         _sessionIdTaskCompletionSource = sessionIdTaskCompletionSource;
-        _logger = logger;
+        _loggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger<PlayerManager>();
 
         _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
         _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated; // TODO: unsubscribe on dispose
@@ -118,7 +125,10 @@ internal sealed class PlayerManager : IPlayerManager
         // TODO: check destroyed
         return _handles.ContainsKey(guildId);
     }
-    public async ValueTask<T> JoinAsync<T>(ulong guildId, ulong voiceChannelId, PlayerFactory<T> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default) where T : ILavalinkPlayer
+
+    public async ValueTask<TPlayer> JoinAsync<TPlayer, TOptions>(ulong guildId, ulong voiceChannelId, PlayerFactory<TPlayer, TOptions> playerFactory, IOptions<TOptions> options, CancellationToken cancellationToken = default)
+        where TPlayer : ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -126,50 +136,35 @@ internal sealed class PlayerManager : IPlayerManager
             .WaitAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        LavalinkPlayerHandle Create(ulong guildId)
+        LavalinkPlayerHandle<TPlayer, TOptions> Create(ulong guildId)
         {
-            return new LavalinkPlayerHandle(
+            // TODO: cache player context instance
+            var playerContext = new PlayerContext(
+                ServiceProvider: _serviceProvider,
+                ApiClient: _apiClient,
+                DiscordClient: _clientWrapper,
+                SessionId: sessionId);
+
+            return new LavalinkPlayerHandle<TPlayer, TOptions>(
                 guildId: guildId,
-                client: _clientWrapper,
-                apiClient: _apiClient,
-                sessionId: sessionId,
-                playerFactory: x => playerFactory(x));
+                playerContext: playerContext,
+                playerFactory: playerFactory,
+                options: options,
+                logger: _loggerFactory.CreateLogger<TPlayer>());
         }
 
         var handle = _handles.GetOrAdd(guildId, Create);
 
+        var selfDeaf = options.Value.SelfDeaf;
+        var selfMute = options.Value.SelfMute;
+
         await _clientWrapper
-            .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: options.SelfDeaf, selfMute: options.SelfMute, cancellationToken: cancellationToken)
+            .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: selfDeaf, selfMute: selfMute, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         // TODO: throw on mismatch
-        return (T)await handle
+        return (TPlayer)await handle
             .GetPlayerAsync(cancellationToken)
             .ConfigureAwait(false);
-    }
-
-    public ValueTask<ILavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, PlayerFactory<ILavalinkPlayer> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(playerFactory);
-
-        return JoinAsync<ILavalinkPlayer>(
-            guildId: guildId,
-            voiceChannelId: voiceChannelId,
-            playerFactory: playerFactory,
-            options: options,
-            cancellationToken: cancellationToken);
-    }
-
-    public ValueTask<ILavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, PlayerJoinOptions options = default, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return JoinAsync<ILavalinkPlayer>(
-            guildId: guildId,
-            voiceChannelId: voiceChannelId,
-            playerFactory: static properties => new LavalinkPlayer(properties),
-            options: options,
-            cancellationToken: cancellationToken);
     }
 }

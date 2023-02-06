@@ -11,9 +11,6 @@
     </Description>
 
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,dsharpplus</PackageTags>
-
-    <!-- Documentation -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

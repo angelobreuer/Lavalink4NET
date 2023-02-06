@@ -20,16 +20,16 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private string? _currentTrackState;
     private bool _disposed;
 
-    public LavalinkPlayer(PlayerProperties properties)
+    public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 
         _sessionId = properties.SessionId;
         _apiClient = properties.ApiClient;
-        GuildId = properties.Model.GuildId;
+        GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
-        Refresh(properties.Model);
+        Refresh(properties.InitialState);
     }
 
     public LavalinkTrack? CurrentTrack { get; private set; }

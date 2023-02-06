@@ -16,19 +16,18 @@ using Lavalink4NET.Tracks;
 /// </summary>
 public class VoteLavalinkPlayer : QueuedLavalinkPlayer
 {
-    public static PlayerFactory<VoteLavalinkPlayer> Factory => static properties => new(properties);
-
     private readonly IDiscordClientWrapper _discordClient;
     private readonly IList<ulong> _skipVotes;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="VoteLavalinkPlayer"/> class.
     /// </summary>
-    public VoteLavalinkPlayer(PlayerProperties properties) : base(properties)
+    public VoteLavalinkPlayer(IPlayerProperties<VoteLavalinkPlayer, VoteLavalinkPlayerOptions> properties)
+        : base(properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        _discordClient = properties.Client;
+        _discordClient = properties.DiscordClient;
         _skipVotes = new List<ulong>();
     }
 

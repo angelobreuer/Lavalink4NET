@@ -4,14 +4,6 @@ using Lavalink4NET.Filters;
 
 public interface IPlayerFilters
 {
-    T? GetFilter<T>() where T : IFilterOptions;
-
-    T GetRequiredFilter<T>() where T : IFilterOptions;
-
-    void SetFilter<T>(T? filterOptions) where T : IFilterOptions;
-
-    bool TryRemove<T>() where T : IFilterOptions;
-
     ChannelMixFilterOptions? ChannelMix { get; set; }
 
     DistortionFilterOptions? Distortion { get; set; }
@@ -33,4 +25,12 @@ public interface IPlayerFilters
     VolumeFilterOptions? Volume { get; set; }
 
     void Clear();
+
+    T? GetFilter<T>() where T : IFilterOptions;
+
+    T GetRequiredFilter<T>() where T : IFilterOptions;
+
+    void SetFilter<T>(T? filterOptions) where T : IFilterOptions;
+
+    bool TryRemove<T>() where T : IFilterOptions;
 }

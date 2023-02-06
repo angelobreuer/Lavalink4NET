@@ -18,12 +18,12 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     /// <summary>
     ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
     /// </summary>
-    public QueuedLavalinkPlayer(PlayerProperties properties)
-        : base(properties with { DisconnectOnStop = false, })
+    public QueuedLavalinkPlayer(IPlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions> properties)
+        : base(properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        _disconnectOnStop = properties.DisconnectOnStop;
+        _disconnectOnStop = properties.Options.Value.DisconnectOnStop;
 
         Queue = new TrackQueue(); // TODO: setting to adjust capacity
     }
@@ -39,6 +39,61 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     public TrackRepeatMode RepeatMode { get; set; }
 
     public bool Shuffle { get; set; }
+
+    public async ValueTask<int> PlayAsync(ITrackQueueItem queueItem, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(queueItem);
+        EnsureNotDestroyed();
+
+        // check if the track should be enqueued (if a track is already playing)
+        if (enqueue && (Queue.Count > 0 || State == PlayerState.Playing || State == PlayerState.Paused))
+        {
+            // add the track to the queue
+            Queue.Enqueue(queueItem);
+
+            // return track queue position
+            return Queue.Count;
+        }
+
+        // play the track immediately
+        await base
+            .PlayAsync(queueItem.Track, properties, cancellationToken)
+            .ConfigureAwait(false);
+
+        // 0 = now playing
+        return 0;
+    }
+
+    public ValueTask<int> PlayAsync(LavalinkTrack track, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDestroyed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return PlayAsync(new TrackReference(track), enqueue, properties, cancellationToken);
+    }
+
+    public ValueTask<int> PlayAsync(string identifier, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDestroyed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return PlayAsync(new TrackReference(identifier), enqueue, properties, cancellationToken);
+    }
+
+    public ValueTask<int> PlayAsync(TrackReference trackReference, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDestroyed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return PlayAsync(new TrackQueueItem(trackReference), enqueue, properties, cancellationToken);
+    }
+
+    public override async ValueTask PlayAsync(TrackReference trackReference, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await PlayAsync(trackReference, enqueue: true, properties, cancellationToken).ConfigureAwait(false);
+    }
 
     /// <summary>
     ///     Skips the current track asynchronously.

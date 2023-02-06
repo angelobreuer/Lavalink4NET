@@ -33,14 +33,15 @@ public partial class AudioService : IAudioService
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
 
     public AudioService(
-        IDiscordClientWrapper clientWrapper,
+        IServiceProvider serviceProvider,
+        IDiscordClientWrapper discordClient,
         ILavalinkApiClient apiClient,
         ITrackManager trackManager,
         ILavalinkSocketFactory socketFactory,
         ILoggerFactory loggerFactory,
         IOptions<LavalinkNodeOptions> options)
     {
-        ArgumentNullException.ThrowIfNull(clientWrapper);
+        ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(trackManager);
         ArgumentNullException.ThrowIfNull(socketFactory);
@@ -50,16 +51,17 @@ public partial class AudioService : IAudioService
         _readyTaskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Players = new PlayerManager(
-            clientWrapper: clientWrapper,
+            serviceProvider: serviceProvider,
+            discordClient: discordClient,
             apiClient: apiClient,
             sessionIdTaskCompletionSource: _readyTaskCompletionSource,
-            logger: loggerFactory.CreateLogger<PlayerManager>());
+            loggerFactory: loggerFactory);
 
         Tracks = trackManager;
         Integrations = new IntegrationCollection();
 
         _socketFactory = socketFactory;
-        _clientWrapper = clientWrapper;
+        _clientWrapper = discordClient;
         _apiClient = apiClient;
         _loggerFactory = loggerFactory;
         _options = options.Value;

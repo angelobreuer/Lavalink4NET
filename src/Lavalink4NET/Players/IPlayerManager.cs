@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 public interface IPlayerManager
 {
@@ -16,9 +17,7 @@ public interface IPlayerManager
 
     bool HasPlayer(ulong guildId);
 
-    ValueTask<T> JoinAsync<T>(ulong guildId, ulong voiceChannelId, PlayerFactory<T> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default) where T : ILavalinkPlayer;
-
-    ValueTask<ILavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, PlayerFactory<ILavalinkPlayer> playerFactory, PlayerJoinOptions options = default, CancellationToken cancellationToken = default);
-
-    ValueTask<ILavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, PlayerJoinOptions options = default, CancellationToken cancellationToken = default);
+    ValueTask<TPlayer> JoinAsync<TPlayer, TOptions>(ulong guildId, ulong voiceChannelId, PlayerFactory<TPlayer, TOptions> playerFactory, IOptions<TOptions> options, CancellationToken cancellationToken = default)
+        where TPlayer : ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions;
 }

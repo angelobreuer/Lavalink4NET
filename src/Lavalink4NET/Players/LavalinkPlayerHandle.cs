@@ -7,39 +7,56 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol.Requests;
-using Lavalink4NET.Rest;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-internal sealed class LavalinkPlayerHandle
+internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerHandle
+    where TPlayer : ILavalinkPlayer
+    where TOptions : LavalinkPlayerOptions
 {
+    private readonly ulong _guildId;
+    private readonly ILogger<TPlayer> _logger;
+    private readonly IOptions<TOptions> _options;
+    private readonly PlayerContext _playerContext;
+    private readonly PlayerFactory<TPlayer, TOptions> _playerFactory;
+    private object _value;
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
-    private readonly ulong _guildId;
-    private readonly IDiscordClientWrapper _client;
-    private readonly ILavalinkApiClient _apiClient;
-    private readonly string _sessionId;
-    private readonly Func<PlayerProperties, ILavalinkPlayer> _playerFactory;
-    private object _value;
 
     public LavalinkPlayerHandle(
         ulong guildId,
-        IDiscordClientWrapper client,
-        ILavalinkApiClient apiClient, // TODO: aggregate session id, client and api client
-        string sessionId,
-        Func<PlayerProperties, ILavalinkPlayer> playerFactory)
+        PlayerContext playerContext,
+        PlayerFactory<TPlayer, TOptions> playerFactory,
+        IOptions<TOptions> options,
+        ILogger<TPlayer> logger)
     {
-        ArgumentNullException.ThrowIfNull(apiClient);
-        ArgumentNullException.ThrowIfNull(sessionId);
+        ArgumentNullException.ThrowIfNull(playerContext);
         ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(logger);
 
         _value = new TaskCompletionSource<ILavalinkPlayer>(TaskCreationOptions.RunContinuationsAsynchronously);
+
         _guildId = guildId;
-        _client = client;
-        _apiClient = apiClient;
-        _sessionId = sessionId;
+        _playerContext = playerContext;
         _playerFactory = playerFactory;
+        _options = options;
+        _logger = logger;
     }
 
     public ILavalinkPlayer? Player => _value as ILavalinkPlayer;
+
+    public ValueTask<ILavalinkPlayer> GetPlayerAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
+        {
+            return new ValueTask<ILavalinkPlayer>(task: taskCompletionSource.Task);
+        }
+
+        return ValueTask.FromResult<ILavalinkPlayer>(Unsafe.As<object, TPlayer>(ref Unsafe.AsRef(_value)));
+    }
 
     public async ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
@@ -74,6 +91,27 @@ internal sealed class LavalinkPlayerHandle
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
 
+        if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
+        {
+            var player = await CreatePlayerAsync(cancellationToken).ConfigureAwait(false);
+            _value = player;
+
+            taskCompletionSource.TrySetResult(player);
+        }
+
+        if (_value is ILavalinkPlayerListener playerListener)
+        {
+            playerListener.NotifyChannelUpdate(_voiceState.Value.VoiceChannelId!.Value);
+        }
+    }
+
+    private async ValueTask<TPlayer> CreatePlayerAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Debug.Assert(_voiceServer is not null);
+        Debug.Assert(_voiceState is not null);
+
         var playerProperties = new PlayerUpdateProperties
         {
             VoiceState = new VoiceStateProperties(
@@ -82,41 +120,34 @@ internal sealed class LavalinkPlayerHandle
                 SessionId: _voiceState.Value.SessionId),
         };
 
-        var model = await _apiClient
-            .UpdatePlayerAsync(_sessionId, _guildId, playerProperties, cancellationToken)
+        if (_options.Value.InitialTrack is not null)
+        {
+            var track = _options.Value.InitialTrack.Value;
+
+            playerProperties = track.IsPresent
+                ? (playerProperties with { TrackData = track.Track.ToString(), })
+                : (playerProperties with { Identifier = track.Identifier, });
+        }
+
+        if (_options.Value.InitialVolume is not null)
+        {
+            playerProperties = playerProperties with { Volume = _options.Value.InitialVolume.Value, };
+        }
+
+        var initialState = await _playerContext.ApiClient
+            .UpdatePlayerAsync(_playerContext.SessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
 
-        if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
-        {
-            var properties = new PlayerProperties(
-                ApiClient: _apiClient,
-                Client: _client,
-                VoiceChannelId: _voiceState.Value.VoiceChannelId.Value,
-                SessionId: _sessionId,
-                Model: model,
-                DisconnectOnStop: false); // TODO: disconnect on stop
+        var label = _options.Value.Label ?? $"{typeof(TPlayer)}@{_guildId}";
 
-            var player = _playerFactory(properties);
-            taskCompletionSource.TrySetResult(player);
+        var properties = new PlayerProperties<TPlayer, TOptions>(
+            Context: _playerContext,
+            VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
+            InitialState: initialState,
+            Label: label,
+            Options: _options,
+            Logger: _logger);
 
-            _value = player;
-        }
-
-        if (_value is ILavalinkPlayerListener playerListener)
-        {
-            playerListener.NotifyChannelUpdate(_voiceState.Value.VoiceChannelId.Value);
-        }
-    }
-
-    public ValueTask<ILavalinkPlayer> GetPlayerAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
-        {
-            return new ValueTask<ILavalinkPlayer>(taskCompletionSource.Task);
-        }
-
-        return ValueTask.FromResult(Unsafe.As<object, ILavalinkPlayer>(ref Unsafe.AsRef(_value)));
+        return await _playerFactory(properties, cancellationToken).ConfigureAwait(false);
     }
 }
