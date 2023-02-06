@@ -1,4 +1,3 @@
-using System;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Lavalink4NET;
@@ -6,41 +5,24 @@ using Lavalink4NET.Discord_NET.ExampleBot;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using var serviceProvider = ConfigureServices();
+var builder = new HostApplicationBuilder(args);
 
-var bot = serviceProvider.GetRequiredService<ExampleBot>();
-var interactionService = serviceProvider.GetRequiredService<InteractionService>();
+builder.Services.AddHostedService<ApplicationHost>();
 
-await bot.StartAsync();
+// Bot
+builder.Services.AddSingleton<ApplicationHost>();
 
-while (Console.ReadKey(true).Key != ConsoleKey.Q)
-{
-}
+// Discord
+builder.Services.AddSingleton<DiscordSocketClient>();
+builder.Services.AddSingleton<InteractionService>();
 
-await bot.StopAsync();
+// Lavalink
+builder.Services.AddLavalink<DiscordClientWrapper>();
+builder.Services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
+builder.Services.AddSingleton(new LavalinkNodeOptions { /* Your Node Configuration */});
 
-static ServiceProvider ConfigureServices()
-{
-    var services = new ServiceCollection();
-
-    // Bot
-    services.AddSingleton<ExampleBot>();
-
-    // Discord
-    services.AddSingleton<DiscordSocketClient>();
-    services.AddSingleton<InteractionService>();
-
-    // Lavalink
-    services.AddLavalink<DiscordClientWrapper>();
-
-    services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
-
-    services.AddSingleton(new LavalinkNodeOptions
-    {
-        // Your Node Configuration
-    });
-
-    return services.BuildServiceProvider();
-}
+var app = builder.Build();
+app.Run();

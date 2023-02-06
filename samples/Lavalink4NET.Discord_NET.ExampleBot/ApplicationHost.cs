@@ -1,26 +1,28 @@
 namespace Lavalink4NET.Discord_NET.ExampleBot;
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 /// <summary>
 ///     The main class for controlling the bot.
 /// </summary>
-public sealed class ExampleBot : IDisposable
+public sealed class ApplicationHost : IHostedService
 {
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interactionService;
     private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ExampleBot"/> class.
+    ///     Initializes a new instance of the <see cref="ApplicationHost"/> class.
     /// </summary>
     /// <param name="serviceProvider">the service provider</param>
-    public ExampleBot(IServiceProvider serviceProvider)
+    public ApplicationHost(IServiceProvider serviceProvider)
     {
         _client = serviceProvider.GetRequiredService<DiscordSocketClient>();
         _interactionService = serviceProvider.GetRequiredService<InteractionService>();
@@ -35,13 +37,10 @@ public sealed class ExampleBot : IDisposable
         _client.InteractionCreated -= InteractionCreated;
     }
 
-    /// <summary>
-    ///     Starts the bot asynchronously.
-    /// </summary>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    public async Task StartAsync()
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // Insert your bot token here:
+        cancellationToken.ThrowIfCancellationRequested();
+
         await _client.LoginAsync(TokenType.Bot, "");
         await _client.StartAsync();
 
@@ -51,12 +50,10 @@ public sealed class ExampleBot : IDisposable
         await _interactionService.RegisterCommandsToGuildAsync(1023169934819328031);
     }
 
-    /// <summary>
-    ///     Stops the bot asynchronously.
-    /// </summary>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    public async Task StopAsync()
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         await _client.StopAsync();
     }
 

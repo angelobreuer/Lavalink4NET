@@ -23,7 +23,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
     /// </exception>
     public MusicModule(IAudioService audioService)
-        => _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+    {
+        ArgumentNullException.ThrowIfNull(audioService);
+
+        _audioService = audioService;
+    }
 
     /// <summary>
     ///     Disconnects from the current voice channel connected to asynchronously.
@@ -70,8 +74,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        await player.PlayAsync(track).ConfigureAwait(false);
-        var position = 0; // TODO
+        var position = await player.PlayAsync(track).ConfigureAwait(false);
 
         if (position is 0)
         {
@@ -190,7 +193,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         }
 
         return await _audioService.Players
-            .JoinAsync(user.Guild.Id, user.VoiceChannel.Id, playerFactory: VoteLavalinkPlayer.Factory)
+            .JoinAsync(user.Guild.Id, user.VoiceChannel.Id, playerFactory: PlayerFactory.Vote)
             .ConfigureAwait(false);
     }
 }
