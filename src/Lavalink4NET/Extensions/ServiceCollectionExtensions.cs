@@ -2,8 +2,8 @@
 
 using System;
 using Lavalink4NET.Clients;
-using Lavalink4NET.Players;
 using Lavalink4NET.Rest;
+using Lavalink4NET.Socket;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient();
         services.AddMemoryCache();
 
+        services.TryAddSingleton<ILavalinkSocketFactory, LavalinkSocketFactory>();
         services.TryAddSingleton<ILavalinkApiClient, LavalinkApiClient>();
         services.TryAddSingleton<IAudioService, AudioService>();
         services.TryAddSingleton<ITrackManager, TrackManager>();

@@ -25,6 +25,7 @@ using Microsoft.Extensions.Options;
 public partial class AudioService : IAudioService
 {
     private readonly ILavalinkApiClient _apiClient;
+    private readonly ILavalinkSocketFactory _socketFactory;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ILogger<AudioService> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -35,12 +36,14 @@ public partial class AudioService : IAudioService
         IDiscordClientWrapper clientWrapper,
         ILavalinkApiClient apiClient,
         ITrackManager trackManager,
+        ILavalinkSocketFactory socketFactory,
         ILoggerFactory loggerFactory,
         IOptions<LavalinkNodeOptions> options)
     {
         ArgumentNullException.ThrowIfNull(clientWrapper);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(trackManager);
+        ArgumentNullException.ThrowIfNull(socketFactory);
         ArgumentNullException.ThrowIfNull(loggerFactory);
         ArgumentNullException.ThrowIfNull(options);
 
@@ -55,6 +58,7 @@ public partial class AudioService : IAudioService
         Tracks = trackManager;
         Integrations = new IntegrationCollection();
 
+        _socketFactory = socketFactory;
         _clientWrapper = clientWrapper;
         _apiClient = apiClient;
         _loggerFactory = loggerFactory;
@@ -350,9 +354,7 @@ public partial class AudioService : IAudioService
             Passphrase = _options.Passphrase,
         };
 
-        using var socket = new LavalinkSocket(
-            logger: _loggerFactory.CreateLogger<LavalinkSocket>(),
-            options: Options.Create(socketOptions));
+        using var socket = _socketFactory.Create(Options.Create(socketOptions));
 
         while (true)
         {

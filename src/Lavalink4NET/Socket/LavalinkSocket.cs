@@ -14,7 +14,7 @@ using Lavalink4NET.Protocol.Payloads;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class LavalinkSocket : IDisposable
+internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
 {
     private readonly Channel<IPayload> _channel;
     private readonly ILogger<LavalinkSocket> _logger;
