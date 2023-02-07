@@ -3,6 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <PackageId>Lavalink4NET.Discord.NET</PackageId>
+	  <Nullable>enable</Nullable>
 
     <!-- Package Description -->
     <Description>

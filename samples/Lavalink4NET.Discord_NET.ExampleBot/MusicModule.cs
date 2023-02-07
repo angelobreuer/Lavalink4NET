@@ -3,6 +3,8 @@ namespace Lavalink4NET.Discord_NET.ExampleBot;
 using System;
 using System.Threading.Tasks;
 using Discord.Interactions;
+using Lavalink4NET.Clients;
+using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Vote;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -167,33 +169,27 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     /// <returns>
     ///     a task that represents the asynchronous operation. The task result is the lavalink player.
     /// </returns>
-    private async ValueTask<VoteLavalinkPlayer> GetPlayerAsync(bool connectToVoiceChannel = true)
+    private async ValueTask<VoteLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
-        var player = await _audioService.Players
-            .GetPlayerAsync<VoteLavalinkPlayer>(Context.Guild.Id)
+        var options = new PlayerJoinOptions(ConnectToVoiceChannel: connectToVoiceChannel);
+
+        var result = await _audioService.Players
+            .GetOrJoinAsync(Context, playerFactory: PlayerFactory.Vote, options)
             .ConfigureAwait(false);
 
-        if (player is not null && player.State is not PlayerState.Destroyed)
+        if (!result.IsSuccess)
         {
-            return player;
-        }
+            var errorMessage = result.Status switch
+            {
+                PlayerJoinStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
+                PlayerJoinStatus.BotNotConnected => "The bot is currently not connected.",
+                _ => "Unknown error.",
+            };
 
-        var user = Context.Guild.GetUser(Context.User.Id);
-
-        if (!user.VoiceState.HasValue)
-        {
-            await ReplyAsync("You must be in a voice channel!").ConfigureAwait(false);
+            await FollowupAsync(errorMessage).ConfigureAwait(false);
             return null;
         }
 
-        if (!connectToVoiceChannel)
-        {
-            await ReplyAsync("The bot is not in a voice channel!").ConfigureAwait(false);
-            return null;
-        }
-
-        return await _audioService.Players
-            .JoinAsync(user.Guild.Id, user.VoiceChannel.Id, playerFactory: PlayerFactory.Vote)
-            .ConfigureAwait(false);
+        return result.Player;
     }
 }
