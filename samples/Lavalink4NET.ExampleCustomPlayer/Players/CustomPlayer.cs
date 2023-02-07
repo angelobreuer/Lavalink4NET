@@ -1,27 +1,22 @@
-namespace Lavalink4NET.ExampleCustomPlayer;
+namespace Lavalink4NET.ExampleCustomPlayer.Players;
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Players;
+using Lavalink4NET.Players.Queued;
+using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     A custom player that saves the last used volume.
 /// </summary>
-public sealed class MyCustomPlayer : LavalinkPlayer
+public sealed class CustomPlayer : QueuedLavalinkPlayer
 {
-    /// <summary>
-    ///     The dictionary holding the last used volumes.
-    /// </summary>
-    /// <remarks>
-    ///     This can be replaced with a database or something else to keep the values persistent.
-    /// </remarks>
-    private readonly static Dictionary<ulong, float> _volumes = new();
+    private readonly IVolumeService _volumeService;
 
-    public MyCustomPlayer(PlayerProperties properties)
+    public CustomPlayer(IPlayerProperties<CustomPlayer, CustomPlayerOptions> properties)
         : base(properties)
     {
-        // TODO: restore volume
+        _volumeService = properties.ServiceProvider.GetRequiredService<IVolumeService>();
     }
 
     public override async ValueTask SetVolumeAsync(float volume = 1, CancellationToken cancellationToken = default)
@@ -34,6 +29,6 @@ public sealed class MyCustomPlayer : LavalinkPlayer
             .ConfigureAwait(false);
 
         // store the volume of the player
-        _volumes[GuildId] = volume;
+        _volumeService.SetVolume(GuildId, volume);
     }
 }
