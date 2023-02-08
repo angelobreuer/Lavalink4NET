@@ -6,8 +6,39 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
-public class LavalinkApiClientTests
+public class LavalinkApiClientTests : IAsyncLifetime
 {
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task InitializeAsync()
+    {
+        // Wait maximum 30 seconds for server startup
+        using var cancellationTokenSource = new CancellationTokenSource(30000);
+        using var httpClient = new HttpClient();
+
+        while (true)
+        {
+            try
+            {
+                _ = await httpClient
+                    .GetAsync("http://localhost:2333/", cancellationTokenSource.Token)
+                    .ConfigureAwait(false);
+
+                break;
+            }
+            catch (HttpRequestException)
+            {
+            }
+            catch (OperationCanceledException exception)
+            {
+                throw new TimeoutException("Timed out waiting for lavalink server to start up.", exception);
+            }
+        }
+    }
+
     [Theory]
     [InlineData("abc", "ytsearch:abc", "ytsearch", true)]
     [InlineData("abc", "scsearch:abc", "scsearch", true)]
