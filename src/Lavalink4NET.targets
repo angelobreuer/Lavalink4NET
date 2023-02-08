@@ -19,7 +19,7 @@
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
 
     <!-- Nullable -->
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
   </PropertyGroup>

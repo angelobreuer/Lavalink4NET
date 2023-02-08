@@ -3,14 +3,15 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	<LangVersion>preview</LangVersion>
 
-    <!-- Package Description -->
-    <Description>
-      A Lavalink wrapper for playing music using a discord bot.
-      NOTE: This package is only for implementing own Discord clients. Use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus
-    </Description>
+	  <!-- Package Description -->
+	  <Description>
+		  A Lavalink wrapper for playing music using a discord bot.
+		  NOTE: This package is only for implementing own Discord clients. Use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus
+	  </Description>
 
-    <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
+	  <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

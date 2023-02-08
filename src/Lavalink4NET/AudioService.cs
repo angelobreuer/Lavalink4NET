@@ -357,6 +357,8 @@ public partial class AudioService : IAudioService
         };
 
         using var socket = _socketFactory.Create(Options.Create(socketOptions));
+        using var cancellationTokenSource = new CancellationTokenSource();
+        using var _ = new CancellationTokenDisposable(cancellationTokenSource);
 
         while (true)
         {
@@ -375,4 +377,9 @@ public partial class AudioService : IAudioService
             }
         }
     }
+}
+
+file readonly record struct CancellationTokenDisposable(CancellationTokenSource CancellationTokenSource) : IDisposable
+{
+    public void Dispose() => CancellationTokenSource.Cancel();
 }
