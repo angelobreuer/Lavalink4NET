@@ -12,6 +12,7 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     PlayerInformationModel InitialState,
     string Label,
     ulong VoiceChannelId,
+    string SessionId,
     IOptions<TOptions> Options,
     ILogger<TPlayer> Logger)
     : IPlayerProperties<TPlayer, TOptions>
@@ -21,8 +22,6 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     public ILavalinkApiClient ApiClient => Context.ApiClient;
 
     public IDiscordClientWrapper DiscordClient => Context.DiscordClient;
-
-    public string SessionId => Context.SessionId;
 
     public IServiceProvider? ServiceProvider => Context.ServiceProvider;
 }

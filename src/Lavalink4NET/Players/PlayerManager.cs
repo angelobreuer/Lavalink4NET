@@ -15,24 +15,20 @@ using Microsoft.Extensions.Options;
 internal sealed class PlayerManager : IPlayerManager
 {
     private readonly ILavalinkApiClient _apiClient;
-    private readonly TaskCompletionSource<string> _sessionIdTaskCompletionSource;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger<PlayerManager> _logger;
-    private readonly IServiceProvider _serviceProvider;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
-
+    private readonly ILogger<PlayerManager> _logger;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly IServiceProvider? _serviceProvider;
     public PlayerManager(
-        IServiceProvider serviceProvider,
+        IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,
         ILavalinkApiClient apiClient,
-        TaskCompletionSource<string> sessionIdTaskCompletionSource,
         ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(apiClient);
-        ArgumentNullException.ThrowIfNull(sessionIdTaskCompletionSource);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
@@ -40,46 +36,11 @@ internal sealed class PlayerManager : IPlayerManager
         _serviceProvider = serviceProvider;
         _clientWrapper = discordClient;
         _apiClient = apiClient;
-        _sessionIdTaskCompletionSource = sessionIdTaskCompletionSource;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
 
         _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
         _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated; // TODO: unsubscribe on dispose
-    }
-
-    private Task OnVoiceServerUpdated(object sender, VoiceServerUpdatedEventArgs eventArgs)
-    {
-        ArgumentNullException.ThrowIfNull(sender);
-        ArgumentNullException.ThrowIfNull(eventArgs);
-
-        if (!_handles.TryGetValue(eventArgs.GuildId, out var playerHandle))
-        {
-            return Task.CompletedTask;
-        }
-
-        _logger.LogTrace(
-            "Voice server for player '{GuildId}' updated (token: {Token}, endpoint: {Endpoint}).",
-            eventArgs.GuildId, eventArgs.VoiceServer.Token, eventArgs.VoiceServer.Endpoint);
-
-        return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceServer).AsTask();
-    }
-
-    private Task OnVoiceStateUpdated(object sender, VoiceStateUpdatedEventArgs eventArgs)
-    {
-        ArgumentNullException.ThrowIfNull(sender);
-        ArgumentNullException.ThrowIfNull(eventArgs);
-
-        if (!_handles.TryGetValue(eventArgs.GuildId, out var playerHandle))
-        {
-            return Task.CompletedTask;
-        }
-
-        _logger.LogTrace(
-            "Voice state for player '{GuildId}' updated (channel id: {ChannelId}, session id: {SessionId}).",
-            eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
-
-        return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceState).AsTask();
     }
 
     public IEnumerable<ILavalinkPlayer> Players
@@ -91,6 +52,19 @@ internal sealed class PlayerManager : IPlayerManager
                 .Select(x => x.Player)
                 .Where(x => x is not null)!;
         }
+    }
+
+    public ValueTask AssociateAsync(ulong guildId, string sessionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        if (!_handles.TryGetValue(guildId, out var handle))
+        {
+            return default;
+        }
+
+        return handle.AssociateAsync(sessionId, cancellationToken);
     }
 
     public async ValueTask<T?> GetPlayerAsync<T>(ulong guildId, CancellationToken cancellationToken = default) where T : class, ILavalinkPlayer
@@ -132,18 +106,13 @@ internal sealed class PlayerManager : IPlayerManager
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var sessionId = await _sessionIdTaskCompletionSource.Task
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
         LavalinkPlayerHandle<TPlayer, TOptions> Create(ulong guildId)
         {
             // TODO: cache player context instance
             var playerContext = new PlayerContext(
                 ServiceProvider: _serviceProvider,
                 ApiClient: _apiClient,
-                DiscordClient: _clientWrapper,
-                SessionId: sessionId);
+                DiscordClient: _clientWrapper);
 
             return new LavalinkPlayerHandle<TPlayer, TOptions>(
                 guildId: guildId,
@@ -166,5 +135,39 @@ internal sealed class PlayerManager : IPlayerManager
         return (TPlayer)await handle
             .GetPlayerAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private Task OnVoiceServerUpdated(object sender, VoiceServerUpdatedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        if (!_handles.TryGetValue(eventArgs.GuildId, out var playerHandle))
+        {
+            return Task.CompletedTask;
+        }
+
+        _logger.LogTrace(
+            "Voice server for player '{GuildId}' updated (token: {Token}, endpoint: {Endpoint}).",
+            eventArgs.GuildId, eventArgs.VoiceServer.Token, eventArgs.VoiceServer.Endpoint);
+
+        return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceServer).AsTask();
+    }
+
+    private Task OnVoiceStateUpdated(object sender, VoiceStateUpdatedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        if (!_handles.TryGetValue(eventArgs.GuildId, out var playerHandle))
+        {
+            return Task.CompletedTask;
+        }
+
+        _logger.LogTrace(
+            "Voice state for player '{GuildId}' updated (channel id: {ChannelId}, session id: {SessionId}).",
+            eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
+
+        return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceState).AsTask();
     }
 }

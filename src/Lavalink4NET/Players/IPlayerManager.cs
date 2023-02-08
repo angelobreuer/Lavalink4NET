@@ -15,6 +15,8 @@ public interface IPlayerManager
 
     IEnumerable<T> GetPlayers<T>() where T : ILavalinkPlayer;
 
+    ValueTask AssociateAsync(ulong guildId, string sessionId, CancellationToken cancellationToken = default);
+
     bool HasPlayer(ulong guildId);
 
     ValueTask<TPlayer> JoinAsync<TPlayer, TOptions>(ulong guildId, ulong voiceChannelId, PlayerFactory<TPlayer, TOptions> playerFactory, IOptions<TOptions> options, CancellationToken cancellationToken = default)

@@ -7,5 +7,4 @@ using Lavalink4NET.Rest;
 internal sealed record class PlayerContext(
     IServiceProvider? ServiceProvider,
     ILavalinkApiClient ApiClient,
-    IDiscordClientWrapper DiscordClient,
-    string SessionId);
+    IDiscordClientWrapper DiscordClient);

@@ -36,29 +36,28 @@ public partial class AudioService : IAudioService
         IServiceProvider serviceProvider,
         IDiscordClientWrapper discordClient,
         ILavalinkApiClient apiClient,
+        IPlayerManager playerManager,
         ITrackManager trackManager,
         ILavalinkSocketFactory socketFactory,
+        IIntegrationManager integrationManager,
         ILoggerFactory loggerFactory,
         IOptions<LavalinkNodeOptions> options)
     {
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(apiClient);
+        ArgumentNullException.ThrowIfNull(playerManager);
         ArgumentNullException.ThrowIfNull(trackManager);
         ArgumentNullException.ThrowIfNull(socketFactory);
+        ArgumentNullException.ThrowIfNull(integrationManager);
         ArgumentNullException.ThrowIfNull(loggerFactory);
         ArgumentNullException.ThrowIfNull(options);
 
         _readyTaskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        Players = new PlayerManager(
-            serviceProvider: serviceProvider,
-            discordClient: discordClient,
-            apiClient: apiClient,
-            sessionIdTaskCompletionSource: _readyTaskCompletionSource,
-            loggerFactory: loggerFactory);
-
+        Players = playerManager;
         Tracks = trackManager;
-        Integrations = new IntegrationCollection();
+        Integrations = integrationManager;
 
         _socketFactory = socketFactory;
         _clientWrapper = discordClient;
@@ -70,10 +69,14 @@ public partial class AudioService : IAudioService
         _ = ReceiveAsync(); // TODO
     }
 
-    public IIntegrationCollection Integrations { get; }
+    public IIntegrationManager Integrations { get; }
+
     public bool IsReady => _readyTaskCompletionSource.Task.IsCompletedSuccessfully;
+
     public IPlayerManager Players { get; }
+
     public string? SessionId { get; private set; }
+
     public ITrackManager Tracks { get; }
 
     public void Dispose()
@@ -87,7 +90,7 @@ public partial class AudioService : IAudioService
 
         var task = _readyTaskCompletionSource.Task;
 
-        if (cancellationToken.IsCancellationRequested)
+        if (cancellationToken.CanBeCanceled)
         {
             task = task.WaitAsync(cancellationToken);
         }
@@ -309,13 +312,30 @@ public partial class AudioService : IAudioService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        static async ValueTask<ClientInformation?> WaitForClientReadyAsync(IDiscordClientWrapper clientWrapper, CancellationToken cancellationToken = default)
+        try
+        {
+            await ReceiveInternalAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            _readyTaskCompletionSource.TrySetException(exception);
+            throw;
+        }
+    }
+
+    private async Task ReceiveInternalAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        static async ValueTask<ClientInformation?> WaitForClientReadyAsync(IDiscordClientWrapper clientWrapper, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ArgumentNullException.ThrowIfNull(clientWrapper);
 
+            var originalCancellationToken = cancellationToken;
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));
+            cancellationTokenSource.CancelAfter(timeout);
+            cancellationToken = cancellationTokenSource.Token;
 
             try
             {
@@ -323,7 +343,7 @@ public partial class AudioService : IAudioService
                     .WaitForReadyAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (!originalCancellationToken.IsCancellationRequested)
             {
                 return null;
             }
@@ -334,6 +354,7 @@ public partial class AudioService : IAudioService
 
         var clientInformation = await WaitForClientReadyAsync(
             clientWrapper: _clientWrapper,
+            timeout: _options.ReadyTimeout,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (clientInformation is null)

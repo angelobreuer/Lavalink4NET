@@ -10,4 +10,6 @@ public sealed record class LavalinkNodeOptions
     public Uri? WebSocketUri { get; init; }
 
     public string HttpClientName { get; init; } = Options.DefaultName;
+
+    public TimeSpan ReadyTimeout { get; init; } = TimeSpan.FromSeconds(10);
 }

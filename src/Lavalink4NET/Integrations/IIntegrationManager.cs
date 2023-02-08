@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-public interface IIntegrationCollection : IEnumerable<KeyValuePair<Type, ILavalinkIntegration>>
+public interface IIntegrationManager : IEnumerable<KeyValuePair<Type, ILavalinkIntegration>>
 {
     ILavalinkIntegration? this[Type key] { get; set; }
 

@@ -11,21 +11,21 @@ public interface IPlayerProperties<out TPlayer, out TOptions>
     where TOptions : LavalinkPlayerOptions
     where TPlayer : ILavalinkPlayer
 {
-    public ILavalinkApiClient ApiClient { get; }
+    ILavalinkApiClient ApiClient { get; }
 
-    public IDiscordClientWrapper DiscordClient { get; }
+    IDiscordClientWrapper DiscordClient { get; }
 
-    public PlayerInformationModel InitialState { get; }
+    PlayerInformationModel InitialState { get; }
 
-    public string Label { get; }
+    string Label { get; }
 
-    public ILogger<TPlayer> Logger { get; }
+    ILogger<TPlayer> Logger { get; }
 
-    public IOptions<TOptions> Options { get; }
+    IOptions<TOptions> Options { get; }
 
-    public IServiceProvider? ServiceProvider { get; }
+    IServiceProvider? ServiceProvider { get; }
 
-    public string SessionId { get; }
+    ulong VoiceChannelId { get; }
 
-    public ulong VoiceChannelId { get; }
+    string SessionId { get; }
 }

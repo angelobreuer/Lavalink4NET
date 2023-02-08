@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-internal sealed class IntegrationCollection : IIntegrationCollection
+internal sealed class IntegrationManager : IIntegrationManager
 {
     private Dictionary<Type, ILavalinkIntegration>? _integrations;
 

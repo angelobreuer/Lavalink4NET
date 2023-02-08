@@ -20,7 +20,7 @@ public interface IAudioService : IDisposable
 
     event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
 
-    IIntegrationCollection Integrations { get; }
+    IIntegrationManager Integrations { get; }
 
     IPlayerManager Players { get; }
 

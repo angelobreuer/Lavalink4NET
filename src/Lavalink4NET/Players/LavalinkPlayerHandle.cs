@@ -19,10 +19,10 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
     private readonly IOptions<TOptions> _options;
     private readonly PlayerContext _playerContext;
     private readonly PlayerFactory<TPlayer, TOptions> _playerFactory;
+    private string? _sessionId;
     private object _value;
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
-
     public LavalinkPlayerHandle(
         ulong guildId,
         PlayerContext playerContext,
@@ -58,6 +58,19 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         return ValueTask.FromResult<ILavalinkPlayer>(Unsafe.As<object, TPlayer>(ref Unsafe.AsRef(_value)));
     }
 
+    public async ValueTask AssociateAsync(string sessionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        _sessionId = sessionId;
+
+        if (_voiceServer is not null && _voiceState is not null)
+        {
+            await CompleteAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     public async ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -65,7 +78,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         _voiceServer = voiceServer;
 
-        if (_voiceState is not null)
+        if (_voiceState is not null && _sessionId is not null)
         {
             await CompleteAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -78,18 +91,18 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         _voiceState = voiceState;
 
-        if (_voiceServer is not null)
+        if (_voiceServer is not null && _sessionId is not null)
         {
             await CompleteAsync(cancellationToken).ConfigureAwait(false);
         }
     }
-
     private async ValueTask CompleteAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
+        Debug.Assert(_sessionId is not null);
 
         if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
         {
@@ -111,6 +124,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
+        Debug.Assert(_sessionId is not null);
 
         var playerProperties = new PlayerUpdateProperties
         {
@@ -135,7 +149,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         }
 
         var initialState = await _playerContext.ApiClient
-            .UpdatePlayerAsync(_playerContext.SessionId, _guildId, playerProperties, cancellationToken)
+            .UpdatePlayerAsync(_sessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
 
         var label = _options.Value.Label ?? $"{typeof(TPlayer)}@{_guildId}";
@@ -145,6 +159,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
             InitialState: initialState,
             Label: label,
+            SessionId: _sessionId,
             Options: _options,
             Logger: _logger);
 

@@ -61,11 +61,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -123,11 +123,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -185,11 +185,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -249,11 +249,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -318,11 +318,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -389,11 +389,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
@@ -453,11 +453,11 @@ public sealed class QueuedLavalinkPlayerTests
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object,
-                SessionId: sessionId),
+                DiscordClient: discordClientMock.Object),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
+            SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
