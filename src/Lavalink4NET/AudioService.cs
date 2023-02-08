@@ -168,12 +168,6 @@ public partial class AudioService : IAudioService
             _logger.LogTrace("Received payload from lavalink node: {Payload}", SerializePayload(payload));
         }
 
-        if (payload is IEventPayload eventPayload)
-        {
-            await ProcessEventAsync(eventPayload, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
         if (payload is ReadyPayload readyPayload)
         {
             if (!_readyTaskCompletionSource.TrySetResult(readyPayload.SessionId))
@@ -189,6 +183,12 @@ public partial class AudioService : IAudioService
         if (SessionId is null)
         {
             _logger.LogWarning("A payload was received before the ready payload was received. The payload will be ignored.");
+            return;
+        }
+
+        if (payload is IEventPayload eventPayload)
+        {
+            await ProcessEventAsync(eventPayload, cancellationToken).ConfigureAwait(false);
             return;
         }
 
