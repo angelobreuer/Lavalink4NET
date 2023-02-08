@@ -19,7 +19,6 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
     private readonly Channel<IPayload> _channel;
     private readonly ILogger<LavalinkSocket> _logger;
     private readonly IOptions<LavalinkSocketOptions> _options;
-    private readonly CancellationTokenSource _cancellationTokenSource;
     private bool _disposed;
 
     public LavalinkSocket(
@@ -31,11 +30,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
 
         _logger = logger;
         _options = options;
-
         _channel = Channel.CreateUnbounded<IPayload>();
-        _cancellationTokenSource = new CancellationTokenSource();
-
-        _ = RunInternalAsync(_cancellationTokenSource.Token);
     }
 
     public ValueTask<IPayload> ReceiveAsync(CancellationToken cancellationToken = default)
@@ -44,7 +39,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
         return _channel.Reader.ReadAsync(cancellationToken);
     }
 
-    private async Task RunInternalAsync(CancellationToken cancellationToken = default)
+    public async ValueTask RunAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -166,8 +161,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
 
         if (disposing)
         {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
+            _channel.Writer.TryComplete();
         }
     }
 

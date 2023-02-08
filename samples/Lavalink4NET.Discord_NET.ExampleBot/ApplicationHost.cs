@@ -49,7 +49,7 @@ public sealed class ApplicationHost : IHostedService
         // Put your guild id to test on here:
         await _interactionService.RegisterCommandsToGuildAsync(1023169934819328031);
     }
-
+    
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

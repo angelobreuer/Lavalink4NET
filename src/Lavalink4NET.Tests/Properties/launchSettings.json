@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Lavalink4NET.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:61375;http://localhost:61376"
+    }
+  }
+}
