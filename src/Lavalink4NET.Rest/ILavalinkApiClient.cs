@@ -13,6 +13,8 @@ public interface ILavalinkApiClient
 {
     LavalinkApiEndpoints Endpoints { get; }
 
+    HttpClient CreateHttpClient();
+
     ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,

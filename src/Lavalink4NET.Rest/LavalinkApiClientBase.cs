@@ -34,7 +34,7 @@ public abstract class LavalinkApiClientBase
         _authenticationHeaderValue = new AuthenticationHeaderValue(options.Value.Passphrase);
     }
 
-    protected HttpClient CreateHttpClient()
+    public HttpClient CreateHttpClient()
     {
         var httpClient = _httpClientFactory.CreateClient(_options.Value.HttpClientName);
         httpClient.DefaultRequestHeaders.Authorization = _authenticationHeaderValue;
