@@ -12,6 +12,6 @@ public enum SegmentCategory : byte
     Intro,
     Outro,
     Preview,
-    OfftopicMusic,
+    OffTopicMusic,
     Filler,
 }

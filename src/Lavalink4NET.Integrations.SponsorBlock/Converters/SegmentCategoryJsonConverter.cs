@@ -22,7 +22,7 @@ internal sealed class SegmentCategoryJsonConverter : JsonConverter<SegmentCatego
             "intro" => SegmentCategory.Intro,
             "outro" => SegmentCategory.Outro,
             "preview" => SegmentCategory.Preview,
-            "music_offtopic" => SegmentCategory.OfftopicMusic,
+            "music_offtopic" => SegmentCategory.OffTopicMusic,
             "filler" => SegmentCategory.Filler,
             _ => throw new JsonException("Invalid segment category."),
         };
@@ -41,7 +41,7 @@ internal sealed class SegmentCategoryJsonConverter : JsonConverter<SegmentCatego
             SegmentCategory.Intro => "intro",
             SegmentCategory.Outro => "outro",
             SegmentCategory.Preview => "preview",
-            SegmentCategory.OfftopicMusic => "music_offtopic",
+            SegmentCategory.OffTopicMusic => "music_offtopic",
             SegmentCategory.Filler => "filler",
             _ => throw new ArgumentException("Invalid segment category."),
         };

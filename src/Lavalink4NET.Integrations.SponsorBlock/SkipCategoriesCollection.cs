@@ -42,7 +42,7 @@ internal sealed class SkipCategoriesCollection : ISkipCategories
         _skipCategories.Add(SegmentCategory.Intro);
         _skipCategories.Add(SegmentCategory.Outro);
         _skipCategories.Add(SegmentCategory.Preview);
-        _skipCategories.Add(SegmentCategory.OfftopicMusic);
+        _skipCategories.Add(SegmentCategory.OffTopicMusic);
         _skipCategories.Add(SegmentCategory.Filler);
     }
 
