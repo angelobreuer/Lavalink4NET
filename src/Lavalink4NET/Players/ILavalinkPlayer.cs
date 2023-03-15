@@ -4,15 +4,20 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
 
 public interface ILavalinkPlayer
 {
+    ILavalinkApiClient ApiClient { get; }
+
     LavalinkTrack? CurrentTrack { get; }
 
     ulong GuildId { get; }
 
     TimeSpan Position { get; }
+
+    string SessionId { get; }
 
     PlayerState State { get; }
 

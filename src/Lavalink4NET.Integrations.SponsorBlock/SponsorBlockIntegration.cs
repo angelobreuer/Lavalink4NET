@@ -1,8 +1,6 @@
 ﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
@@ -14,29 +12,16 @@ using Lavalink4NET.Protocol.Payloads;
 
 internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBlockIntegration
 {
-    private readonly ConcurrentDictionary<ulong, ISkipCategories> _skipCategories;
-
-    public SponsorBlockIntegration()
+    static SponsorBlockIntegration()
     {
-        _skipCategories = new ConcurrentDictionary<ulong, ISkipCategories>();
-
         // Register events
         PayloadJsonConverter.RegisterEvent<SegmentsLoadedEventPayload>("SegmentsLoaded");
         PayloadJsonConverter.RegisterEvent<SegmentSkippedEventPayload>("SegmentSkipped");
-
-        throw new NotSupportedException("The SponsorBlock integration is currently not available for the newest Lavalink4NET. The support is blocked by https://github.com/TopiSenpai/Sponsorblock-Plugin/pull/6.");
     }
 
     public event AsyncEventHandler<SegmentSkippedEventArgs>? SegmentSkipped;
 
     public event AsyncEventHandler<SegmentsLoadedEventArgs>? SegmentsLoaded;
-
-    public ImmutableArray<SegmentCategory> DefaultSkipCategories { get; set; }
-
-    public ISkipCategories GetCategories(ulong guildId)
-    {
-        return _skipCategories.GetOrAdd(guildId, _ => new SkipCategoriesCollection(this));
-    }
 
     async ValueTask ILavalinkIntegration.ProcessPayloadAsync(IPayload payload, CancellationToken cancellationToken)
     {

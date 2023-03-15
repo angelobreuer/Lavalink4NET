@@ -15,8 +15,6 @@ using Lavalink4NET.Tracks;
 
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 {
-    private readonly ILavalinkApiClient _apiClient;
-    private readonly string _sessionId;
     private string? _currentTrackState;
     private bool _disposed;
 
@@ -24,8 +22,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        _sessionId = properties.SessionId;
-        _apiClient = properties.ApiClient;
+        SessionId = properties.SessionId;
+        ApiClient = properties.ApiClient;
         GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
@@ -51,6 +49,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     public ulong VoiceChannelId { get; private set; }
 
     public float Volume { get; private set; }
+
+    public ILavalinkApiClient ApiClient { get; }
+
+    public string SessionId { get; }
 
     void ILavalinkPlayerListener.NotifyChannelUpdate(ulong voiceChannelId)
     {
@@ -232,8 +234,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(properties);
 
-        var model = await _apiClient
-            .UpdatePlayerAsync(_sessionId, GuildId, properties, cancellationToken)
+        var model = await ApiClient
+            .UpdatePlayerAsync(SessionId, GuildId, properties, cancellationToken)
             .ConfigureAwait(false);
 
         Refresh(model!);

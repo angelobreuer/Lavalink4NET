@@ -24,7 +24,6 @@ using Microsoft.Extensions.Options;
 
 public partial class AudioService : IAudioService
 {
-    private readonly ILavalinkApiClient _apiClient;
     private readonly ILavalinkSocketFactory _socketFactory;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ILogger<AudioService> _logger;
@@ -58,10 +57,10 @@ public partial class AudioService : IAudioService
         Players = playerManager;
         Tracks = trackManager;
         Integrations = integrationManager;
+        ApiClient = apiClient;
 
         _socketFactory = socketFactory;
         _clientWrapper = discordClient;
-        _apiClient = apiClient;
         _loggerFactory = loggerFactory;
         _options = options.Value;
         _logger = loggerFactory.CreateLogger<AudioService>();
@@ -79,9 +78,11 @@ public partial class AudioService : IAudioService
 
     public ITrackManager Tracks { get; }
 
+    public ILavalinkApiClient ApiClient { get; }
+
     public void Dispose()
     {
-        throw new NotImplementedException();
+        // TODO
     }
 
     public ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
@@ -366,7 +367,7 @@ public partial class AudioService : IAudioService
 
         _logger.LogDebug("Discord client ({ClientLabel}) is ready.", clientInformation.Value.Label);
 
-        var webSocketUri = _options.WebSocketUri ?? _apiClient.Endpoints.WebSocket;
+        var webSocketUri = _options.WebSocketUri ?? ApiClient.Endpoints.WebSocket;
 
         var socketOptions = new LavalinkSocketOptions
         {
