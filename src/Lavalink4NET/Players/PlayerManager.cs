@@ -20,6 +20,7 @@ internal sealed class PlayerManager : IPlayerManager
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IServiceProvider? _serviceProvider;
+
     public PlayerManager(
         IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,

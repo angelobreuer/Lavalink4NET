@@ -37,6 +37,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
     }
 
     public LavalinkApiEndpoints Endpoints { get; }
+
     public async ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,
