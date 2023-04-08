@@ -54,7 +54,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.ExampleCustomP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus.ExampleBot", "..\samples\Lavalink4NET.DSharpPlus.ExampleBot\Lavalink4NET.DSharpPlus.ExampleBot.csproj", "{3ADB4B42-2567-4E43-BA6A-622E1377594A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Discord_NET.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.Discord_NET.ExampleBot.csproj", "{E25DD08C-483A-4060-B316-6DC6D11CE150}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DiscordNet.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.DiscordNet.ExampleBot.csproj", "{E25DD08C-483A-4060-B316-6DC6D11CE150}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
