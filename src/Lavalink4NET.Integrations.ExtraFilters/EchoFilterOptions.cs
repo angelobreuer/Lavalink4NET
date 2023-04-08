@@ -22,5 +22,7 @@ public sealed record class EchoFilterOptions(
         additionalFilters["echo"] = JsonSerializer.SerializeToElement(
             value: model,
             jsonTypeInfo: FilterJsonSerializerContext.Default.EchoFilterModel);
+
+        filterMap = filterMap with { AdditionalFilters = additionalFilters, };
     }
 }
