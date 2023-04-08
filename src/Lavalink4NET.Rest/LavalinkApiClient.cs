@@ -8,6 +8,7 @@ using System.Threading;
 using System.Web;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.RoutePlanners;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Protocol.Responses;
 using Lavalink4NET.Rest.Entities.Server;
@@ -305,5 +306,54 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .ConfigureAwait(false);
 
         return model!;
+    }
+
+    public async ValueTask<RoutePlannerInformationModel> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var requestUri = Endpoints.RoutePlannerStatus;
+        using var httpClient = CreateHttpClient();
+
+        using var responseMessage = await httpClient
+            .GetAsync(requestUri, cancellationToken)
+            .ConfigureAwait(false);
+
+        responseMessage.EnsureSuccessStatusCode();
+
+        var model = await responseMessage.Content
+            .ReadFromJsonAsync(ProtocolSerializerContext.Default.RoutePlannerInformationModel, cancellationToken)
+            .ConfigureAwait(false);
+
+        return model!;
+    }
+
+    public async ValueTask UnmarkFailedAddressAsync(AddressUnmarkProperties properties, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(properties);
+
+        var requestUri = Endpoints.RoutePlannerAddress;
+        using var httpClient = CreateHttpClient();
+
+        using var responseMessage = await httpClient
+            .PostAsJsonAsync(requestUri, properties, ProtocolSerializerContext.Default.Options, cancellationToken)
+            .ConfigureAwait(false);
+
+        responseMessage.EnsureSuccessStatusCode();
+    }
+
+    public async ValueTask UnmarkAllFailedAddressesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var requestUri = Endpoints.AllRoutePlannerAddresses;
+        using var httpClient = CreateHttpClient();
+
+        using var responseMessage = await httpClient
+            .PostAsync(requestUri, content: null, cancellationToken)
+            .ConfigureAwait(false);
+
+        responseMessage.EnsureSuccessStatusCode();
     }
 }

@@ -22,6 +22,7 @@ public sealed class LavalinkApiEndpoints
         Information = Build($"v{version}/info");
         Sessions = Build($"v{version}/sessions");
         LoadTracks = Build($"v{version}/loadtracks");
+        RoutePlannerStatus = Build($"v{version}/routeplanner/status");
         AllRoutePlannerAddresses = Build($"v{version}/routeplanner/free/all");
         RoutePlannerAddress = Build($"v{version}/routeplanner/free/address");
     }
@@ -41,6 +42,8 @@ public sealed class LavalinkApiEndpoints
     public Uri Version { get; }
 
     public Uri WebSocket { get; }
+
+    public Uri RoutePlannerStatus { get; }
 
     public Uri AllRoutePlannerAddresses { get; }
 

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.RoutePlanners;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest.Entities.Server;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -39,4 +40,10 @@ public interface ILavalinkApiClient
     ValueTask<ImmutableArray<PlayerInformationModel>> GetPlayersAsync(string sessionId, CancellationToken cancellationToken = default);
 
     ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
+
+    ValueTask<RoutePlannerInformationModel> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default);
+
+    ValueTask UnmarkFailedAddressAsync(AddressUnmarkProperties properties, CancellationToken cancellationToken = default);
+
+    ValueTask UnmarkAllFailedAddressesAsync(CancellationToken cancellationToken = default);
 }
