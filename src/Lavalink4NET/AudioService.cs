@@ -392,10 +392,16 @@ public partial class AudioService : IAudioService
 
             foreach (var (_, integration) in Integrations)
             {
-                // TODO: error handling
-                await integration
-                    .ProcessPayloadAsync(payload, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await integration
+                        .ProcessPayloadAsync(payload, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Exception occurred while executing integration handler.");
+                }
             }
         }
     }
