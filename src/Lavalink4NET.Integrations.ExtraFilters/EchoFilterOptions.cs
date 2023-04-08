@@ -1,5 +1,7 @@
 ﻿namespace Lavalink4NET.Integrations.ExtraFilters;
 
+using System.Collections.Generic;
+using System.Text.Json;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Protocol.Models;
 
@@ -11,6 +13,14 @@ public sealed record class EchoFilterOptions(
 
     public void Apply(ref PlayerFilterMapModel filterMap)
     {
-        throw new System.NotImplementedException(); // TODO
+        var additionalFilters = filterMap.AdditionalFilters is null
+            ? new Dictionary<string, JsonElement>()
+            : new Dictionary<string, JsonElement>(filterMap.AdditionalFilters);
+
+        var model = new EchoFilterModel(Delay, Decay);
+
+        additionalFilters["echo"] = JsonSerializer.SerializeToElement(
+            value: model,
+            jsonTypeInfo: FilterJsonSerializerContext.Default.EchoFilterModel);
     }
 }
