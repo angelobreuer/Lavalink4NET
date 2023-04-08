@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Models.Filters;
+using Lavalink4NET.Protocol.Models.RoutePlanners;
 using Lavalink4NET.Protocol.Models.Server;
 using Lavalink4NET.Protocol.Models.Usage;
 using Lavalink4NET.Protocol.Payloads;
@@ -27,6 +28,8 @@ using Lavalink4NET.Protocol.Responses;
 [JsonSerializable(typeof(ImmutableArray<PlayerInformationModel>))]
 [JsonSerializable(typeof(TrackLoadResponse))]
 [JsonSerializable(typeof(PlayerUpdateProperties))]
+[JsonSerializable(typeof(RoutePlannerInformationModel))]
+[JsonSerializable(typeof(AddressUnmarkProperties))]
 internal sealed partial class ProtocolSerializerContext : JsonSerializerContext
 {
 }
