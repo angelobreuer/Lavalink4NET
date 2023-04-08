@@ -1,5 +1,6 @@
 namespace Lavalink4NET.Rest.Tests;
 
+using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -207,6 +208,54 @@ public class LavalinkApiClientTests : IAsyncLifetime
             .ConfigureAwait(false);
 
         // Assert
-        ;
+        Assert.NotNull(routePlannerInformation);
+    }
+
+    [Fact]
+    public async Task TestUnmarkAddressAsync()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        var failedAddress = "/1.0.0.0";
+
+        // Act
+        async Task Action() => await client
+            .UnmarkFailedAddressAsync(new AddressUnmarkProperties { Address = failedAddress, })
+            .ConfigureAwait(false);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(Action);
+        Assert.Contains("Can't access disabled route planner", exception.Message);
+    }
+
+    [Fact]
+    public async Task TestUnmarkAddressesAsync()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        async Task Action() => await client
+            .UnmarkAllFailedAddressesAsync()
+            .ConfigureAwait(false);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(Action);
+        Assert.Contains("Can't access disabled route planner", exception.Message);
     }
 }
