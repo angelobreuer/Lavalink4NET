@@ -14,12 +14,11 @@ using Microsoft.Extensions.Options;
 
 internal sealed class PlayerManager : IPlayerManager
 {
-    private readonly ILavalinkApiClient _apiClient;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly IServiceProvider? _serviceProvider;
+    private readonly PlayerContext _playerContext;
 
     public PlayerManager(
         IServiceProvider? serviceProvider,
@@ -27,18 +26,16 @@ internal sealed class PlayerManager : IPlayerManager
         ILavalinkApiClient apiClient,
         ILoggerFactory loggerFactory)
     {
-        ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
 
-        _serviceProvider = serviceProvider;
         _clientWrapper = discordClient;
-        _apiClient = apiClient;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
+        _playerContext = new PlayerContext(serviceProvider, apiClient, discordClient);
 
         _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
         _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated; // TODO: unsubscribe on dispose
@@ -109,15 +106,9 @@ internal sealed class PlayerManager : IPlayerManager
 
         LavalinkPlayerHandle<TPlayer, TOptions> Create(ulong guildId)
         {
-            // TODO: cache player context instance
-            var playerContext = new PlayerContext(
-                ServiceProvider: _serviceProvider,
-                ApiClient: _apiClient,
-                DiscordClient: _clientWrapper);
-
             return new LavalinkPlayerHandle<TPlayer, TOptions>(
                 guildId: guildId,
-                playerContext: playerContext,
+                playerContext: _playerContext,
                 playerFactory: playerFactory,
                 options: options,
                 logger: _loggerFactory.CreateLogger<TPlayer>());
