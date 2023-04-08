@@ -262,4 +262,19 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         responseMessage.EnsureSuccessStatusCode();
     }
+
+    public async ValueTask<PlayerInformationModel> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        var requestUri = Endpoints.Player(sessionId, guildId);
+        using var httpClient = CreateHttpClient();
+
+        var model = await httpClient
+            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
+            .ConfigureAwait(false);
+
+        return model!;
+    }
 }
