@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 public sealed record class LavalinkServerVersionModel(
     [property: JsonRequired]
-    [property: JsonPropertyName("semver")] // TODO: typo in lavalink docs
+    [property: JsonPropertyName("semver")]
     string SemVer,
 
     [property: JsonRequired]

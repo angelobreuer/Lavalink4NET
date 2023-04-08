@@ -74,7 +74,7 @@ using System.Text.Json.Serialization;
 /// <param name="Gain">the gain (-0.25 to 1.0)</param>
 public sealed record class EqualizerBandModel(
     [property: JsonPropertyName("band")]
-    int Band,// TODO: there is probably a typo in the Lavalink docs
+    int Band,
 
     [property: JsonPropertyName("gain")]
     float Gain);
