@@ -123,10 +123,16 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: selfDeaf, selfMute: selfMute, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        // TODO: throw on mismatch
-        return (TPlayer)await handle
+        var player = await handle
             .GetPlayerAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        if (player is not TPlayer playerValue)
+        {
+            throw new InvalidOperationException($"Player mismatch. The requested type is {typeof(TPlayer)}, but the current player instance is of type {player.GetType()}");
+        }
+
+        return playerValue;
     }
 
     private Task OnVoiceServerUpdated(object sender, VoiceServerUpdatedEventArgs eventArgs)
