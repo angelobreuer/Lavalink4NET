@@ -12,13 +12,14 @@ using Lavalink4NET.Rest;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class PlayerManager : IPlayerManager
+internal sealed class PlayerManager : IPlayerManager, IDisposable
 {
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly PlayerContext _playerContext;
+    private bool _disposed;
 
     public PlayerManager(
         IServiceProvider? serviceProvider,
@@ -38,17 +39,16 @@ internal sealed class PlayerManager : IPlayerManager
         _playerContext = new PlayerContext(serviceProvider, apiClient, discordClient);
 
         _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
-        _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated; // TODO: unsubscribe on dispose
+        _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated;
     }
 
     public IEnumerable<ILavalinkPlayer> Players
     {
         get
         {
-            // TODO: check destroyed
             return _handles.Values
                 .Select(x => x.Player)
-                .Where(x => x is not null)!;
+                .Where(x => x is not null && x.State is not PlayerState.Destroyed)!;
         }
     }
 
@@ -75,12 +75,12 @@ internal sealed class PlayerManager : IPlayerManager
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_handles.TryGetValue(guildId, out var handle))
+        if (!_handles.TryGetValue(guildId, out var handle) ||
+            handle.Player is null ||
+            handle.Player.State is PlayerState.Destroyed)
         {
             return null;
         }
-
-        // TODO: check if destroyed
 
         return await handle
             .GetPlayerAsync(cancellationToken)
@@ -94,8 +94,8 @@ internal sealed class PlayerManager : IPlayerManager
 
     public bool HasPlayer(ulong guildId)
     {
-        // TODO: check destroyed
-        return _handles.ContainsKey(guildId);
+        return _handles.TryGetValue(guildId, out var handle)
+            && handle is { Player.State: not PlayerState.Destroyed };
     }
 
     public async ValueTask<TPlayer> JoinAsync<TPlayer, TOptions>(ulong guildId, ulong voiceChannelId, PlayerFactory<TPlayer, TOptions> playerFactory, IOptions<TOptions> options, CancellationToken cancellationToken = default)
@@ -161,5 +161,27 @@ internal sealed class PlayerManager : IPlayerManager
             eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
 
         return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceState).AsTask();
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            _clientWrapper.VoiceStateUpdated -= OnVoiceStateUpdated;
+            _clientWrapper.VoiceServerUpdated -= OnVoiceServerUpdated;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
