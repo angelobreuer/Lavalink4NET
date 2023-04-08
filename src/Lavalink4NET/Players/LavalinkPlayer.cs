@@ -165,11 +165,12 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
-    public virtual ValueTask SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
+    public virtual async ValueTask SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
 
-        throw new NotImplementedException();
+        var properties = new PlayerUpdateProperties { Position = position, };
+        await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
     public ValueTask SeekAsync(TimeSpan position, SeekOrigin seekOrigin, CancellationToken cancellationToken = default)
