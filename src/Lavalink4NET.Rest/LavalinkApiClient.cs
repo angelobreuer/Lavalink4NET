@@ -156,7 +156,9 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         var requestUri = Endpoints.Player(sessionId, guildId);
         using var httpClient = CreateHttpClient();
 
-        using var jsonContent = JsonContent.Create(properties); // TODO: metadata
+        using var jsonContent = JsonContent.Create(
+            inputValue: properties,
+            options: ProtocolSerializerContext.Default.Options);
 
         var responseMessage = await httpClient
             .PatchAsync(requestUri, jsonContent, cancellationToken)
