@@ -146,11 +146,15 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await PerformUpdateAsync(updateProperties, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask RefreshAsync(CancellationToken cancellationToken = default)
+    public async ValueTask RefreshAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
 
-        throw new NotImplementedException();
+        var model = await ApiClient
+            .GetPlayerAsync(SessionId, GuildId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Refresh(model!);
     }
 
     public virtual ValueTask ResumeAsync(CancellationToken cancellationToken = default)
