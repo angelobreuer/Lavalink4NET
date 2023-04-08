@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Web;
 using Lavalink4NET.Protocol;
@@ -165,7 +166,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .PatchAsync(requestUri, jsonContent, cancellationToken)
             .ConfigureAwait(false);
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
 
         var model = await responseMessage.Content
             .ReadFromJsonAsync(ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken: cancellationToken)
@@ -245,8 +246,14 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         using var httpClient = CreateHttpClient();
 
-        var model = await httpClient
-            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.TrackLoadResponse, cancellationToken)
+        using var responseMessage = await httpClient
+            .GetAsync(requestUri, cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
+
+        var model = await responseMessage.Content
+            .ReadFromJsonAsync(ProtocolSerializerContext.Default.TrackLoadResponse, cancellationToken)
             .ConfigureAwait(false);
 
         return model!;
@@ -264,7 +271,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .DeleteAsync(requestUri, cancellationToken)
             .ConfigureAwait(false);
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<PlayerInformationModel?> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default)
@@ -284,7 +291,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             return null;
         }
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
 
         var model = await responseMessage.Content
             .ReadFromJsonAsync(ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
@@ -319,7 +326,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .GetAsync(requestUri, cancellationToken)
             .ConfigureAwait(false);
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
 
         var model = await responseMessage.Content
             .ReadFromJsonAsync(ProtocolSerializerContext.Default.RoutePlannerInformationModel, cancellationToken)
@@ -340,7 +347,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .PostAsJsonAsync(requestUri, properties, ProtocolSerializerContext.Default.Options, cancellationToken)
             .ConfigureAwait(false);
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask UnmarkAllFailedAddressesAsync(CancellationToken cancellationToken = default)
@@ -354,6 +361,34 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .PostAsync(requestUri, content: null, cancellationToken)
             .ConfigureAwait(false);
 
-        responseMessage.EnsureSuccessStatusCode();
+        await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async ValueTask EnsureSuccessStatusCodeAsync(HttpResponseMessage responseMessage, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(responseMessage);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        HttpErrorResponse errorResponse;
+        try
+        {
+            var errorResponseModel = await responseMessage.Content
+                .ReadFromJsonAsync<HttpErrorResponse>(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            errorResponse = errorResponseModel!;
+        }
+        catch (JsonException)
+        {
+            responseMessage.EnsureSuccessStatusCode(); // Throw manually
+            throw new Exception(); // not reachable
+        }
+
+        throw new HttpRequestException($"Response status code does not indicate success: {errorResponse.StatusCode} ({errorResponse.ReasonPhrase}): '{errorResponse.ErrorMessage}' at {errorResponse.RequestPath}");
     }
 }
