@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 public sealed record class FailingRoutePlannerAddressModel(
     [property: JsonRequired]
-    [property: JsonPropertyName("address")]
+    [property: JsonPropertyName("failingAddress")] // TODO: typo in docs
     string Address,
 
     [property: JsonRequired]

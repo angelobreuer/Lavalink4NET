@@ -14,7 +14,7 @@ internal sealed class RoutePlannerTypeJsonConverter : JsonConverter<RoutePlanner
 
         var value = reader.GetString()!;
 
-        return value.ToUpperInvariant() switch
+        return value switch
         {
             "RotatingIpRoutePlanner" => RoutePlannerType.RotatingIpRoutePlanner,
             "NanoIpRoutePlanner" => RoutePlannerType.NanoIpRoutePlanner,

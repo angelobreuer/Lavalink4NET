@@ -187,4 +187,26 @@ public class LavalinkApiClientTests : IAsyncLifetime
         Assert.NotNull(track);
         Assert.Contains("Rick Astley", track.Title);
     }
+
+    [Fact]
+    public async Task TestRoutePlannerGetStatusAsync()
+    {
+        // Arrange
+        using var httpClientFactory = new DefaultHttpClientFactory();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var routePlannerInformation = await client
+            .GetRoutePlannerInformationAsync()
+            .ConfigureAwait(false);
+
+        // Assert
+        ;
+    }
 }

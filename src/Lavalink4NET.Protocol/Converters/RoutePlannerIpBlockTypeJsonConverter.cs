@@ -14,7 +14,7 @@ internal sealed class RoutePlannerIpBlockTypeJsonConverter : JsonConverter<Route
 
         var value = reader.GetString()!;
 
-        return value.ToUpperInvariant() switch
+        return value switch
         {
             "Inet4Address" => RoutePlannerIpBlockType.Inet4Address,
             "Inet6Address" => RoutePlannerIpBlockType.Inet6Address,
