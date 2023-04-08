@@ -277,4 +277,19 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         return model!;
     }
+
+    public async ValueTask<ImmutableArray<PlayerInformationModel>> GetPlayersAsync(string sessionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(sessionId);
+
+        var requestUri = Endpoints.Players(sessionId);
+        using var httpClient = CreateHttpClient();
+
+        var model = await httpClient
+            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.ImmutableArrayPlayerInformationModel, cancellationToken)
+            .ConfigureAwait(false);
+
+        return model!;
+    }
 }

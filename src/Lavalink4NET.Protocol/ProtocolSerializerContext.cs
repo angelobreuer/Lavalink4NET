@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Protocol;
 
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Models.Usage;
@@ -22,7 +23,7 @@ using Lavalink4NET.Protocol.Tests.Models;
 [JsonSerializable(typeof(TrackExceptionEventPayload))]
 [JsonSerializable(typeof(TrackStuckEventPayload))]
 [JsonSerializable(typeof(WebSocketClosedEventPayload))]
-[JsonSerializable(typeof(PlayerInformationModel))]
+[JsonSerializable(typeof(ImmutableArray<PlayerInformationModel>))]
 [JsonSerializable(typeof(TrackLoadResponse))]
 [JsonSerializable(typeof(PlayerUpdateProperties))]
 internal sealed partial class ProtocolSerializerContext : JsonSerializerContext

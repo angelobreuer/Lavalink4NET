@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Rest;
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Protocol.Models;
@@ -34,6 +35,8 @@ public interface ILavalinkApiClient
     ValueTask DestroyPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
 
     ValueTask<PlayerInformationModel> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
+
+    ValueTask<ImmutableArray<PlayerInformationModel>> GetPlayersAsync(string sessionId, CancellationToken cancellationToken = default);
 
     ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
 }
