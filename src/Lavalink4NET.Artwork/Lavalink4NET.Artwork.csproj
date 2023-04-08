@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  Artwork resolution service for the Lavalink4NET client library.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,4 +18,5 @@
     <ProjectReference Include="..\Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

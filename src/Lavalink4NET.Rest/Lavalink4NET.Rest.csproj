@@ -4,6 +4,10 @@
 	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  Provides types to access the RESTful interface of Lavalink nodes.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,4 +20,5 @@
     <ProjectReference Include="..\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

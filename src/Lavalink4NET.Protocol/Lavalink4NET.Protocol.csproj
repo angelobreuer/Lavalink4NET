@@ -5,6 +5,11 @@
 	  <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  Abstract protocol implementation to communicate with Lavalink v4 nodes.
+	  </Description>
   </PropertyGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

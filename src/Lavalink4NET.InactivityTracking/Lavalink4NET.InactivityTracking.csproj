@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  Extension to the Lavalink4NET client library to track inactive players and optionally free resources consumed by inactive players.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,4 +18,5 @@
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

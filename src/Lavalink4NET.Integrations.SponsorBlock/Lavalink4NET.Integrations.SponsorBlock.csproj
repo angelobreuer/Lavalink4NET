@@ -5,14 +5,19 @@
 	  <LangVersion>latest</LangVersion>
 	  <Nullable>enable</Nullable>
 	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+
+	  <Description>
+		  Lavalink4NET Integration for the SponsorBlock plugin.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  Extension to the Lavalink4NET client library to resolve lyrics from external services.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,4 +19,5 @@
     <ProjectReference Include="..\Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

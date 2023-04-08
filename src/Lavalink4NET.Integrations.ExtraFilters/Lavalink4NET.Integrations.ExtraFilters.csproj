@@ -5,10 +5,15 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+
+		<Description>
+			Lavalink4NET Integration for the ExtraFilters plugin.
+		</Description>
 	</PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>
