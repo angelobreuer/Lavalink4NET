@@ -16,7 +16,7 @@ using Lavalink4NET.Tracks;
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 {
     private string? _currentTrackState;
-    private bool _disposed;
+    private int _disposed;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -40,7 +40,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public PlayerState State => this switch
     {
-        { _disposed: true, } => PlayerState.Destroyed,
+        { _disposed: not 0, } => PlayerState.Destroyed,
         { IsPaused: true, } => PlayerState.Paused,
         { CurrentTrack: null, } => PlayerState.NotPlaying,
         _ => PlayerState.Playing,
@@ -217,9 +217,9 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     protected void EnsureNotDestroyed()
     {
 #if NET7_0_OR_GREATER
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed is not 0, this);
 #else
-        if (_disposed)
+        if (_disposed is not 0)
         {
             throw new ObjectDisposedException(nameof(LavalinkPlayer));
         }
@@ -285,5 +285,23 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         Volume = model.Volume;
 
         // TODO: restore filters
+    }
+
+    protected virtual async ValueTask DisposeAsyncCore()
+    {
+        if (Interlocked.CompareExchange(ref _disposed, 1, 0) is 0)
+        {
+            return;
+        }
+
+        await ApiClient
+            .DestroyPlayerAsync(SessionId, GuildId)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore().ConfigureAwait(false);
+        GC.SuppressFinalize(this);
     }
 }

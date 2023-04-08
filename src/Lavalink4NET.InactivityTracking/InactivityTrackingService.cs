@@ -293,7 +293,7 @@ public class InactivityTrackingService : IDisposable
                 _logger?.LogDebug("Destroyed player {0} due inactivity.", player.Key);
 
                 // dispose the player
-                // TODO: trackedPlayer.Dispose();
+                await using var _ = trackedPlayer.ConfigureAwait(false);
 
                 // remove from tracking list
                 await UntrackPlayerAsync(

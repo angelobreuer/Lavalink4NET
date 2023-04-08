@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
 
-public interface ILavalinkPlayer
+public interface ILavalinkPlayer : IAsyncDisposable
 {
     ILavalinkApiClient ApiClient { get; }
 
