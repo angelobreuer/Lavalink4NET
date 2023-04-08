@@ -19,6 +19,7 @@ internal sealed class ExceptionSeverityJsonConverter : JsonConverter<ExceptionSe
             "COMMON" => ExceptionSeverity.Common,
             "SUSPICIOUS" => ExceptionSeverity.Suspicious,
             "FATAL" => ExceptionSeverity.Fatal,
+            "FAULT" => ExceptionSeverity.Fault,
             _ => throw new JsonException("Invalid severity."),
         };
     }
@@ -33,6 +34,7 @@ internal sealed class ExceptionSeverityJsonConverter : JsonConverter<ExceptionSe
             ExceptionSeverity.Common => "COMMON",
             ExceptionSeverity.Suspicious => "SUSPICIOUS",
             ExceptionSeverity.Fatal => "FATAL",
+            ExceptionSeverity.Fault => "FAULT",
             _ => throw new ArgumentException("Invalid severity."),
         };
 

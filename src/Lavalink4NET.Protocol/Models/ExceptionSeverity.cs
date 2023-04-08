@@ -9,4 +9,5 @@ public enum ExceptionSeverity : byte
     Common,
     Suspicious,
     Fatal,
+    Fault,
 }
