@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddLavalink(this IServiceCollection services)
+    public static IServiceCollection AddLavalinkCore(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddLavalink();
+        services.AddLavalinkCore();
 
         services.TryAddSingleton<IDiscordClientWrapper, TClient>();
 

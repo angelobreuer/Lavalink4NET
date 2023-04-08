@@ -2,7 +2,6 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Lavalink4NET;
 using Lavalink4NET.Discord_NET.ExampleBot;
-using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,7 +19,7 @@ builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton<InteractionService>();
 
 // Lavalink
-builder.Services.AddLavalink<DiscordClientWrapper>();
+builder.Services.AddLavalink();
 builder.Services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 builder.Services.AddSingleton(new LavalinkNodeOptions { /* Your Node Configuration */});
 
