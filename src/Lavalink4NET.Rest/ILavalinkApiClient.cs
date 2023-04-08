@@ -31,5 +31,7 @@ public interface ILavalinkApiClient
 
     ValueTask<string> RetrieveVersionAsync(CancellationToken cancellationToken = default);
 
+    ValueTask DestroyPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
+
     ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
 }
