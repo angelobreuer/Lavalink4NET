@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Rest;
 
 using System.Collections.Immutable;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -263,7 +264,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         responseMessage.EnsureSuccessStatusCode();
     }
 
-    public async ValueTask<PlayerInformationModel> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default)
+    public async ValueTask<PlayerInformationModel?> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -271,8 +272,19 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         var requestUri = Endpoints.Player(sessionId, guildId);
         using var httpClient = CreateHttpClient();
 
-        var model = await httpClient
-            .GetFromJsonAsync(requestUri, ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
+        var responseMessage = await httpClient
+            .GetAsync(requestUri, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (responseMessage.StatusCode is HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        responseMessage.EnsureSuccessStatusCode();
+
+        var model = await responseMessage.Content
+            .ReadFromJsonAsync(ProtocolSerializerContext.Default.PlayerInformationModel, cancellationToken)
             .ConfigureAwait(false);
 
         return model!;
