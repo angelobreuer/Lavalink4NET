@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Lavalink4NET.Filters;
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 
 internal sealed class PlayerFilterMap : IPlayerFilters
 {

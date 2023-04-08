@@ -3,12 +3,13 @@
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
+using Lavalink4NET.Protocol.Models.Server;
 using Lavalink4NET.Protocol.Models.Usage;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Protocol.Responses;
-using Lavalink4NET.Protocol.Tests.Models;
 
 [JsonSerializable(typeof(HttpErrorResponse))]
 [JsonSerializable(typeof(PlayerFilterMapModel))]

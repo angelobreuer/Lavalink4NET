@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Protocol.Models;
+﻿namespace Lavalink4NET.Protocol.Models.Filters;
 
 using System.Text.Json.Serialization;
 

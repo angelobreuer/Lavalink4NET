@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Protocol.Tests.Models;
+﻿namespace Lavalink4NET.Protocol.Models.Server;
 
 using System.Text.Json.Serialization;
 

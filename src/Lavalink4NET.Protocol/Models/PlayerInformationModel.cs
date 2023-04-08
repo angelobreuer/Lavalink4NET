@@ -2,6 +2,7 @@
 
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed record class PlayerInformationModel(
     [property: JsonRequired]

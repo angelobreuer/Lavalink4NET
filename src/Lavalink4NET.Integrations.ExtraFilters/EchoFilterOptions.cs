@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Lavalink4NET.Filters;
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed record class EchoFilterOptions(
     float? Delay = null,

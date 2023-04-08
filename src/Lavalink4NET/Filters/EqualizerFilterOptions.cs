@@ -2,7 +2,7 @@ namespace Lavalink4NET.Filters;
 
 using System;
 using System.Collections.Immutable;
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed record class EqualizerFilterOptions(Equalizer Equalizer) : IFilterOptions
 {

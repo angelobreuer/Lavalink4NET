@@ -2,7 +2,7 @@ namespace Lavalink4NET.Integrations.ExtraFilters.Tests;
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed class EchoFilterOptionsTests
 {

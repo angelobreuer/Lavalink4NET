@@ -7,6 +7,7 @@ using Lavalink4NET.Clients;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;

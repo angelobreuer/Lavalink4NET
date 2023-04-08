@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Lavalink4NET.Protocol.Tests.Models;
+using Lavalink4NET.Protocol.Models.Server;
 
 public sealed record class LavalinkServerInformation(
     LavalinkServerVersion Version,

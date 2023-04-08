@@ -1,6 +1,6 @@
 namespace Lavalink4NET.Filters;
 
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed record class TremoloFilterOptions(
     float? Frequency = null,
