@@ -23,9 +23,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        _disconnectOnStop = properties.Options.Value.DisconnectOnStop;
+        var options = properties.Options.Value;
 
-        Queue = new TrackQueue(); // TODO: setting to adjust capacity
+        _disconnectOnStop = options.DisconnectOnStop;
+
+        Queue = new TrackQueue(
+            initialCapacity: options.InitialCapacity,
+            historyCapacity: options.HistoryCapacity);
     }
 
     /// <summary>
