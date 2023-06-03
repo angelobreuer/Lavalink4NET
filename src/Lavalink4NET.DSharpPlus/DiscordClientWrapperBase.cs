@@ -143,7 +143,7 @@ public abstract class DiscordClientWrapperBase : IDiscordClientWrapper
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     protected Task OnVoiceServerUpdated(DiscordClient _, VoiceServerUpdateEventArgs voiceServer)
     {
-        var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.GetVoiceToken(), voiceServer.Endpoint);
+        var args = new VoiceServer(voiceServer.Guild.Id, voiceServer.VoiceToken, voiceServer.Endpoint);
         return VoiceServerUpdated.InvokeAsync(this, args);
     }
 
