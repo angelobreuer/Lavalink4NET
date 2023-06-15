@@ -208,7 +208,7 @@ public class LavalinkApiClientTests : IAsyncLifetime
             .ConfigureAwait(false);
 
         // Assert
-        Assert.NotNull(routePlannerInformation);
+        Assert.Null(routePlannerInformation);
     }
 
     [Fact]
