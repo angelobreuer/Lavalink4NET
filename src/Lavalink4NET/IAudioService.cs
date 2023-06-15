@@ -1,6 +1,8 @@
 namespace Lavalink4NET;
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Lavalink4NET.Events;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Integrations;
@@ -30,4 +32,10 @@ public interface IAudioService : IDisposable
     string? SessionId { get; }
 
     ITrackManager Tracks { get; }
+
+    ValueTask RunAsync(CancellationToken cancellationToken = default);
+
+    ValueTask StartAsync(CancellationToken cancellationToken = default);
+
+    ValueTask StopAsync(CancellationToken cancellationToken = default);
 }

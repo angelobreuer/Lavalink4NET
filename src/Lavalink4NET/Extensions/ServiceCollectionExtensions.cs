@@ -2,6 +2,8 @@
 
 using System;
 using Lavalink4NET.Clients;
+using Lavalink4NET.Integrations;
+using Lavalink4NET.Players;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Socket;
 using Lavalink4NET.Tracks;
@@ -22,6 +24,12 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ILavalinkApiClient, LavalinkApiClient>();
         services.TryAddSingleton<IAudioService, AudioService>();
         services.TryAddSingleton<ITrackManager, TrackManager>();
+        services.TryAddSingleton<IPlayerManager, PlayerManager>();
+        services.TryAddSingleton<IIntegrationManager, IntegrationManager>();
+
+        services.AddHostedService<AudioServiceHost>();
+
+        services.AddOptions<LavalinkNodeOptions>();
 
         return services;
     }
@@ -35,5 +43,10 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IDiscordClientWrapper, TClient>();
 
         return services;
+    }
+
+    public static IServiceCollection ConfigureLavalink(this IServiceCollection services, Action<LavalinkNodeOptions> options)
+    {
+        return services.Configure(options);
     }
 }

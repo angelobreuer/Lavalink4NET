@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -27,9 +28,10 @@ public partial class AudioService : IAudioService
     private readonly ILavalinkSocketFactory _socketFactory;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ILogger<AudioService> _logger;
-    private readonly ILoggerFactory _loggerFactory;
     private readonly LavalinkNodeOptions _options;
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
+    private Task? _executeTask;
+    private CancellationTokenSource _stoppingCancellationTokenSource;
 
     public AudioService(
         IServiceProvider serviceProvider,
@@ -53,6 +55,7 @@ public partial class AudioService : IAudioService
         ArgumentNullException.ThrowIfNull(options);
 
         _readyTaskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _stoppingCancellationTokenSource = new CancellationTokenSource();
 
         Players = playerManager;
         Tracks = trackManager;
@@ -61,11 +64,48 @@ public partial class AudioService : IAudioService
 
         _socketFactory = socketFactory;
         _clientWrapper = discordClient;
-        _loggerFactory = loggerFactory;
         _options = options.Value;
         _logger = loggerFactory.CreateLogger<AudioService>();
+    }
 
-        _ = ReceiveAsync(); // TODO
+    public ValueTask StartAsync(CancellationToken cancellationToken = default)
+    {
+        if (_executeTask is not null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _logger.LogInformation("Starting audio service...");
+
+        _stoppingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _executeTask = RunAsync(_stoppingCancellationTokenSource.Token).AsTask();
+
+        return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
+    }
+
+    public async ValueTask StopAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_executeTask is null)
+        {
+            return;
+        }
+
+        _logger.LogInformation("Stopping audio service...");
+
+        try
+        {
+            _stoppingCancellationTokenSource.Cancel();
+        }
+        finally
+        {
+            await _executeTask
+                .WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            _logger.LogInformation("Audio service stopped.");
+        }
     }
 
     public IIntegrationManager Integrations { get; }
@@ -309,7 +349,7 @@ public partial class AudioService : IAudioService
         // TODO
     }
 
-    private async Task ReceiveAsync(CancellationToken cancellationToken = default)
+    public async ValueTask RunAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -327,6 +367,8 @@ public partial class AudioService : IAudioService
     private async Task ReceiveInternalAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        var stopwatch = Stopwatch.StartNew();
 
         static async ValueTask<ClientInformation?> WaitForClientReadyAsync(IDiscordClientWrapper clientWrapper, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
@@ -351,7 +393,6 @@ public partial class AudioService : IAudioService
         }
 
         _logger.LogDebug("Waiting for client being ready...");
-        _logger.LogInformation("Lavalink node initialized.");
 
         var clientInformation = await WaitForClientReadyAsync(
             clientWrapper: _clientWrapper,
@@ -377,6 +418,10 @@ public partial class AudioService : IAudioService
             UserId = clientInformation.Value.CurrentUserId,
             Passphrase = _options.Passphrase,
         };
+
+        stopwatch.Stop();
+
+        _logger.LogInformation("Audio Service is ready ({Duration}ms).", stopwatch.ElapsedMilliseconds);
 
         using var socket = _socketFactory.Create(Options.Create(socketOptions));
         using var cancellationTokenSource = new CancellationTokenSource();

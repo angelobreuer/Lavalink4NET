@@ -5,11 +5,11 @@ using Microsoft.Extensions.Options;
 
 public sealed record class LavalinkNodeOptions
 {
-    public string Passphrase { get; init; } = "youshallnotpass";
+    public string Passphrase { get; set; } = "youshallnotpass";
 
-    public Uri? WebSocketUri { get; init; }
+    public Uri? WebSocketUri { get; set; }
 
-    public string HttpClientName { get; init; } = Options.DefaultName;
+    public string HttpClientName { get; set; } = Options.DefaultName;
 
-    public TimeSpan ReadyTimeout { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan ReadyTimeout { get; set; } = TimeSpan.FromSeconds(10);
 }
