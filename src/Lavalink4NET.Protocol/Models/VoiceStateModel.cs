@@ -17,11 +17,9 @@ public sealed record class VoiceStateModel(
     [property: JsonPropertyName("sessionId")]
     string SessionId,
 
-    [property: JsonRequired]
     [property: JsonPropertyName("connected")]
     bool? IsConnected,
 
-    [property: JsonRequired]
     [property: JsonPropertyName("ping")]
     [property: JsonConverter(typeof(NullableDurationJsonConverter))]
     TimeSpan? Latency);
