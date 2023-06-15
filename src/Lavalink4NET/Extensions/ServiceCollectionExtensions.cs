@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<ILavalinkSocketFactory, LavalinkSocketFactory>();
         services.TryAddSingleton<ILavalinkApiClient, LavalinkApiClient>();
+        services.TryAddSingleton<ILavalinkSessionProvider, LavalinkSessionProvider>();
         services.TryAddSingleton<IAudioService, AudioService>();
         services.TryAddSingleton<ITrackManager, TrackManager>();
         services.TryAddSingleton<IPlayerManager, PlayerManager>();

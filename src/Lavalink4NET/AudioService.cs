@@ -30,6 +30,7 @@ public partial class AudioService : IAudioService
     private readonly ILogger<AudioService> _logger;
     private readonly LavalinkNodeOptions _options;
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
+    private readonly TaskCompletionSource _startTaskCompletionSource;
     private Task? _executeTask;
     private CancellationTokenSource _stoppingCancellationTokenSource;
 
@@ -55,6 +56,7 @@ public partial class AudioService : IAudioService
         ArgumentNullException.ThrowIfNull(options);
 
         _readyTaskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _startTaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _stoppingCancellationTokenSource = new CancellationTokenSource();
 
         Players = playerManager;
@@ -79,6 +81,7 @@ public partial class AudioService : IAudioService
 
         _stoppingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _executeTask = RunAsync(_stoppingCancellationTokenSource.Token).AsTask();
+        _startTaskCompletionSource.TrySetResult();
 
         return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
     }
@@ -129,14 +132,43 @@ public partial class AudioService : IAudioService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var task = _readyTaskCompletionSource.Task;
-
-        if (cancellationToken.CanBeCanceled)
+        static async Task WaitForReadyInternalAsync(Task startTask, Task readyTask, CancellationToken cancellationToken)
         {
-            task = task.WaitAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!startTask.IsCompleted)
+            {
+                try
+                {
+                    await startTask
+                        .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (TimeoutException exception)
+                {
+                    throw new InvalidOperationException(
+                        message: "Attempted to wait for the audio service being ready but the audio service has never been initialized. Check whether you have called IAudioService#StartAsync() on the audio service instance to initialize the audio service.",
+                        innerException: exception);
+                }
+            }
+
+            if (cancellationToken.CanBeCanceled)
+            {
+                readyTask = readyTask.WaitAsync(cancellationToken);
+            }
+
+            await readyTask.ConfigureAwait(false);
         }
 
-        return new ValueTask(task);
+        var task = _readyTaskCompletionSource.Task;
+
+        if (task.IsCompleted)
+        {
+            _ = task.Result;
+            return ValueTask.CompletedTask;
+        }
+
+        return new ValueTask(WaitForReadyInternalAsync(_startTaskCompletionSource.Task, task, cancellationToken));
     }
 
     private static LavalinkTrack CreateTrack(TrackModel track) => new()
@@ -425,7 +457,9 @@ public partial class AudioService : IAudioService
 
         using var socket = _socketFactory.Create(Options.Create(socketOptions));
         using var cancellationTokenSource = new CancellationTokenSource();
-        using var _ = new CancellationTokenDisposable(cancellationTokenSource);
+        using var __ = new CancellationTokenDisposable(cancellationTokenSource);
+
+        _ = socket.RunAsync(cancellationTokenSource.Token).AsTask();
 
         while (true)
         {

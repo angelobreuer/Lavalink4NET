@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol.Requests;
+using Lavalink4NET.Rest;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,19 +20,22 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
     private readonly IOptions<TOptions> _options;
     private readonly PlayerContext _playerContext;
     private readonly PlayerFactory<TPlayer, TOptions> _playerFactory;
-    private string? _sessionId;
+    private readonly ILavalinkSessionProvider _sessionProvider;
     private object _value;
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
+
     public LavalinkPlayerHandle(
         ulong guildId,
         PlayerContext playerContext,
         PlayerFactory<TPlayer, TOptions> playerFactory,
+        ILavalinkSessionProvider sessionProvider,
         IOptions<TOptions> options,
         ILogger<TPlayer> logger)
     {
         ArgumentNullException.ThrowIfNull(playerContext);
         ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(sessionProvider);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
@@ -40,6 +44,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         _guildId = guildId;
         _playerContext = playerContext;
         _playerFactory = playerFactory;
+        _sessionProvider = sessionProvider;
         _options = options;
         _logger = logger;
     }
@@ -58,19 +63,6 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         return ValueTask.FromResult<ILavalinkPlayer>(Unsafe.As<object, TPlayer>(ref Unsafe.AsRef(_value)));
     }
 
-    public async ValueTask AssociateAsync(string sessionId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(sessionId);
-
-        _sessionId = sessionId;
-
-        if (_voiceServer is not null && _voiceState is not null)
-        {
-            await CompleteAsync(cancellationToken).ConfigureAwait(false);
-        }
-    }
-
     public async ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -78,7 +70,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         _voiceServer = voiceServer;
 
-        if (_voiceState is not null && _sessionId is not null)
+        if (_voiceState is not null)
         {
             await CompleteAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -91,7 +83,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         _voiceState = voiceState;
 
-        if (_voiceServer is not null && _sessionId is not null)
+        if (_voiceServer is not null)
         {
             await CompleteAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -124,7 +116,10 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
-        Debug.Assert(_sessionId is not null);
+
+        var sessionId = await _sessionProvider
+            .GetSessionIdAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         var playerProperties = new PlayerUpdateProperties
         {
@@ -149,7 +144,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         }
 
         var initialState = await _playerContext.ApiClient
-            .UpdatePlayerAsync(_sessionId, _guildId, playerProperties, cancellationToken)
+            .UpdatePlayerAsync(sessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
 
         var label = _options.Value.Label ?? $"{typeof(TPlayer)}@{_guildId}";
@@ -159,7 +154,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
             InitialState: initialState,
             Label: label,
-            SessionId: _sessionId,
+            SessionId: sessionId,
             Options: _options,
             Logger: _logger);
 

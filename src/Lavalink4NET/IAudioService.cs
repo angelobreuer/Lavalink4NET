@@ -38,4 +38,6 @@ public interface IAudioService : IDisposable
     ValueTask StartAsync(CancellationToken cancellationToken = default);
 
     ValueTask StopAsync(CancellationToken cancellationToken = default);
+
+    ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default);
 }

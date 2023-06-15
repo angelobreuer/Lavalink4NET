@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 internal sealed class PlayerManager : IPlayerManager, IDisposable
 {
     private readonly IDiscordClientWrapper _clientWrapper;
+    private readonly ILavalinkSessionProvider _sessionProvider;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -24,16 +25,19 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
     public PlayerManager(
         IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,
+        ILavalinkSessionProvider sessionProvider,
         ILavalinkApiClient apiClient,
         ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(discordClient);
+        ArgumentNullException.ThrowIfNull(sessionProvider);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
 
         _clientWrapper = discordClient;
+        _sessionProvider = sessionProvider;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
         _playerContext = new PlayerContext(serviceProvider, apiClient, discordClient);
@@ -50,19 +54,6 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 .Select(x => x.Player)
                 .Where(x => x is not null && x.State is not PlayerState.Destroyed)!;
         }
-    }
-
-    public ValueTask AssociateAsync(ulong guildId, string sessionId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(sessionId);
-
-        if (!_handles.TryGetValue(guildId, out var handle))
-        {
-            return default;
-        }
-
-        return handle.AssociateAsync(sessionId, cancellationToken);
     }
 
     public async ValueTask<T?> GetPlayerAsync<T>(ulong guildId, CancellationToken cancellationToken = default) where T : class, ILavalinkPlayer
@@ -110,6 +101,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 guildId: guildId,
                 playerContext: _playerContext,
                 playerFactory: playerFactory,
+                sessionProvider: _sessionProvider,
                 options: options,
                 logger: _loggerFactory.CreateLogger<TPlayer>());
         }
