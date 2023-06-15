@@ -303,7 +303,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         return model!;
     }
 
-    public async ValueTask<RoutePlannerInformationModel> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<RoutePlannerInformationModel?> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -315,6 +315,11 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             .ConfigureAwait(false);
 
         await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
+
+        if (responseMessage.StatusCode is HttpStatusCode.NoContent)
+        {
+            return null;
+        }
 
         var model = await responseMessage.Content
             .ReadFromJsonAsync(ProtocolSerializerContext.Default.RoutePlannerInformationModel, cancellationToken)

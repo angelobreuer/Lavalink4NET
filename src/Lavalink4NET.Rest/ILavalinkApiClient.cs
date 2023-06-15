@@ -41,7 +41,7 @@ public interface ILavalinkApiClient
 
     ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
 
-    ValueTask<RoutePlannerInformationModel> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default);
+    ValueTask<RoutePlannerInformationModel?> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default);
 
     ValueTask UnmarkFailedAddressAsync(AddressUnmarkProperties properties, CancellationToken cancellationToken = default);
 
