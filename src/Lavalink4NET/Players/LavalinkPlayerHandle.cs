@@ -94,7 +94,6 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
-        Debug.Assert(_sessionId is not null);
 
         if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
         {
@@ -131,11 +130,21 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_options.Value.InitialTrack is not null)
         {
-            var track = _options.Value.InitialTrack.Value;
+            var initialTrack = _options.Value.InitialTrack.Value;
+            var loadOptions = _options.Value.InitialLoadOptions;
 
-            playerProperties = track.IsPresent
-                ? (playerProperties with { TrackData = track.Track.ToString(), })
-                : (playerProperties with { Identifier = track.Identifier, });
+            if (initialTrack.IsPresent)
+            {
+                playerProperties = playerProperties with { TrackData = initialTrack.Track.ToString(), };
+            }
+            else
+            {
+                var identifier = LavalinkApiClient.BuildIdentifier(
+                    identifier: initialTrack.Identifier!,
+                    loadOptions: loadOptions);
+
+                playerProperties = playerProperties with { Identifier = identifier, };
+            }
         }
 
         if (_options.Value.InitialVolume is not null)
