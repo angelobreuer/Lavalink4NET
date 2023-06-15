@@ -3,7 +3,7 @@
 using System.Text.Json.Serialization;
 
 public sealed record class TrackModel(
-    [property:JsonRequired]
+    [property: JsonRequired]
     [property: JsonPropertyName("encoded")]
     string Data,
 

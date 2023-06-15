@@ -67,48 +67,32 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         identifier = BuildIdentifier(identifier, loadOptions);
 
-        var cacheAccessor = new CacheAccessor<TrackLoadResponse>(
+        var cacheAccessor = new CacheAccessor<LoadResultModel>(
             MemoryCache: _memoryCache,
             Key: $"track-{identifier}",
             Mode: loadOptions.CacheMode);
 
-        if (!cacheAccessor.TryGet(out var response))
+        if (!cacheAccessor.TryGet(out var loadResult))
         {
-            response = await LoadTracksInternalAsync(identifier, cancellationToken).ConfigureAwait(false);
+            loadResult = await LoadTracksInternalAsync(identifier, cancellationToken).ConfigureAwait(false);
 
-            var success = response.LoadType
-                is LoadResultType.TrackLoaded
-                or LoadResultType.PlaylistLoaded
-                or LoadResultType.SearchResult;
+            var success = loadResult is TrackLoadResultModel or PlaylistLoadResultModel or SearchLoadResultModel;
 
             var relativeExpiration = success
                 ? TimeSpan.FromHours(2)
                 : TimeSpan.FromMinutes(1);
 
-            cacheAccessor.Set(response, relativeExpiration);
+            cacheAccessor.Set(loadResult, relativeExpiration);
         }
 
-        var tracks = response.Tracks
-            .Select(CreateTrack)
-            .ToImmutableArray();
-
-        return response.LoadType switch
+        return loadResult switch
         {
-            LoadResultType.TrackLoaded => TrackLoadResult.CreateTrack(tracks.Single()),
+            TrackLoadResultModel result => TrackLoadResult.CreateTrack(CreateTrack(result.Data)),
+            PlaylistLoadResultModel result => CreatePlaylist(result.Data),
+            SearchLoadResultModel result => TrackLoadResult.CreateSearch(result.Data.Select(CreateTrack).ToImmutableArray()),
+            ErrorLoadResultModel result => TrackLoadResult.CreateError(new TrackException(result.Data.Severity, result.Data.Message, result.Data.Cause)),
 
-            LoadResultType.PlaylistLoaded => TrackLoadResult.CreatePlaylist(
-                tracks: tracks,
-                playlist: CreatePlaylist(response, tracks)),
-
-            LoadResultType.SearchResult => TrackLoadResult.CreateSearch(tracks),
-
-            LoadResultType.LoadFailed => TrackLoadResult.CreateLoadFailed(
-                exception: new TrackException(
-                    Severity: response.Exception!.Severity,
-                    Message: response.Exception.Message,
-                    Cause: response.Exception.Cause)),
-
-            _ => TrackLoadResult.CreateNoMatches(),
+            _ => TrackLoadResult.CreateEmpty(),
         };
 
     }
@@ -209,15 +193,19 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         throw new InvalidOperationException($"The query '{identifier}' has an search mode specified while search mode is set explicitly and strict mode is enabled.");
     }
 
-    private static PlaylistInformation CreatePlaylist(TrackLoadResponse model, ImmutableArray<LavalinkTrack> tracks)
+    private static TrackLoadResult CreatePlaylist(PlaylistLoadResultData loadResult)
     {
-        var selectedTrack = model.PlaylistInformation!.SelectedTrack is null
-            ? null
-            : tracks[model.PlaylistInformation.SelectedTrack.Value];
+        var tracks = loadResult.Tracks.Select(CreateTrack).ToImmutableArray();
 
-        return new PlaylistInformation(
-            Name: model.PlaylistInformation!.Name,
+        var selectedTrack = loadResult.PlaylistInformation.SelectedTrack is null
+            ? null
+            : tracks[loadResult.PlaylistInformation.SelectedTrack.Value];
+
+        var playlistInformation = new PlaylistInformation(
+            Name: loadResult.PlaylistInformation.Name,
             SelectedTrack: selectedTrack);
+
+        return TrackLoadResult.CreatePlaylist(tracks, playlistInformation);
     }
 
     private static LavalinkTrack CreateTrack(TrackModel track) => new()
@@ -234,7 +222,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         Author = track.Information.Author,
     };
 
-    private async ValueTask<TrackLoadResponse> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)
+    private async ValueTask<LoadResultModel> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
@@ -253,7 +241,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
 
         var model = await responseMessage.Content
-            .ReadFromJsonAsync(ProtocolSerializerContext.Default.TrackLoadResponse, cancellationToken)
+            .ReadFromJsonAsync(ProtocolSerializerContext.Default.LoadResultModel, cancellationToken)
             .ConfigureAwait(false);
 
         return model!;

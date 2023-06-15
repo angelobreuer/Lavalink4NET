@@ -12,4 +12,8 @@
   </PropertyGroup>
 
 	<Import Project="../Lavalink4NET.targets" />
+
+	<ItemGroup>
+	  <PackageReference Include="System.Text.Json" Version="7.0.3" />
+	</ItemGroup>
 </Project>

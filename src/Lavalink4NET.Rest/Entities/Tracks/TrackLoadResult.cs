@@ -50,8 +50,6 @@ public readonly record struct TrackLoadResult
         _ => 0,
     };
 
-    private sealed record class ExceptionData(TrackException Exception);
-
     public static TrackLoadResult CreatePlaylist(ImmutableArray<LavalinkTrack> tracks, PlaylistInformation playlist)
     {
         ArgumentNullException.ThrowIfNull(playlist.Name);
@@ -72,13 +70,15 @@ public readonly record struct TrackLoadResult
         return new TrackLoadResult(tracksArray, default);
     }
 
-    public static TrackLoadResult CreateNoMatches()
+    public static TrackLoadResult CreateEmpty()
     {
         return new TrackLoadResult(null, default);
     }
 
-    public static TrackLoadResult CreateLoadFailed(TrackException exception)
+    public static TrackLoadResult CreateError(TrackException exception)
     {
         return new TrackLoadResult(new ExceptionData(exception), default);
     }
 }
+
+file sealed record class ExceptionData(TrackException Exception);
