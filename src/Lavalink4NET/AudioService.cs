@@ -77,11 +77,7 @@ public partial class AudioService : IAudioService
             return ValueTask.CompletedTask;
         }
 
-        _logger.LogInformation("Starting audio service...");
-
-        _stoppingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _executeTask = RunAsync(_stoppingCancellationTokenSource.Token).AsTask();
-        _startTaskCompletionSource.TrySetResult();
+        _executeTask = RunAsync(cancellationToken).AsTask();
 
         return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
     }
@@ -95,8 +91,6 @@ public partial class AudioService : IAudioService
             return;
         }
 
-        _logger.LogInformation("Stopping audio service...");
-
         try
         {
             _stoppingCancellationTokenSource.Cancel();
@@ -106,8 +100,6 @@ public partial class AudioService : IAudioService
             await _executeTask
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
-
-            _logger.LogInformation("Audio service stopped.");
         }
     }
 
@@ -400,16 +392,29 @@ public partial class AudioService : IAudioService
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Starting audio service...");
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            token1: cancellationToken,
+            token2: _stoppingCancellationTokenSource.Token);
+
+        cancellationToken = cancellationTokenSource.Token;
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
+
+            _startTaskCompletionSource.TrySetResult();
             await ReceiveInternalAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception)
         {
             _readyTaskCompletionSource.TrySetException(exception);
             throw;
+        }
+        finally
+        {
+            _logger.LogInformation("Audio service stopped.");
         }
     }
 
