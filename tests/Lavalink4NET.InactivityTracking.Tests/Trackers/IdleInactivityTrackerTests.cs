@@ -1,0 +1,57 @@
+﻿namespace Lavalink4NET.InactivityTracking.Tests.Trackers;
+using System.Threading.Tasks;
+using Lavalink4NET.Clients;
+using Lavalink4NET.InactivityTracking.Trackers;
+using Lavalink4NET.Players;
+using Moq;
+
+public sealed class IdleInactivityTrackerTests
+{
+    [Fact]
+    public async Task CheckWhenPlayerPlayingNotIdleAsync()
+    {
+        // Arrange
+        var inactivityTrackingService = Mock.Of<IInactivityTrackingService>();
+        var discordClientWrapper = Mock.Of<IDiscordClientWrapper>();
+        var player = Mock.Of<ILavalinkPlayer>(x => x.State == PlayerState.Playing);
+
+        var context = new InactivityTrackingContext(
+            InactivityTrackingService: inactivityTrackingService,
+            Client: discordClientWrapper,
+            Player: player);
+
+        var tracker = new IdleInactivityTracker();
+
+        // Act
+        var result = await tracker
+            .CheckAsync(context)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task CheckWhenPlayerNotPlayingIdleAsync()
+    {
+        // Arrange
+        var inactivityTrackingService = Mock.Of<IInactivityTrackingService>();
+        var discordClientWrapper = Mock.Of<IDiscordClientWrapper>();
+        var player = Mock.Of<ILavalinkPlayer>(x => x.State == PlayerState.NotPlaying);
+
+        var context = new InactivityTrackingContext(
+            InactivityTrackingService: inactivityTrackingService,
+            Client: discordClientWrapper,
+            Player: player);
+
+        var tracker = new IdleInactivityTracker();
+
+        // Act
+        var result = await tracker
+            .CheckAsync(context)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(result);
+    }
+}
