@@ -11,6 +11,7 @@ using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.Players;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -20,6 +21,7 @@ public class InactivityTrackingService : IDisposable
 {
     private readonly IAudioService _audioService;
     private readonly IDiscordClientWrapper _clientWrapper;
+    private readonly ISystemClock _systemClock;
     private readonly ILogger<InactivityTrackingService>? _logger;
     private readonly InactivityTrackingOptions _options;
     private readonly IDictionary<ulong, DateTimeOffset> _players;
@@ -47,15 +49,18 @@ public class InactivityTrackingService : IDisposable
     public InactivityTrackingService(
         IAudioService audioService,
         IDiscordClientWrapper clientWrapper,
+        ISystemClock systemClock,
         InactivityTrackingOptions options,
         ILogger<InactivityTrackingService>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(audioService);
         ArgumentNullException.ThrowIfNull(clientWrapper);
+        ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(options);
 
         _audioService = audioService;
         _clientWrapper = clientWrapper;
+        _systemClock = systemClock;
         _options = options;
         _logger = logger;
         _players = new Dictionary<ulong, DateTimeOffset>();
@@ -201,7 +206,7 @@ public class InactivityTrackingService : IDisposable
         }
 
         // the player has exceeded the stop delay
-        if (DateTimeOffset.UtcNow > dateTimeOffset)
+        if (_systemClock.UtcNow > dateTimeOffset)
         {
             return InactivityTrackingStatus.Inactive;
         }
@@ -223,6 +228,8 @@ public class InactivityTrackingService : IDisposable
         // get all created player instances in the audio service
         var players = _audioService.Players.Players;
 
+        var utcNow = _systemClock.UtcNow;
+
         foreach (var player in players)
         {
             // check if the player is inactive
@@ -232,7 +239,7 @@ public class InactivityTrackingService : IDisposable
                 if (!_players.ContainsKey(player.GuildId))
                 {
                     // mark as tracked
-                    _players.Add(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay);
+                    _players.Add(player.GuildId, utcNow + _options.DisconnectDelay);
 
                     _logger?.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
 
@@ -263,7 +270,7 @@ public class InactivityTrackingService : IDisposable
         foreach (var player in _players.ToArray())
         {
             // check if player is inactive and the delay was exceeded
-            if (player.Value < DateTimeOffset.UtcNow)
+            if (player.Value < utcNow)
             {
                 var trackedPlayer = await _audioService.Players
                     .GetPlayerAsync(player.Key, cancellationToken)
