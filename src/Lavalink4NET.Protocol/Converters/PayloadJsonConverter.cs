@@ -117,7 +117,7 @@ public sealed class PayloadJsonConverter : JsonConverter<IPayload>
             newNode["op"] = pair.OpCode;
         }
 
-        var node = JsonSerializer.SerializeToNode(value, pair.JsonTypeInfo.Options);
+        var node = JsonSerializer.SerializeToNode(value, value.GetType(), pair.JsonTypeInfo.Options);
 
         foreach (var (propertyName, propertyValue) in node!.AsObject())
         {
