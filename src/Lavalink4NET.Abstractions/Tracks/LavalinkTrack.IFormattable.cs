@@ -13,12 +13,12 @@ public partial record class LavalinkTrack : ISpanFormattable
         return ToString(format: null, formatProvider: null);
     }
 
-    public string ToString(string? format, IFormatProvider? formatProvider = null)
+    public string ToString(string? format, IFormatProvider? formatProvider)
     {
         // The ToString method is culture-neutral and format-neutral
-        if (_trackData is not null)
+        if (TrackData is not null)
         {
-            return _trackData;
+            return TrackData;
         }
 
         Span<char> buffer = stackalloc char[256];
@@ -29,7 +29,7 @@ public partial record class LavalinkTrack : ISpanFormattable
             buffer = GC.AllocateUninitializedArray<char>(buffer.Length * 2);
         }
 
-        return _trackData = new string(buffer[..charsWritten]);
+        return TrackData = new string(buffer[..charsWritten]);
     }
 
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -187,7 +187,7 @@ public partial record class LavalinkTrack : ISpanFormattable
         }
 
         span = buffer[..8];
-        buffer = buffer[8..];
+        // buffer = buffer[8..]
         bytesWritten += 8;
 
         BinaryPrimitives.WriteInt64BigEndian(

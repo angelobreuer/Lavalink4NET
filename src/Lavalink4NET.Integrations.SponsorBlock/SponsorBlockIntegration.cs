@@ -1,6 +1,8 @@
 ﻿namespace Lavalink4NET.Integrations.SponsorBlock;
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
@@ -28,11 +30,16 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(payload);
 
+        static Segment CreateSegment(SegmentModel model) => new(
+            Category: model.Category,
+            StartOffset: model.StartOffset,
+            EndOffset: model.EndOffset);
+
         if (payload is SegmentSkippedEventPayload segmentSkippedEventPayload)
         {
             var eventArgs = new SegmentSkippedEventArgs(
                 guildId: segmentSkippedEventPayload.GuildId,
-                skippedSegment: segmentSkippedEventPayload.Segment);
+                skippedSegment: CreateSegment(segmentSkippedEventPayload.Segment));
 
             await SegmentSkipped
                 .InvokeAsync(this, eventArgs)
@@ -43,7 +50,7 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
         {
             var eventArgs = new SegmentsLoadedEventArgs(
                 guildId: segmentsLoadedEventPayload.GuildId,
-                segments: segmentsLoadedEventPayload.Segments);
+                segments: segmentsLoadedEventPayload.Segments.Select(CreateSegment).ToImmutableArray());
 
             await SegmentsLoaded
                 .InvokeAsync(this, eventArgs)

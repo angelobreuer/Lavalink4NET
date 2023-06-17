@@ -321,7 +321,7 @@ public class LavalinkApiClientTests
         // Arrange
         await using var httpClientFactory = new HttpClientFactory();
 
-        httpClientFactory.Application.MapGet("/v4/routeplanner/status", async (HttpContext context) =>
+        httpClientFactory.Application.MapGet("/v4/routeplanner/status", (HttpContext context) =>
         {
             return TypedResults.Text("""
                 {
@@ -436,7 +436,7 @@ public class LavalinkApiClientTests
         // Arrange
         await using var httpClientFactory = new HttpClientFactory();
 
-        httpClientFactory.Application.MapPost("/v4/routeplanner/free/address", async (HttpContext context) =>
+        httpClientFactory.Application.MapPost("/v4/routeplanner/free/address", (HttpContext context) =>
         {
             var error = new HttpErrorResponse(
                 Timestamp: DateTimeOffset.UtcNow,

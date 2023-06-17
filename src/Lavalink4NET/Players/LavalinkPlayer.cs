@@ -210,7 +210,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         {
             SeekOrigin.Begin => position,
             SeekOrigin.Current => Position!.Value.Position + position, // TODO: check how this works with time stretch
-            SeekOrigin.End => CurrentTrack.Duration + position,
+            SeekOrigin.End => CurrentTrack!.Duration + position,
 
             _ => throw new ArgumentOutOfRangeException(
                 nameof(seekOrigin),
@@ -229,7 +229,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
-    public virtual ValueTask StopAsync(bool disconnect, CancellationToken cancellationToken = default)
+    public virtual ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();

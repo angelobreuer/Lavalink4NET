@@ -11,11 +11,11 @@ public sealed record class LyricsResponse
     ///     Gets an hopefully descriptive error message indicating what error occurred.
     /// </summary>
     [JsonPropertyName("error")]
-    public string? ErrorMessage { get; init; }
+    public string? ErrorMessage { get; set; }
 
     /// <summary>
     ///     Gets the lyrics of the requested song.
     /// </summary>
     [JsonPropertyName("lyrics")]
-    public string? Lyrics { get; init; }
+    public string? Lyrics { get; set; }
 }

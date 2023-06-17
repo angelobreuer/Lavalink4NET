@@ -2,7 +2,6 @@
 
 public partial record class LavalinkTrack
 {
-    private string? _trackData;
     private StreamProvider? _cachedProvider;
     private bool _providerCached;
 
@@ -17,14 +16,14 @@ public partial record class LavalinkTrack
 #endif
 
     public string Identifier
-    { get; init; }
+    { get; init; } = null!;
 
 #if NET7_0_OR_GREATER
     required
-#endif
+#endif 
 
     public string Author
-    { get; init; }
+    { get; init; } = null!;
 
     public TimeSpan Duration { get; init; }
 
@@ -56,11 +55,7 @@ public partial record class LavalinkTrack
         }
     }
 
-    internal string? TrackData
-    {
-        get => _trackData;
-        init => _trackData = value;
-    }
+    internal string? TrackData { get; set; }
 
     /// <summary>
     ///     Allows you to override a track that will be sent to Lavalink for playback

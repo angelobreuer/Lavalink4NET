@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using global::Discord.WebSocket;
@@ -17,9 +16,6 @@ using Lavalink4NET.Events;
 /// </summary>
 public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 {
-    private static readonly MethodInfo _disconnectMethod = typeof(SocketGuild)
-        .GetMethod("DisconnectAudioAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
     private readonly BaseSocketClient _baseSocketClient;
     private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
     private readonly int? _shardCount;
@@ -194,8 +190,12 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return;
         }
 
-        var task = (Task)_disconnectMethod.Invoke(guild, Array.Empty<object>())!;
-        await task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        // Disconnect from voice channel
+        await guild
+            .AudioClient
+            .StopAsync()
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

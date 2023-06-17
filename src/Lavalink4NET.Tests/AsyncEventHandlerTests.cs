@@ -9,7 +9,9 @@ using Xunit;
 /// </summary>
 public sealed class AsyncEventHandlerTests
 {
-    private event AsyncEventHandler Event;
+#pragma warning disable S3264 // Events should be invoked (Invoked asynchonously)
+    private event AsyncEventHandler? Event;
+#pragma warning restore S3264 // Events should be invoked
 
     /// <summary>
     ///     Tests that the asynchronous event handler waits until all attached handlers were executed.

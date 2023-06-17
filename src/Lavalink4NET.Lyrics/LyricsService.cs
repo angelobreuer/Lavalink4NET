@@ -192,7 +192,7 @@ public sealed class LyricsService
                 return null;
             }
 
-            throw new Exception($"Error while requesting: {response.RequestMessage?.RequestUri}\n\t\t{payload.ErrorMessage}");
+            throw new HttpRequestException($"Error while requesting: {response.RequestMessage?.RequestUri}\n\t\t{payload?.ErrorMessage}");
         }
 
         return payload!.Lyrics;

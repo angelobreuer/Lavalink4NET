@@ -48,7 +48,7 @@ public sealed class TrackQueueTests
         {
             var queue = new TrackQueue();
             queue.CopyTo(null!);
-        };
+        }
 
         Assert.Throws<ArgumentNullException>(Test);
     }
@@ -83,8 +83,8 @@ public sealed class TrackQueueTests
         {
             var queue = new TrackQueue();
             queue.Enqueue(GetDummyTrack());
-            queue.CopyTo(new ITrackQueueItem[0]);
-        };
+            queue.CopyTo(Array.Empty<ITrackQueueItem>());
+        }
 
         Assert.Throws<ArgumentException>(Test);
     }
@@ -154,7 +154,7 @@ public sealed class TrackQueueTests
             var queue = new TrackQueue();
             queue.Enqueue(GetDummyTrack());
             queue.Contains(null!);
-        };
+        }
 
         Assert.Throws<ArgumentNullException>(Test);
     }
@@ -166,7 +166,7 @@ public sealed class TrackQueueTests
     [Fact]
     public void TestCreateWithInvalidHistoryCapacityShouldThrow()
     {
-        static void Test() => new TrackQueue(historyCapacity: -1);
+        static void Test() => _ = new TrackQueue(historyCapacity: -1);
         Assert.Throws<ArgumentOutOfRangeException>(Test);
     }
 
@@ -298,8 +298,10 @@ public sealed class TrackQueueTests
         static void Test()
         {
             var queue = new TrackQueue();
+#pragma warning disable S3220 // Method calls should not resolve ambiguously to overloads with "params"
             queue.EnqueueRange(items: null!);
-        };
+#pragma warning restore S3220 // Method calls should not resolve ambiguously to overloads with "params"
+        }
 
         Assert.Throws<ArgumentNullException>(Test);
     }
@@ -316,7 +318,7 @@ public sealed class TrackQueueTests
         {
             var queue = new TrackQueue();
             queue.EnqueueRange(items: (IEnumerable<ITrackQueueItem>)null!);
-        };
+        }
 
         Assert.Throws<ArgumentNullException>(Test);
     }
@@ -332,8 +334,10 @@ public sealed class TrackQueueTests
         static void Test()
         {
             var queue = new TrackQueue();
+#pragma warning disable S3878 // Arrays should not be created for params parameters
             queue.EnqueueRange(items: new ITrackQueueItem[] { GetDummyTrack(), null! });
-        };
+#pragma warning restore S3878 // Arrays should not be created for params parameters
+        }
 
         Assert.Throws<InvalidOperationException>(Test);
     }
@@ -350,7 +354,7 @@ public sealed class TrackQueueTests
         {
             var queue = new TrackQueue();
             queue.EnqueueRange(items: (IEnumerable<ITrackQueueItem>)new ITrackQueueItem[] { GetDummyTrack(), null! });
-        };
+        }
 
         Assert.Throws<InvalidOperationException>(Test);
     }
@@ -367,7 +371,7 @@ public sealed class TrackQueueTests
         {
             var queue = new TrackQueue();
             queue.Enqueue(null!);
-        };
+        }
 
         Assert.Throws<ArgumentNullException>(Test);
     }
@@ -574,7 +578,9 @@ public sealed class TrackQueueTests
         static void Test()
         {
             var queue = new TrackQueue();
+#pragma warning disable S3220 // Method calls should not resolve ambiguously to overloads with "params"
             queue.InsertRange(0, items: null!);
+#pragma warning restore S3220 // Method calls should not resolve ambiguously to overloads with "params"
         }
 
         Assert.Throws<ArgumentNullException>(Test);
@@ -608,7 +614,9 @@ public sealed class TrackQueueTests
         static void Test()
         {
             var queue = new TrackQueue();
+#pragma warning disable S3878 // Arrays should not be created for params parameters
             queue.InsertRange(0, items: new ITrackQueueItem[] { GetDummyTrack(), null! });
+#pragma warning restore S3878 // Arrays should not be created for params parameters
         }
 
         Assert.Throws<InvalidOperationException>(Test);
@@ -655,7 +663,9 @@ public sealed class TrackQueueTests
     public void TestQueueCountOnEmptyQueue()
     {
         var queue = new TrackQueue();
-        Assert.Empty(queue);
+#pragma warning disable xUnit2013 // Do not use equality check to check for collection size.
+        Assert.Equal(0, queue.Count);
+#pragma warning restore xUnit2013 // Do not use equality check to check for collection size.
     }
 
     /// <summary>
@@ -799,7 +809,7 @@ public sealed class TrackQueueTests
 
         queue.EnqueueRange(track, GetDummyTrack(), GetDummyTrack());
 
-        Assert.Equal(1, queue.RemoveAll(x => x == track));
+        Assert.Equal(1, queue.RemoveAll(x => x == (ITrackQueueItem)track));
         Assert.Equal(2, queue.Count);
     }
 
@@ -908,6 +918,7 @@ public sealed class TrackQueueTests
         var queue = new TrackQueue();
         queue.Enqueue(item);
         queue[0] = item;
+        Assert.Equal(item, queue[0]);
     }
 
     /// <summary>

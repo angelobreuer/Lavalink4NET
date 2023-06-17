@@ -16,10 +16,10 @@ public sealed class CustomPlayer : QueuedLavalinkPlayer
     public CustomPlayer(IPlayerProperties<CustomPlayer, CustomPlayerOptions> properties)
         : base(properties)
     {
-        _volumeService = properties.ServiceProvider.GetRequiredService<IVolumeService>();
+        _volumeService = properties.ServiceProvider!.GetRequiredService<IVolumeService>();
     }
 
-    public override async ValueTask SetVolumeAsync(float volume = 1, CancellationToken cancellationToken = default)
+    public override async ValueTask SetVolumeAsync(float volume, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
 

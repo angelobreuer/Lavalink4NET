@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 internal sealed class VolumeService : IVolumeService
 {
-    private readonly ConcurrentDictionary<ulong, float> _volumeStore;
+    private readonly ConcurrentDictionary<ulong, float> _volumeStore = new();
 
     public float GetVolume(ulong guildId)
     {
