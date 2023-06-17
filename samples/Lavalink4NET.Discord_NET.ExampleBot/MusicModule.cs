@@ -48,7 +48,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         // when using StopAsync(true) the player also disconnects and clears the track queue.
         // DisconnectAsync only disconnects from the channel.
         await player.StopAsync(true).ConfigureAwait(false);
-        await ReplyAsync("Disconnected.").ConfigureAwait(false);
+        await RespondAsync("Disconnected.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -66,13 +66,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
+        await DeferAsync().ConfigureAwait(false);
+
         var track = await _audioService.Tracks
             .LoadTrackAsync(query, TrackSearchMode.YouTube)
             .ConfigureAwait(false);
 
         if (track is null)
         {
-            await ReplyAsync("😖 No results.").ConfigureAwait(false);
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
             return;
         }
 
@@ -80,11 +82,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         if (position is 0)
         {
-            await ReplyAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
         }
         else
         {
-            await ReplyAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+            await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
         }
     }
 
@@ -104,11 +106,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         if (player.CurrentTrack is null)
         {
-            await ReplyAsync("Nothing playing!").ConfigureAwait(false);
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
         }
 
-        await ReplyAsync($"Position: {player.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
+        await RespondAsync($"Position: {player.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -127,12 +129,12 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         if (player.CurrentTrack is null)
         {
-            await ReplyAsync("Nothing playing!").ConfigureAwait(false);
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
         }
 
         await player.StopAsync().ConfigureAwait(false);
-        await ReplyAsync("Stopped playing.").ConfigureAwait(false);
+        await RespondAsync("Stopped playing.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -145,7 +147,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         if (volume is > 1000 or < 0)
         {
-            await ReplyAsync("Volume out of range: 0% - 1000%!").ConfigureAwait(false);
+            await RespondAsync("Volume out of range: 0% - 1000%!").ConfigureAwait(false);
             return;
         }
 
@@ -157,7 +159,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         }
 
         await player.SetVolumeAsync(volume / 100f).ConfigureAwait(false);
-        await ReplyAsync($"Volume updated: {volume}%").ConfigureAwait(false);
+        await RespondAsync($"Volume updated: {volume}%").ConfigureAwait(false);
     }
 
     /// <summary>
