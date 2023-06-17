@@ -15,8 +15,8 @@ internal sealed class SponsorBlockIntegration : ILavalinkIntegration, ISponsorBl
     static SponsorBlockIntegration()
     {
         // Register events
-        PayloadJsonConverter.RegisterEvent<SegmentsLoadedEventPayload>("SegmentsLoaded");
-        PayloadJsonConverter.RegisterEvent<SegmentSkippedEventPayload>("SegmentSkipped");
+        PayloadJsonConverter.RegisterEvent("SegmentsLoaded", SponsorBlockJsonSerializerContext.Default.SegmentsLoadedEventPayload);
+        PayloadJsonConverter.RegisterEvent("SegmentSkipped", SponsorBlockJsonSerializerContext.Default.SegmentSkippedEventPayload);
     }
 
     public event AsyncEventHandler<SegmentSkippedEventArgs>? SegmentSkipped;

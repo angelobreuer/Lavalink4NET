@@ -6,51 +6,51 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Lavalink4NET.Protocol.Payloads;
-using Lavalink4NET.Protocol.Payloads.Events;
 
 public sealed class PayloadJsonConverter : JsonConverter<IPayload>
 {
-    private static readonly Dictionary<Type, string> _events;
-    private static readonly Dictionary<string, Type> _eventsMap;
-    private static readonly Dictionary<Type, string> _payloads;
-    private static readonly Dictionary<string, Type> _payloadsMap;
+    private static readonly Dictionary<Type, (string EventName, JsonTypeInfo JsonTypeInfo)> _events;
+    private static readonly Dictionary<string, JsonTypeInfo> _eventsMap;
+    private static readonly Dictionary<Type, (string OpCode, JsonTypeInfo JsonTypeInfo)> _payloads;
+    private static readonly Dictionary<string, JsonTypeInfo> _payloadsMap;
     private static readonly object _syncRoot;
 
     static PayloadJsonConverter()
     {
-        _payloads = new Dictionary<Type, string>();
-        _payloadsMap = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        _payloads = new Dictionary<Type, (string EventName, JsonTypeInfo JsonTypeInfo)>();
+        _payloadsMap = new Dictionary<string, JsonTypeInfo>(StringComparer.OrdinalIgnoreCase);
 
-        _events = new Dictionary<Type, string>();
-        _eventsMap = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        _events = new Dictionary<Type, (string OpCode, JsonTypeInfo JsonTypeInfo)>();
+        _eventsMap = new Dictionary<string, JsonTypeInfo>(StringComparer.OrdinalIgnoreCase);
 
         _syncRoot = new object();
 
-        RegisterPayloadInternal<ReadyPayload>("ready");
-        RegisterPayloadInternal<PlayerUpdatePayload>("playerUpdate");
-        RegisterPayloadInternal<StatisticsPayload>("stats");
+        RegisterPayloadInternal("ready", ProtocolSerializerContext.Default.ReadyPayload);
+        RegisterPayloadInternal("playerUpdate", ProtocolSerializerContext.Default.PlayerUpdatePayload);
+        RegisterPayloadInternal("stats", ProtocolSerializerContext.Default.StatisticsPayload);
 
-        RegisterEventInternal<TrackStartEventPayload>("TrackStartEvent");
-        RegisterEventInternal<TrackEndEventPayload>("TrackEndEvent");
-        RegisterEventInternal<TrackExceptionEventPayload>("TrackExceptionEvent");
-        RegisterEventInternal<TrackStuckEventPayload>("TrackStuckEvent");
-        RegisterEventInternal<WebSocketClosedEventPayload>("WebSocketClosedEvent");
+        RegisterEventInternal("TrackStartEvent", ProtocolSerializerContext.Default.TrackStartEventPayload);
+        RegisterEventInternal("TrackEndEvent", ProtocolSerializerContext.Default.TrackEndEventPayload);
+        RegisterEventInternal("TrackExceptionEvent", ProtocolSerializerContext.Default.TrackExceptionEventPayload);
+        RegisterEventInternal("TrackStuckEvent", ProtocolSerializerContext.Default.TrackStuckEventPayload);
+        RegisterEventInternal("WebSocketClosedEvent", ProtocolSerializerContext.Default.WebSocketClosedEventPayload);
     }
 
-    public static void RegisterEvent<T>(string eventName) where T : IEventPayload
+    public static void RegisterEvent<T>(string eventName, JsonTypeInfo<T> jsonTypeInfo) where T : IEventPayload
     {
         lock (_syncRoot)
         {
-            RegisterEventInternal<T>(eventName);
+            RegisterEventInternal(eventName, jsonTypeInfo);
         }
     }
 
-    public static void RegisterPayload<T>(string operationCode) where T : IPayload
+    public static void RegisterPayload<T>(string operationCode, JsonTypeInfo<T> jsonTypeInfo) where T : IPayload
     {
         lock (_syncRoot)
         {
-            RegisterPayloadInternal<T>(operationCode);
+            RegisterPayloadInternal(operationCode, jsonTypeInfo);
         }
     }
 
@@ -69,22 +69,22 @@ public sealed class PayloadJsonConverter : JsonConverter<IPayload>
             ThrowInvalidOpCode();
         }
 
-        var payloadType = default(Type?);
+        var jsonTypeInfo = default(JsonTypeInfo?);
         if (operationCode.Equals("event", StringComparison.OrdinalIgnoreCase))
         {
             var eventName = node["type"]?.GetValue<string>();
 
-            if (eventName is null || !_eventsMap.TryGetValue(eventName, out payloadType))
+            if (eventName is null || !_eventsMap.TryGetValue(eventName, out jsonTypeInfo))
             {
                 ThrowInvalidEventName();
             }
         }
-        else if (!_payloadsMap.TryGetValue(operationCode, out payloadType))
+        else if (!_payloadsMap.TryGetValue(operationCode, out jsonTypeInfo))
         {
             ThrowInvalidOpCode();
         }
 
-        return (IPayload?)node.Deserialize(payloadType, options);
+        return (IPayload?)node.Deserialize(jsonTypeInfo.Type, jsonTypeInfo.Options);
 
         [DoesNotReturn]
         static void ThrowInvalidOpCode() => throw new JsonException("Missing or invalid 'op' (operation code) property in payload.");
@@ -100,23 +100,24 @@ public sealed class PayloadJsonConverter : JsonConverter<IPayload>
         ArgumentNullException.ThrowIfNull(options);
 
         var payloadType = value.GetType();
-        var node = JsonSerializer.SerializeToNode(value, payloadType, options);
         var newNode = new JsonObject();
 
-        if (!_payloads.TryGetValue(payloadType, out var opCode))
+        if (!_payloads.TryGetValue(payloadType, out var pair))
         {
-            if (!_events.TryGetValue(payloadType, out var eventName))
+            if (!_events.TryGetValue(payloadType, out pair))
             {
                 throw new InvalidOperationException("The payload type is not registered.");
             }
 
             newNode["op"] = "event";
-            newNode["type"] = eventName;
+            newNode["type"] = pair.OpCode;
         }
         else
         {
-            newNode["op"] = opCode;
+            newNode["op"] = pair.OpCode;
         }
+
+        var node = JsonSerializer.SerializeToNode(value, pair.JsonTypeInfo.Options);
 
         foreach (var (propertyName, propertyValue) in node!.AsObject())
         {
@@ -126,15 +127,15 @@ public sealed class PayloadJsonConverter : JsonConverter<IPayload>
         newNode.WriteTo(writer, options);
     }
 
-    private static void RegisterEventInternal<T>(string eventName) where T : IEventPayload
+    private static void RegisterEventInternal<T>(string eventName, JsonTypeInfo<T> jsonTypeInfo) where T : IEventPayload
     {
-        _events[typeof(T)] = eventName;
-        _eventsMap[eventName] = typeof(T);
+        _events[typeof(T)] = (eventName, jsonTypeInfo);
+        _eventsMap[eventName] = jsonTypeInfo;
     }
 
-    private static void RegisterPayloadInternal<T>(string operationCode) where T : IPayload
+    private static void RegisterPayloadInternal<T>(string operationCode, JsonTypeInfo<T> jsonTypeInfo) where T : IPayload
     {
-        _payloads[typeof(T)] = operationCode;
-        _payloadsMap[operationCode] = typeof(T);
+        _payloads[typeof(T)] = (operationCode, jsonTypeInfo);
+        _payloadsMap[operationCode] = jsonTypeInfo;
     }
 }
