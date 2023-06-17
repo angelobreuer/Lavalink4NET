@@ -83,8 +83,8 @@ public sealed class LyricsService
     public async ValueTask<string?> GetLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ArgumentException.ThrowIfNullOrEmpty(artist);
-        ArgumentException.ThrowIfNullOrEmpty(title);
+        ArgumentNullException.ThrowIfNull(artist);
+        ArgumentNullException.ThrowIfNull(title);
 
         // the cache key
         var key = $"lyrics-{artist}-{title}";
@@ -165,8 +165,8 @@ public sealed class LyricsService
     public async ValueTask<string?> RequestLyricsAsync(string artist, string title, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ArgumentException.ThrowIfNullOrEmpty(artist);
-        ArgumentException.ThrowIfNullOrEmpty(title);
+        ArgumentNullException.ThrowIfNull(artist);
+        ArgumentNullException.ThrowIfNull(title);
 
         // encode query parameters
         title = HttpUtility.HtmlEncode(title);

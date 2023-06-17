@@ -91,7 +91,7 @@ public class InactivityTrackingService : IDisposable
     {
         get
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            ThrowIfDisposed();
             return _timer is not null;
         }
     }
@@ -105,7 +105,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void Start()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         if (_timer is not null)
         {
@@ -125,7 +125,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public InactivityTrackingStatus GetStatus(ILavalinkPlayer player)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         if (!_players.TryGetValue(player.GuildId, out var dateTimeOffset))
         {
@@ -151,7 +151,7 @@ public class InactivityTrackingService : IDisposable
     public virtual async Task PollAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         var utcNow = _systemClock.UtcNow;
         var destroyedPlayers = _players.Keys.ToHashSet();
@@ -229,7 +229,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void Stop()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         _timer?.Dispose();
         _timer = null;
@@ -247,7 +247,7 @@ public class InactivityTrackingService : IDisposable
     public async ValueTask UntrackPlayerAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         if (_players.TryRemove(guildId, out _))
         {
@@ -274,7 +274,7 @@ public class InactivityTrackingService : IDisposable
     protected virtual async ValueTask<bool> IsInactiveAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
 
         // iterate through the trackers
         foreach (var tracker in _trackers)
@@ -340,5 +340,17 @@ public class InactivityTrackingService : IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    protected void ThrowIfDisposed()
+    {
+#if NET7_0_OR_GREATER
+        ThrowIfDisposed();
+#else
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(LavalinkPlayer));
+        }
+#endif
     }
 }
