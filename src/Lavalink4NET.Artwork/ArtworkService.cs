@@ -8,15 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 
 public class ArtworkService : IArtworkService, IDisposable
 {
+    private readonly ISystemClock _systemClock;
     private readonly IMemoryCache? _cache;
     private bool _disposed;
     private HttpClient? _httpClient;
 
-    public ArtworkService(IMemoryCache? cache = null)
+    public ArtworkService(ISystemClock? systemClock = null, IMemoryCache? cache = null)
     {
+        _systemClock = systemClock ?? new SystemClock();
         _cache = cache;
     }
 
@@ -122,7 +125,7 @@ public class ArtworkService : IArtworkService, IDisposable
             return null;
         }
 
-        _cache?.Set(cacheKey!, thumbnailUri, DateTimeOffset.UtcNow + TimeSpan.FromMinutes(60));
+        _cache?.Set(cacheKey!, thumbnailUri, _systemClock.UtcNow + TimeSpan.FromMinutes(60));
 
         return thumbnailUri;
     }
