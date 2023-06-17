@@ -1,6 +1,7 @@
 namespace Lavalink4NET.Players;
 
 using System;
+using Microsoft.Extensions.Internal;
 
 /// <summary>
 ///     Represents a track position.
@@ -8,7 +9,7 @@ using System;
 /// <param name="SyncedAt">the UTC time when the track position was last synced at.</param>
 /// <param name="UnstretchedRelativePosition">the current unstretched track position relative to <see cref="SyncedAt"/>.</param>
 /// <param name="TimeStretchFactor"></param>
-public readonly record struct TrackPosition(DateTimeOffset SyncedAt, TimeSpan UnstretchedRelativePosition, float TimeStretchFactor = 1.0F)
+public readonly record struct TrackPosition(ISystemClock SystemClock, DateTimeOffset SyncedAt, TimeSpan UnstretchedRelativePosition, float TimeStretchFactor = 1.0F)
 {
     /// <summary>
     ///     Gets the current stretched track position relative to <see cref="SyncedAt"/>.
@@ -16,7 +17,7 @@ public readonly record struct TrackPosition(DateTimeOffset SyncedAt, TimeSpan Un
     /// <value>the current stretched track position relative to <see cref="SyncedAt"/>.</value>
     public TimeSpan RelativePosition => TimeSpan.FromTicks((long)(UnstretchedRelativePosition.Ticks * TimeStretchFactor));
 
-    public TimeSpan UnstretchedUnsyncedDuration => DateTimeOffset.UtcNow - SyncedAt;
+    public TimeSpan UnstretchedUnsyncedDuration => SystemClock.UtcNow - SyncedAt;
 
     public TimeSpan UnsyncedDuration => TimeSpan.FromTicks((long)(UnstretchedUnsyncedDuration.Ticks * TimeStretchFactor));
 

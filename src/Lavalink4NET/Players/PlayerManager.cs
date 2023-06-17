@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Rest;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -16,6 +17,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 {
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ILavalinkSessionProvider _sessionProvider;
+    private readonly ISystemClock _systemClock;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -26,11 +28,13 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,
         ILavalinkSessionProvider sessionProvider,
+        ISystemClock systemClock,
         ILavalinkApiClient apiClient,
         ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(sessionProvider);
+        ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
@@ -38,6 +42,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         _clientWrapper = discordClient;
         _sessionProvider = sessionProvider;
+        _systemClock = systemClock;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
         _playerContext = new PlayerContext(serviceProvider, apiClient, discordClient);
@@ -103,6 +108,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 playerFactory: playerFactory,
                 sessionProvider: _sessionProvider,
                 options: options,
+                systemClock: _systemClock,
                 logger: _loggerFactory.CreateLogger<TPlayer>());
         }
 

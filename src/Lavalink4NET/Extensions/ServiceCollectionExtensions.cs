@@ -9,6 +9,7 @@ using Lavalink4NET.Socket;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Internal;
 
 public static class ServiceCollectionExtensions
 {
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient();
         services.AddMemoryCache();
 
+        services.TryAddSingleton<ISystemClock, SystemClock>();
         services.TryAddSingleton<ILavalinkSocketFactory, LavalinkSocketFactory>();
         services.TryAddSingleton<ILavalinkApiClient, LavalinkApiClient>();
         services.TryAddSingleton<ILavalinkSessionProvider, LavalinkSessionProvider>();

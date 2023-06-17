@@ -59,14 +59,14 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task Play(string query)
     {
+        await DeferAsync().ConfigureAwait(false);
+
         var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
 
         if (player is null)
         {
             return;
         }
-
-        await DeferAsync().ConfigureAwait(false);
 
         var track = await _audioService.Tracks
             .LoadTrackAsync(query, TrackSearchMode.YouTube)

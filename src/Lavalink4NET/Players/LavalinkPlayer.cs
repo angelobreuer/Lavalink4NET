@@ -12,11 +12,13 @@ using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 {
     private readonly ILogger<LavalinkPlayer> _logger;
+    private readonly ISystemClock _systemClock;
     private string? _currentTrackState;
     private int _disposed;
     private DateTimeOffset _syncedAt;
@@ -31,8 +33,9 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
+        _systemClock = properties.SystemClock;
         _logger = properties.Logger;
-        _syncedAt = DateTimeOffset.UtcNow;
+        _syncedAt = properties.SystemClock.UtcNow;
         _unstretchedRelativePosition = default;
 
         Refresh(properties.InitialState);
@@ -53,7 +56,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
                 return null;
             }
 
-            return new TrackPosition(_syncedAt, _unstretchedRelativePosition, 1F); // TODO: time stretch
+            return new TrackPosition(
+                SystemClock: _systemClock,
+                SyncedAt: _syncedAt,
+                UnstretchedRelativePosition: _unstretchedRelativePosition,
+                TimeStretchFactor: 1F); // TODO: time stretch
         }
     }
 
