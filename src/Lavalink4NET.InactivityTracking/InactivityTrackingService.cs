@@ -1,9 +1,9 @@
 namespace Lavalink4NET.Tracking;
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,9 +24,8 @@ public class InactivityTrackingService : IDisposable
     private readonly ISystemClock _systemClock;
     private readonly ILogger<InactivityTrackingService>? _logger;
     private readonly InactivityTrackingOptions _options;
-    private readonly IDictionary<ulong, DateTimeOffset> _players;
-    private readonly IList<InactivityTracker> _trackers;
-    private readonly object _trackersLock;
+    private readonly ConcurrentDictionary<ulong, DateTimeOffset> _players;
+    private readonly ImmutableArray<InactivityTracker> _trackers;
     private bool _disposed;
     private Timer? _timer;
 
@@ -63,15 +62,8 @@ public class InactivityTrackingService : IDisposable
         _systemClock = systemClock;
         _options = options;
         _logger = logger;
-        _players = new Dictionary<ulong, DateTimeOffset>();
-        _trackersLock = new object();
-
-        _trackers = new List<InactivityTracker>
-        {
-            // add default trackers
-            DefaultInactivityTrackers.UsersInactivityTracker,
-            DefaultInactivityTrackers.ChannelInactivityTracker
-        };
+        _players = new ConcurrentDictionary<ulong, DateTimeOffset>();
+        _trackers = options.Trackers;
 
         if (options.TrackInactivity)
         {
@@ -104,42 +96,6 @@ public class InactivityTrackingService : IDisposable
     }
 
     /// <summary>
-    ///     Gets all trackers.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public IReadOnlyList<InactivityTracker> Trackers
-    {
-        get
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-
-            lock (_trackersLock)
-            {
-                return _trackers.ToList().AsReadOnly();
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Adds a tracker to the track list dynamically.
-    /// </summary>
-    /// <param name="tracker">the tracker to add</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void AddTracker(InactivityTracker tracker)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(tracker);
-
-        lock (_trackersLock)
-        {
-            _trackers.Add(tracker);
-        }
-    }
-
-    /// <summary>
     ///     Beings tracking of inactive players.
     /// </summary>
     /// <exception cref="InvalidOperationException">
@@ -158,20 +114,6 @@ public class InactivityTrackingService : IDisposable
         // initialize the timer that polls inactive players
         var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
         _timer = new Timer(PollTimerCallback, this, pollDelay, _options.PollInterval);
-    }
-
-    /// <summary>
-    ///     Removes all registered trackers.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void ClearTrackers()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        lock (_trackersLock)
-        {
-            _trackers.Clear();
-        }
     }
 
     /// <summary>
@@ -236,11 +178,8 @@ public class InactivityTrackingService : IDisposable
             if (await IsInactiveAsync(player, cancellationToken).ConfigureAwait(false))
             {
                 // add the player to tracking list
-                if (!_players.ContainsKey(player.GuildId))
+                if (_players.TryAdd(player.GuildId, utcNow + _options.DisconnectDelay))
                 {
-                    // mark as tracked
-                    _players.Add(player.GuildId, utcNow + _options.DisconnectDelay);
-
                     _logger?.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
 
                     // trigger event
@@ -253,83 +192,56 @@ public class InactivityTrackingService : IDisposable
                     await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
                 }
             }
-            else
+            else if (_players.TryRemove(player.GuildId, out _))
             {
-                // the player is active again, remove from tracking list
-                if (_players.Remove(player.GuildId))
-                {
-                    _logger?.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
+                _logger?.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
 
-                    // remove from tracking list
-                    await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
-                }
+                // remove from tracking list
+                await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
             }
         }
 
         // remove all inactive, tracked players where the disconnect delay was exceeded
-        foreach (var player in _players.ToArray())
+        foreach (var player in _players.Where(x => x.Value < utcNow))
         {
-            // check if player is inactive and the delay was exceeded
-            if (player.Value < utcNow)
+            var trackedPlayer = await _audioService.Players
+                .GetPlayerAsync(player.Key, cancellationToken)
+                .ConfigureAwait(false);
+
+            // player does not exists, remove it from the tracking list and continue.
+            if (trackedPlayer is null)
             {
-                var trackedPlayer = await _audioService.Players
-                    .GetPlayerAsync(player.Key, cancellationToken)
-                    .ConfigureAwait(false);
-
-                // player does not exists, remove it from the tracking list and continue.
-                if (trackedPlayer is null)
-                {
-                    // remove from tracking list
-                    await UntrackPlayerAsync(
-                        guildId: player.Key,
-                        player: null,
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
-
-                    continue;
-                }
-
-                // trigger event
-                var eventArgs = new InactivePlayerEventArgs(_audioService, trackedPlayer);
-                await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
-
-                // it is wanted that the player should not stop.
-                if (!eventArgs.ShouldStop)
-                {
-                    continue;
-                }
-
-                _logger?.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
-
-                // dispose the player
-                await using var _ = trackedPlayer.ConfigureAwait(false);
-
                 // remove from tracking list
                 await UntrackPlayerAsync(
                     guildId: player.Key,
-                    player: trackedPlayer,
+                    player: null,
                     cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
+
+                continue;
             }
-        }
-    }
 
-    /// <summary>
-    ///     Removes a tracker from the tracker list dynamically.
-    /// </summary>
-    /// <param name="tracker">the tracker to remove</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="tracker"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void RemoveTracker(InactivityTracker tracker)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(tracker);
+            // trigger event
+            var eventArgs = new InactivePlayerEventArgs(_audioService, trackedPlayer);
+            await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
 
-        lock (_trackersLock)
-        {
-            _trackers.Remove(tracker);
+            // it is wanted that the player should not stop.
+            if (!eventArgs.ShouldStop)
+            {
+                continue;
+            }
+
+            _logger?.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
+
+            // dispose the player
+            await using var _ = trackedPlayer.ConfigureAwait(false);
+
+            // remove from tracking list
+            await UntrackPlayerAsync(
+                guildId: player.Key,
+                player: trackedPlayer,
+                cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
@@ -362,16 +274,17 @@ public class InactivityTrackingService : IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        _players.Remove(guildId);
+        if (_players.TryRemove(guildId, out _))
+        {
+            // trigger event
+            var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
+                audioService: _audioService,
+                guildId: guildId,
+                player: player,
+                trackingStatus: InactivityTrackingStatus.Untracked);
 
-        // trigger event
-        var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
-            audioService: _audioService,
-            guildId: guildId,
-            player: player,
-            trackingStatus: InactivityTrackingStatus.Untracked);
-
-        await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
+            await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -389,7 +302,7 @@ public class InactivityTrackingService : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // iterate through the trackers
-        foreach (var tracker in Trackers)
+        foreach (var tracker in _trackers)
         {
             // check if the player is inactivity
             if (await tracker(player, _clientWrapper, cancellationToken).ConfigureAwait(false))

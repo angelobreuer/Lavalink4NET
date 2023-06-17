@@ -1,6 +1,7 @@
 namespace Lavalink4NET.Tracking;
 
 using System;
+using System.Collections.Immutable;
 
 /// <summary>
 ///     The options for the <see cref="InactivityTrackingService"/>.
@@ -34,4 +35,6 @@ public sealed class InactivityTrackingOptions
     /// </summary>
     /// <remarks>This property defaults to <see langword="true"/>.</remarks>
     public bool TrackInactivity { get; set; } = true;
+
+    public ImmutableArray<InactivityTracker> Trackers { get; set; } = DefaultInactivityTrackers.DefaultTrackers;
 }

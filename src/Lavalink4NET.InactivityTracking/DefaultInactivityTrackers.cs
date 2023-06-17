@@ -1,5 +1,6 @@
 namespace Lavalink4NET.Tracking;
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Lavalink4NET.Players;
 
@@ -33,4 +34,6 @@ public static class DefaultInactivityTrackers
         // check if there are no users in the channel (bots excluded)
         return users.Length is 0;
     };
+
+    public static ImmutableArray<InactivityTracker> DefaultTrackers { get; } = ImmutableArray.Create(UsersInactivityTracker, ChannelInactivityTracker);
 }
