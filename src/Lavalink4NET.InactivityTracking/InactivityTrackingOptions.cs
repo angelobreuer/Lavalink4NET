@@ -32,6 +32,6 @@ public sealed class InactivityTrackingOptions
     ///     Gets or sets a value indicating whether the <see cref="InactivityTrackingService"/>
     ///     should start tracking inactive players after constructing it.
     /// </summary>
-    /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-    public bool TrackInactivity { get; set; }
+    /// <remarks>This property defaults to <see langword="true"/>.</remarks>
+    public bool TrackInactivity { get; set; } = true;
 }
