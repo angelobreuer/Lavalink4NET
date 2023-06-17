@@ -1,6 +1,7 @@
 namespace Lavalink4NET.InactivityTracking.Events;
 
 using System;
+using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 

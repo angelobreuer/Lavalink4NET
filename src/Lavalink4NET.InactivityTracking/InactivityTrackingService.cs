@@ -1,19 +1,18 @@
-﻿namespace Lavalink4NET.Tracking;
+﻿namespace Lavalink4NET.InactivityTracking;
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
-using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.Players;
+using Lavalink4NET.Tracking;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 /// <summary>
 ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
@@ -26,9 +25,10 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     private readonly ILogger<InactivityTrackingService> _logger;
     private readonly InactivityTrackingOptions _options;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _players;
-    private readonly ImmutableArray<IInactivityTracker> _trackers;
-    private Timer? _timer;
+    private readonly CancellationTokenSource _stoppingCancellationTokenSource;
+    private TaskCompletionSource? _pauseTaskCompletionSource;
     private bool _disposed;
+    private Task? _executeTask;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="InactivityTrackingService"/> class.
@@ -50,7 +50,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         IPlayerManager playerManager,
         IDiscordClientWrapper clientWrapper,
         ISystemClock systemClock,
-        InactivityTrackingOptions options,
+        IOptions<InactivityTrackingOptions> options,
         ILogger<InactivityTrackingService> logger)
     {
         ArgumentNullException.ThrowIfNull(playerManager);
@@ -59,17 +59,18 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
+        _players = new ConcurrentDictionary<ulong, DateTimeOffset>();
+        _stoppingCancellationTokenSource = new CancellationTokenSource();
+
         _playerManager = playerManager;
         _clientWrapper = clientWrapper;
         _systemClock = systemClock;
-        _options = options;
+        _options = options.Value;
         _logger = logger;
-        _players = new ConcurrentDictionary<ulong, DateTimeOffset>();
-        _trackers = options.Trackers;
 
-        if (options.TrackInactivity)
+        if (options.Value.TrackInactivity)
         {
-            Start();
+            _executeTask = RunAsync(CancellationToken.None).AsTask();
         }
     }
 
@@ -93,30 +94,17 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         get
         {
             ThrowIfDisposed();
-            return _timer is not null;
+            return _executeTask is not null;
         }
     }
 
-    /// <summary>
-    ///     Beings tracking of inactive players.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown if the service is already tracking inactive players.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void Start()
+    public InactivityTrackingState State => this switch
     {
-        ThrowIfDisposed();
-
-        if (_timer is not null)
-        {
-            return;
-        }
-
-        // initialize the timer that polls inactive players
-        var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
-        _timer = new Timer(PollTimerCallback, this, pollDelay, _options.PollInterval);
-    }
+        { _executeTask: null, } => InactivityTrackingState.Inactive,
+        { _disposed: true, } => InactivityTrackingState.Destroyed,
+        { _pauseTaskCompletionSource: not null, } => InactivityTrackingState.Paused,
+        _ => InactivityTrackingState.Running,
+    };
 
     /// <summary>
     ///     Gets the tracking status of the specified <paramref name="player"/>.
@@ -196,7 +184,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                     _logger.LogDebug("Destroyed player {GuildId} due inactivity.", player.GuildId);
 
                     await using var _ = player.ConfigureAwait(false);
-                    await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
+                    await NotifyAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
                 }
             }
             else if (_players.TryRemove(player.GuildId, out _))
@@ -204,7 +192,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                 _logger.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
 
                 // remove from tracking list
-                await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
+                await NotifyAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -216,24 +204,9 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                 _logger.LogDebug("Removed player {GuildId} from tracking list.", destroyedPlayer);
 
                 // remove from tracking list
-                await UntrackPlayerAsync(destroyedPlayer, player: null, cancellationToken).ConfigureAwait(false);
+                await NotifyAsync(destroyedPlayer, player: null, cancellationToken).ConfigureAwait(false);
             }
         }
-    }
-
-    /// <summary>
-    ///     Stops tracking of inactive players.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown if the service is not tracking inactive players.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void Stop()
-    {
-        ThrowIfDisposed();
-
-        _timer?.Dispose();
-        _timer = null;
     }
 
     /// <summary>
@@ -245,7 +218,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     ///     indicating whether the player was removed from the tracking list.
     /// </returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async ValueTask UntrackPlayerAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default)
+    public async ValueTask NotifyAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
@@ -283,7 +256,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             Player: player);
 
         // iterate through the trackers
-        foreach (var tracker in _trackers)
+        foreach (var tracker in _options.Trackers)
         {
             // check if the player is inactivity
             if (await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
@@ -311,21 +284,6 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     protected virtual ValueTask OnPlayerTrackingStatusUpdated(PlayerTrackingStatusUpdateEventArgs eventArgs)
         => PlayerTrackingStatusUpdated.InvokeAsync(this, eventArgs);
 
-    private void PollTimerCallback(object? state)
-    {
-        Debug.Assert(state is InactivityTrackingService);
-        var instance = Unsafe.As<object?, InactivityTrackingService>(ref state);
-
-        try
-        {
-            instance.PollAsync().GetAwaiter().GetResult();
-        }
-        catch (Exception exception)
-        {
-            _logger.LogWarning(exception, "Inactivity tracking poll failed!");
-        }
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
@@ -335,8 +293,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
 
         if (disposing)
         {
-            _timer?.Dispose();
-            _timer = null;
+            _stoppingCancellationTokenSource.Dispose();
         }
 
         _disposed = true;
@@ -358,5 +315,78 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             throw new ObjectDisposedException(nameof(LavalinkPlayer));
         }
 #endif
+    }
+
+    public ValueTask StartAsync(CancellationToken cancellationToken = default)
+    {
+        if (_executeTask is not null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _executeTask = RunAsync(cancellationToken).AsTask();
+
+        return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
+    }
+
+    public async ValueTask StopAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_executeTask is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _pauseTaskCompletionSource?.SetCanceled(CancellationToken.None);
+            _stoppingCancellationTokenSource.Cancel();
+        }
+        finally
+        {
+            await _executeTask
+                .WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+    }
+
+    public ValueTask PauseAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Interlocked.CompareExchange(
+            location1: ref _pauseTaskCompletionSource,
+            value: new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously),
+            comparand: null);
+
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask ResumeAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var pauseTaskCompletionSource = Interlocked.Exchange(ref _pauseTaskCompletionSource, null);
+        pauseTaskCompletionSource?.TrySetResult();
+
+        return ValueTask.CompletedTask;
+    }
+
+    public async ValueTask RunAsync(CancellationToken cancellationToken = default)
+    {
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            token1: cancellationToken,
+            token2: _stoppingCancellationTokenSource.Token);
+
+        cancellationToken = cancellationTokenSource.Token;
+
+        using var periodicTimer = new PeriodicTimer(_options.PollInterval);
+
+        while (await periodicTimer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+        {
+            await PollAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

@@ -10,7 +10,7 @@ public sealed class IdleInactivityTracker : IInactivityTracker
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var isInactive = context.Player.State is PlayerState.NotPlaying;
+        var isInactive = context.Player.State is not PlayerState.Playing;
         return new ValueTask<bool>(isInactive);
     }
 }
