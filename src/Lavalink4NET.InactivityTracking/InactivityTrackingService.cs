@@ -45,12 +45,18 @@ public class InactivityTrackingService : IDisposable
     ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
     /// </exception>
     public InactivityTrackingService(
-        IAudioService audioService, IDiscordClientWrapper clientWrapper,
-        InactivityTrackingOptions options, ILogger<InactivityTrackingService>? logger = null)
+        IAudioService audioService,
+        IDiscordClientWrapper clientWrapper,
+        InactivityTrackingOptions options,
+        ILogger<InactivityTrackingService>? logger = null)
     {
-        _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
-        _clientWrapper = clientWrapper ?? throw new ArgumentNullException(nameof(clientWrapper));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(clientWrapper);
+        ArgumentNullException.ThrowIfNull(options);
+
+        _audioService = audioService;
+        _clientWrapper = clientWrapper;
+        _options = options;
         _logger = logger;
         _players = new Dictionary<ulong, DateTimeOffset>();
         _trackersLock = new object();
@@ -87,7 +93,7 @@ public class InactivityTrackingService : IDisposable
     {
         get
         {
-            EnsureNotDisposed();
+            ObjectDisposedException.ThrowIf(_disposed, this);
             return _timer != null;
         }
     }
@@ -100,7 +106,7 @@ public class InactivityTrackingService : IDisposable
     {
         get
         {
-            EnsureNotDisposed();
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             lock (_trackersLock)
             {
@@ -119,12 +125,8 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void AddTracker(InactivityTracker tracker)
     {
-        EnsureNotDisposed();
-
-        if (tracker is null)
-        {
-            throw new ArgumentNullException(nameof(tracker));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(tracker);
 
         lock (_trackersLock)
         {
@@ -141,7 +143,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void BeginTracking()
     {
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_timer is not null)
         {
@@ -159,7 +161,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void ClearTrackers()
     {
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         lock (_trackersLock)
         {
@@ -190,7 +192,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public InactivityTrackingStatus GetStatus(ILavalinkPlayer player)
     {
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (!_players.TryGetValue(player.GuildId, out var dateTimeOffset))
         {
@@ -216,7 +218,7 @@ public class InactivityTrackingService : IDisposable
     public virtual async Task PollAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         // get all created player instances in the audio service
         var players = _audioService.Players.Players;
@@ -232,7 +234,7 @@ public class InactivityTrackingService : IDisposable
                     // mark as tracked
                     _players.Add(player.GuildId, DateTimeOffset.UtcNow + _options.DisconnectDelay);
 
-                    _logger?.LogDebug("Tracked player {0} as inactive.", player.GuildId);
+                    _logger?.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
 
                     // trigger event
                     var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
@@ -249,7 +251,7 @@ public class InactivityTrackingService : IDisposable
                 // the player is active again, remove from tracking list
                 if (_players.Remove(player.GuildId))
                 {
-                    _logger?.LogDebug("Removed player {0} from tracking list.", player.GuildId);
+                    _logger?.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
 
                     // remove from tracking list
                     await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
@@ -290,7 +292,7 @@ public class InactivityTrackingService : IDisposable
                     continue;
                 }
 
-                _logger?.LogDebug("Destroyed player {0} due inactivity.", player.Key);
+                _logger?.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
 
                 // dispose the player
                 await using var _ = trackedPlayer.ConfigureAwait(false);
@@ -315,12 +317,8 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void RemoveTracker(InactivityTracker tracker)
     {
-        EnsureNotDisposed();
-
-        if (tracker is null)
-        {
-            throw new ArgumentNullException(nameof(tracker));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(tracker);
 
         lock (_trackersLock)
         {
@@ -337,7 +335,7 @@ public class InactivityTrackingService : IDisposable
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
     public void StopTracking()
     {
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_timer is null)
         {
@@ -360,7 +358,7 @@ public class InactivityTrackingService : IDisposable
     public async ValueTask UntrackPlayerAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _players.Remove(guildId);
 
@@ -386,13 +384,13 @@ public class InactivityTrackingService : IDisposable
     protected virtual async ValueTask<bool> IsInactiveAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         // iterate through the trackers
         foreach (var tracker in Trackers)
         {
             // check if the player is inactivity
-            if (await tracker(player, _clientWrapper).ConfigureAwait(false))
+            if (await tracker(player, _clientWrapper, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }
@@ -416,18 +414,6 @@ public class InactivityTrackingService : IDisposable
     /// <returns>a task that represents the asynchronous operation</returns>
     protected virtual ValueTask OnPlayerTrackingStatusUpdated(PlayerTrackingStatusUpdateEventArgs eventArgs)
         => PlayerTrackingStatusUpdated.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Throws an exception if the <see cref="InactivityTrackingService"/> instance is disposed.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    private void EnsureNotDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(InactivityTrackingService));
-        }
-    }
 
     private void PollTimerCallback(object? state)
     {
