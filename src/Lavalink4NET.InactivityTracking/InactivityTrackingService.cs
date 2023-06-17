@@ -22,7 +22,7 @@ public class InactivityTrackingService : IDisposable
     private readonly IPlayerManager _playerManager;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ISystemClock _systemClock;
-    private readonly ILogger<InactivityTrackingService>? _logger;
+    private readonly ILogger<InactivityTrackingService> _logger;
     private readonly InactivityTrackingOptions _options;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _players;
     private readonly ImmutableArray<InactivityTracker> _trackers;
@@ -50,12 +50,13 @@ public class InactivityTrackingService : IDisposable
         IDiscordClientWrapper clientWrapper,
         ISystemClock systemClock,
         InactivityTrackingOptions options,
-        ILogger<InactivityTrackingService>? logger = null)
+        ILogger<InactivityTrackingService> logger)
     {
         ArgumentNullException.ThrowIfNull(playerManager);
         ArgumentNullException.ThrowIfNull(clientWrapper);
         ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(logger);
 
         _playerManager = playerManager;
         _clientWrapper = clientWrapper;
@@ -165,7 +166,7 @@ public class InactivityTrackingService : IDisposable
                 // add the player to tracking list
                 if (_players.TryAdd(player.GuildId, utcNow + _options.DisconnectDelay))
                 {
-                    _logger?.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
+                    _logger.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
 
                     // trigger event
                     var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
@@ -179,7 +180,7 @@ public class InactivityTrackingService : IDisposable
             }
             else if (_players.TryRemove(player.GuildId, out _))
             {
-                _logger?.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
+                _logger.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
 
                 // remove from tracking list
                 await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
@@ -216,7 +217,7 @@ public class InactivityTrackingService : IDisposable
                 continue;
             }
 
-            _logger?.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
+            _logger.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
 
             // dispose the player
             await using var _ = trackedPlayer.ConfigureAwait(false);
@@ -326,7 +327,7 @@ public class InactivityTrackingService : IDisposable
         }
         catch (Exception exception)
         {
-            _logger?.LogWarning(exception, "Inactivity tracking poll failed!");
+            _logger.LogWarning(exception, "Inactivity tracking poll failed!");
         }
     }
 
