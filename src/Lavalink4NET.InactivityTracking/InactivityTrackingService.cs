@@ -70,7 +70,7 @@ public class InactivityTrackingService : IDisposable
 
         if (options.TrackInactivity)
         {
-            BeginTracking();
+            Start();
         }
     }
 
@@ -94,7 +94,7 @@ public class InactivityTrackingService : IDisposable
         get
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return _timer != null;
+            return _timer is not null;
         }
     }
 
@@ -141,13 +141,13 @@ public class InactivityTrackingService : IDisposable
     ///     thrown if the service is already tracking inactive players.
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void BeginTracking()
+    public void Start()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_timer is not null)
         {
-            throw new InvalidOperationException("Already tracking.");
+            return;
         }
 
         // initialize the timer that polls inactive players
@@ -333,16 +333,11 @@ public class InactivityTrackingService : IDisposable
     ///     thrown if the service is not tracking inactive players.
     /// </exception>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void StopTracking()
+    public void Stop()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_timer is null)
-        {
-            throw new InvalidOperationException("Not tracking.");
-        }
-
-        _timer.Dispose();
+        _timer?.Dispose();
         _timer = null;
     }
 
