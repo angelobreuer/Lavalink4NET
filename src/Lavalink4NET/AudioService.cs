@@ -31,8 +31,8 @@ public partial class AudioService : IAudioService
     private readonly LavalinkNodeOptions _options;
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
     private readonly TaskCompletionSource _startTaskCompletionSource;
+    private readonly CancellationTokenSource _stoppingCancellationTokenSource;
     private Task? _executeTask;
-    private CancellationTokenSource _stoppingCancellationTokenSource;
 
     public AudioService(
         IServiceProvider serviceProvider,

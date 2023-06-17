@@ -46,7 +46,7 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer
         cancellationToken.ThrowIfCancellationRequested();
 
         var users = await _discordClient
-            .GetChannelUsersAsync(GuildId, VoiceChannelId, cancellationToken)
+            .GetChannelUsersAsync(GuildId, VoiceChannelId, includeBots: false, cancellationToken)
             .ConfigureAwait(false);
 
         var votes = _skipVotes
