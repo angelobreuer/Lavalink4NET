@@ -81,7 +81,11 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
     /// <inheritdoc/>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId, CancellationToken cancellationToken = default)
+    public async ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(
+        ulong guildId,
+        ulong voiceChannelId,
+        bool includeBots = false,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -103,10 +107,23 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return ImmutableArray<ulong>.Empty;
         }
 
-        return channel.Users
-            .Where(x => !x.IsBot)
-            .Select(s => s.Id)
-            .ToImmutableArray();
+        var usersEnumerable = channel.Users.AsEnumerable();
+
+        if (includeBots)
+        {
+            var currentUserId = _client is DiscordClient discordClient
+                ? discordClient.CurrentUser.Id
+                : ((DiscordShardedClient)_client).CurrentUser.Id;
+
+            usersEnumerable = usersEnumerable.Where(x => x.Id != currentUserId);
+        }
+        else
+        {
+            usersEnumerable = usersEnumerable.Where(x => !x.IsBot);
+        }
+
+
+        return usersEnumerable.Select(s => s.Id).ToImmutableArray();
     }
 
     /// <inheritdoc/>

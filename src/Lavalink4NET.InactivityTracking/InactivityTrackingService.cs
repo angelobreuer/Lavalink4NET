@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
+using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Internal;
@@ -25,7 +26,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     private readonly ILogger<InactivityTrackingService> _logger;
     private readonly InactivityTrackingOptions _options;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _players;
-    private readonly ImmutableArray<InactivityTracker> _trackers;
+    private readonly ImmutableArray<IInactivityTracker> _trackers;
     private Timer? _timer;
     private bool _disposed;
 
@@ -276,11 +277,16 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
 
+        var context = new InactivityTrackingContext(
+            InactivityTrackingService: this,
+            Client: _clientWrapper,
+            Player: player);
+
         // iterate through the trackers
         foreach (var tracker in _trackers)
         {
             // check if the player is inactivity
-            if (await tracker(player, _clientWrapper, cancellationToken).ConfigureAwait(false))
+            if (await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }

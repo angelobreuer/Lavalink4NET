@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using global::Discord.WebSocket;
+using Discord.WebSocket;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Events;
@@ -131,7 +131,11 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     ///     a task that represents the asynchronous operation
     ///     <para>the snowflake identifier values of the users in the voice channel</para>
     /// </returns>
-    public ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId, CancellationToken cancellationToken = default)
+    public ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(
+        ulong guildId,
+        ulong voiceChannelId,
+        bool includeBots = false,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -151,8 +155,18 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return ValueTask.FromResult(ImmutableArray<ulong>.Empty);
         }
 
-        var users = channel.ConnectedUsers
-            .Where(x => !x.IsBot)
+        var usersEnumerable = channel.ConnectedUsers.AsEnumerable();
+
+        if (includeBots)
+        {
+            usersEnumerable = usersEnumerable.Where(x => x.Id != _baseSocketClient.CurrentUser.Id);
+        }
+        else
+        {
+            usersEnumerable = usersEnumerable.Where(x => !x.IsBot);
+        }
+
+        var users = usersEnumerable
             .Select(s => s.Id)
             .ToImmutableArray();
 

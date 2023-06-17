@@ -35,6 +35,7 @@ public interface IDiscordClientWrapper
     ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(
         ulong guildId,
         ulong voiceChannelId,
+        bool includeBots = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>
