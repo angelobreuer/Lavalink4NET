@@ -436,6 +436,8 @@ public sealed class AudioServiceTests
                 .WaitForReadyAsync()
                 .ConfigureAwait(false);
 
+            receiveChannel.Writer.Complete();
+
             await Task.Delay(500);
         }
 

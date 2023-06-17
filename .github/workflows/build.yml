@@ -26,11 +26,6 @@ jobs:
       with:
         dotnet-version: 7.0.x
         
-    - name: Download Lavalink Server
-      working-directory: ./ci
-      run: wget --content-disposition https://dl.angelobreuer.de/2NJ5G5
-      shell: bash
-    
     - name: Restore dependencies
       run: dotnet restore src/Lavalink4NET.sln
       
@@ -39,7 +34,7 @@ jobs:
 
     - name: Run tests
       working-directory: ci
-      run: java -jar ./Lavalink.jar & dotnet test ../src/Lavalink4NET.sln --no-build --configuration ${{ matrix.configuration }} --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage
+      run: dotnet test ../src/Lavalink4NET.sln --no-build --configuration ${{ matrix.configuration }} --verbosity normal --collect:"XPlat Code Coverage" --results-directory ../coverage
       shell: bash
 
     - name: Download artifact

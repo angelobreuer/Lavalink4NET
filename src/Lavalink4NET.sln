@@ -11,6 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Tests", "Laval
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E562590-5309-411D-9084-9EAE7F01EC98}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		..\azure-pipelines.yml = ..\azure-pipelines.yml
 		Lavalink4NET.png = Lavalink4NET.png
 		Lavalink4NET.targets = Lavalink4NET.targets
@@ -56,7 +57,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DSharpPlus.Exa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.DiscordNet.ExampleBot", "..\samples\Lavalink4NET.Discord_NET.ExampleBot\Lavalink4NET.DiscordNet.ExampleBot.csproj", "{E25DD08C-483A-4060-B316-6DC6D11CE150}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.ExtraFilters.Tests", "..\tests\Lavalink4NET.Integrations.ExtraFilters.Tests\Lavalink4NET.Integrations.ExtraFilters.Tests.csproj", "{A32DA8EA-3427-475C-9FE7-1A3F6E7C7CBA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.ExtraFilters.Tests", "..\tests\Lavalink4NET.Integrations.ExtraFilters.Tests\Lavalink4NET.Integrations.ExtraFilters.Tests.csproj", "{A32DA8EA-3427-475C-9FE7-1A3F6E7C7CBA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
