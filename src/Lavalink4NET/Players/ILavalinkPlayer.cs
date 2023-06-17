@@ -23,6 +23,8 @@ public interface ILavalinkPlayer : IAsyncDisposable
 
     ulong VoiceChannelId { get; }
 
+    PlayerConnectionState ConnectionState { get; }
+
     float Volume { get; }
 
     ValueTask PauseAsync(CancellationToken cancellationToken = default);

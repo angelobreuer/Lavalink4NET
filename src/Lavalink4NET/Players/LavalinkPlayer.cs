@@ -73,6 +73,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public string SessionId { get; }
 
+    public PlayerConnectionState ConnectionState { get; private set; }
+
     void ILavalinkPlayerListener.NotifyChannelUpdate(ulong voiceChannelId)
     {
         EnsureNotDestroyed();
@@ -335,6 +337,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         _unstretchedRelativePosition = position;
         _syncedAt = timestamp;
+
+        ConnectionState = new PlayerConnectionState(
+            IsConnected: connected,
+            Latency: latency);
 
         _logger.LogInformation(
             "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).",
