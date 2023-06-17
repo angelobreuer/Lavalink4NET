@@ -1,4 +1,4 @@
-namespace Lavalink4NET.Tracking;
+﻿namespace Lavalink4NET.Tracking;
 
 using System;
 using System.Collections.Concurrent;
@@ -26,8 +26,8 @@ public class InactivityTrackingService : IDisposable
     private readonly InactivityTrackingOptions _options;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _players;
     private readonly ImmutableArray<InactivityTracker> _trackers;
-    private bool _disposed;
     private Timer? _timer;
+    private bool _disposed;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="InactivityTrackingService"/> class.
@@ -114,21 +114,6 @@ public class InactivityTrackingService : IDisposable
         // initialize the timer that polls inactive players
         var pollDelay = _options.DelayFirstTrack ? _options.PollInterval : TimeSpan.Zero;
         _timer = new Timer(PollTimerCallback, this, pollDelay, _options.PollInterval);
-    }
-
-    /// <summary>
-    ///     Disposes the underlying timer.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-        _timer?.Dispose();
     }
 
     /// <summary>
@@ -343,5 +328,27 @@ public class InactivityTrackingService : IDisposable
         {
             _logger?.LogWarning(exception, "Inactivity tracking poll failed!");
         }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _timer?.Dispose();
+            _timer = null;
+        }
+
+        _disposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
