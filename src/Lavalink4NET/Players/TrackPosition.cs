@@ -2,27 +2,14 @@ namespace Lavalink4NET.Players;
 
 using System;
 
-public readonly struct TrackPosition
+/// <summary>
+///     Represents a track position.
+/// </summary>
+/// <param name="SyncedAt">the UTC time when the track position was last synced at.</param>
+/// <param name="UnstretchedRelativePosition">the current unstretched track position relative to <see cref="SyncedAt"/>.</param>
+/// <param name="TimeStretchFactor"></param>
+public readonly record struct TrackPosition(DateTimeOffset SyncedAt, TimeSpan UnstretchedRelativePosition, float TimeStretchFactor = 1.0F)
 {
-    public TrackPosition(DateTimeOffset syncedAt, TimeSpan unstretchedRelativePosition, float timeStretchFactor = 1.0F)
-    {
-        SyncedAt = syncedAt;
-        UnstretchedRelativePosition = unstretchedRelativePosition;
-        TimeStretchFactor = timeStretchFactor;
-    }
-
-    /// <summary>
-    ///     Gets the UTC time when the track position was last synced at.
-    /// </summary>
-    /// <value>the UTC time when the track position was last synced at.</value>
-    public DateTimeOffset SyncedAt { get; }
-
-    /// <summary>
-    ///     Gets the current unstretched track position relative to <see cref="SyncedAt"/>.
-    /// </summary>
-    /// <value>the current unstretched track position relative to <see cref="SyncedAt"/>.</value>
-    public TimeSpan UnstretchedRelativePosition { get; }
-
     /// <summary>
     ///     Gets the current stretched track position relative to <see cref="SyncedAt"/>.
     /// </summary>
@@ -44,8 +31,6 @@ public readonly struct TrackPosition
     /// </summary>
     /// <value>the current stretched track position.</value>
     public TimeSpan Position => TimeSpan.FromTicks((long)((UnstretchedUnsyncedDuration.Ticks + UnstretchedRelativePosition.Ticks) * TimeStretchFactor));
-
-    public float TimeStretchFactor { get; }
 
     public bool IsStretched => TimeStretchFactor is not 1F;
 }

@@ -267,7 +267,24 @@ public partial class AudioService : IAudioService
 
         if (payload is PlayerUpdatePayload playerUpdatePayload)
         {
+            var player = await Players
+                .GetPlayerAsync(playerUpdatePayload.GuildId, cancellationToken)
+                .ConfigureAwait(false);
 
+            if (player is null)
+            {
+                _logger.LogDebug("Received a player update payload for a non-registered player: {GuildId}.", playerUpdatePayload.GuildId);
+                return;
+            }
+
+            if (player is ILavalinkPlayerListener playerListener)
+            {
+                var state = playerUpdatePayload.State;
+
+                await playerListener
+                    .NotifyPlayerUpdateAsync(state.AbsoluteTimestamp, state.Position, state.IsConnected, state.Latency, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
 
         if (payload is StatisticsPayload statisticsPayload)

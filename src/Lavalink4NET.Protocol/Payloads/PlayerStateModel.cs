@@ -10,8 +10,8 @@ public sealed record class PlayerStateModel(
     DateTimeOffset AbsoluteTimestamp,
 
     [property: JsonPropertyName("position")]
-    [property: JsonConverter(typeof(NullableDurationJsonConverter))]
-    TimeSpan? Position,
+    [property: JsonConverter(typeof(DurationJsonConverter))]
+    TimeSpan Position,
 
     [property: JsonRequired]
     [property: JsonPropertyName("connected")]

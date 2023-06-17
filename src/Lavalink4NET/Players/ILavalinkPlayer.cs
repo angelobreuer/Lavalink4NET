@@ -15,7 +15,7 @@ public interface ILavalinkPlayer : IAsyncDisposable
 
     ulong GuildId { get; }
 
-    TimeSpan Position { get; }
+    TrackPosition? Position { get; }
 
     string SessionId { get; }
 

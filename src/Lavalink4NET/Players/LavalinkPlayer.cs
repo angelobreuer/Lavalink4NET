@@ -12,11 +12,15 @@ using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
 
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 {
+    private readonly ILogger<LavalinkPlayer> _logger;
     private string? _currentTrackState;
     private int _disposed;
+    private DateTimeOffset _syncedAt;
+    private TimeSpan _unstretchedRelativePosition;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -27,6 +31,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
+        _logger = properties.Logger;
+        _syncedAt = DateTimeOffset.UtcNow;
+        _unstretchedRelativePosition = default;
+
         Refresh(properties.InitialState);
     }
 
@@ -36,7 +44,18 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public bool IsPaused { get; private set; }
 
-    public TimeSpan Position { get; }
+    public TrackPosition? Position
+    {
+        get
+        {
+            if (CurrentTrack is null)
+            {
+                return null;
+            }
+
+            return new TrackPosition(_syncedAt, _unstretchedRelativePosition, 1F); // TODO: time stretch
+        }
+    }
 
     public PlayerState State => this switch
     {
@@ -181,7 +200,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         var targetPosition = seekOrigin switch
         {
             SeekOrigin.Begin => position,
-            SeekOrigin.Current => Position + position,
+            SeekOrigin.Current => Position!.Value.Position + position, // TODO: check how this works with time stretch
             SeekOrigin.End => CurrentTrack.Duration + position,
 
             _ => throw new ArgumentOutOfRangeException(
@@ -303,5 +322,24 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         await DisposeAsyncCore().ConfigureAwait(false);
         GC.SuppressFinalize(this);
+    }
+
+    public ValueTask NotifyPlayerUpdateAsync(
+        DateTimeOffset timestamp,
+        TimeSpan position,
+        bool connected,
+        TimeSpan? latency,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _unstretchedRelativePosition = position;
+        _syncedAt = timestamp;
+
+        _logger.LogInformation(
+            "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).",
+            GuildId, timestamp, position, connected, latency);
+
+        return default;
     }
 }

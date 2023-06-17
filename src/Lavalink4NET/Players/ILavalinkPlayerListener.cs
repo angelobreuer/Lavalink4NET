@@ -18,4 +18,6 @@ public interface ILavalinkPlayerListener
     ValueTask NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default);
 
     ValueTask NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default);
+
+    ValueTask NotifyPlayerUpdateAsync(DateTimeOffset timestamp, TimeSpan position, bool connected, TimeSpan? latency, CancellationToken cancellationToken = default);
 }
