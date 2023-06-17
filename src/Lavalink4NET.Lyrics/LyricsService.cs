@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Options;
 
 /// <summary>
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Options;
 public sealed class LyricsService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISystemClock _systemClock;
     private readonly IMemoryCache? _memoryCache;
     private readonly TimeSpan _cacheDuration;
     private readonly bool _suppressExceptions;
@@ -35,6 +37,7 @@ public sealed class LyricsService
     public LyricsService(
         IHttpClientFactory httpClientFactory,
         IOptions<LyricsOptions> options,
+        ISystemClock? systemClock = null,
         IMemoryCache? memoryCache = null)
     {
         ArgumentNullException.ThrowIfNull(httpClientFactory);
@@ -49,6 +52,8 @@ public sealed class LyricsService
 
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
+
+        _systemClock = systemClock ?? new SystemClock();
 
         _baseAddress = options.Value.BaseAddress;
         _cacheDuration = options.Value.CacheDuration;
@@ -91,7 +96,7 @@ public sealed class LyricsService
         }
 
         var response = await RequestLyricsAsync(artist, title, cancellationToken);
-        _memoryCache?.Set(key, response, DateTimeOffset.UtcNow + _cacheDuration);
+        _memoryCache?.Set(key, response, _systemClock.UtcNow + _cacheDuration);
         return response;
     }
 
