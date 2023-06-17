@@ -11,6 +11,7 @@ using Lavalink4NET.Protocol.Models.Filters;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -68,6 +69,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -130,6 +132,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -192,6 +195,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -256,6 +260,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -325,6 +330,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -396,6 +402,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -460,6 +467,7 @@ public sealed class QueuedLavalinkPlayerTests
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
