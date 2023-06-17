@@ -130,7 +130,7 @@ public class InactivityTrackingService : IDisposable
         if (!_players.TryGetValue(player.GuildId, out var dateTimeOffset))
         {
             // there are no tracking entries for the player
-            return InactivityTrackingStatus.Untracked;
+            return InactivityTrackingStatus.NotTracked;
         }
 
         // the player has exceeded the stop delay
@@ -153,18 +153,21 @@ public class InactivityTrackingService : IDisposable
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // get all created player instances in the audio service
-        var players = _playerManager.Players;
-
         var utcNow = _systemClock.UtcNow;
+        var destroyedPlayers = _players.Keys.ToHashSet();
 
-        foreach (var player in players)
+        foreach (var player in _playerManager.Players)
         {
+            var result = destroyedPlayers.Remove(player.GuildId);
+            Debug.Assert(result);
+
             // check if the player is inactive
             if (await IsInactiveAsync(player, cancellationToken).ConfigureAwait(false))
             {
+                var inactiveSince = _players.GetOrAdd(player.GuildId, utcNow);
+
                 // add the player to tracking list
-                if (_players.TryAdd(player.GuildId, utcNow + _options.DisconnectDelay))
+                if (inactiveSince == utcNow)
                 {
                     _logger.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
 
@@ -177,6 +180,23 @@ public class InactivityTrackingService : IDisposable
 
                     await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
                 }
+                else if (inactiveSince + _options.DisconnectDelay < utcNow)
+                {
+                    // trigger event
+                    var eventArgs = new InactivePlayerEventArgs(_playerManager, player);
+                    await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
+
+                    // it is wanted that the player should not stop.
+                    if (!eventArgs.ShouldStop)
+                    {
+                        continue;
+                    }
+
+                    _logger.LogDebug("Destroyed player {GuildId} due inactivity.", player.GuildId);
+
+                    await using var _ = player.ConfigureAwait(false);
+                    await UntrackPlayerAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
+                }
             }
             else if (_players.TryRemove(player.GuildId, out _))
             {
@@ -187,47 +207,16 @@ public class InactivityTrackingService : IDisposable
             }
         }
 
-        // remove all inactive, tracked players where the disconnect delay was exceeded
-        foreach (var player in _players.Where(x => x.Value < utcNow))
+        // Untrack destroyed players
+        foreach (var destroyedPlayer in destroyedPlayers)
         {
-            var trackedPlayer = await _playerManager
-                .GetPlayerAsync(player.Key, cancellationToken)
-                .ConfigureAwait(false);
-
-            // player does not exists, remove it from the tracking list and continue.
-            if (trackedPlayer is null)
+            if (_players.TryRemove(destroyedPlayer, out _))
             {
+                _logger.LogDebug("Removed player {GuildId} from tracking list.", destroyedPlayer);
+
                 // remove from tracking list
-                await UntrackPlayerAsync(
-                    guildId: player.Key,
-                    player: null,
-                    cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
-
-                continue;
+                await UntrackPlayerAsync(destroyedPlayer, player: null, cancellationToken).ConfigureAwait(false);
             }
-
-            // trigger event
-            var eventArgs = new InactivePlayerEventArgs(_playerManager, trackedPlayer);
-            await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
-
-            // it is wanted that the player should not stop.
-            if (!eventArgs.ShouldStop)
-            {
-                continue;
-            }
-
-            _logger.LogDebug("Destroyed player {GuildId} due inactivity.", player.Key);
-
-            // dispose the player
-            await using var _ = trackedPlayer.ConfigureAwait(false);
-
-            // remove from tracking list
-            await UntrackPlayerAsync(
-                guildId: player.Key,
-                player: trackedPlayer,
-                cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
         }
     }
 
@@ -267,7 +256,7 @@ public class InactivityTrackingService : IDisposable
                 playerManager: _playerManager,
                 guildId: guildId,
                 player: player,
-                trackingStatus: InactivityTrackingStatus.Untracked);
+                trackingStatus: InactivityTrackingStatus.NotTracked);
 
             await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
         }
