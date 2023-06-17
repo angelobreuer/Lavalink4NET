@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
 /// </summary>
-public class InactivityTrackingService : IDisposable
+public class InactivityTrackingService : IDisposable, IInactivityTrackingService
 {
     private readonly IPlayerManager _playerManager;
     private readonly IDiscordClientWrapper _clientWrapper;
@@ -87,7 +87,7 @@ public class InactivityTrackingService : IDisposable
     ///     Gets a value indicating whether the service is tracking inactive players.
     /// </summary>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public bool IsTracking
+    public bool IsRunning
     {
         get
         {
@@ -148,7 +148,7 @@ public class InactivityTrackingService : IDisposable
     /// </summary>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public virtual async Task PollAsync(CancellationToken cancellationToken = default)
+    public virtual async ValueTask PollAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();
