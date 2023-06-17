@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 public class InactivityTrackingService : IDisposable
 {
-    private readonly IAudioService _audioService;
+    private readonly IPlayerManager _playerManager;
     private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ISystemClock _systemClock;
     private readonly ILogger<InactivityTrackingService>? _logger;
@@ -46,18 +46,18 @@ public class InactivityTrackingService : IDisposable
     ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
     /// </exception>
     public InactivityTrackingService(
-        IAudioService audioService,
+        IPlayerManager playerManager,
         IDiscordClientWrapper clientWrapper,
         ISystemClock systemClock,
         InactivityTrackingOptions options,
         ILogger<InactivityTrackingService>? logger = null)
     {
-        ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(playerManager);
         ArgumentNullException.ThrowIfNull(clientWrapper);
         ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(options);
 
-        _audioService = audioService;
+        _playerManager = playerManager;
         _clientWrapper = clientWrapper;
         _systemClock = systemClock;
         _options = options;
@@ -153,7 +153,7 @@ public class InactivityTrackingService : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         // get all created player instances in the audio service
-        var players = _audioService.Players.Players;
+        var players = _playerManager.Players;
 
         var utcNow = _systemClock.UtcNow;
 
@@ -169,7 +169,7 @@ public class InactivityTrackingService : IDisposable
 
                     // trigger event
                     var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
-                        audioService: _audioService,
+                        playerManager: _playerManager,
                         guildId: player.GuildId,
                         player: player,
                         trackingStatus: InactivityTrackingStatus.Tracked);
@@ -189,7 +189,7 @@ public class InactivityTrackingService : IDisposable
         // remove all inactive, tracked players where the disconnect delay was exceeded
         foreach (var player in _players.Where(x => x.Value < utcNow))
         {
-            var trackedPlayer = await _audioService.Players
+            var trackedPlayer = await _playerManager
                 .GetPlayerAsync(player.Key, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -207,7 +207,7 @@ public class InactivityTrackingService : IDisposable
             }
 
             // trigger event
-            var eventArgs = new InactivePlayerEventArgs(_audioService, trackedPlayer);
+            var eventArgs = new InactivePlayerEventArgs(_playerManager, trackedPlayer);
             await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
 
             // it is wanted that the player should not stop.
@@ -263,7 +263,7 @@ public class InactivityTrackingService : IDisposable
         {
             // trigger event
             var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
-                audioService: _audioService,
+                playerManager: _playerManager,
                 guildId: guildId,
                 player: player,
                 trackingStatus: InactivityTrackingStatus.Untracked);

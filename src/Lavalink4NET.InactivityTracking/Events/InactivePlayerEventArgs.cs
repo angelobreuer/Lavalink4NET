@@ -12,21 +12,17 @@ public sealed class InactivePlayerEventArgs : EventArgs
     /// <summary>
     ///     Initialize a new instance of the <see cref="InactivePlayerEventArgs"/> class.
     /// </summary>
-    /// <param name="audioService">the audio service</param>
     /// <param name="player">the affected player</param>
-    public InactivePlayerEventArgs(IAudioService audioService, ILavalinkPlayer player)
+    public InactivePlayerEventArgs(IPlayerManager playerManager, ILavalinkPlayer player)
     {
-        ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(playerManager);
         ArgumentNullException.ThrowIfNull(player);
 
-        AudioService = audioService;
+        PlayerManager = playerManager;
         Player = player;
     }
 
-    /// <summary>
-    ///     Gets the audio service.
-    /// </summary>
-    public IAudioService AudioService { get; }
+    public IPlayerManager PlayerManager { get; }
 
     /// <summary>
     ///     Gets the affected player.

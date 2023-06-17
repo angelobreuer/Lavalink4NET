@@ -13,30 +13,23 @@ public sealed class PlayerTrackingStatusUpdateEventArgs : EventArgs
     /// <summary>
     ///     Initializes a new instance of the <see cref="PlayerTrackingStatusUpdateEventArgs"/> class.
     /// </summary>
-    /// <param name="audioService">the audio service</param>
     /// <param name="player">the affected player (may be <see langword="null"/>)</param>
     /// <param name="trackingStatus">the new tracking status of the player</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
-    /// </exception>
     public PlayerTrackingStatusUpdateEventArgs(
-        IAudioService audioService,
+        IPlayerManager playerManager,
         ulong guildId,
         ILavalinkPlayer? player,
         InactivityTrackingStatus trackingStatus)
     {
-        ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(playerManager);
 
-        AudioService = audioService;
+        PlayerManager = playerManager;
         GuildId = guildId;
         Player = player;
         TrackingStatus = trackingStatus;
     }
 
-    /// <summary>
-    ///     Gets the audio service.
-    /// </summary>
-    public IAudioService AudioService { get; }
+    public IPlayerManager PlayerManager { get; }
 
     public ulong GuildId { get; }
 
