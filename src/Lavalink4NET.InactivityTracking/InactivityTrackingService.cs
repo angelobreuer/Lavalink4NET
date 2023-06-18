@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
+using Lavalink4NET.InactivityTracking.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 using Microsoft.Extensions.Internal;
@@ -155,9 +156,23 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                         trackingStatus: InactivityTrackingStatus.Tracked);
 
                     await OnPlayerTrackingStatusUpdated(eventArgs).ConfigureAwait(false);
+
+                    if (player is IInactivityPlayerListener inactivityPlayerListener)
+                    {
+                        await inactivityPlayerListener
+                            .NotifyPlayerTrackedAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 else if (inactiveSince + _options.DisconnectDelay < utcNow)
                 {
+                    if (player is IInactivityPlayerListener inactivityPlayerListener)
+                    {
+                        await inactivityPlayerListener
+                            .NotifyPlayerInactiveAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
                     // trigger event
                     var eventArgs = new InactivePlayerEventArgs(_playerManager, player);
                     await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
@@ -176,6 +191,13 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             }
             else if (_players.TryRemove(player.GuildId, out _))
             {
+                if (player is IInactivityPlayerListener inactivityPlayerListener)
+                {
+                    await inactivityPlayerListener
+                        .NotifyPlayerActiveAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
                 _logger.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
 
                 // remove from tracking list
