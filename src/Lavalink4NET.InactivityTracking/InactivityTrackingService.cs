@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
@@ -85,22 +84,10 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     /// </summary>
     public event AsyncEventHandler<PlayerTrackingStatusUpdateEventArgs>? PlayerTrackingStatusUpdated;
 
-    /// <summary>
-    ///     Gets a value indicating whether the service is tracking inactive players.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public bool IsRunning
-    {
-        get
-        {
-            ThrowIfDisposed();
-            return _executeTask is not null;
-        }
-    }
-
     public InactivityTrackingState State => this switch
     {
         { _executeTask: null, } => InactivityTrackingState.Inactive,
+        { _executeTask.IsCompleted: true, } => InactivityTrackingState.Stopped,
         { _disposed: true, } => InactivityTrackingState.Destroyed,
         { _pauseTaskCompletionSource: not null, } => InactivityTrackingState.Paused,
         _ => InactivityTrackingState.Running,
@@ -123,7 +110,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         }
 
         // the player has exceeded the stop delay
-        if (_systemClock.UtcNow > dateTimeOffset)
+        if (_systemClock.UtcNow >= dateTimeOffset + _options.DisconnectDelay)
         {
             return InactivityTrackingStatus.Inactive;
         }
@@ -143,12 +130,12 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         ThrowIfDisposed();
 
         var utcNow = _systemClock.UtcNow;
+
         var destroyedPlayers = _players.Keys.ToHashSet();
 
         foreach (var player in _playerManager.Players)
         {
-            var result = destroyedPlayers.Remove(player.GuildId);
-            Debug.Assert(result);
+            _ = destroyedPlayers.Remove(player.GuildId);
 
             // check if the player is inactive
             if (await IsInactiveAsync(player, cancellationToken).ConfigureAwait(false))
@@ -308,7 +295,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     protected void ThrowIfDisposed()
     {
 #if NET7_0_OR_GREATER
-        ThrowIfDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 #else
         if (_disposed)
         {
@@ -321,6 +308,11 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
     {
         if (_executeTask is not null)
         {
+            if (_executeTask.IsCompleted)
+            {
+                throw new InvalidOperationException("The inactivity tracking service was stopped.");
+            }
+
             return ValueTask.CompletedTask;
         }
 
@@ -349,7 +341,6 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
-
     }
 
     public ValueTask PauseAsync(CancellationToken cancellationToken = default)
@@ -384,9 +375,16 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
 
         using var periodicTimer = new PeriodicTimer(_options.PollInterval);
 
-        while (await periodicTimer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            await PollAsync(cancellationToken).ConfigureAwait(false);
+            while (await periodicTimer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await PollAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
         }
     }
 }
