@@ -13,8 +13,4 @@ public sealed record class LavalinkApiClientOptions
     public string HttpClientName { get; init; } = Options.DefaultName;
 
     public Uri BaseAddress { get; init; } = _defaultBaseAddress;
-
-    public int ShardCount { get; init; } = 1;
-
-    public ulong UserId { get; init; }
 }
