@@ -59,17 +59,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -122,17 +127,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock(),
+                SessionProvider: sessionProvider),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -185,17 +195,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -250,17 +265,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -320,17 +340,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -392,17 +417,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
@@ -457,17 +487,22 @@ public sealed class QueuedLavalinkPlayerTests
 
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
+        var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+            => x.GetSessionIdAsync(It.IsAny<CancellationToken>())
+            == ValueTask.FromResult("abc"));
+
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             Context: new PlayerContext(
                 ServiceProvider: null,
                 ApiClient: apiClientMock.Object,
-                DiscordClient: discordClientMock.Object),
+                SessionProvider: sessionProvider,
+                DiscordClient: discordClientMock.Object,
+                SystemClock: new SystemClock()),
             InitialState: playerModel,
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
-            SystemClock: new SystemClock(),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
