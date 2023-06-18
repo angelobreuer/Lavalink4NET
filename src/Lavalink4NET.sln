@@ -67,7 +67,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.TextToSpeech.Tests", "..\tests\Lavalink4NET.Integrations.TextToSpeech.Tests\Lavalink4NET.Integrations.TextToSpeech.Tests.csproj", "{C66BB381-0CB2-426F-BDA5-C8FBB62D4C97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Samples.InactivityTracking", "..\samples\Lavalink4NET.Samples.InactivityTracking\Lavalink4NET.Samples.InactivityTracking.csproj", "{49BDCD19-D86B-4657-9804-3EF46899F52E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Samples.InactivityTracking", "..\samples\Lavalink4NET.Samples.InactivityTracking\Lavalink4NET.Samples.InactivityTracking.csproj", "{49BDCD19-D86B-4657-9804-3EF46899F52E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Samples.Lyrics", "..\samples\Lavalink4NET.Samples.Lyrics\Lavalink4NET.Samples.Lyrics.csproj", "{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -179,6 +181,10 @@ Global
 		{49BDCD19-D86B-4657-9804-3EF46899F52E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49BDCD19-D86B-4657-9804-3EF46899F52E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49BDCD19-D86B-4657-9804-3EF46899F52E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -196,6 +202,7 @@ Global
 		{8823E314-8413-4913-AE34-ABC0608819EF} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{C66BB381-0CB2-426F-BDA5-C8FBB62D4C97} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{49BDCD19-D86B-4657-9804-3EF46899F52E} = {B9402D29-5B12-4672-97B8-570A60C0F878}
+		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}
