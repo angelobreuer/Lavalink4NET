@@ -12,5 +12,5 @@ internal interface ILavalinkPlayerHandle
 
     ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default);
 
-    ValueTask UpdateVoiceServerAsync(VoiceState voiceState, CancellationToken cancellationToken = default);
+    ValueTask UpdateVoiceStateAsync(VoiceState voiceState, CancellationToken cancellationToken = default);
 }

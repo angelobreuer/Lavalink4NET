@@ -15,7 +15,6 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     ulong VoiceChannelId,
     string SessionId,
     IOptions<TOptions> Options,
-    ISystemClock SystemClock,
     ILogger<TPlayer> Logger)
     : IPlayerProperties<TPlayer, TOptions>
     where TOptions : LavalinkPlayerOptions
@@ -26,4 +25,6 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     public IDiscordClientWrapper DiscordClient => Context.DiscordClient;
 
     public IServiceProvider? ServiceProvider => Context.ServiceProvider;
+
+    public ISystemClock SystemClock => Context.SystemClock;
 }

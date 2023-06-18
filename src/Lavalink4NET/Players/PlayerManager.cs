@@ -16,8 +16,6 @@ using Microsoft.Extensions.Options;
 internal sealed class PlayerManager : IPlayerManager, IDisposable
 {
     private readonly IDiscordClientWrapper _clientWrapper;
-    private readonly ILavalinkSessionProvider _sessionProvider;
-    private readonly ISystemClock _systemClock;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -28,8 +26,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,
         ILavalinkSessionProvider sessionProvider,
-        ISystemClock systemClock,
         ILavalinkApiClient apiClient,
+        ISystemClock systemClock,
         ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(discordClient);
@@ -41,11 +39,15 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
 
         _clientWrapper = discordClient;
-        _sessionProvider = sessionProvider;
-        _systemClock = systemClock;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
-        _playerContext = new PlayerContext(serviceProvider, apiClient, discordClient);
+
+        _playerContext = new PlayerContext(
+            ServiceProvider: serviceProvider,
+            ApiClient: apiClient,
+            SessionProvider: sessionProvider,
+            DiscordClient: discordClient,
+            SystemClock: systemClock);
 
         _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
         _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated;
@@ -106,9 +108,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 guildId: guildId,
                 playerContext: _playerContext,
                 playerFactory: playerFactory,
-                sessionProvider: _sessionProvider,
                 options: options,
-                systemClock: _systemClock,
                 logger: _loggerFactory.CreateLogger<TPlayer>());
         }
 
@@ -164,7 +164,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             "Voice state for player '{GuildId}' updated (channel id: {ChannelId}, session id: {SessionId}).",
             eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
 
-        return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceState).AsTask();
+        return playerHandle.UpdateVoiceStateAsync(eventArgs.VoiceState).AsTask();
     }
 
     private void Dispose(bool disposing)

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,10 +18,8 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
     private readonly ulong _guildId;
     private readonly ILogger<TPlayer> _logger;
     private readonly IOptions<TOptions> _options;
-    private readonly ISystemClock _systemClock;
     private readonly PlayerContext _playerContext;
     private readonly PlayerFactory<TPlayer, TOptions> _playerFactory;
-    private readonly ILavalinkSessionProvider _sessionProvider;
     private object _value;
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
@@ -31,16 +28,12 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         ulong guildId,
         PlayerContext playerContext,
         PlayerFactory<TPlayer, TOptions> playerFactory,
-        ILavalinkSessionProvider sessionProvider,
         IOptions<TOptions> options,
-        ISystemClock systemClock,
         ILogger<TPlayer> logger)
     {
         ArgumentNullException.ThrowIfNull(playerContext);
         ArgumentNullException.ThrowIfNull(playerFactory);
-        ArgumentNullException.ThrowIfNull(sessionProvider);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(logger);
 
         _value = new TaskCompletionSource<ILavalinkPlayer>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -48,9 +41,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         _guildId = guildId;
         _playerContext = playerContext;
         _playerFactory = playerFactory;
-        _sessionProvider = sessionProvider;
         _options = options;
-        _systemClock = systemClock;
         _logger = logger;
     }
 
@@ -81,7 +72,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         }
     }
 
-    public async ValueTask UpdateVoiceServerAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
+    public async ValueTask UpdateVoiceStateAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(voiceState);
@@ -93,6 +84,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             await CompleteAsync(cancellationToken).ConfigureAwait(false);
         }
     }
+
     private async ValueTask CompleteAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -121,7 +113,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
 
-        var sessionId = await _sessionProvider
+        var sessionId = await _playerContext.SessionProvider
             .GetSessionIdAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -170,7 +162,6 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             Label: label,
             SessionId: sessionId,
             Options: _options,
-            SystemClock: _systemClock,
             Logger: _logger);
 
         return await _playerFactory(properties, cancellationToken).ConfigureAwait(false);

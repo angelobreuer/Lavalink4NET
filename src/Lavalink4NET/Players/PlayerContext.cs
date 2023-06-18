@@ -3,8 +3,11 @@
 using System;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Rest;
+using Microsoft.Extensions.Internal;
 
 internal sealed record class PlayerContext(
     IServiceProvider? ServiceProvider,
     ILavalinkApiClient ApiClient,
-    IDiscordClientWrapper DiscordClient);
+    ILavalinkSessionProvider SessionProvider,
+    IDiscordClientWrapper DiscordClient,
+    ISystemClock SystemClock);
