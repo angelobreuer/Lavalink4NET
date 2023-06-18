@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 /// <summary>
 ///     A service for retrieving song lyrics from the <c>"lyrics.ovh"</c> API.
 /// </summary>
-public sealed class LyricsService
+public sealed class LyricsService : ILyricsService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ISystemClock _systemClock;
