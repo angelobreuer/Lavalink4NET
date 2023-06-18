@@ -78,9 +78,7 @@ public sealed class LavalinkPlayerHandleTests
                     VoiceState: new VoiceStateModel(
                         Token: voiceState.Token,
                         Endpoint: voiceState.Endpoint,
-                        SessionId: voiceState.SessionId,
-                        IsConnected: true,
-                        Latency: null),
+                        SessionId: voiceState.SessionId),
                     Filters: new PlayerFilterMapModel());
             });
 

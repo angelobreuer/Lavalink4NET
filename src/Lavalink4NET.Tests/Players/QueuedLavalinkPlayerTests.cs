@@ -538,8 +538,6 @@ public sealed class QueuedLavalinkPlayerTests
         return new VoiceStateModel(
             Token: "abc",
             Endpoint: "server.discord.gg",
-            SessionId: "abc",
-            IsConnected: true,
-            Latency: TimeSpan.FromMilliseconds(45));
+            SessionId: "abc");
     }
 }

@@ -1,8 +1,6 @@
 ﻿namespace Lavalink4NET.Protocol.Models;
 
-using System;
 using System.Text.Json.Serialization;
-using Lavalink4NET.Protocol.Converters;
 
 public sealed record class VoiceStateModel(
     [property: JsonRequired]
@@ -15,11 +13,4 @@ public sealed record class VoiceStateModel(
 
     [property: JsonRequired]
     [property: JsonPropertyName("sessionId")]
-    string SessionId,
-
-    [property: JsonPropertyName("connected")]
-    bool? IsConnected,
-
-    [property: JsonPropertyName("ping")]
-    [property: JsonConverter(typeof(NullableDurationJsonConverter))]
-    TimeSpan? Latency);
+    string SessionId);
