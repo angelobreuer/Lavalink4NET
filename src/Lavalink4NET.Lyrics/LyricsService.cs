@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Lavalink4NET.Lyrics.Models;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Caching.Memory;
@@ -142,8 +141,8 @@ public sealed class LyricsService : ILyricsService
         ArgumentNullException.ThrowIfNull(title);
 
         // encode query parameters
-        title = HttpUtility.HtmlEncode(title);
-        artist = HttpUtility.HtmlEncode(artist);
+        title = Uri.EscapeDataString(title);
+        artist = Uri.EscapeDataString(artist);
 
         // send response
         using var httpClient = _httpClientFactory.CreateClient();
