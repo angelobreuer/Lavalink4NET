@@ -9,6 +9,6 @@ public sealed record class PlaylistInformationModel(
     string Name,
 
     [property: JsonRequired]
-    [property: JsonPropertyName("name")]
+    [property: JsonPropertyName("selectedTrack")]
     [property: JsonConverter(typeof(NullableInt32JsonConverter))]
     int? SelectedTrack);

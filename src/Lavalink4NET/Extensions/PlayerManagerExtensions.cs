@@ -1,12 +1,13 @@
-﻿using Lavalink4NET.Players;
-
-namespace Lavalink4NET.Extensions;
+﻿namespace Lavalink4NET.Extensions;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Players;
 using Microsoft.Extensions.Options;
 
+[ExcludeFromCodeCoverage]
 public static class PlayerManagerExtensions
 {
     public static ValueTask<TPlayer> JoinAsync<TPlayer, TOptions>(this IPlayerManager playerManager, ulong guildId, ulong voiceChannelId, PlayerFactory<TPlayer, TOptions> playerFactory, Action<TOptions>? configure, CancellationToken cancellationToken = default)

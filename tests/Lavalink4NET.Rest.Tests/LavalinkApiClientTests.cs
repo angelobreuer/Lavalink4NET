@@ -241,6 +241,68 @@ public class LavalinkApiClientTests
     }
 
     [Fact]
+    public async Task TestLoadPlaylistAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+
+        httpClientFactory.Application.MapGet("/v4/loadtracks", (HttpContext context) =>
+        {
+            Assert.Equal("https://www.youtube.com/playlist?list=PLbpi6ZahtOH6NHu2SGpjLqW_3mYg3S3hw", context.Request.Query["identifier"]);
+
+            return TypedResults.Text("""
+                {
+                	"loadType": "playlist",
+                	"data": {
+                		"info": {
+                			"name": "Top Songs of 2022",
+                			"selectedTrack": -1
+                		},
+                		"pluginInfo": {},
+                		"tracks": [
+                			{
+                				"encoded": "QAAAywMAKldlIERvbid0IFRhbGsgQWJvdXQgQnJ1bm8gKEZyb20gIkVuY2FudG8iKQAPRGlzbmV5TXVzaWNWRVZPAAAAAAADYzAAC2J2V1JNQVU2Vi1jAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9YnZXUk1BVTZWLWMBADRodHRwczovL2kueXRpbWcuY29tL3ZpL2J2V1JNQVU2Vi1jL21heHJlc2RlZmF1bHQuanBnAAAHeW91dHViZQAAAAAAAAAA",
+                				"info": {
+                					"identifier": "bvWRMAU6V-c",
+                					"isSeekable": true,
+                					"author": "DisneyMusicVEVO",
+                					"length": 222000,
+                					"isStream": false,
+                					"position": 0,
+                					"title": "We Don't Talk About Bruno (From \"Encanto\")",
+                					"uri": "https://www.youtube.com/watch?v=bvWRMAU6V-c",
+                					"sourceName": "youtube",
+                					"artworkUrl": "https://i.ytimg.com/vi/bvWRMAU6V-c/maxresdefault.jpg",
+                					"isrc": null
+                				},
+                				"pluginInfo": {}
+                			}
+                		]
+                	}
+                }
+                """, "application/json");
+        });
+
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+                optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var result = await client
+            .LoadTracksAsync("https://www.youtube.com/playlist?list=PLbpi6ZahtOH6NHu2SGpjLqW_3mYg3S3hw")
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(result.IsPlaylist);
+        Assert.Equal("Top Songs of 2022", result.Playlist.Value.Name);
+    }
+
+    [Fact]
     public async Task TestSearchTrackAsync()
     {
         // Arrange

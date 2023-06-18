@@ -6,7 +6,7 @@ using Lavalink4NET.Protocol.Models;
 
 public sealed record class PlaylistLoadResultData(
     [property: JsonRequired]
-    [property: JsonPropertyName("playlistInfo")]
+    [property: JsonPropertyName("info")]
     PlaylistInformationModel PlaylistInformation,
 
     [property: JsonPropertyName("pluginInfo")]

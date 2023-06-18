@@ -17,6 +17,9 @@ public readonly record struct TrackLoadResult
         _playlist = playlist;
     }
 
+    public PlaylistInformation? Playlist => _playlist.Name is not null ? _playlist : null;
+
+    [MemberNotNullWhen(true, nameof(Playlist))]
     public bool IsPlaylist => _playlist.Name is not null;
 
     [MemberNotNullWhen(true, nameof(Track))]

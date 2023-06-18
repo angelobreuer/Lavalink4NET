@@ -1,6 +1,7 @@
 namespace Lavalink4NET.DiscordNet;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Options;
 /// <summary>
 ///     A set of different extension methods for the <see cref="IPlayerManager"/> class.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class PlayerManagerExtensions
 {
     public static async ValueTask<PlayerJoinResult<TPlayer>> GetOrJoinAsync<TPlayer, TOptions>(
