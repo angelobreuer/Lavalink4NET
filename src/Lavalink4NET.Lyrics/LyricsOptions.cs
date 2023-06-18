@@ -15,7 +15,7 @@ public sealed class LyricsOptions
     ///     This property defaults to <c>"https://api.lyrics.ovh/v1/"</c>. Note this is an
     ///     absolute URI and can not be <see langword="null"/>.
     /// </remarks>
-    public Uri BaseAddress { get; init; } = _defaultBaseAddress;
+    public Uri BaseAddress { get; set; } = _defaultBaseAddress;
 
     /// <summary>
     ///     Gets or sets a value indicating whether an exception should be thrown when a response
@@ -24,7 +24,7 @@ public sealed class LyricsOptions
     ///     lyrics for a song were not found.)
     /// </summary>
     /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-    public bool SuppressExceptions { get; init; } = true;
+    public bool SuppressExceptions { get; set; } = true;
 
-    public TimeSpan CacheDuration { get; init; } = TimeSpan.FromMinutes(30);
+    public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(30);
 }

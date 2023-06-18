@@ -2,7 +2,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Internal;
 
 public static class ServiceCollectionExtensions
 {
@@ -11,7 +10,8 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient();
         services.AddLogging();
 
-        services.TryAddSingleton<ISystemClock, SystemClock>();
+        services.AddOptions<LyricsOptions>();
+
         services.TryAddSingleton<ILyricsService, LyricsService>();
 
         return services;

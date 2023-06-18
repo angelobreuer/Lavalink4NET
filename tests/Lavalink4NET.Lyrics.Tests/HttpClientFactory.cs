@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Rest.Tests;
+﻿namespace Lavalink4NET.Lyrics.Tests;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
