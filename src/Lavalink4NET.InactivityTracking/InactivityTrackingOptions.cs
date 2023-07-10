@@ -11,13 +11,6 @@ using Lavalink4NET.InactivityTracking.Trackers;
 public sealed class InactivityTrackingOptions
 {
     /// <summary>
-    ///     Gets or sets a value indicating whether the first track (after using
-    ///     <see cref="InactivityTrackingService.Start"/>) should be delayed using the <see cref="PollInterval"/>.
-    /// </summary>
-    /// <remarks>This property defaults to <see langword="true"/>.</remarks>
-    public bool DelayFirstTrack { get; set; } = true;
-
-    /// <summary>
     ///     Gets or sets the delay for a player stop. Use <see cref="TimeSpan.Zero"/> for
     ///     disconnect immediately from the channel.
     /// </summary>
