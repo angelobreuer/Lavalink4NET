@@ -7,8 +7,7 @@
 
 	  <!-- Package Description -->
 	  <Description>
-		  A Lavalink wrapper for playing music using a discord bot.
-		  NOTE: This package is only for implementing own Discord clients. Use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus
+		  High performance Lavalink wrapper for .NET | This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus instead.
 	  </Description>
 
 	  <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>

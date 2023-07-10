@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	  <Description>
+		  High performance Lavalink wrapper for .NET | Scale and improve performance by using multiple Lavalink nodes with this cluster support module. Ideal for handling high-demand music streaming applications.
+	  </Description>
   </PropertyGroup>
 
   <ItemGroup>

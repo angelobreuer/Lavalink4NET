@@ -7,7 +7,7 @@
 		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 
 		<Description>
-			Lavalink4NET Integration for the TextToSpeech (TTS) plugin.
+			High performance Lavalink wrapper for .NET | Enable text-to-speech functionality in Lavalink4NET. Convert written text into spoken words, allowing your application to generate and play audio from text inputs. Requires the installation of the corresponding plugin on the Lavalink node.
 		</Description>
 	</PropertyGroup>
 

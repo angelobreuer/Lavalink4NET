@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
 	  <Description>
-		  Provides types to access the RESTful interface of Lavalink nodes.
+		  High performance Lavalink wrapper for .NET | Easily interact with the Lavalink REST API using this REST API client primitives library. Build custom functionalities or integrate Lavalink4NET with other services.
 	  </Description>
   </PropertyGroup>
 

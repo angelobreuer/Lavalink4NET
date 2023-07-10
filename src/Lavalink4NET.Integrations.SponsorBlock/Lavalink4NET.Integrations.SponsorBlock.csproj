@@ -7,7 +7,7 @@
 	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 
 	  <Description>
-		  Lavalink4NET Integration for the SponsorBlock plugin.
+		  High performance Lavalink wrapper for .NET | Integrate SponsorBlock functionality into Lavalink4NET. Automatically skip sponsored segments in videos for a seamless and uninterrupted playback experience. Requires the installation of the corresponding plugin on the Lavalink node.
 	  </Description>
   </PropertyGroup>
 

@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
 	  <Description>
-		  Artwork resolution service for the Lavalink4NET client library.
+		  High performance Lavalink wrapper for .NET | Artwork resolution service for the Lavalink4NET client library.
 	  </Description>
   </PropertyGroup>
 

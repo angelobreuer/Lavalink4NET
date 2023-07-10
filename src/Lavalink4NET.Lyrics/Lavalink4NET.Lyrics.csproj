@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
 	  <Description>
-		  Extension to the Lavalink4NET client library to resolve lyrics from external services.
+		  High performance Lavalink wrapper for .NET | Fetch and display song lyrics from lyrics.ovh with this lyrics service integrated with Lavalink4NET. Enhance the music experience for your users.
 	  </Description>
   </PropertyGroup>
 

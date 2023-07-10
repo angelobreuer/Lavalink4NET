@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
 	  <Description>
-		  Extension to the Lavalink4NET client library to track inactive players and optionally free resources consumed by inactive players.
+		  High performance Lavalink wrapper for .NET | Optimize resource usage by tracking and disconnecting inactive players. Ensure efficient audio playback in your application.
 	  </Description>
   </PropertyGroup>
 

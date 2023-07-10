@@ -7,7 +7,7 @@
 		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 
 		<Description>
-			Lavalink4NET Integration for the ExtraFilters plugin.
+			High performance Lavalink wrapper for .NET | Enhance your audio playback experience with extra filters in Lavalink4NET. Apply additional audio effects and modifications to customize the sound output. Requires the installation of the corresponding plugin on the Lavalink node.
 		</Description>
 	</PropertyGroup>
 

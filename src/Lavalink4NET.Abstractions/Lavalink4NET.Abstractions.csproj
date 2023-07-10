@@ -8,7 +8,7 @@
 	  <RootNamespace>Lavalink4NET</RootNamespace>
 
 	  <Description>
-		  General abstractions and common primitives for the Lavalink4NET client library.
+		  High performance Lavalink wrapper for .NET | General abstractions and common primitives for the Lavalink4NET client library.
 	  </Description>
   </PropertyGroup>
 

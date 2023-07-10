@@ -2,14 +2,13 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <PackageId>Lavalink4NET.Discord.NET</PackageId>
+      <PackageId>Lavalink4NET.Discord.NET</PackageId>
 	  <Nullable>enable</Nullable>
 
     <!-- Package Description -->
     <Description>
-      A Lavalink wrapper for playing music using a discord bot.
-      Integration with Discord.NET Library.
-    </Description>
+		High performance Lavalink wrapper for .NET | Enhance your Discord bots with advanced audio playback using this integration for Lavalink4NET. Designed for end users building Discord.Net-based applications.
+	</Description>
 
     <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot,dsharpplus</PackageTags>
   </PropertyGroup>
