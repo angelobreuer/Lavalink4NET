@@ -4,7 +4,7 @@ using System;
 using Lavalink4NET.Players;
 
 /// <summary>
-///     Event arguments for the <see cref="LavalinkNode.PlayerDisconnected"/> event.
+///     Event arguments for the <see cref="LavalinkNodeBase.PlayerDisconnected"/> event.
 /// </summary>
 public sealed class PlayerDisconnectedEventArgs : PlayerEventArgs
 {

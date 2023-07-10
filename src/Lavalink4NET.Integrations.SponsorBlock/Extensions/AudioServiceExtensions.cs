@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Integrations.SponsorBlock;
 using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+using Lavalink4NET.Players;
 
 public static class AudioServiceExtensions
 {
@@ -20,44 +21,46 @@ public static class AudioServiceExtensions
 
     public static ValueTask UpdateSponsorBlockCategoriesAsync(
         this IAudioService audioService,
-        ulong guildId,
+        ILavalinkPlayer lavalinkPlayer,
         ImmutableArray<SegmentCategory> categories,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(audioService);
-        var sessionId = GetSessionInternal(audioService);
+        ArgumentNullException.ThrowIfNull(lavalinkPlayer);
 
-        return audioService.ApiClient.UpdateCategoriesAsync(sessionId, guildId, categories, cancellationToken);
+        return lavalinkPlayer.ApiClient.UpdateCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            categories: categories,
+            cancellationToken: cancellationToken);
     }
 
     public static ValueTask ResetSponsorBlockCategoriesAsync(
         this IAudioService audioService,
-        ulong guildId,
+        ILavalinkPlayer lavalinkPlayer,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(audioService);
-        var sessionId = GetSessionInternal(audioService);
 
-        return audioService.ApiClient.ResetCategoriesAsync(sessionId, guildId, cancellationToken);
+        return lavalinkPlayer.ApiClient.ResetCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            cancellationToken: cancellationToken);
     }
 
     public static ValueTask<ImmutableArray<SegmentCategory>> GetSponsorBlockCategoriesAsync(
         this IAudioService audioService,
-        ulong guildId,
+        ILavalinkPlayer lavalinkPlayer,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(audioService);
-        var sessionId = GetSessionInternal(audioService);
 
-        return audioService.ApiClient.GetCategoriesAsync(sessionId, guildId, cancellationToken);
-    }
-
-    private static string GetSessionInternal(IAudioService audioService)
-    {
-        ArgumentNullException.ThrowIfNull(audioService);
-        return audioService.SessionId ?? throw new InvalidOperationException("The audio service is not ready.");
+        return lavalinkPlayer.ApiClient.GetCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            cancellationToken: cancellationToken);
     }
 }

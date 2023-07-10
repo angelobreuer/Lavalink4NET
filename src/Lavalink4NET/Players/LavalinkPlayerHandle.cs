@@ -113,8 +113,8 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         Debug.Assert(_voiceServer is not null);
         Debug.Assert(_voiceState is not null);
 
-        var sessionId = await _playerContext.SessionProvider
-            .GetSessionIdAsync(cancellationToken)
+        var playerSession = await _playerContext.SessionProvider
+            .GetSessionIdAsync(_guildId, cancellationToken)
             .ConfigureAwait(false);
 
         var playerProperties = new PlayerUpdateProperties
@@ -149,8 +149,8 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             playerProperties = playerProperties with { Volume = _options.Value.InitialVolume.Value, };
         }
 
-        var initialState = await _playerContext.ApiClient
-            .UpdatePlayerAsync(sessionId, _guildId, playerProperties, cancellationToken)
+        var initialState = await playerSession.ApiClient
+            .UpdatePlayerAsync(playerSession.SessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
 
         var label = _options.Value.Label ?? $"{typeof(TPlayer)}@{_guildId}";
@@ -160,7 +160,8 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
             InitialState: initialState,
             Label: label,
-            SessionId: sessionId,
+            SessionId: playerSession.SessionId,
+            ApiClient: playerSession.ApiClient,
             Options: _options,
             Logger: _logger);
 

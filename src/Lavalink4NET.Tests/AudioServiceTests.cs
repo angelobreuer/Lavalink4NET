@@ -38,15 +38,14 @@ public sealed class AudioServiceTests
             .Returns((CancellationToken cancellationToken) => new ValueTask<ClientInformation>(new TaskCompletionSource<ClientInformation>().Task.WaitAsync(cancellationToken)));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock.Object,
-            apiClient: Mock.Of<ILavalinkApiClient>(),
+            apiClientProvider: Mock.Of<ILavalinkApiClientProvider>(),
             playerManager: Mock.Of<IPlayerManager>(),
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory,
             integrationManager: Mock.Of<IIntegrationManager>(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(1), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(1), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -78,20 +77,21 @@ public sealed class AudioServiceTests
             .Returns((CancellationToken cancellationToken) => new ValueTask<ClientInformation>(new TaskCompletionSource<ClientInformation>().Task.WaitAsync(cancellationToken)));
 
         var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock.Object,
-            apiClient: Mock.Of<ILavalinkApiClient>(),
+            apiClientProvider: Mock.Of<ILavalinkApiClientProvider>(),
             playerManager: Mock.Of<IPlayerManager>(),
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory,
             integrationManager: Mock.Of<IIntegrationManager>(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = Timeout.InfiniteTimeSpan, }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = Timeout.InfiniteTimeSpan, }));
+
+        _ = audioService.StartAsync().AsTask();
 
         // Act
         async Task Action()
         {
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.1));
 
             await audioService!
                 .WaitForReadyAsync(cancellationTokenSource.Token)
@@ -133,15 +133,14 @@ public sealed class AudioServiceTests
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock.Object,
-            apiClient: apiClientMock.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: Mock.Of<IPlayerManager>(),
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory,
             integrationManager: Mock.Of<IIntegrationManager>(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -193,15 +192,14 @@ public sealed class AudioServiceTests
         integrationManager.Set(integration.Object);
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock.Object,
-            apiClient: apiClientMock.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: Mock.Of<IPlayerManager>(),
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory,
             integrationManager: integrationManager,
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -255,15 +253,14 @@ public sealed class AudioServiceTests
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock!.Object,
-            apiClient: apiClientMock!.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory!,
             integrationManager: new IntegrationManager(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -332,15 +329,14 @@ public sealed class AudioServiceTests
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock!.Object,
-            apiClient: apiClientMock!.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory!,
             integrationManager: new IntegrationManager(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -408,15 +404,14 @@ public sealed class AudioServiceTests
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock!.Object,
-            apiClient: apiClientMock!.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory!,
             integrationManager: new IntegrationManager(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -487,15 +482,14 @@ public sealed class AudioServiceTests
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
         using var audioService = new AudioService(
-            serviceProvider: Mock.Of<IServiceProvider>(),
             discordClient: discordClientMock!.Object,
-            apiClient: apiClientMock!.Object,
+            apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory!,
             integrationManager: new IntegrationManager(),
             loggerFactory: NullLoggerFactory.Instance,
-            options: Options.Create(new LavalinkNodeOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
+            options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
         _ = audioService.StartAsync().AsTask();
 
@@ -580,6 +574,11 @@ public sealed class AudioServiceTests
         {
             throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
         }
+    }
+
+    private ILavalinkApiClientProvider CreateProvider(ILavalinkApiClient apiClient)
+    {
+        return Mock.Of<ILavalinkApiClientProvider>(x => x.GetClientAsync(It.IsAny<CancellationToken>()) == ValueTask.FromResult(apiClient));
     }
 }
 

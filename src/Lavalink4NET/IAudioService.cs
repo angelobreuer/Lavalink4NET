@@ -23,17 +23,14 @@ public interface IAudioService : IDisposable
 
     event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
-    ILavalinkApiClient ApiClient { get; }
+    event AsyncEventHandler<StatisticsUpdatedEventArgs>? StatisticsUpdated;
 
     IIntegrationManager Integrations { get; }
 
     IPlayerManager Players { get; }
 
-    string? SessionId { get; }
-
     ITrackManager Tracks { get; }
-
-    ValueTask RunAsync(CancellationToken cancellationToken = default);
+    ILavalinkApiClientProvider ApiClientProvider { get; }
 
     ValueTask StartAsync(CancellationToken cancellationToken = default);
 

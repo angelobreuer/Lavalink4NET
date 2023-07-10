@@ -349,7 +349,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             IsConnected: connected,
             Latency: latency);
 
-        _logger.LogInformation(
+        _logger.LogTrace(
             "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).",
             GuildId, timestamp, position, connected, latency);
 

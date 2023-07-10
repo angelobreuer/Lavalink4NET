@@ -2,15 +2,16 @@
 
 using Microsoft.Extensions.Options;
 
-public sealed record class LavalinkApiClientOptions
+public record class LavalinkApiClientOptions
 {
-    private const string DefaultPassphrase = "youshallnotpass";
+    internal const string DefaultPassphrase = "youshallnotpass";
+    internal static readonly Uri DefaultBaseAddress = new("http://localhost:2333/");
 
-    private static readonly Uri _defaultBaseAddress = new("http://localhost:2333/");
+    public string? Label { get; init; }
 
     public string Passphrase { get; init; } = DefaultPassphrase;
 
     public string HttpClientName { get; init; } = Options.DefaultName;
 
-    public Uri BaseAddress { get; init; } = _defaultBaseAddress;
+    public Uri BaseAddress { get; init; } = DefaultBaseAddress;
 }

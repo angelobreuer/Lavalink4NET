@@ -8,28 +8,37 @@ using Lavalink4NET.Rest.Entities.Tracks;
 
 internal sealed class TrackManager : ITrackManager
 {
-    private readonly ILavalinkApiClient _apiClient;
+    private readonly ILavalinkApiClientProvider _apiClientProvider;
 
-    public TrackManager(ILavalinkApiClient apiClient)
+    public TrackManager(ILavalinkApiClientProvider apiClientProvider)
     {
-        ArgumentNullException.ThrowIfNull(apiClient);
+        ArgumentNullException.ThrowIfNull(apiClientProvider);
 
-        _apiClient = apiClient;
+        _apiClientProvider = apiClientProvider;
     }
 
-    public ValueTask<LavalinkTrack?> LoadTrackAsync(
+    public async ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
-        return _apiClient.LoadTrackAsync(identifier, loadOptions, cancellationToken);
+
+        var apiClient = await resolutionScope
+            .GetClientAsync(_apiClientProvider, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await apiClient
+            .LoadTrackAsync(identifier, loadOptions, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackSearchMode searchMode = default,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -40,22 +49,31 @@ internal sealed class TrackManager : ITrackManager
             StrictSearch: null,
             CacheMode: CacheMode.Dynamic);
 
-        return LoadTrackAsync(identifier, loadOptions, cancellationToken);
+        return LoadTrackAsync(identifier, loadOptions, resolutionScope, cancellationToken);
     }
 
-    public ValueTask<TrackLoadResult> LoadTracksAsync(
+    public async ValueTask<TrackLoadResult> LoadTracksAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
-        return _apiClient.LoadTracksAsync(identifier, loadOptions, cancellationToken);
+
+        var apiClient = await resolutionScope
+            .GetClientAsync(_apiClientProvider, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await apiClient
+            .LoadTracksAsync(identifier, loadOptions, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public ValueTask<TrackLoadResult> LoadTracksAsync(
         string identifier,
         TrackSearchMode searchMode = default,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -66,6 +84,6 @@ internal sealed class TrackManager : ITrackManager
             StrictSearch: null,
             CacheMode: CacheMode.Dynamic);
 
-        return LoadTracksAsync(identifier, loadOptions, cancellationToken);
+        return LoadTracksAsync(identifier, loadOptions, resolutionScope, cancellationToken);
     }
 }

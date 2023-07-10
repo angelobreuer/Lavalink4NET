@@ -11,10 +11,11 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Payloads;
+using Lavalink4NET.Rest;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
+internal sealed class LavalinkSocket : ILavalinkSocket
 {
     private readonly Channel<IPayload> _channel;
     private readonly ILogger<LavalinkSocket> _logger;
@@ -28,10 +29,14 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(options);
 
+        Label = options.Value.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
+
         _logger = logger;
         _options = options;
         _channel = Channel.CreateUnbounded<IPayload>();
     }
+
+    public string Label { get; }
 
     public ValueTask<IPayload> ReceiveAsync(CancellationToken cancellationToken = default)
     {
@@ -55,7 +60,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _logger.LogDebug("Attempting to connect to Lavalink node...");
+                _logger.LogDebug("[{Label}] Attempting to connect to Lavalink node...", Label);
 
                 var webSocket = new ClientWebSocket();
 
@@ -70,7 +75,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
                         .ConnectAsync(_options.Value.Uri, cancellationToken)
                         .ConfigureAwait(false);
 
-                    _logger.LogDebug("Connection to Lavalink node established.");
+                    _logger.LogDebug("[{Label}] Connection to Lavalink node established.", Label);
 
                     return webSocket;
                 }
@@ -80,8 +85,7 @@ internal sealed class LavalinkSocket : IDisposable, ILavalinkSocket
                         .Delay(2500, cancellationToken)
                         .ConfigureAwait(false);
 
-                    _logger.LogDebug(exception, "Failed to connect to the Lavalink node.");
-                    continue;
+                    _logger.LogDebug(exception, "[{Label}] Failed to connect to the Lavalink node.", Label);
                 }
             }
         }

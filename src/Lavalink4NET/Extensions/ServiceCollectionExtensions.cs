@@ -24,11 +24,11 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ISystemClock, SystemClock>();
         services.TryAddSingleton<ILavalinkSocketFactory, LavalinkSocketFactory>();
         services.TryAddSingleton<ILavalinkApiClient, LavalinkApiClient>();
-        services.TryAddSingleton<ILavalinkSessionProvider, LavalinkSessionProvider>();
         services.TryAddSingleton<IAudioService, AudioService>();
         services.TryAddSingleton<ITrackManager, TrackManager>();
         services.TryAddSingleton<IPlayerManager, PlayerManager>();
         services.TryAddSingleton<IIntegrationManager, IntegrationManager>();
+        services.TryAddSingleton<ILavalinkApiClientProvider, LavalinkApiClientProvider>();
 
         services.AddHostedService<AudioServiceHost>();
 

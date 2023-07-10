@@ -14,14 +14,13 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     string Label,
     ulong VoiceChannelId,
     string SessionId,
+    ILavalinkApiClient ApiClient,
     IOptions<TOptions> Options,
     ILogger<TPlayer> Logger)
     : IPlayerProperties<TPlayer, TOptions>
     where TOptions : LavalinkPlayerOptions
     where TPlayer : ILavalinkPlayer
 {
-    public ILavalinkApiClient ApiClient => Context.ApiClient;
-
     public IDiscordClientWrapper DiscordClient => Context.DiscordClient;
 
     public IServiceProvider? ServiceProvider => Context.ServiceProvider;

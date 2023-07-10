@@ -1,15 +1,11 @@
 ﻿namespace Lavalink4NET;
 
 using System;
-using Microsoft.Extensions.Options;
+using Lavalink4NET.Rest;
 
-public sealed record class LavalinkNodeOptions
+public abstract record class LavalinkNodeOptions : LavalinkApiClientOptions
 {
-    public string Passphrase { get; set; } = "youshallnotpass";
-
-    public Uri? WebSocketUri { get; set; }
-
-    public string HttpClientName { get; set; } = Options.DefaultName;
+    public Uri? WebSocketUri { get; set; } = null;
 
     public TimeSpan ReadyTimeout { get; set; } = TimeSpan.FromSeconds(10);
 }

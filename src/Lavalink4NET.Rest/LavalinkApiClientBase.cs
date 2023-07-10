@@ -14,7 +14,7 @@ public abstract class LavalinkApiClientBase
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly AuthenticationHeaderValue _authenticationHeaderValue;
 
-    public LavalinkApiClientBase(
+    protected LavalinkApiClientBase(
         IHttpClientFactory httpClientFactory,
         IOptions<LavalinkApiClientOptions> options,
         ILogger<LavalinkApiClientBase> logger)

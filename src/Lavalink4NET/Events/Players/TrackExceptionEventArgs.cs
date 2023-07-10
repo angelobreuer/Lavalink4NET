@@ -6,7 +6,7 @@ using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
 
 /// <summary>
-///     The event arguments for the <see cref="LavalinkNode.TrackException"/> event.
+///     The event arguments for the <see cref="LavalinkNodeBase.TrackException"/> event.
 /// </summary>
 public class TrackExceptionEventArgs : TrackEventArgs
 {

@@ -6,7 +6,7 @@ using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Tracks;
 
 /// <summary>
-///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/> event.
+///     The event arguments for the <see cref="LavalinkNodeBase.TrackEnd"/> event.
 /// </summary>
 public class TrackEndedEventArgs : TrackEventArgs
 {

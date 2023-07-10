@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
-using Lavalink4NET.Rest;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,14 +25,12 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         IServiceProvider? serviceProvider,
         IDiscordClientWrapper discordClient,
         ILavalinkSessionProvider sessionProvider,
-        ILavalinkApiClient apiClient,
         ISystemClock systemClock,
         ILoggerFactory loggerFactory)
     {
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(sessionProvider);
         ArgumentNullException.ThrowIfNull(systemClock);
-        ArgumentNullException.ThrowIfNull(apiClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
@@ -44,7 +41,6 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         _playerContext = new PlayerContext(
             ServiceProvider: serviceProvider,
-            ApiClient: apiClient,
             SessionProvider: sessionProvider,
             DiscordClient: discordClient,
             SystemClock: systemClock);

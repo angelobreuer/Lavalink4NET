@@ -34,9 +34,7 @@ public sealed class PlayerInformationModelTests
                 "voice": {
                     "token": "...",
                     "endpoint": "...",
-                    "sessionId": "...",
-                    "connected": true,
-                    "ping": 10
+                    "sessionId": "..."
                 },
                 "filters": { }
             }

@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 public interface ILavalinkSessionProvider
 {
-    ValueTask<string> GetSessionIdAsync(CancellationToken cancellationToken = default);
+    ValueTask<LavalinkPlayerSession> GetSessionIdAsync(ulong guildId, CancellationToken cancellationToken = default);
 }

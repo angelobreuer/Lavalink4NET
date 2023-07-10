@@ -5,7 +5,8 @@ using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
 using Lavalink4NET.Protocol.Models.Usage;
 
-public sealed record class StatisticsPayload([property: JsonRequired]
+public sealed record class StatisticsPayload(
+    [property: JsonRequired]
     [property: JsonPropertyName("players")]
     int ConnectedPlayers,
 

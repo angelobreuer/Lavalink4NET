@@ -5,7 +5,7 @@ using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
 
 /// <summary>
-///     The event arguments for the <see cref="LavalinkNode.TrackEnd"/>.
+///     The event arguments for the <see cref="LavalinkNodeBase.TrackEnd"/>.
 /// </summary>
 public abstract class TrackEventArgs : EventArgs
 {

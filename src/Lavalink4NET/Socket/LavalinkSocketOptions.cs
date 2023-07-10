@@ -7,6 +7,8 @@ public sealed record class LavalinkSocketOptions
 {
     internal static readonly Uri DefaultAddress = new("ws://localhost:2333/");
 
+    public string? Label { get; set; }
+
     public Uri Uri { get; init; } = DefaultAddress;
 
     public string Passphrase { get; set; } = "youshallnotpass";
