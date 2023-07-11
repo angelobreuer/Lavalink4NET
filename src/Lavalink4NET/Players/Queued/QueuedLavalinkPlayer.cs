@@ -14,6 +14,10 @@ using Lavalink4NET.Tracks;
 public class QueuedLavalinkPlayer : LavalinkPlayer
 {
     private readonly bool _disconnectOnStop;
+    private readonly bool _clearQueueOnStop;
+    private readonly bool _resetTrackRepeatOnStop;
+    private readonly bool _resetShuffleOnStop;
+    private readonly TrackRepeatMode _defaultTrackRepeatMode;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
@@ -25,11 +29,17 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
 
         var options = properties.Options.Value;
 
-        _disconnectOnStop = options.DisconnectOnStop;
-
         Queue = new TrackQueue(
             initialCapacity: options.InitialCapacity,
             historyCapacity: options.HistoryCapacity);
+
+        _disconnectOnStop = options.DisconnectOnStop;
+        _clearQueueOnStop = options.ClearQueueOnStop;
+        _resetTrackRepeatOnStop = options.ResetTrackRepeatOnStop;
+        _resetShuffleOnStop = options.ResetShuffleOnStop;
+        _defaultTrackRepeatMode = options.DefaultTrackRepeatMode;
+
+        RepeatMode = _defaultTrackRepeatMode;
     }
 
     /// <summary>
@@ -134,7 +144,20 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
 
-        Queue.Clear();
+        if (_clearQueueOnStop)
+        {
+            Queue.Clear();
+        }
+
+        if (_resetTrackRepeatOnStop)
+        {
+            RepeatMode = _defaultTrackRepeatMode;
+        }
+
+        if (_resetShuffleOnStop)
+        {
+            Shuffle = false;
+        }
 
         return base.StopAsync(disconnect, cancellationToken);
     }
