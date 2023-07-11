@@ -11,7 +11,7 @@ using Lavalink4NET.Tracks;
 /// <summary>
 ///     A lavalink player with a queuing system.
 /// </summary>
-public class QueuedLavalinkPlayer : LavalinkPlayer
+public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 {
     private readonly bool _disconnectOnStop;
     private readonly bool _clearQueueOnStop;
