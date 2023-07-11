@@ -4,12 +4,15 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
 
 public interface ILavalinkPlayer : IAsyncDisposable
 {
     ILavalinkApiClient ApiClient { get; }
+
+    IDiscordClientWrapper DiscordClient { get; }
 
     LavalinkTrack? CurrentTrack { get; }
 

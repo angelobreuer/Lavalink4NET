@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Payloads.Events;
@@ -30,6 +31,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         SessionId = properties.SessionId;
         ApiClient = properties.ApiClient;
+        DiscordClient = properties.DiscordClient;
         GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
@@ -81,6 +83,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     public string SessionId { get; }
 
     public PlayerConnectionState ConnectionState { get; private set; }
+
+    public IDiscordClientWrapper DiscordClient { get; }
 
     void ILavalinkPlayerListener.NotifyChannelUpdate(ulong voiceChannelId)
     {
@@ -229,7 +233,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
-    public virtual ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
+    public virtual async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
@@ -239,7 +243,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             TrackData = new Optional<string?>(null),
         };
 
-        return PerformUpdateAsync(properties, cancellationToken);
+        if (disconnect)
+        {
+            await DiscordClient
+                .SendVoiceUpdateAsync(GuildId, null, false, false, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
     protected void EnsureNotDestroyed()
