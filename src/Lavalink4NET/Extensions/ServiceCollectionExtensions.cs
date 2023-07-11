@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IPlayerManager, PlayerManager>();
         services.TryAddSingleton<IIntegrationManager, IntegrationManager>();
         services.TryAddSingleton<ILavalinkApiClientProvider, LavalinkApiClientProvider>();
+        services.TryAddSingleton<ILavalinkSessionProvider, LavalinkSessionProvider>();
 
         services.AddHostedService<AudioServiceHost>();
 

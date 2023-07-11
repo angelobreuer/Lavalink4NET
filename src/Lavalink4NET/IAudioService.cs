@@ -30,6 +30,7 @@ public interface IAudioService : IDisposable
     IPlayerManager Players { get; }
 
     ITrackManager Tracks { get; }
+
     ILavalinkApiClientProvider ApiClientProvider { get; }
 
     ValueTask StartAsync(CancellationToken cancellationToken = default);
