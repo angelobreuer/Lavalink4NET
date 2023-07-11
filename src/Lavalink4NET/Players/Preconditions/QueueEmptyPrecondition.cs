@@ -12,11 +12,11 @@ internal sealed record class QueueEmptyPrecondition : IPlayerPrecondition
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
 
-        if (player is not QueuedLavalinkPlayer queuedLavalinkPlayer)
+        if (player is not IQueuedLavalinkPlayer queuedLavalinkPlayer)
         {
-            throw new InvalidOperationException("The player must be a QueuedLavalinkPlayer.");
+            throw new InvalidOperationException("The player must be a IQueuedLavalinkPlayer.");
         }
 
-        return new ValueTask<bool>(!queuedLavalinkPlayer.Queue.IsEmpty);
+        return new ValueTask<bool>(queuedLavalinkPlayer.Queue.IsEmpty);
     }
 }
