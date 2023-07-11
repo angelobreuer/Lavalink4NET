@@ -6,7 +6,7 @@ using Lavalink4NET.Tracks;
 
 public readonly record struct TrackReference
 {
-    private readonly object _value; // eihter string or LavalinkTrack
+    private readonly object _value; // either string or LavalinkTrack
 
     public TrackReference(LavalinkTrack track)
     {

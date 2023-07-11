@@ -15,6 +15,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
 {
     private readonly bool _disconnectOnStop;
     private readonly bool _clearQueueOnStop;
+    private readonly bool _clearHistoryOnStop;
     private readonly bool _resetTrackRepeatOnStop;
     private readonly bool _resetShuffleOnStop;
     private readonly TrackRepeatMode _defaultTrackRepeatMode;
@@ -29,15 +30,14 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
 
         var options = properties.Options.Value;
 
-        Queue = new TrackQueue(
-            initialCapacity: options.InitialCapacity,
-            historyCapacity: options.HistoryCapacity);
+        Queue = new TrackQueue(historyCapacity: options.HistoryCapacity);
 
         _disconnectOnStop = options.DisconnectOnStop;
         _clearQueueOnStop = options.ClearQueueOnStop;
         _resetTrackRepeatOnStop = options.ResetTrackRepeatOnStop;
         _resetShuffleOnStop = options.ResetShuffleOnStop;
         _defaultTrackRepeatMode = options.DefaultTrackRepeatMode;
+        _clearHistoryOnStop = options.ClearHistoryOnStop;
 
         RepeatMode = _defaultTrackRepeatMode;
     }
@@ -45,7 +45,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     /// <summary>
     ///     Gets the track queue.
     /// </summary>
-    public TrackQueue Queue { get; }
+    public ITrackQueue Queue { get; }
 
     /// <summary>
     ///     Gets or sets the loop mode for this player.
@@ -64,10 +64,9 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         if (enqueue && (Queue.Count > 0 || State == PlayerState.Playing || State == PlayerState.Paused))
         {
             // add the track to the queue
-            Queue.Enqueue(queueItem);
-
-            // return track queue position
-            return Queue.Count;
+            return await Queue
+                .AddAsync(queueItem, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         // play the track immediately
@@ -115,7 +114,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
     /// <param name="count">the number of tracks to skip</param>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-    public virtual ValueTask SkipAsync(int count = 1, CancellationToken cancellationToken = default)
+    public virtual async ValueTask SkipAsync(int count = 1, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDestroyed();
@@ -128,25 +127,37 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
                 "The count must not be negative.");
         }
 
-        var track = GetNextTrack(count);
+        var track = await GetNextTrackAsync(count, cancellationToken).ConfigureAwait(false);
 
         if (!track.IsPresent)
         {
             // Do nothing, stop
-            return StopAsync(_disconnectOnStop, cancellationToken);
+            await StopAsync(_disconnectOnStop, cancellationToken).ConfigureAwait(false);
+            return;
         }
 
-        return base.PlayAsync(track.Value.Track, properties: default, cancellationToken);
+        await base
+            .PlayAsync(track.Value.Track, properties: default, cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public override ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
+    public override async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_clearQueueOnStop)
         {
-            Queue.Clear();
+            await Queue
+                .ClearAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (_clearHistoryOnStop && Queue.HasHistory)
+        {
+            await Queue.History
+                .ClearAsync(cancellationToken)
+                .ConfigureAwait(false);
         }
 
         if (_resetTrackRepeatOnStop)
@@ -159,7 +170,9 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
             Shuffle = false;
         }
 
-        return base.StopAsync(disconnect, cancellationToken);
+        await base
+            .StopAsync(disconnect, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     protected override ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
@@ -175,8 +188,10 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
         return ValueTask.CompletedTask;
     }
 
-    private Optional<ITrackQueueItem> GetNextTrack(int count = 1)
+    private async ValueTask<Optional<ITrackQueueItem>> GetNextTrackAsync(int count = 1, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var track = default(Optional<ITrackQueueItem>);
 
         if (RepeatMode is TrackRepeatMode.Track)
@@ -186,29 +201,45 @@ public class QueuedLavalinkPlayer : LavalinkPlayer
                 : new Optional<ITrackQueueItem>(new TrackQueueItem(new TrackReference(CurrentTrack)));
         }
 
+        var dequeueMode = Shuffle
+            ? TrackDequeueMode.Shuffle
+            : TrackDequeueMode.Normal;
+
         while (count-- > 1)
         {
-            if (!Queue.TryDequeue(out var peekedTrack))
+            var peekedTrack = await Queue
+                .TryDequeueAsync(dequeueMode, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (peekedTrack is null)
             {
                 break;
             }
 
             if (RepeatMode is TrackRepeatMode.Queue)
             {
-                Queue.Enqueue(peekedTrack);
+                await Queue
+                    .AddAsync(peekedTrack, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
         if (count >= 0)
         {
-            if (!Queue.TryDequeue(shuffle: Shuffle, out var peekedTrack))
+            var peekedTrack = await Queue
+                .TryDequeueAsync(dequeueMode, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (peekedTrack is null)
             {
                 return Optional<ITrackQueueItem>.Default; // do nothing
             }
 
             if (RepeatMode is TrackRepeatMode.Queue)
             {
-                Queue.Enqueue(peekedTrack);
+                await Queue
+                    .AddAsync(peekedTrack, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             track = new Optional<ITrackQueueItem>(peekedTrack);

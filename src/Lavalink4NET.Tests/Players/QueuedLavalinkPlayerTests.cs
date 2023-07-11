@@ -78,7 +78,7 @@ public sealed class QueuedLavalinkPlayerTests
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track1")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track1")));
 
         // Act
         await player.SkipAsync().ConfigureAwait(false);
@@ -146,8 +146,8 @@ public sealed class QueuedLavalinkPlayerTests
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track1")));
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track1")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 
         // Act
         await player.SkipAsync(count: 2).ConfigureAwait(false);
@@ -214,7 +214,7 @@ public sealed class QueuedLavalinkPlayerTests
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track1")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track1")));
 
         // Act
         await player.SkipAsync(count: 2).ConfigureAwait(false);
@@ -284,7 +284,7 @@ public sealed class QueuedLavalinkPlayerTests
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 
         var listener = (ILavalinkPlayerListener)player;
 
@@ -361,7 +361,7 @@ public sealed class QueuedLavalinkPlayerTests
         var player = new QueuedLavalinkPlayer(playerProperties);
         player.RepeatMode = TrackRepeatMode.Track;
 
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 
         var listener = (ILavalinkPlayerListener)player;
 
@@ -438,7 +438,7 @@ public sealed class QueuedLavalinkPlayerTests
         var player = new QueuedLavalinkPlayer(playerProperties);
         player.RepeatMode = TrackRepeatMode.Track;
 
-        player.Queue.Enqueue(new TrackQueueItem(new TrackReference("track2")));
+        await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 
         // Act
         await player
