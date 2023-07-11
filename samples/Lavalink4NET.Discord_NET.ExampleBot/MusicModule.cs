@@ -3,7 +3,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot;
 using System;
 using System.Threading.Tasks;
 using Discord.Interactions;
-using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Vote;
@@ -173,18 +172,19 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     /// </returns>
     private async ValueTask<VoteLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
-        var options = new PlayerJoinOptions(ConnectToVoiceChannel: connectToVoiceChannel);
+        var retrieveOptions = new PlayerRetrieveOptions(
+            ChannelBehavior: connectToVoiceChannel ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None);
 
         var result = await _audioService.Players
-            .GetOrJoinAsync(Context, playerFactory: PlayerFactory.Vote, options)
+            .RetrieveAsync(Context, playerFactory: PlayerFactory.Vote, retrieveOptions)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)
         {
             var errorMessage = result.Status switch
             {
-                PlayerJoinStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
-                PlayerJoinStatus.BotNotConnected => "The bot is currently not connected.",
+                PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
+                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
                 _ => "Unknown error.",
             };
 

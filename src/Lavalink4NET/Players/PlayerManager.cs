@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
+using Lavalink4NET.Players.Preconditions;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -183,5 +185,87 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask<PlayerResult<TPlayer>> RetrieveAsync<TPlayer, TOptions>(ulong guildId, ulong? memberVoiceChannel, PlayerFactory<TPlayer, TOptions> playerFactory, IOptions<TOptions> options, PlayerRetrieveOptions retrieveOptions = default, CancellationToken cancellationToken = default)
+        where TPlayer : class, ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(options);
+
+        static async ValueTask<PlayerResult<TPlayer>> CheckPreconditionsAsync(
+            TPlayer player,
+            ImmutableArray<IPlayerPrecondition> preconditions,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ArgumentNullException.ThrowIfNull(player);
+
+            foreach (var precondition in preconditions)
+            {
+                if (!await precondition.CheckAsync(player, cancellationToken).ConfigureAwait(false))
+                {
+                    return PlayerResult<TPlayer>.PreconditionFailed(precondition);
+                }
+            }
+
+            return PlayerResult<TPlayer>.Success(player);
+        }
+
+        var player = await GetPlayerAsync<TPlayer>(guildId, cancellationToken).ConfigureAwait(false);
+
+        var channelBehavior = retrieveOptions.ChannelBehavior;
+        var voiceStateBehavior = retrieveOptions.VoiceStateBehavior;
+
+        var preconditions = retrieveOptions.Preconditions.IsDefaultOrEmpty
+            ? ImmutableArray<IPlayerPrecondition>.Empty
+            : retrieveOptions.Preconditions;
+
+        if (player is not null)
+        {
+            if (voiceStateBehavior is MemberVoiceStateBehavior.AlwaysRequired or MemberVoiceStateBehavior.RequireSame &&
+                memberVoiceChannel is null)
+            {
+                return PlayerResult<TPlayer>.UserNotInVoiceChannel;
+            }
+
+            // Player is in a different voice channel than the member
+            if (memberVoiceChannel != player.VoiceChannelId)
+            {
+                if (voiceStateBehavior is MemberVoiceStateBehavior.RequireSame)
+                {
+                    // It is specified that the user must be in the same channel as the player, fail
+                    return PlayerResult<TPlayer>.VoiceChannelMismatch;
+                }
+
+                if (memberVoiceChannel is not null && channelBehavior is PlayerChannelBehavior.Move)
+                {
+                    // It is specified that the player should be moved to the user's channel
+                    await _clientWrapper
+                        .SendVoiceUpdateAsync(guildId, memberVoiceChannel.Value, selfDeaf: options.Value.SelfDeaf, selfMute: options.Value.SelfMute, cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+
+            return await CheckPreconditionsAsync(player, preconditions, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (memberVoiceChannel is null)
+        {
+            return PlayerResult<TPlayer>.UserNotInVoiceChannel;
+        }
+
+        var allowConnectToVoiceChannel = channelBehavior is not PlayerChannelBehavior.None;
+
+        if (!allowConnectToVoiceChannel)
+        {
+            return PlayerResult<TPlayer>.BotNotConnected;
+        }
+
+        player = await JoinAsync(guildId, memberVoiceChannel.Value, playerFactory, options, cancellationToken).ConfigureAwait(false);
+
+        return await CheckPreconditionsAsync(player, preconditions, cancellationToken).ConfigureAwait(false);
     }
 }

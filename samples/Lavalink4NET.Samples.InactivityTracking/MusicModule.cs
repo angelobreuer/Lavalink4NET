@@ -3,7 +3,6 @@ namespace Lavalink4NET.Discord_NET.ExampleBot;
 using System;
 using System.Threading.Tasks;
 using Discord.Interactions;
-using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -174,7 +173,9 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     /// </returns>
     private async ValueTask<CustomPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
-        var joinOptions = new PlayerJoinOptions(ConnectToVoiceChannel: connectToVoiceChannel);
+        var retrieveOptions = new PlayerRetrieveOptions(
+            ChannelBehavior: connectToVoiceChannel ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None);
+
         var textChannel = Context.Guild.SystemChannel ?? Context.Guild.TextChannels.FirstOrDefault();
         var playerOptions = new CustomPlayerOptions(textChannel);
 
@@ -185,15 +186,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         }
 
         var result = await _audioService.Players
-            .GetOrJoinAsync<CustomPlayer, CustomPlayerOptions>(Context, playerFactory: CreatePlayer, options: Options.Create(playerOptions), joinOptions)
+            .RetrieveAsync<CustomPlayer, CustomPlayerOptions>(Context, playerFactory: CreatePlayer, options: Options.Create(playerOptions), retrieveOptions)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)
         {
             var errorMessage = result.Status switch
             {
-                PlayerJoinStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
-                PlayerJoinStatus.BotNotConnected => "The bot is currently not connected.",
+                PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
+                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
                 _ => "Unknown error.",
             };
 
