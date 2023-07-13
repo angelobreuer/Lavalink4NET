@@ -114,7 +114,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         Debug.Assert(_voiceState is not null);
 
         var playerSession = await _playerContext.SessionProvider
-            .GetSessionIdAsync(_guildId, cancellationToken)
+            .GetSessionAsync(_guildId, cancellationToken)
             .ConfigureAwait(false);
 
         var playerProperties = new PlayerUpdateProperties

@@ -89,7 +89,7 @@ public sealed class LavalinkPlayerHandleTests
         ServiceProvider: null,
         DiscordClient: Mock.Of<IDiscordClientWrapper>(),
         SessionProvider: Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(123UL, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(123UL, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(CreateApiClientMock(), "abc"))),
         SystemClock: new SystemClock());
 }

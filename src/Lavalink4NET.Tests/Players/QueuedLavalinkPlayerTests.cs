@@ -60,7 +60,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -128,7 +128,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -196,7 +196,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -266,7 +266,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -341,7 +341,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -418,7 +418,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
@@ -488,7 +488,7 @@ public sealed class QueuedLavalinkPlayerTests
         var discordClientMock = new Mock<IDiscordClientWrapper>();
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
-            => x.GetSessionIdAsync(guildId, It.IsAny<CancellationToken>())
+            => x.GetSessionAsync(guildId, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc")));
 
         var playerProperties = new PlayerProperties<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(

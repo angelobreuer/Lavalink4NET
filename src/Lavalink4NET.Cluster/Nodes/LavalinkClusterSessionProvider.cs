@@ -16,7 +16,7 @@ internal sealed class LavalinkClusterSessionProvider : ILavalinkSessionProvider
         _loadBalancer = loadBalancer;
     }
 
-    public async ValueTask<LavalinkPlayerSession> GetSessionIdAsync(ulong guildId, CancellationToken cancellationToken = default)
+    public async ValueTask<LavalinkPlayerSession> GetSessionAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
