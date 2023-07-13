@@ -11,6 +11,8 @@
 	  </Description>
 
 	  <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
+
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
