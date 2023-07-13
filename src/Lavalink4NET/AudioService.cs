@@ -20,6 +20,7 @@ public partial class AudioService : AudioServiceBase
     private readonly LavalinkNodeServiceContext _serviceContext;
     private LavalinkNode? _node;
     private Task? _executeTask;
+    private bool _disposed;
 
     public AudioService(
         IDiscordClientWrapper discordClient,
@@ -51,6 +52,9 @@ public partial class AudioService : AudioServiceBase
 
     public override ValueTask StartAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
+
         if (_executeTask is not null)
         {
             return ValueTask.CompletedTask;
@@ -69,6 +73,7 @@ public partial class AudioService : AudioServiceBase
 
     private async Task RunInternalAsync(LavalinkNode node, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
@@ -80,6 +85,7 @@ public partial class AudioService : AudioServiceBase
 
     public override async ValueTask StopAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_executeTask is null)
@@ -99,10 +105,18 @@ public partial class AudioService : AudioServiceBase
         }
     }
 
-    public string? SessionId => _node?.SessionId;
+    public string? SessionId
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _node?.SessionId;
+        }
+    }
 
     public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_node is null)
@@ -113,8 +127,64 @@ public partial class AudioService : AudioServiceBase
         return _node.WaitForReadyAsync(cancellationToken);
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        // TODO
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            _stoppingCancellationTokenSource.Cancel();
+            _stoppingCancellationTokenSource.Dispose();
+
+            _node?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            _executeTask?.GetAwaiter().GetResult();
+        }
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _stoppingCancellationTokenSource.Cancel();
+        _stoppingCancellationTokenSource.Dispose();
+
+        if (_node is not null)
+        {
+            await _node.DisposeAsync().ConfigureAwait(false);
+        }
+
+        if (_executeTask is not null)
+        {
+            try
+            {
+                await _executeTask.ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+#if NET7_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(_disposed, this);
+#else
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(AudioService));
+        }
+#endif
     }
 }

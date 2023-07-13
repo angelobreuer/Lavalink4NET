@@ -13,7 +13,7 @@ using Lavalink4NET.Tracks;
 /// <summary>
 ///     The interface for a lavalink audio provider service.
 /// </summary>
-public interface IAudioService : IDisposable
+public interface IAudioService : IDisposable, IAsyncDisposable
 {
     event AsyncEventHandler<TrackEndedEventArgs>? TrackEnded;
 

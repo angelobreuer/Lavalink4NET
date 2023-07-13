@@ -24,14 +24,18 @@ using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class LavalinkNode
+internal sealed class LavalinkNode : IAsyncDisposable
 {
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
+    private readonly CancellationTokenSource _shutdownCancellationTokenSource;
+    private readonly CancellationToken _shutdownCancellationToken;
     private readonly TaskCompletionSource _startTaskCompletionSource;
     private readonly LavalinkNodeOptions _options;
     private readonly LavalinkNodeServiceContext _serviceContext;
     private readonly LavalinkApiEndpoints _apiEndpoints;
     private readonly ILogger<LavalinkNode> _logger;
+    private Task? _executeTask;
+    private bool _disposed;
 
     public LavalinkNode(LavalinkNodeServiceContext serviceContext, IOptions<LavalinkNodeOptions> options, LavalinkApiEndpoints apiEndpoints, ILogger<LavalinkNode> logger)
     {
@@ -48,6 +52,9 @@ internal sealed class LavalinkNode
         _logger = logger;
 
         Label = _options.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
+
+        _shutdownCancellationTokenSource = new CancellationTokenSource();
+        _shutdownCancellationToken = _shutdownCancellationTokenSource.Token;
     }
 
     public string Label { get; }
@@ -58,6 +65,7 @@ internal sealed class LavalinkNode
 
     public ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         static async Task WaitForReadyInternalAsync(Task startTask, Task readyTask, CancellationToken cancellationToken)
@@ -133,6 +141,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessEventAsync(IEventPayload payload, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(payload);
 
@@ -161,6 +170,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessPayloadAsync(IPayload payload, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(payload);
 
@@ -223,6 +233,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessStatisticsPayloadAsync(StatisticsPayload statisticsPayload, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(statisticsPayload);
 
@@ -259,6 +270,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessTrackEndEventAsync(ILavalinkPlayer player, TrackEndEventPayload trackEndEvent, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackEndEvent);
@@ -284,6 +296,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessTrackExceptionEventAsync(ILavalinkPlayer player, TrackExceptionEventPayload trackExceptionEvent, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackExceptionEvent);
@@ -314,6 +327,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessTrackStartEventAsync(ILavalinkPlayer player, TrackStartEventPayload trackStartEvent, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackStartEvent);
@@ -338,6 +352,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessTrackStuckEventAsync(ILavalinkPlayer player, TrackStuckEventPayload trackStuckEvent, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackStuckEvent);
@@ -363,6 +378,7 @@ internal sealed class LavalinkNode
 
     private async ValueTask ProcessWebSocketClosedEventAsync(ILavalinkPlayer player, WebSocketClosedEventPayload webSocketClosedEvent, CancellationToken cancellationToken)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(webSocketClosedEvent);
@@ -372,15 +388,32 @@ internal sealed class LavalinkNode
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         _logger.LogInformation("[{Label}] Starting audio service...", Label);
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        if (_executeTask is not null)
+        {
+            throw new InvalidOperationException("The node was already started.");
+        }
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            token1: cancellationToken,
+            token2: _shutdownCancellationToken);
+
+        var linkedCancellationToken = cancellationTokenSource.Token;
+
         try
         {
-
             _startTaskCompletionSource.TrySetResult();
-            await ReceiveInternalAsync(cancellationToken).ConfigureAwait(false);
+
+            _executeTask = ReceiveInternalAsync(linkedCancellationToken);
+            await _executeTask.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
         }
         catch (Exception exception)
         {
@@ -389,12 +422,14 @@ internal sealed class LavalinkNode
         }
         finally
         {
+            _readyTaskCompletionSource.TrySetCanceled();
             _logger.LogInformation("[{Label}] Audio service stopped.", Label);
         }
     }
 
     private async Task ReceiveInternalAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         var stopwatch = Stopwatch.StartNew();
@@ -453,7 +488,7 @@ internal sealed class LavalinkNode
         _logger.LogInformation("[{Label}] Audio Service is ready ({Duration}ms).", Label, stopwatch.ElapsedMilliseconds);
 
         using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));
-        using var cancellationTokenSource = new CancellationTokenSource();
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationToken);
         using var __ = new CancellationTokenDisposable(cancellationTokenSource);
 
         _ = socket.RunAsync(cancellationTokenSource.Token).AsTask();
@@ -463,6 +498,11 @@ internal sealed class LavalinkNode
             var payload = await socket
                 .ReceiveAsync(cancellationToken)
                 .ConfigureAwait(false);
+
+            if (payload is null)
+            {
+                break;
+            }
 
             await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
 
@@ -478,6 +518,45 @@ internal sealed class LavalinkNode
                 {
                     _logger.LogWarning(exception, "[{Label}] Exception occurred while executing integration handler.", Label);
                 }
+            }
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+#if NET7_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(_disposed, this);
+#else
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(AudioService));
+        }
+#endif
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _readyTaskCompletionSource.TrySetCanceled();
+        _startTaskCompletionSource.TrySetCanceled();
+        _shutdownCancellationTokenSource.Cancel();
+        _shutdownCancellationTokenSource.Dispose();
+
+        if (_executeTask is not null)
+        {
+            try
+            {
+                await _executeTask.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // ignore
             }
         }
     }

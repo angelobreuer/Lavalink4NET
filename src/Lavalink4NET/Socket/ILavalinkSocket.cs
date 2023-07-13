@@ -9,7 +9,7 @@ public interface ILavalinkSocket : IDisposable
 {
     string Label { get; }
 
-    ValueTask<IPayload> ReceiveAsync(CancellationToken cancellationToken = default);
+    ValueTask<IPayload?> ReceiveAsync(CancellationToken cancellationToken = default);
 
     ValueTask RunAsync(CancellationToken cancellationToken = default);
 }

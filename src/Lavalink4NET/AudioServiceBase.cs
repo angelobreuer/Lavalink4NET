@@ -33,8 +33,6 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 
     public ITrackManager Tracks { get; }
 
-    public abstract void Dispose();
-
     public abstract ValueTask StartAsync(CancellationToken cancellationToken = default);
 
     public abstract ValueTask StopAsync(CancellationToken cancellationToken = default);
@@ -115,4 +113,22 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         cancellationToken.ThrowIfCancellationRequested();
         return OnStatisticsUpdatedAsync(eventArgs, cancellationToken);
     }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore().ConfigureAwait(false);
+
+        Dispose(disposing: false);
+        GC.SuppressFinalize(this);
+    }
+
+    protected abstract void Dispose(bool disposing);
+
+    protected abstract ValueTask DisposeAsyncCore();
 }

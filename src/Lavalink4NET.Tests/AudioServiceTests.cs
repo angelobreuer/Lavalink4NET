@@ -1,6 +1,8 @@
 ﻿namespace Lavalink4NET.Tests;
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -20,7 +22,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
-using static Xunit.Assert;
 
 public sealed class AudioServiceTests
 {
@@ -37,7 +38,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken cancellationToken) => new ValueTask<ClientInformation>(new TaskCompletionSource<ClientInformation>().Task.WaitAsync(cancellationToken)));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock.Object,
             apiClientProvider: Mock.Of<ILavalinkApiClientProvider>(),
             playerManager: Mock.Of<IPlayerManager>(),
@@ -76,7 +77,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken cancellationToken) => new ValueTask<ClientInformation>(new TaskCompletionSource<ClientInformation>().Task.WaitAsync(cancellationToken)));
 
-        var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock.Object,
             apiClientProvider: Mock.Of<ILavalinkApiClientProvider>(),
             playerManager: Mock.Of<IPlayerManager>(),
@@ -122,7 +123,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         receiveChannel.Writer.TryWrite(new ReadyPayload(
             SessionResumed: false,
@@ -132,13 +133,15 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: Mock.Of<IPlayerManager>(),
             trackManager: Mock.Of<ITrackManager>(),
             socketFactory: socketFactory,
-            integrationManager: Mock.Of<IIntegrationManager>(),
+            integrationManager: Mock.Of<IIntegrationManager>(x
+                => x.GetEnumerator()
+                == Enumerable.Empty<KeyValuePair<Type, ILavalinkIntegration>>().GetEnumerator()),
             loggerFactory: NullLoggerFactory.Instance,
             options: Options.Create(new AudioServiceOptions { ReadyTimeout = TimeSpan.FromSeconds(0.5), }));
 
@@ -171,7 +174,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         receiveChannel.Writer.TryWrite(new ReadyPayload(
             SessionResumed: false,
@@ -191,7 +194,7 @@ public sealed class AudioServiceTests
 
         integrationManager.Set(integration.Object);
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: Mock.Of<IPlayerManager>(),
@@ -238,7 +241,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         var track = new LavalinkTrack
         {
@@ -252,7 +255,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock!.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
@@ -314,7 +317,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         var track = new LavalinkTrack
         {
@@ -328,7 +331,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock!.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
@@ -389,7 +392,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         var track = new LavalinkTrack
         {
@@ -403,7 +406,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock!.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
@@ -430,8 +433,6 @@ public sealed class AudioServiceTests
             await audioService!
                 .WaitForReadyAsync()
                 .ConfigureAwait(false);
-
-            receiveChannel.Writer.Complete();
 
             await Task.Delay(500);
         }
@@ -467,7 +468,7 @@ public sealed class AudioServiceTests
 
         socketMock
             .Setup(x => x.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(() => receiveChannel.Reader.ReadAsync());
+            .Returns((CancellationToken cancellationToken) => receiveChannel.Reader.ReadAsync(cancellationToken)!);
 
         var track = new LavalinkTrack
         {
@@ -481,7 +482,7 @@ public sealed class AudioServiceTests
             .Setup(x => x.WaitForReadyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClientInformation("Mock Client", 0UL, 1));
 
-        using var audioService = new AudioService(
+        await using var audioService = new AudioService(
             discordClient: discordClientMock!.Object,
             apiClientProvider: CreateProvider(apiClientMock.Object),
             playerManager: playerManagerMock!.Object,
@@ -551,13 +552,13 @@ public sealed class AudioServiceTests
         ArgumentNullException.ThrowIfNull(detach);
         ArgumentNullException.ThrowIfNull(testCode);
 
-        async Task<RaisedEvent<T>?> RaisesAsyncInternal()
+        async Task<Assert.RaisedEvent<T>?> RaisesAsyncInternal()
         {
-            RaisedEvent<T>? raisedEvent = null;
+            Assert.RaisedEvent<T>? raisedEvent = null;
 
             Task Handler(object? s, T eventArgs)
             {
-                raisedEvent = new RaisedEvent<T>(s, eventArgs);
+                raisedEvent = new Assert.RaisedEvent<T>(s, eventArgs);
                 return Task.CompletedTask;
             }
 

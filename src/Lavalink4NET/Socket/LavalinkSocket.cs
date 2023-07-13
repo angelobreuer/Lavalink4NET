@@ -38,10 +38,20 @@ internal sealed class LavalinkSocket : ILavalinkSocket
 
     public string Label { get; }
 
-    public ValueTask<IPayload> ReceiveAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IPayload?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _channel.Reader.ReadAsync(cancellationToken);
+
+        try
+        {
+            return await _channel.Reader
+                .ReadAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (ChannelClosedException)
+        {
+            return null;
+        }
     }
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)

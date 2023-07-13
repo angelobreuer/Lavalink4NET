@@ -23,6 +23,7 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
     private readonly CancellationToken _shutdownCancellationToken;
     private readonly ILavalinkApiClientFactory _lavalinkApiClientFactory;
     private readonly ILoggerFactory _loggerFactory;
+    private bool _disposed;
 
     public ClusterAudioService(
         IDiscordClientWrapper discordClient,
@@ -106,11 +107,6 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         return true;
     }
 
-    public override void Dispose()
-    {
-        _shutdownCancellationTokenSource.Dispose();
-    }
-
     public override async ValueTask StartAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -138,5 +134,34 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
     public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException(); // TODO
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            StopAsync().AsTask().GetAwaiter().GetResult();
+            _shutdownCancellationTokenSource.Dispose();
+        }
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        await StopAsync().ConfigureAwait(false);
+        _shutdownCancellationTokenSource.Dispose();
     }
 }
