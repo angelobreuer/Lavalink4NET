@@ -25,7 +25,7 @@ public abstract class LavalinkApiClientBase
         if (options.Value.Passphrase.Equals("youshallnotpass", StringComparison.Ordinal) &&
             Interlocked.CompareExchange(ref _insecurePassphraseNoticeSent, 1, 0) is 0)
         {
-            logger.LogWarning("You are using the default password for Lavalink. Please change");
+            logger.LogWarning("The default Lavalink password is currently being used. It is highly recommended to change the password immediately to enhance the security of your system.");
         }
 
         _options = options;
