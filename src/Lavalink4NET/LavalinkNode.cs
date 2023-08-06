@@ -487,36 +487,40 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         _logger.LogInformation("[{Label}] Audio Service is ready ({Duration}ms).", Label, stopwatch.ElapsedMilliseconds);
 
-        using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationToken);
         using var __ = new CancellationTokenDisposable(cancellationTokenSource);
 
-        _ = socket.RunAsync(cancellationTokenSource.Token).AsTask();
-
-        while (true)
+        while (!_shutdownCancellationToken.IsCancellationRequested)
         {
-            var payload = await socket
-                .ReceiveAsync(cancellationToken)
-                .ConfigureAwait(false);
+            using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));
 
-            if (payload is null)
+            _ = socket.RunAsync(cancellationTokenSource.Token).AsTask();
+
+            while (true)
             {
-                break;
-            }
+                var payload = await socket
+                    .ReceiveAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
-            await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
-
-            foreach (var (_, integration) in _serviceContext.IntegrationManager)
-            {
-                try
+                if (payload is null)
                 {
-                    await integration
-                        .ProcessPayloadAsync(payload, cancellationToken)
-                        .ConfigureAwait(false);
+                    break;
                 }
-                catch (Exception exception)
+
+                await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (_, integration) in _serviceContext.IntegrationManager)
                 {
-                    _logger.LogWarning(exception, "[{Label}] Exception occurred while executing integration handler.", Label);
+                    try
+                    {
+                        await integration
+                            .ProcessPayloadAsync(payload, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogWarning(exception, "[{Label}] Exception occurred while executing integration handler.", Label);
+                    }
                 }
             }
         }
