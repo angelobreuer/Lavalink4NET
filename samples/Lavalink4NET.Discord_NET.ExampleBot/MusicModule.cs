@@ -96,7 +96,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("position", description: "Shows the track position", runMode: RunMode.Async)]
     public async Task Position()
     {
-        var player = await GetPlayerAsync().ConfigureAwait(false);
+        var player = await GetPlayerAsync(connectToVoiceChannel: false).ConfigureAwait(false);
 
         if (player is null)
         {
@@ -109,7 +109,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        await RespondAsync($"Position: {player.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
+        await RespondAsync($"Position: {player.Position?.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var player = await GetPlayerAsync().ConfigureAwait(false);
+        var player = await GetPlayerAsync(connectToVoiceChannel: false).ConfigureAwait(false);
 
         if (player is null)
         {
@@ -159,6 +159,76 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         await player.SetVolumeAsync(volume / 100f).ConfigureAwait(false);
         await RespondAsync($"Volume updated: {volume}%").ConfigureAwait(false);
+    }
+
+    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    public async Task Skip()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.CurrentTrack is null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+            return;
+        }
+
+        await player.SkipAsync().ConfigureAwait(false);
+
+        var track = player.CurrentTrack;
+
+        if (track is not null)
+        {
+            await RespondAsync($"Skipped. Now playing: {track.Uri}").ConfigureAwait(false);
+        }
+        else
+        {
+            await RespondAsync("Skipped. Stopped playing because the queue is now empty.").ConfigureAwait(false);
+        }
+    }
+
+    [SlashCommand("pause", description: "Pauses the player.", runMode: RunMode.Async)]
+    public async Task PauseAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.State is PlayerState.Paused)
+        {
+            await RespondAsync("Player is already paused.").ConfigureAwait(false);
+            return;
+        }
+
+        await player.PauseAsync().ConfigureAwait(false);
+        await RespondAsync("Paused.").ConfigureAwait(false);
+    }
+
+    [SlashCommand("resume", description: "Resumes the player.", runMode: RunMode.Async)]
+    public async Task ResumeAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.State is not PlayerState.Paused)
+        {
+            await RespondAsync("Player is not paused.").ConfigureAwait(false);
+            return;
+        }
+
+        await player.ResumeAsync().ConfigureAwait(false);
+        await RespondAsync("Resumed.").ConfigureAwait(false);
     }
 
     /// <summary>
