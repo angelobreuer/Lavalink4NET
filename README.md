@@ -21,7 +21,7 @@
 
 - 🔄 **Auto-Reconnect and Resuming**<br>Maintain uninterrupted audio playback during connection disruptions.
 
-- 🔌 **Fully Asynchronous Interface**<br>Interact smoothly with the Lavalink audio server without slowing down your bot.
+- 🔌 **Fully Asynchronous Interface**<br>Effortlessly communicate with the Lavalink audio server without causing delays in your bot. All actions that can be offloaded are asynchronous and can be canceled at any time if needed.
 
 - 📝 **Logging** *(optional)*<br>Enable insights for troubleshooting and debugging.
 
