@@ -17,7 +17,7 @@ internal sealed class TrackEndReasonJsonConverter : JsonConverter<TrackEndReason
         return value.ToUpperInvariant() switch
         {
             "FINISHED" => TrackEndReason.Finished,
-            "LOAD_FAILED" => TrackEndReason.LoadFailed,
+            "LOADFAILED" or "LOAD_FAILED" => TrackEndReason.LoadFailed,
             "STOPPED" => TrackEndReason.Stopped,
             "REPLACED" => TrackEndReason.Replaced,
             "CLEANUP" => TrackEndReason.Cleanup,
