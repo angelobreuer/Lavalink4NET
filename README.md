@@ -8,10 +8,39 @@
 
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
 
-<p align="center"><b>
-🔌 Asynchronous Interface | ⚖️ Node Clustering / Load Balancing | ✳️ Extensible | 🎤 Lyrics | 🗳️ Queueing / Voting-System | 🎵 Track Decoding and Encoding | 🔄 Auto-Reconnect and Resuming | 📝 Logging | ⚡ Request Caching | ⏱️ Inactivity Tracking | 🖋️ Supports most Lavalink plugins | 🎶 Custom players | 🖼️ Artwork resolution | 🎚️ Audio filter support | 📊 Statistics tracking support | ➕ Compatible with DSharpPlus and Discord.Net
-</b> | And a lot more...</p>
-    
+### Features
+- ⚖️ **Node Clustering / Load Balancing**<br>Distribute load across nodes for efficient and reliable audio playback (for large scale bots).
+
+- ✳️ **Extensible**<br>Customize and enhance features using plugins to match your bot's needs.
+
+- 🎤 **Lyrics**<br>Display song lyrics alongside audio playback to enrich the user experience.
+
+- 🗳️ **Queueing / Voting-System**<br>Let users queue tracks and vote on the next songs, enhancing collaborative playlists.
+
+- 🎵 **Track Decoding and Encoding**<br>Lavalink4NET supports high efficient track decoding and encoding of lavaplayer track identifiers.
+
+- 🔄 **Auto-Reconnect and Resuming**<br>Maintain uninterrupted audio playback during connection disruptions.
+
+- 🔌 **Fully Asynchronous Interface**<br>Interact smoothly with the Lavalink audio server without slowing down your bot.
+
+- 📝 **Logging** *(optional)*<br>Enable insights for troubleshooting and debugging.
+
+- ⚡ **Request Caching** *(optional)*<br>Improve performance by reducing redundant requests.
+
+- ⏱️ **Inactivity Tracking** *(optional)*<br>Monitor inactive players and disconnect them to save resources.
+
+- 🖋️ **Supports Lavalink plugins**<br>Expand capabilities by integrating with Lavalink plugins.
+
+- 🎶 **Custom players**<br>Manage audio playback instances tailored to your bot's requirements.
+
+- 🖼️ **Artwork resolution**<br>Lavalink4NET allows the user to resolve artwork images for the tracks to display an appealing image to the user.
+
+- 🎚️ **Audio filter support**<br>Lavalink4NET supports all audio filters provided by lavaplayer and even more when installing the ExtraFilters plugin.
+
+- 📊 **Statistics tracking support**<br>Lavalink4NET supports tracking and evaluation of node statistics. In clustering, node statistics can be used to evaluate the best node for efficient resource usage.
+
+- ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus and Discord.Net are supported out-of-the-box.
+  
 [![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
 
 ### Components
