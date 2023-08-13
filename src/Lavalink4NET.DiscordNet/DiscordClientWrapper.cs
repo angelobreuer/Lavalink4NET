@@ -189,12 +189,12 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         cancellationToken.ThrowIfCancellationRequested();
 
         var guild = _baseSocketClient.GetGuild(guildId)
-            ?? throw new ArgumentException("Invalid or inaccessible guild: " + guildId, nameof(guildId));
+            ?? throw new ArgumentException($"Invalid or inaccessible guild: {guildId}", nameof(guildId));
 
         if (voiceChannelId.HasValue)
         {
             var channel = guild.GetVoiceChannel(voiceChannelId.Value)
-                ?? throw new ArgumentException("Invalid or inaccessible voice channel: " + voiceChannelId, nameof(voiceChannelId));
+                ?? throw new ArgumentException($"Invalid or inaccessible voice channel: {voiceChannelId}", nameof(voiceChannelId));
 
             await channel
                 .ConnectAsync(selfDeaf, selfMute, external: true)
@@ -205,9 +205,10 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         }
 
         // Disconnect from voice channel
+        // Note: Internally it does not matter which voice channel to disconnect from
         await guild
-            .AudioClient
-            .StopAsync()
+            .VoiceChannels.First()
+            .DisconnectAsync()
             .WaitAsync(cancellationToken)
             .ConfigureAwait(false);
     }
