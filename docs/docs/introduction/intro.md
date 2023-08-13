@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Introduction
+# Intro
 
 Using Discord music bots is an awesome way to bring some musical vibes to your server. These bots are capable of playing tunes from various sources like YouTube, SoundCloud, and Spotify – a musical medley at your fingertips!
 
