@@ -29,7 +29,7 @@ public static class PlayerManagerExtensions
 
         return playerManager.RetrieveAsync(
             guildId: interactionContext.Guild.Id,
-            memberVoiceChannel: userVoiceState?.VoiceChannel.Id,
+            memberVoiceChannel: userVoiceState?.VoiceChannel?.Id,
             playerFactory: playerFactory,
             options: options,
             retrieveOptions: retrieveOptions,
