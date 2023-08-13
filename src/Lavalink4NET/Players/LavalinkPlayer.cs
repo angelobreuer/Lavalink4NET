@@ -360,10 +360,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             IsConnected: connected,
             Latency: latency);
 
-        _logger.LogTrace(
-            "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).",
-            GuildId, timestamp, position, connected, latency);
+        _logger.PlayerUpdateProcessed(GuildId, timestamp, position, connected, latency);
 
         return default;
     }
+}
+
+internal static partial class Logging
+{
+    [LoggerMessage(1, LogLevel.Debug, "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).", EventName = nameof(PlayerUpdateProcessed))]
+    public static partial void PlayerUpdateProcessed(this ILogger<LavalinkPlayer> logger, ulong playerId, DateTimeOffset absoluteTimestamp, TimeSpan position, bool isConnected, TimeSpan? latency);
 }

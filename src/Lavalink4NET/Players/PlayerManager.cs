@@ -141,9 +141,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             return Task.CompletedTask;
         }
 
-        _logger.LogTrace(
-            "Voice server for player '{GuildId}' updated (token: {Token}, endpoint: {Endpoint}).",
-            eventArgs.GuildId, eventArgs.VoiceServer.Token, eventArgs.VoiceServer.Endpoint);
+        _logger.VoiceServerUpdated(eventArgs.GuildId, eventArgs.VoiceServer.Token, eventArgs.VoiceServer.Endpoint);
 
         return playerHandle.UpdateVoiceServerAsync(eventArgs.VoiceServer).AsTask();
     }
@@ -158,9 +156,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             return Task.CompletedTask;
         }
 
-        _logger.LogTrace(
-            "Voice state for player '{GuildId}' updated (channel id: {ChannelId}, session id: {SessionId}).",
-            eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
+        _logger.VoiceStateUpdated(eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId, eventArgs.VoiceState.SessionId);
 
         return playerHandle.UpdateVoiceStateAsync(eventArgs.VoiceState).AsTask();
     }
@@ -268,4 +264,13 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         return await CheckPreconditionsAsync(player, preconditions, cancellationToken).ConfigureAwait(false);
     }
+}
+
+internal static partial class Logging
+{
+    [LoggerMessage(1, LogLevel.Trace, "Voice server for player '{GuildId}' updated (token: {Token}, endpoint: {Endpoint}).", EventName = nameof(VoiceServerUpdated))]
+    public static partial void VoiceServerUpdated(this ILogger<PlayerManager> logger, ulong guildId, string token, string endpoint);
+
+    [LoggerMessage(2, LogLevel.Trace, "Voice state for player '{GuildId}' updated (channel id: {ChannelId}, session id: {SessionId}).", EventName = nameof(VoiceStateUpdated))]
+    public static partial void VoiceStateUpdated(this ILogger<PlayerManager> logger, ulong guildId, ulong? channelId, string sessionId);
 }

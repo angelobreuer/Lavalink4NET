@@ -151,7 +151,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         if (player is null)
         {
-            _logger.LogDebug("[{Label}] Received an event payload for a non-registered player: {GuildId}.", Label, payload.GuildId);
+            _logger.ReceivedEventPayloadForNonRegisteredPlayer(Label, payload.GuildId);
             return;
         }
 
@@ -176,24 +176,24 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         if (_logger.IsEnabled(LogLevel.Trace))
         {
-            _logger.LogTrace("[{Label}] Received payload from lavalink node: {Payload}", Label, SerializePayload(payload));
+            _logger.ReceivedPayloadFromLavalinkNode(Label, SerializePayload(payload));
         }
 
         if (payload is ReadyPayload readyPayload)
         {
             if (!_readyTaskCompletionSource.TrySetResult(readyPayload.SessionId))
             {
-                _logger.LogWarning("[{Label}] Multiple ready payloads were received.", Label);
+                _logger.MultipleReadyPayloadsReceived(Label);
             }
 
             SessionId = readyPayload.SessionId;
 
-            _logger.LogInformation("[{Label}] Lavalink4NET is ready (session identifier: {SessionId}).", Label, SessionId);
+            _logger.Ready(Label, SessionId);
         }
 
         if (SessionId is null)
         {
-            _logger.LogWarning("[{Label}] A payload was received before the ready payload was received. The payload will be ignored.", Label);
+            _logger.PayloadReceivedBeforeReadyPayload(Label);
             return;
         }
 
@@ -211,7 +211,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
             if (player is null)
             {
-                _logger.LogDebug("[{Label}] Received a player update payload for a non-registered player: {GuildId}.", Label, playerUpdatePayload.GuildId);
+                _logger.ReceivedPlayerUpdatePayloadForNonRegisteredPlayer(Label, playerUpdatePayload.GuildId);
                 return;
             }
 
@@ -389,7 +389,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        _logger.LogInformation("[{Label}] Starting audio service...", Label);
+        _logger.StartingAudioService(Label);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -423,7 +423,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         finally
         {
             _readyTaskCompletionSource.TrySetCanceled();
-            _logger.LogInformation("[{Label}] Audio service stopped.", Label);
+            _logger.AudioServiceStopped(Label);
         }
     }
 
@@ -456,7 +456,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
             }
         }
 
-        _logger.LogDebug("[{Label}] Waiting for client being ready...", Label);
+        _logger.WaitingForClientBeingReady(Label);
 
         var clientInformation = await WaitForClientReadyAsync(
             clientWrapper: _serviceContext.ClientWrapper,
@@ -466,11 +466,11 @@ internal sealed class LavalinkNode : IAsyncDisposable
         if (clientInformation is null)
         {
             var exception = new TimeoutException("Timed out while waiting for discord client being ready.");
-            _logger.LogError(exception, "[{Label}] Timed out while waiting for discord client being ready.", Label);
+            _logger.TimedOutWhileWaitingForDiscordClientBeingReady(Label, exception);
             throw exception;
         }
 
-        _logger.LogDebug("[{Label}] Discord client ({ClientLabel}) is ready.", Label, clientInformation.Value.Label);
+        _logger.DiscordClientIsReady(Label, clientInformation.Value.Label);
 
         var webSocketUri = _options.WebSocketUri ?? _apiEndpoints.WebSocket;
 
@@ -485,7 +485,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         stopwatch.Stop();
 
-        _logger.LogInformation("[{Label}] Audio Service is ready ({Duration}ms).", Label, stopwatch.ElapsedMilliseconds);
+        _logger.AudioServiceIsReady(Label, stopwatch.ElapsedMilliseconds);
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationToken);
         using var __ = new CancellationTokenDisposable(cancellationTokenSource);
@@ -519,7 +519,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogWarning(exception, "[{Label}] Exception occurred while executing integration handler.", Label);
+                        _logger.ExceptionOccurredWhileExecutingIntegrationHandler(Label, exception);
                     }
                 }
             }
@@ -569,4 +569,46 @@ internal sealed class LavalinkNode : IAsyncDisposable
 file readonly record struct CancellationTokenDisposable(CancellationTokenSource CancellationTokenSource) : IDisposable
 {
     public void Dispose() => CancellationTokenSource.Cancel();
+}
+
+internal static partial class Logging
+{
+    [LoggerMessage(1, LogLevel.Debug, "[{Label}] Received an event payload for a non-registered player: {GuildId}.", EventName = nameof(ReceivedEventPayloadForNonRegisteredPlayer))]
+    public static partial void ReceivedEventPayloadForNonRegisteredPlayer(this ILogger<LavalinkNode> logger, string label, ulong guildId);
+
+    [LoggerMessage(2, LogLevel.Trace, "[{Label}] Received payload from lavalink node: {Payload}", EventName = nameof(ReceivedPayloadFromLavalinkNode))]
+    public static partial void ReceivedPayloadFromLavalinkNode(this ILogger<LavalinkNode> logger, string label, string payload);
+
+    [LoggerMessage(3, LogLevel.Warning, "[{Label}] Multiple ready payloads were received.", EventName = nameof(MultipleReadyPayloadsReceived))]
+    public static partial void MultipleReadyPayloadsReceived(this ILogger<LavalinkNode> logger, string label);
+
+    [LoggerMessage(4, LogLevel.Information, "[{Label}] Lavalink4NET is ready (session identifier: {SessionId}).", EventName = nameof(Ready))]
+    public static partial void Ready(this ILogger<LavalinkNode> logger, string label, string sessionId);
+
+    [LoggerMessage(5, LogLevel.Warning, "[{Label}] A payload was received before the ready payload was received. The payload will be ignored.", EventName = nameof(PayloadReceivedBeforeReadyPayload))]
+    public static partial void PayloadReceivedBeforeReadyPayload(this ILogger<LavalinkNode> logger, string label);
+
+    [LoggerMessage(6, LogLevel.Debug, "[{Label}] Received a player update payload for a non-registered player: {GuildId}.", EventName = nameof(ReceivedPlayerUpdatePayloadForNonRegisteredPlayer))]
+    public static partial void ReceivedPlayerUpdatePayloadForNonRegisteredPlayer(this ILogger<LavalinkNode> logger, string label, ulong guildId);
+
+    [LoggerMessage(7, LogLevel.Information, "[{Label}] Starting audio service...", EventName = nameof(StartingAudioService))]
+    public static partial void StartingAudioService(this ILogger<LavalinkNode> logger, string label);
+
+    [LoggerMessage(8, LogLevel.Information, "[{Label}] Audio service stopped.", EventName = nameof(AudioServiceStopped))]
+    public static partial void AudioServiceStopped(this ILogger<LavalinkNode> logger, string label);
+
+    [LoggerMessage(9, LogLevel.Debug, "[{Label}] Waiting for client being ready...", EventName = nameof(WaitingForClientBeingReady))]
+    public static partial void WaitingForClientBeingReady(this ILogger<LavalinkNode> logger, string label);
+
+    [LoggerMessage(10, LogLevel.Error, "[{Label}] Timed out while waiting for discord client being ready.", EventName = nameof(TimedOutWhileWaitingForDiscordClientBeingReady))]
+    public static partial void TimedOutWhileWaitingForDiscordClientBeingReady(this ILogger<LavalinkNode> logger, string label, Exception exception);
+
+    [LoggerMessage(11, LogLevel.Debug, "[{Label}] Discord client ({ClientLabel}) is ready.", EventName = nameof(DiscordClientIsReady))]
+    public static partial void DiscordClientIsReady(this ILogger<LavalinkNode> logger, string label, string clientLabel);
+
+    [LoggerMessage(12, LogLevel.Information, "[{Label}] Audio Service is ready ({Duration}ms).", EventName = nameof(AudioServiceIsReady))]
+    public static partial void AudioServiceIsReady(this ILogger<LavalinkNode> logger, string label, long duration);
+
+    [LoggerMessage(13, LogLevel.Error, "[{Label}] Exception occurred while executing integration handler.", EventName = nameof(ExceptionOccurredWhileExecutingIntegrationHandler))]
+    public static partial void ExceptionOccurredWhileExecutingIntegrationHandler(this ILogger<LavalinkNode> logger, string label, Exception exception);
 }

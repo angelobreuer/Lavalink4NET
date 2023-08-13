@@ -70,7 +70,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _logger.LogDebug("[{Label}] Attempting to connect to Lavalink node...", Label);
+                _logger.AttemptingToConnect(Label);
 
                 var webSocket = new ClientWebSocket();
 
@@ -85,7 +85,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
                         .ConnectAsync(_options.Value.Uri, cancellationToken)
                         .ConfigureAwait(false);
 
-                    _logger.LogDebug("[{Label}] Connection to Lavalink node established.", Label);
+                    _logger.ConnectionEstablished(Label);
 
                     return webSocket;
                 }
@@ -95,7 +95,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
                         .Delay(2500, cancellationToken)
                         .ConfigureAwait(false);
 
-                    _logger.LogDebug(exception, "[{Label}] Failed to connect to the Lavalink node.", Label);
+                    _logger.FailedToConnect(Label, exception);
                 }
             }
         }
@@ -184,4 +184,16 @@ internal sealed class LavalinkSocket : ILavalinkSocket
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+}
+
+internal static partial class Logging
+{
+    [LoggerMessage(1, LogLevel.Debug, "[{Label}] Attempting to connect to Lavalink node...", EventName = nameof(AttemptingToConnect))]
+    public static partial void AttemptingToConnect(this ILogger<LavalinkSocket> logger, string label);
+
+    [LoggerMessage(2, LogLevel.Debug, "[{Label}] Connection to Lavalink node established.", EventName = nameof(ConnectionEstablished))]
+    public static partial void ConnectionEstablished(this ILogger<LavalinkSocket> logger, string label);
+
+    [LoggerMessage(3, LogLevel.Debug, "[{Label}] Failed to connect to the Lavalink node.", EventName = nameof(FailedToConnect))]
+    public static partial void FailedToConnect(this ILogger<LavalinkSocket> logger, string label, Exception exception);
 }

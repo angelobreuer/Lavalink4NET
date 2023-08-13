@@ -147,7 +147,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                 // add the player to tracking list
                 if (inactiveSince == utcNow)
                 {
-                    _logger.LogDebug("Tracked player {GuildId} as inactive.", player.GuildId);
+                    _logger.TrackedPlayerAsInactive(player.GuildId);
 
                     // trigger event
                     var eventArgs = new PlayerTrackingStatusUpdateEventArgs(
@@ -184,7 +184,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                         continue;
                     }
 
-                    _logger.LogDebug("Destroyed player {GuildId} due inactivity.", player.GuildId);
+                    _logger.DestroyedPlayerDueInactivity(player.GuildId);
 
                     await using var _ = player.ConfigureAwait(false);
                     await NotifyAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
@@ -199,7 +199,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
                         .ConfigureAwait(false);
                 }
 
-                _logger.LogDebug("Removed player {GuildId} from tracking list.", player.GuildId);
+                _logger.RemovedPlayerFromTrackingList(player.GuildId);
 
                 // remove from tracking list
                 await NotifyAsync(player.GuildId, player, cancellationToken).ConfigureAwait(false);
@@ -211,7 +211,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         {
             if (_players.TryRemove(destroyedPlayer, out _))
             {
-                _logger.LogDebug("Removed player {GuildId} from tracking list.", destroyedPlayer);
+                _logger.RemovedPlayerFromTrackingList(destroyedPlayer);
 
                 // remove from tracking list
                 await NotifyAsync(destroyedPlayer, player: null, cancellationToken).ConfigureAwait(false);
@@ -433,4 +433,16 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             // ignore
         }
     }
+}
+
+internal static partial class Logger
+{
+    [LoggerMessage(1, LogLevel.Debug, "Tracked player {GuildId} as inactive.", EventName = nameof(TrackedPlayerAsInactive))]
+    public static partial void TrackedPlayerAsInactive(this ILogger<InactivityTrackingService> logger, ulong guildId);
+
+    [LoggerMessage(2, LogLevel.Debug, "Destroyed player {GuildId} due inactivity.", EventName = nameof(DestroyedPlayerDueInactivity))]
+    public static partial void DestroyedPlayerDueInactivity(this ILogger<InactivityTrackingService> logger, ulong guildId);
+
+    [LoggerMessage(3, LogLevel.Debug, "Removed player {GuildId} from tracking list.", EventName = nameof(RemovedPlayerFromTrackingList))]
+    public static partial void RemovedPlayerFromTrackingList(this ILogger<InactivityTrackingService> logger, ulong guildId);
 }

@@ -179,7 +179,7 @@ public sealed class LyricsService : ILyricsService
             // exceptions are suppressed
             if (_suppressExceptions)
             {
-                _logger.LogWarning(exception, "Error while loading lyrics for artist '{Artist}' and track '{Track}'.", artist, title);
+                _logger.ErrorWhileLoadingLyrics(artist, title);
                 return null;
             }
 
@@ -188,4 +188,10 @@ public sealed class LyricsService : ILyricsService
 
         return lyricsResponse!.Lyrics;
     }
+}
+
+internal static partial class Logging
+{
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Error while loading lyrics for artist '{Artist}' and track '{Track}'.", EventName = nameof(ErrorWhileLoadingLyrics))]
+    public static partial void ErrorWhileLoadingLyrics(this ILogger<LyricsService> logger, string artist, string track);
 }
