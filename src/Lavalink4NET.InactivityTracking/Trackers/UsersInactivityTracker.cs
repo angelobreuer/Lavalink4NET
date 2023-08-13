@@ -7,9 +7,12 @@ public sealed class UsersInactivityTracker : IInactivityTracker
 {
     private readonly UsersInactivityTrackerOptions _options;
 
-    public UsersInactivityTracker(UsersInactivityTrackerOptions options) => _options = options;
+    public UsersInactivityTracker(UsersInactivityTrackerOptions options)
+    {
+        _options = options;
+    }
 
-    public async ValueTask<bool> CheckAsync(InactivityTrackingContext context, CancellationToken cancellationToken = default)
+    public async ValueTask<PlayerActivityStatus> CheckAsync(InactivityTrackingContext context, CancellationToken cancellationToken = default)
     {
         var includeBots = !_options.ExcludeBots.GetValueOrDefault(true);
 
@@ -17,6 +20,8 @@ public sealed class UsersInactivityTracker : IInactivityTracker
             .GetChannelUsersAsync(context.Player.GuildId, context.Player.VoiceChannelId, includeBots, cancellationToken)
             .ConfigureAwait(false);
 
-        return usersInChannel.Length < _options.Threshold.GetValueOrDefault(1);
+        return usersInChannel.Length >= _options.Threshold.GetValueOrDefault(1)
+            ? PlayerActivityStatus.Active
+            : PlayerActivityStatus.Inactive;
     }
 }

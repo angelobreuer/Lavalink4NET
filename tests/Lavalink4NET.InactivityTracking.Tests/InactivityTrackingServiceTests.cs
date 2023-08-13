@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.InactivityTracking.Players;
+using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 using Microsoft.Extensions.Internal;
@@ -129,7 +130,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -161,7 +162,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -199,7 +200,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -239,7 +240,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -278,7 +279,7 @@ public sealed class InactivityTrackingServiceTests
     public async Task TestPlayerRemovedFromTrackingListIfActiveAgainAsync()
     {
         // Arrange
-        var inactive = true;
+        var status = PlayerActivityStatus.Inactive;
 
         var player = new Mock<ILavalinkPlayer>();
         var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player.Object, });
@@ -287,7 +288,7 @@ public sealed class InactivityTrackingServiceTests
 
         tracker
             .Setup(x => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => inactive);
+            .ReturnsAsync(() => status);
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -300,7 +301,7 @@ public sealed class InactivityTrackingServiceTests
             .PollAsync()
             .ConfigureAwait(false);
 
-        inactive = false;
+        status = PlayerActivityStatus.Active;
 
         // Act
         await inactivityTrackingService
@@ -325,7 +326,7 @@ public sealed class InactivityTrackingServiceTests
 
         tracker
             .Setup(x => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => true);
+            .ReturnsAsync(() => PlayerActivityStatus.Inactive);
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager.Object,
@@ -363,7 +364,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -386,7 +387,7 @@ public sealed class InactivityTrackingServiceTests
     {
         // Arrange
         var currentTime = DateTimeOffset.UtcNow;
-        var inactive = true;
+        var status = PlayerActivityStatus.Inactive;
 
         var systemClock = new Mock<ISystemClock>();
         systemClock.SetupGet(x => x.UtcNow).Returns(() => currentTime);
@@ -403,7 +404,7 @@ public sealed class InactivityTrackingServiceTests
 
         tracker
             .Setup(x => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => inactive);
+            .ReturnsAsync(() => status);
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
@@ -417,7 +418,7 @@ public sealed class InactivityTrackingServiceTests
             .ConfigureAwait(false);
 
         currentTime = currentTime.AddDays(1);
-        inactive = false;
+        status = PlayerActivityStatus.Active;
 
         // Act
         await inactivityTrackingService
@@ -447,7 +448,7 @@ public sealed class InactivityTrackingServiceTests
 
         var tracker = Mock.Of<IInactivityTracker>(x
             => x.CheckAsync(It.IsAny<InactivityTrackingContext>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(true));
+            == ValueTask.FromResult(PlayerActivityStatus.Inactive));
 
         using var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,

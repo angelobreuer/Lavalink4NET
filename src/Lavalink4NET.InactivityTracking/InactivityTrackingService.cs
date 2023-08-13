@@ -270,7 +270,11 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             // Any of the trackers need to mark the player as inactive to be considered inactive
             foreach (var tracker in _options.Trackers)
             {
-                if (await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
+                var result = await tracker
+                    .CheckAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (result is PlayerActivityStatus.Inactive)
                 {
                     return true;
                 }
@@ -283,7 +287,11 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             // All trackers need to mark the player as inactive to be considered inactive
             foreach (var tracker in _options.Trackers)
             {
-                if (!await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
+                var result = await tracker
+                    .CheckAsync(context, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (result is PlayerActivityStatus.Active)
                 {
                     return false;
                 }

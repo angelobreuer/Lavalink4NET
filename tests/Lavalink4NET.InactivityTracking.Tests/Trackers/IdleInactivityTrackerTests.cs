@@ -28,7 +28,7 @@ public sealed class IdleInactivityTrackerTests
             .ConfigureAwait(false);
 
         // Assert
-        Assert.False(result);
+        Assert.Equal(PlayerActivityStatus.Active, result);
     }
 
     [Fact]
@@ -52,6 +52,6 @@ public sealed class IdleInactivityTrackerTests
             .ConfigureAwait(false);
 
         // Assert
-        Assert.True(result);
+        Assert.Equal(PlayerActivityStatus.Inactive, result);
     }
 }
