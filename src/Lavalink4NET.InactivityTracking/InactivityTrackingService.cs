@@ -8,6 +8,7 @@ using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.InactivityTracking.Players;
+using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 using Microsoft.Extensions.Internal;
@@ -264,17 +265,32 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             Client: _clientWrapper,
             Player: player);
 
-        // iterate through the trackers
-        foreach (var tracker in _options.Trackers)
+        if (_options.Mode is InactivityTrackingMode.Any)
         {
-            // check if the player is inactivity
-            if (await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
+            // Any of the trackers need to mark the player as inactive to be considered inactive
+            foreach (var tracker in _options.Trackers)
             {
-                return true;
+                if (await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        }
+        else
+        {
+            // All trackers need to mark the player as inactive to be considered inactive
+            foreach (var tracker in _options.Trackers)
+            {
+                if (!await tracker.CheckAsync(context, cancellationToken).ConfigureAwait(false))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     /// <summary>
