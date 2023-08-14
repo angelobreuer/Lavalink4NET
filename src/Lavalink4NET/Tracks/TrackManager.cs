@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Tracks;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ internal sealed class TrackManager : ITrackManager
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
 
+        var metricTag = KeyValuePair.Create<string, object?>("Identifier", identifier);
+
         var apiClient = await resolutionScope
             .GetClientAsync(_apiClientProvider, cancellationToken)
             .ConfigureAwait(false);
@@ -39,18 +42,18 @@ internal sealed class TrackManager : ITrackManager
 
             if (result is not null)
             {
-                Diagnostics.ResolvedTracks.Add(1);
+                Diagnostics.ResolvedTracks.Add(1, metricTag);
             }
             else
             {
-                Diagnostics.FailedQueries.Add(1);
+                Diagnostics.FailedQueries.Add(1, metricTag);
             }
 
             return result;
         }
         catch
         {
-            Diagnostics.FailedQueries.Add(1);
+            Diagnostics.FailedQueries.Add(1, metricTag);
             throw;
         }
     }
@@ -81,6 +84,8 @@ internal sealed class TrackManager : ITrackManager
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
 
+        var metricTag = KeyValuePair.Create<string, object?>("Identifier", identifier);
+
         var apiClient = await resolutionScope
             .GetClientAsync(_apiClientProvider, cancellationToken)
             .ConfigureAwait(false);
@@ -93,18 +98,18 @@ internal sealed class TrackManager : ITrackManager
 
             if (result.IsSuccess)
             {
-                Diagnostics.ResolvedTracks.Add(1);
+                Diagnostics.ResolvedTracks.Add(1, metricTag);
             }
             else
             {
-                Diagnostics.FailedQueries.Add(1);
+                Diagnostics.FailedQueries.Add(1, metricTag);
             }
 
             return result;
         }
         catch
         {
-            Diagnostics.FailedQueries.Add(1);
+            Diagnostics.FailedQueries.Add(1, metricTag);
             throw;
         }
     }
