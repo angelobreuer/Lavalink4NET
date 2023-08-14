@@ -432,7 +432,7 @@ public sealed class QueuedLavalinkPlayerTests
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
-            Options: Options.Create(new QueuedLavalinkPlayerOptions()),
+            Options: Options.Create(new QueuedLavalinkPlayerOptions { RespectTrackRepeatOnSkip = true, }),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
         var player = new QueuedLavalinkPlayer(playerProperties);
