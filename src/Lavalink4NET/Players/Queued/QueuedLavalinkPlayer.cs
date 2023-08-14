@@ -64,9 +64,15 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         if (enqueue && (Queue.Count > 0 || State == PlayerState.Playing || State == PlayerState.Paused))
         {
             // add the track to the queue
-            return await Queue
+            var position = await Queue
                 .AddAsync(queueItem, cancellationToken)
                 .ConfigureAwait(false);
+
+            // notify the track was enqueued
+            await NotifyTrackEnqueuedAsync(queueItem, position, cancellationToken).ConfigureAwait(false);
+
+            // return the position in the queue
+            return position;
         }
 
         // play the track immediately
@@ -173,6 +179,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         await base
             .StopAsync(disconnect, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    protected virtual ValueTask NotifyTrackEnqueuedAsync(ITrackQueueItem queueItem, int position, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(queueItem);
+        return default;
     }
 
     protected override ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
