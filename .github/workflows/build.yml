@@ -30,7 +30,7 @@ jobs:
       run: dotnet restore src/Lavalink4NET.sln
       
     - name: Build
-      run: dotnet build src/Lavalink4NET.sln --no-restore --configuration ${{ matrix.configuration }} /property:Version=4.0.0-alpha.4
+      run: dotnet build src/Lavalink4NET.sln --no-restore --configuration ${{ matrix.configuration }} /property:Version=4.0.0-alpha.5
 
     - name: Run tests
       working-directory: ci
