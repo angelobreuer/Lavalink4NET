@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Web;
 using Lavalink4NET.Integrations.TextToSpeech.Synthesis;
 
-internal sealed class TextToSpeechTrackEncoder
+internal static class TextToSpeechTrackEncoder
 {
     public static Uri EncodeMessage(string message, string? languageName = null)
     {
