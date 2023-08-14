@@ -14,7 +14,7 @@ public static class AudioServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(audioService);
 
-        audioService.Integrations.Set<ISponsorBlockIntegration, SponsorBlockIntegration>(new SponsorBlockIntegration());
+        audioService.Integrations.Set<ISponsorBlockIntegration, SponsorBlockIntegration>(new SponsorBlockIntegration(audioService));
 
         return audioService;
     }
