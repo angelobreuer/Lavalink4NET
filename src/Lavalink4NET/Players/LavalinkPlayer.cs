@@ -267,7 +267,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 #endif
     }
 
-    protected virtual ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default) => default;
+    protected virtual ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
+    {
+        CurrentTrack = null;
+        return default;
+    }
 
     protected virtual ValueTask OnTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken = default) => default;
 
