@@ -17,3 +17,9 @@ What exactly is inactivity tracking? Inactivity tracking is a feature that allow
 - **Inactive**: The player was previously tracked and the inactivity deadline is reached. The player will be disconnected from the voice channel on the next poll.
 
 The inactivity tracking service will poll, by default every 5 seconds, all players. If an inactivity tracker reports that the player is inactive, the player will be marked as tracked. If the player is inactive for a certain amount of time, the player will be marked as inactive and will be disconnected from the voice channel.
+
+## Package
+
+:::note
+The inactivity tracking feature is only available in the `Lavalink4NET.InactivityTracking` package.
+:::
