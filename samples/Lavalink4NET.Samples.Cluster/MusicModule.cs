@@ -6,6 +6,7 @@ using Discord.Interactions;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
+using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
 
 /// <summary>
@@ -35,8 +36,10 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
+        var resolutionScope = new LavalinkApiResolutionScope(player.ApiClient);
+
         var track = await _audioService.Tracks
-            .LoadTrackAsync(query, TrackSearchMode.YouTube)
+            .LoadTrackAsync(query, TrackSearchMode.YouTube, resolutionScope)
             .ConfigureAwait(false);
 
         if (track is null)
