@@ -10,6 +10,8 @@ However, the player does not implement more advanced features such as queueing t
 
 If you do not need any of these advanced features, you can use the default player. This can be useful for bots which do not need player management features, for example when playing a radio stream in a channel.
 
+## Members
+
 The player implements the following important members:
 
 ```csharp
@@ -30,4 +32,14 @@ ValueTask SeekAsync(TimeSpan position, CancellationToken cancellationToken = def
 ValueTask SeekAsync(TimeSpan position, SeekOrigin seekOrigin, CancellationToken cancellationToken = default);
 
 ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default);
+```
+
+## Usage
+
+Lavalink4NET provides a player factory for this player which can be used to create the default player without additional configuration. You can pass the player factory to the `RetrieveAsync` method:
+
+```csharp
+var result = await _audioService.Players
+    .RetrieveAsync(Context, playerFactory: PlayerFactory.Default, retrieveOptions)
+    .ConfigureAwait(false);
 ```
