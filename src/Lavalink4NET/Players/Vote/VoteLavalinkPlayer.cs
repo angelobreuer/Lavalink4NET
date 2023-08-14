@@ -118,7 +118,7 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
         return UserVoteResult.Skipped;
     }
 
-    protected override async ValueTask OnTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
+    protected override async ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
@@ -131,7 +131,7 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
         }
 
         await base
-            .OnTrackEndedAsync(track, endReason, cancellationToken)
+            .NotifyTrackEndedAsync(track, endReason, cancellationToken)
             .ConfigureAwait(false);
     }
 }
