@@ -54,3 +54,16 @@ await player
     .ResetSponsorBlockCategoriesAsync()
     .ConfigureAwait(false);
 ```
+
+## Player listener
+
+Similar to the inactivity tracking service, the SponsorBlock integration also implements a player listener for receiving event notifications. The player listener can be used to receive notifications when the track segments were loaded, or a segment was skipped in the track.
+
+```csharp
+public interface ISponsorBlockPlayerListener : ILavalinkPlayerListener
+{
+    ValueTask NotifySegmentSkippedAsync(Segment segment, CancellationToken cancellationToken = default);
+
+    ValueTask NotifySegmentsLoadedAsync(ImmutableArray<Segment> segments, CancellationToken cancellationToken = default);
+}
+```
