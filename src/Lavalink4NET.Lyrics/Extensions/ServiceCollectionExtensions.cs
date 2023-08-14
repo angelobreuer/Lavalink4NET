@@ -16,4 +16,11 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    public static IServiceCollection ConfigureLyrics(this IServiceCollection services, Action<LyricsOptions> configure)
+    {
+        services.Configure(configure);
+
+        return services;
+    }
 }
