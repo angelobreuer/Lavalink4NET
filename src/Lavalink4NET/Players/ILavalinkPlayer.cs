@@ -10,6 +10,8 @@ using Lavalink4NET.Tracks;
 
 public interface ILavalinkPlayer : IAsyncDisposable
 {
+    IPlayerFilters Filters { get; }
+
     ILavalinkApiClient ApiClient { get; }
 
     IDiscordClientWrapper DiscordClient { get; }

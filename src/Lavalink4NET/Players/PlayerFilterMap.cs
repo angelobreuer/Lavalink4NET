@@ -5,36 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Protocol.Models.Filters;
 
 internal sealed class PlayerFilterMap : IPlayerFilters
 {
     private readonly Dictionary<Type, IFilterOptions> _filters;
+    private readonly LavalinkPlayer _lavalinkPlayer;
     private int _dirtyState; // 0 = none, 1 = dirty
 
-    public PlayerFilterMap()
+    public PlayerFilterMap(LavalinkPlayer lavalinkPlayer)
     {
+        ArgumentNullException.ThrowIfNull(lavalinkPlayer);
+
         _filters = new Dictionary<Type, IFilterOptions>();
-    }
-
-    internal PlayerFilterMapModel? BuildFilterMap()
-    {
-        var dirtyState = Interlocked.Exchange(ref _dirtyState, 0);
-
-        if (dirtyState is 0)
-        {
-            return null;
-        }
-
-        var filterMap = new PlayerFilterMapModel();
-
-        foreach (var (_, filterOptions) in _filters.Where(x => !x.Value.IsDefault))
-        {
-            filterOptions.Apply(ref filterMap);
-        }
-
-        return filterMap;
+        _lavalinkPlayer = lavalinkPlayer;
     }
 
     public ChannelMixFilterOptions? ChannelMix
@@ -151,5 +137,26 @@ internal sealed class PlayerFilterMap : IPlayerFilters
         }
 
         return false;
+    }
+
+    public ValueTask CommitAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dirtyState = Interlocked.Exchange(ref _dirtyState, 0);
+
+        if (dirtyState is 0)
+        {
+            return default;
+        }
+
+        var filterMap = new PlayerFilterMapModel();
+
+        foreach (var (_, filterOptions) in _filters.Where(x => !x.Value.IsDefault))
+        {
+            filterOptions.Apply(ref filterMap);
+        }
+
+        return _lavalinkPlayer.UpdateFiltersAsync(filterMap, cancellationToken);
     }
 }

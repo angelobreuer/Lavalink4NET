@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
@@ -41,6 +42,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger = properties.Logger;
         _syncedAt = properties.SystemClock.UtcNow;
         _unstretchedRelativePosition = default;
+
+        Filters = new PlayerFilterMap(this);
 
         Refresh(properties.InitialState);
     }
@@ -87,6 +90,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     public PlayerConnectionState ConnectionState { get; private set; }
 
     public IDiscordClientWrapper DiscordClient { get; }
+
+    public IPlayerFilters Filters { get; }
 
     void ILavalinkPlayerListener.NotifyChannelUpdate(ulong voiceChannelId)
     {
@@ -332,6 +337,18 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         Volume = model.Volume;
 
         // TODO: restore filters
+    }
+
+    internal async ValueTask UpdateFiltersAsync(PlayerFilterMapModel filterMap, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var properties = new PlayerUpdateProperties
+        {
+            Filters = filterMap,
+        };
+
+        await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
     protected virtual async ValueTask DisposeAsyncCore()

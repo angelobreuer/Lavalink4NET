@@ -1,5 +1,7 @@
 ﻿namespace Lavalink4NET.Players;
 
+using System.Threading;
+using System.Threading.Tasks;
 using Lavalink4NET.Filters;
 
 public interface IPlayerFilters
@@ -33,4 +35,6 @@ public interface IPlayerFilters
     void SetFilter<T>(T? filterOptions) where T : IFilterOptions;
 
     bool TryRemove<T>() where T : IFilterOptions;
+
+    ValueTask CommitAsync(CancellationToken cancellationToken = default);
 }

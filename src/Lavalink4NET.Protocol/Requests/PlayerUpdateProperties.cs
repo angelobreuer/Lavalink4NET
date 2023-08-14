@@ -1,10 +1,9 @@
 ﻿namespace Lavalink4NET.Protocol.Requests;
 
 using System;
-using System.Collections.Generic;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
+using Lavalink4NET.Protocol.Models.Filters;
 
 public sealed record class PlayerUpdateProperties
 {
@@ -40,8 +39,8 @@ public sealed record class PlayerUpdateProperties
 
     [JsonPropertyName("filters")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [JsonConverter(typeof(OptionalJsonConverter<IDictionary<string, JsonObject>>))]
-    public Optional<IDictionary<string, JsonObject>> Filters { get; set; }
+    [JsonConverter(typeof(OptionalJsonConverter<PlayerFilterMapModel>))]
+    public Optional<PlayerFilterMapModel> Filters { get; set; }
 
     [JsonPropertyName("voice")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
