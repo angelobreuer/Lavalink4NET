@@ -10,6 +10,10 @@ Lavalink4NET provides an integration for the SponsorBlock plugin with the [`Lava
 
 For using SponsorBlock, you need to install the [`Lavalink4NET.Integrations.SponsorBlock`](https://www.nuget.org/packages/Lavalink4NET.Integrations.SponsorBlock) package.
 
+:::caution
+You need to have the [SponsorBlock plugin](https://github.com/topi314/Sponsorblock-Plugin) installed on your Lavalink server.
+:::
+
 ## Usage
 
 First, you need to integrate the SponsorBlock plugin with Lavalink4NET. You can do this by calling `UseSponsorBlock` on either the host or the audio service:
