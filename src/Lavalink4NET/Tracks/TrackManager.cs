@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.Tracks;
 using System;
+using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Rest;
@@ -30,9 +31,28 @@ internal sealed class TrackManager : ITrackManager
             .GetClientAsync(_apiClientProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        return await apiClient
-            .LoadTrackAsync(identifier, loadOptions, cancellationToken)
-            .ConfigureAwait(false);
+        try
+        {
+            var result = await apiClient
+                .LoadTrackAsync(identifier, loadOptions, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result is not null)
+            {
+                Diagnostics.ResolvedTracks.Add(1);
+            }
+            else
+            {
+                Diagnostics.FailedQueries.Add(1);
+            }
+
+            return result;
+        }
+        catch
+        {
+            Diagnostics.FailedQueries.Add(1);
+            throw;
+        }
     }
 
     public ValueTask<LavalinkTrack?> LoadTrackAsync(
@@ -65,9 +85,28 @@ internal sealed class TrackManager : ITrackManager
             .GetClientAsync(_apiClientProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        return await apiClient
-            .LoadTracksAsync(identifier, loadOptions, cancellationToken)
-            .ConfigureAwait(false);
+        try
+        {
+            var result = await apiClient
+                .LoadTracksAsync(identifier, loadOptions, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.IsSuccess)
+            {
+                Diagnostics.ResolvedTracks.Add(1);
+            }
+            else
+            {
+                Diagnostics.FailedQueries.Add(1);
+            }
+
+            return result;
+        }
+        catch
+        {
+            Diagnostics.FailedQueries.Add(1);
+            throw;
+        }
     }
 
     public ValueTask<TrackLoadResult> LoadTracksAsync(
@@ -85,5 +124,27 @@ internal sealed class TrackManager : ITrackManager
             CacheMode: CacheMode.Dynamic);
 
         return LoadTracksAsync(identifier, loadOptions, resolutionScope, cancellationToken);
+    }
+}
+
+file static class Diagnostics
+{
+    public static Counter<long> ResolvedTracks { get; }
+
+    public static Counter<long> FailedQueries { get; }
+
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        ResolvedTracks = meter.CreateCounter<long>(
+            name: "resolved-tracks",
+            unit: "Tracks",
+            description: "The number of resolved tracks.");
+
+        FailedQueries = meter.CreateCounter<long>(
+            name: "failed-queries",
+            unit: "Queries",
+            description: "The number of failed track queries.");
     }
 }
