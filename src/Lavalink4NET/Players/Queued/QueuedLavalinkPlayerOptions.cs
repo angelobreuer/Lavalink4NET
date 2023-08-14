@@ -12,5 +12,13 @@ public record class QueuedLavalinkPlayerOptions : LavalinkPlayerOptions
 
     public bool ResetShuffleOnStop { get; init; } = true;
 
+    /// <summary>
+    ///     Denotes whether to respect the track repeat mode when skipping tracks. For example, if the track repeat mode is set to
+    ///     <see cref="TrackRepeatMode.Track" /> and the current track is skipped, the player will repeat the current track. If this
+    ///     property is set to <see langword="false" />, the player will not repeat the current track. The default value is
+    ///     <see langword="false" />.
+    /// </summary>
+    public bool RespectTrackRepeatOnSkip { get; init; } = false;
+
     public TrackRepeatMode DefaultTrackRepeatMode { get; init; } = TrackRepeatMode.None;
 }

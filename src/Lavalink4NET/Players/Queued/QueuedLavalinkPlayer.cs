@@ -18,6 +18,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     private readonly bool _clearHistoryOnStop;
     private readonly bool _resetTrackRepeatOnStop;
     private readonly bool _resetShuffleOnStop;
+    private readonly bool _respectTrackRepeatOnSkip;
     private readonly TrackRepeatMode _defaultTrackRepeatMode;
 
     /// <summary>
@@ -32,6 +33,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 
         Queue = new TrackQueue(historyCapacity: options.HistoryCapacity);
 
+        _respectTrackRepeatOnSkip = options.RespectTrackRepeatOnSkip;
         _disconnectOnStop = options.DisconnectOnStop;
         _clearQueueOnStop = options.ClearQueueOnStop;
         _resetTrackRepeatOnStop = options.ResetTrackRepeatOnStop;
@@ -120,7 +122,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     /// <param name="count">the number of tracks to skip</param>
     /// <returns>a task that represents the asynchronous operation</returns>
     /// <exception cref="InvalidOperationException">thrown if the player is destroyed</exception>
-    public virtual async ValueTask SkipAsync(int count = 1, CancellationToken cancellationToken = default)
+    public virtual ValueTask SkipAsync(int count = 1, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDestroyed();
@@ -133,18 +135,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
                 "The count must not be negative.");
         }
 
-        var track = await GetNextTrackAsync(count, cancellationToken).ConfigureAwait(false);
-
-        if (!track.IsPresent)
-        {
-            // Do nothing, stop
-            await StopAsync(_disconnectOnStop, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        await base
-            .PlayAsync(track.Value.Track, properties: default, cancellationToken)
-            .ConfigureAwait(false);
+        return PlayNextAsync(count, _respectTrackRepeatOnSkip, cancellationToken);
     }
 
     public override async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
@@ -195,19 +186,38 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 
         if (endReason.MayStartNext())
         {
-            return SkipAsync(count: 1, cancellationToken);
+            return PlayNextAsync(skipCount: 1, respectTrackRepeat: true, cancellationToken);
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private async ValueTask<Optional<ITrackQueueItem>> GetNextTrackAsync(int count = 1, CancellationToken cancellationToken = default)
+    private async ValueTask PlayNextAsync(int skipCount = 1, bool respectTrackRepeat = false, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureNotDestroyed();
+
+        var track = await GetNextTrackAsync(skipCount, respectTrackRepeat, cancellationToken).ConfigureAwait(false);
+
+        if (!track.IsPresent)
+        {
+            // Do nothing, stop
+            await StopAsync(_disconnectOnStop, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await base
+            .PlayAsync(track.Value.Track, properties: default, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<Optional<ITrackQueueItem>> GetNextTrackAsync(int count = 1, bool respectTrackRepeat = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var track = default(Optional<ITrackQueueItem>);
 
-        if (RepeatMode is TrackRepeatMode.Track)
+        if (respectTrackRepeat && RepeatMode is TrackRepeatMode.Track)
         {
             return CurrentTrack is null
                 ? Optional<ITrackQueueItem>.Default
