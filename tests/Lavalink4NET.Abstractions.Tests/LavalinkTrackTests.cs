@@ -10,13 +10,33 @@ public sealed class LavalinkTrackTests
     [InlineData("QAAAmAIAMkx1a2FzIEdyYWhhbSAtIExvdmUgU29tZW9uZSBbT0ZGSUNJQUwgTVVTSUMgVklERU9dAAxMdWthcyBHcmFoYW0AAAAAAAOhsAALZE40NHhwSGpOeEUAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kTjQ0eHBIak54RQAHeW91dHViZQAAAAAAAAAA")]
     [InlineData("QAAAcQIADU1FVEFNT1JQSE9TSVMACklOVEVSV09STEQAAAAAAAIt7gAIOTU5OTA4ODcAAQA1aHR0cHM6Ly9tdXNpYy55YW5kZXgucnUvYWxidW0vMTk2MjI4MjYvdHJhY2svOTU5OTA4ODcAAAAAAAAAAAAA")]
     [InlineData("QAAAiwIAC0RlYXRoIG9mIE1lAApTQUlOVCBQSE5YAAAAAAAAdVgAKGh0dHBzOi8vd3d3Lm1ib3hkcml2ZS5jb20vc3RhcnRtdXNpYy5tcDMAAQAoaHR0cHM6Ly93d3cubWJveGRyaXZlLmNvbS9zdGFydG11c2ljLm1wMwAEaHR0cAADbXAzAAAAAAAAAAA=")]
-    public void TestTrackDecodeEncodeRoundTrip(string trackIdentifier)
+    public void TestTrackDecodeEncodeRoundtripV2(string trackIdentifier)
     {
         // Arrange
         var track = LavalinkTrack.Parse(trackIdentifier, provider: null);
+        track.TrackData = null; // avoid caching
 
         // Act
-        var actualTrackIdentifier = track.ToString();
+        var actualTrackIdentifier = track.ToString(version: 2);
+
+        // Assert
+        Assert.Equal(trackIdentifier, actualTrackIdentifier);
+    }
+
+    [Theory]
+    [InlineData("QAAAjgMAJFZhbmNlIEpveSAtICdSaXB0aWRlJyBPZmZpY2lhbCBWaWRlbwAObXVzaHJvb212aWRlb3MAAAAAAAMgyAALdUpfMUhNQUdiNGsAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj11Sl8xSE1BR2I0awAAAAd5b3V0dWJlAAAAAAAAAAA=")]
+    [InlineData("QAAAjwMAK1JpdGEgT3JhIC0gWW91ciBTb25nIChPZmZpY2lhbCBMeXJpYyBWaWRlbykACFJpdGEgT3JhAAAAAAACwwgAC2k5NU5sYjdraVBvAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9aTk1TmxiN2tpUG8AAAAHeW91dHViZQAAAAAAAAAA")]
+    [InlineData("QAAAmgMAMkx1a2FzIEdyYWhhbSAtIExvdmUgU29tZW9uZSBbT0ZGSUNJQUwgTVVTSUMgVklERU9dAAxMdWthcyBHcmFoYW0AAAAAAAOhsAALZE40NHhwSGpOeEUAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kTjQ0eHBIak54RQAAAAd5b3V0dWJlAAAAAAAAAAA=")]
+    [InlineData("QAAAcwMADU1FVEFNT1JQSE9TSVMACklOVEVSV09STEQAAAAAAAIt7gAIOTU5OTA4ODcAAQA1aHR0cHM6Ly9tdXNpYy55YW5kZXgucnUvYWxidW0vMTk2MjI4MjYvdHJhY2svOTU5OTA4ODcAAAAAAAAAAAAAAAA=")]
+    [InlineData("QAAAjQMAC0RlYXRoIG9mIE1lAApTQUlOVCBQSE5YAAAAAAAAdVgAKGh0dHBzOi8vd3d3Lm1ib3hkcml2ZS5jb20vc3RhcnRtdXNpYy5tcDMAAQAoaHR0cHM6Ly93d3cubWJveGRyaXZlLmNvbS9zdGFydG11c2ljLm1wMwAAAARodHRwAANtcDMAAAAAAAAAAA==")]
+    public void TestTrackDecodeEncodeRoundtripV3(string trackIdentifier)
+    {
+        // Arrange
+        var track = LavalinkTrack.Parse(trackIdentifier, provider: null);
+        track.TrackData = null; // avoid caching
+
+        // Act
+        var actualTrackIdentifier = track.ToString(version: 3);
 
         // Assert
         Assert.Equal(trackIdentifier, actualTrackIdentifier);

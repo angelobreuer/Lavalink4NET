@@ -10,13 +10,23 @@ public partial record class LavalinkTrack : ISpanFormattable
 {
     public override string ToString()
     {
-        return ToString(format: null, formatProvider: null);
+        return ToString(version: null, format: null, formatProvider: null);
     }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
+        return ToString(version: null, format: format, formatProvider: formatProvider);
+    }
+
+    public string ToString(int? version)
+    {
+        return ToString(version: version, format: null, formatProvider: null);
+    }
+
+    public string ToString(int? version, string? format, IFormatProvider? formatProvider)
+    {
         // The ToString method is culture-neutral and format-neutral
-        if (TrackData is not null)
+        if (TrackData is not null && version is null)
         {
             return TrackData;
         }
@@ -24,7 +34,7 @@ public partial record class LavalinkTrack : ISpanFormattable
         Span<char> buffer = stackalloc char[256];
 
         int charsWritten;
-        while (!TryFormat(buffer, out charsWritten, format ?? default, formatProvider))
+        while (!TryFormat(buffer, out charsWritten, version, format ?? default, formatProvider))
         {
             buffer = GC.AllocateUninitializedArray<char>(buffer.Length * 2);
         }
@@ -34,11 +44,18 @@ public partial record class LavalinkTrack : ISpanFormattable
 
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
+        return TryFormat(destination, out charsWritten, version: null, format, provider);
+    }
+
+#pragma warning disable IDE0060
+    public bool TryFormat(Span<char> destination, out int charsWritten, int? version, ReadOnlySpan<char> format, IFormatProvider? provider)
+#pragma warning restore IDE0060
+    {
         var buffer = ArrayPool<byte>.Shared.Rent(destination.Length);
 
         try
         {
-            var result = TryEncode(buffer, out var bytesWritten);
+            var result = TryEncode(buffer, version, out var bytesWritten);
 
             if (!result)
             {
@@ -87,8 +104,15 @@ public partial record class LavalinkTrack : ISpanFormattable
         }
     }
 
-    private bool TryEncode(Span<byte> buffer, out int bytesWritten)
+    private bool TryEncode(Span<byte> buffer, int? version, out int bytesWritten)
     {
+        var versionValue = version ?? 3;
+
+        if (versionValue is not 2 and not 3)
+        {
+            throw new ArgumentOutOfRangeException(nameof(version));
+        }
+
         if (SourceName is null)
         {
             throw new InvalidOperationException("Unknown source.");
@@ -127,13 +151,16 @@ public partial record class LavalinkTrack : ISpanFormattable
             return false;
         }
 
-        var span = buffer[..8];
-        buffer = buffer[8..];
-        bytesWritten += 8;
+        var duration = Duration == TimeSpan.MaxValue
+            ? long.MaxValue
+            : (long)Math.Round(Duration.TotalMilliseconds);
 
         BinaryPrimitives.WriteInt64BigEndian(
-            destination: span,
-            value: (long)Math.Round(Duration.TotalMilliseconds));
+            destination: buffer[..8],
+            value: duration);
+
+        buffer = buffer[8..];
+        bytesWritten += 8;
 
         // Write track identifier
         if (!TryEncodeString(ref buffer, Identifier, ref bytesWritten))
@@ -141,31 +168,33 @@ public partial record class LavalinkTrack : ISpanFormattable
             return false;
         }
 
-        // Write stream and URI flags
-        if (buffer.Length < 2)
+        // Write stream flag
+        if (buffer.Length < 1)
         {
             return false;
         }
 
-        span = buffer[..2];
-        buffer = buffer[2..];
-        bytesWritten += 2;
+        buffer[0] = (byte)(IsLiveStream ? 1 : 0);
 
-        span[0] = (byte)(IsLiveStream ? 1 : 0);
+        bytesWritten++;
+        buffer = buffer[1..];
 
-        // Write URI if possible
-        if (Uri is not null)
+        var rawUri = Uri is null ? string.Empty : Uri.ToString();
+
+        if (!TryEncodeOptionalString(ref buffer, rawUri, ref bytesWritten))
         {
-            span[1] = 1; // URI present
+            return false;
+        }
 
-            if (!TryEncodeString(ref buffer, Uri.ToString(), ref bytesWritten))
+        if (versionValue >= 3)
+        {
+            var rawArtworkUri = ArtworkUri is null ? string.Empty : ArtworkUri.ToString();
+
+            if (!TryEncodeOptionalString(ref buffer, rawArtworkUri, ref bytesWritten) ||
+                !TryEncodeOptionalString(ref buffer, Isrc, ref bytesWritten))
             {
                 return false;
             }
-        }
-        else
-        {
-            span[1] = 0; // URI not present
         }
 
         // Write source name
@@ -186,28 +215,27 @@ public partial record class LavalinkTrack : ISpanFormattable
             return false;
         }
 
-        span = buffer[..8];
-        // buffer = buffer[8..]
-        bytesWritten += 8;
-
         BinaryPrimitives.WriteInt64BigEndian(
-            destination: span,
+            destination: buffer[..8],
             value: (long)Math.Round(StartPosition?.TotalMilliseconds ?? 0));
 
+        // buffer = buffer[8..];
+        bytesWritten += 8;
+
         var payloadLength = bytesWritten - 4;
-        EncodeHeader(headerBuffer, payloadLength);
+        EncodeHeader(headerBuffer, payloadLength, (byte)versionValue);
 
         return true;
     }
 
-    private static void EncodeHeader(Span<byte> headerBuffer, int payloadLength)
+    private static void EncodeHeader(Span<byte> headerBuffer, int payloadLength, byte version)
     {
         // Set "has version" in header
         var header = 0b01000000000000000000000000000000 | payloadLength;
         BinaryPrimitives.WriteInt32BigEndian(headerBuffer, header);
 
         // version
-        headerBuffer[4] = 2;
+        headerBuffer[4] = version;
     }
 
     private static bool TryEncodeString(ref Span<byte> span, ReadOnlySpan<char> value, ref int bytesWritten)
@@ -238,4 +266,29 @@ public partial record class LavalinkTrack : ISpanFormattable
         return true;
     }
 
+    private static bool TryEncodeOptionalString(ref Span<byte> span, ReadOnlySpan<char> value, ref int bytesWritten)
+    {
+        if (span.Length < 1)
+        {
+            return false;
+        }
+
+        var present = !value.IsWhiteSpace();
+
+        span[0] = (byte)(present ? 1 : 0);
+        span = span[1..];
+        bytesWritten++;
+
+        if (!present)
+        {
+            return true;
+        }
+
+        if (!TryEncodeString(ref span, value, ref bytesWritten))
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

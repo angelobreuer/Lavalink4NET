@@ -333,7 +333,7 @@ public sealed class QueuedLavalinkPlayerTests
             {
                 // In this case the track data is used because the track has been already resolved
                 Assert.True(properties.TrackData.IsPresent);
-                Assert.Equal("QAAAMQIABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAGbWFudWFsAAAAAAAAJxA=", properties.TrackData.Value);
+                Assert.Equal("QAAAMwMABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAAAAZtYW51YWwAAAAAAAAnEA==", properties.TrackData.Value);
             })
             .ReturnsAsync(resultModel)
             .Verifiable();
@@ -410,7 +410,7 @@ public sealed class QueuedLavalinkPlayerTests
             {
                 // In this case the track data is used because the track has been already resolved
                 Assert.True(properties.TrackData.IsPresent);
-                Assert.Equal("QAAAMQIABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAGbWFudWFsAAAAAAAAJxA=", properties.TrackData.Value);
+                Assert.Equal("QAAAMwMABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAAAAZtYW51YWwAAAAAAAAnEA==", properties.TrackData.Value);
             })
             .ReturnsAsync(resultModel)
             .Verifiable();

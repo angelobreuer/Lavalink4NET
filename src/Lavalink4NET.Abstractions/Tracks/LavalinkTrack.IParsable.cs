@@ -61,7 +61,7 @@ public partial record class LavalinkTrack
                 return false;
             }
 
-            return TryParse(pool.AsSpan(0, decodedBytesWritten), out result);
+            return TryParse(s, pool.AsSpan(0, decodedBytesWritten), out result);
         }
         finally
         {
@@ -69,14 +69,14 @@ public partial record class LavalinkTrack
         }
     }
 
-    private static bool TryParse(ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out LavalinkTrack result)
+    private static bool TryParse(ReadOnlySpan<char> originalTrackData, ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out LavalinkTrack result)
     {
         result = null;
 
-        if (!TryReadHeader(ref buffer) ||
+        if (!TryReadHeader(ref buffer, out var version) ||
             !TryReadString(ref buffer, out var title) ||
             !TryReadString(ref buffer, out var author) ||
-            !TryReadInt64(ref buffer, out var duration) ||
+            !TryReadInt64(ref buffer, out var durationValue) ||
             !TryReadString(ref buffer, out var identifier) ||
             !TryReadBoolean(ref buffer, out var isStream) ||
             !TryReadOptionalString(ref buffer, out var rawUri))
@@ -84,8 +84,22 @@ public partial record class LavalinkTrack
             return false;
         }
 
+        var rawArtworkUri = default(string?);
+        var isrc = default(string?);
+
+        if (version >= 3 && (!TryReadOptionalString(ref buffer, out rawArtworkUri) || !TryReadOptionalString(ref buffer, out isrc)))
+        {
+            return false;
+        }
+
         var uri = default(Uri?);
         if (rawUri is not null && !Uri.TryCreate(rawUri, UriKind.Absolute, out uri))
+        {
+            return false;
+        }
+
+        var artworkUri = default(Uri?);
+        if (rawArtworkUri is not null && !Uri.TryCreate(rawArtworkUri, UriKind.Absolute, out artworkUri))
         {
             return false;
         }
@@ -105,30 +119,43 @@ public partial record class LavalinkTrack
             return false;
         }
 
-        if (!TryReadInt64(ref buffer, out var startPosition))
+        if (!TryReadInt64(ref buffer, out var startPositionValue))
         {
             return false;
         }
+
+        var startPosition = startPositionValue is 0
+            ? default(TimeSpan?)
+            : TimeSpan.FromMilliseconds(startPositionValue);
+
+        var duration = durationValue == long.MaxValue
+            ? TimeSpan.MaxValue
+            : TimeSpan.FromMilliseconds(durationValue);
 
         result = new LavalinkTrack
         {
             Author = author,
             Identifier = identifier,
             Title = title,
-            Duration = TimeSpan.FromMilliseconds(duration),
+            Duration = duration,
             IsLiveStream = isStream,
             IsSeekable = !isStream,
             ProbeInfo = containerProbeInformation,
             SourceName = sourceName,
-            StartPosition = startPosition is 0 ? null : TimeSpan.FromMilliseconds(startPosition),
+            StartPosition = startPosition,
             Uri = uri,
+            ArtworkUri = artworkUri,
+            Isrc = isrc,
+            TrackData = originalTrackData.ToString(),
         };
 
         return true;
     }
 
-    private static bool TryReadHeader(ref ReadOnlySpan<byte> buffer)
+    private static bool TryReadHeader(ref ReadOnlySpan<byte> buffer, out int version)
     {
+        version = 1;
+
         if (buffer.Length is < 4)
         {
             return false;
@@ -150,7 +177,6 @@ public partial record class LavalinkTrack
             return false;
         }
 
-        var version = 1;
         if (hasVersion)
         {
             if (buffer.IsEmpty)
@@ -164,8 +190,9 @@ public partial record class LavalinkTrack
         }
 
         // verify version
-        if (version is not 2)
+        if (version is not 2 and not 3)
         {
+            // unsupported version
             return false;
         }
 
