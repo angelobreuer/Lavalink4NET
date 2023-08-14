@@ -51,7 +51,7 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
                 return LavalinkNodeStatus.OnDemand;
             }
 
-            if (_node.IsReady)
+            if (!_node.IsReady)
             {
                 return LavalinkNodeStatus.WaitingForReady;
             }
