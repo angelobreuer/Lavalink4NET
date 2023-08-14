@@ -7,6 +7,8 @@ using Lavalink4NET.Rest;
 
 public interface ILavalinkNode
 {
+    string Label { get; }
+
     ILavalinkApiClient ApiClient { get; }
 
     ILavalinkCluster Cluster { get; }

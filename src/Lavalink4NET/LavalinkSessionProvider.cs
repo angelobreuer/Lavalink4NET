@@ -28,6 +28,6 @@ internal sealed class LavalinkSessionProvider : ILavalinkSessionProvider
             .GetClientAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return new LavalinkPlayerSession(apiClient, _audioService.SessionId!);
+        return new LavalinkPlayerSession(apiClient, _audioService.SessionId!, _audioService.Label);
     }
 }

@@ -2,4 +2,4 @@
 
 using Lavalink4NET.Rest;
 
-public readonly record struct LavalinkPlayerSession(ILavalinkApiClient ApiClient, string SessionId);
+public readonly record struct LavalinkPlayerSession(ILavalinkApiClient ApiClient, string SessionId, string Label);

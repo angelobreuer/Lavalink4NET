@@ -65,7 +65,7 @@ public sealed class PlayerManagerTests
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
             => x.GetSessionAsync(It.IsAny<ulong>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(new LavalinkPlayerSession(apiClient, "abc")));
+            == ValueTask.FromResult(new LavalinkPlayerSession(apiClient, "abc", "abc")));
 
         using var playerManager = new PlayerManager(
             serviceProvider: null,
@@ -98,7 +98,7 @@ public sealed class PlayerManagerTests
 
         var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
             => x.GetSessionAsync(It.IsAny<ulong>(), It.IsAny<CancellationToken>())
-            == ValueTask.FromResult(new LavalinkPlayerSession(apiClient, "abc")));
+            == ValueTask.FromResult(new LavalinkPlayerSession(apiClient, "abc", "abc")));
 
         using var playerManager = new PlayerManager(
             serviceProvider: null,

@@ -50,6 +50,8 @@ public partial class AudioService : AudioServiceBase
             NodeListener: this);
     }
 
+    public string Label => _options.Label;
+
     public override ValueTask StartAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

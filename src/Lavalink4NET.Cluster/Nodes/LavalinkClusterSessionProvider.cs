@@ -28,6 +28,6 @@ internal sealed class LavalinkClusterSessionProvider : ILavalinkSessionProvider
             .WaitForReadyAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return new LavalinkPlayerSession(node.ApiClient, node.SessionId!);
+        return new LavalinkPlayerSession(node.ApiClient, node.SessionId!, node.Label);
     }
 }

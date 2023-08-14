@@ -36,6 +36,8 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
 
     public string? SessionId => _node.SessionId;
 
+    public string Label => _node.Label;
+
     public ImmutableArray<string> Tags { get; }
 
     public IImmutableDictionary<string, string> Metadata { get; }
