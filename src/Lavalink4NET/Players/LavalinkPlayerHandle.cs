@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Lavalink4NET.Rest;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerHandle
+internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerHandle, IAsyncDisposable
     where TPlayer : ILavalinkPlayer
     where TOptions : LavalinkPlayerOptions
 {
@@ -23,6 +24,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
     private object _value;
     private VoiceServer? _voiceServer;
     private VoiceState? _voiceState;
+    private int _disposeState;
 
     public LavalinkPlayerHandle(
         ulong guildId,
@@ -43,12 +45,37 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         _playerFactory = playerFactory;
         _options = options;
         _logger = logger;
+
+        Interlocked.Increment(ref Diagnostics.PlayerHandles);
+        Interlocked.Increment(ref Diagnostics.PendingHandles);
     }
 
     public ILavalinkPlayer? Player => _value as ILavalinkPlayer;
 
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.CompareExchange(ref _disposeState, 1, 0) is not 0)
+        {
+            return;
+        }
+
+        if (_value is ILavalinkPlayer player)
+        {
+            await using var _ = player.ConfigureAwait(false);
+
+            Interlocked.Decrement(ref Diagnostics.ActivePlayers);
+        }
+        else
+        {
+            Interlocked.Decrement(ref Diagnostics.PendingHandles);
+        }
+
+        Interlocked.Decrement(ref Diagnostics.PlayerHandles);
+    }
+
     public ValueTask<ILavalinkPlayer> GetPlayerAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
@@ -61,6 +88,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
     public async ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(voiceServer);
 
@@ -74,6 +102,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
     public async ValueTask UpdateVoiceStateAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(voiceState);
 
@@ -85,8 +114,17 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         }
     }
 
+    private void ThrowIfDisposed()
+    {
+        if (_disposeState is not 0)
+        {
+            throw new ObjectDisposedException(objectName: nameof(LavalinkPlayerHandle<TPlayer, TOptions>));
+        }
+    }
+
     private async ValueTask CompleteAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         Debug.Assert(_voiceServer is not null);
@@ -98,16 +136,20 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             _value = player;
 
             taskCompletionSource.TrySetResult(player);
+
+            Interlocked.Decrement(ref Diagnostics.PendingHandles);
+            Interlocked.Increment(ref Diagnostics.ActivePlayers);
         }
 
-        if (_value is ILavalinkPlayerListener playerListener)
+        if (_voiceState.Value.VoiceChannelId is not null && _value is ILavalinkPlayerListener playerListener)
         {
-            playerListener.NotifyChannelUpdate(_voiceState.Value.VoiceChannelId!.Value);
+            playerListener.NotifyChannelUpdate(_voiceState.Value.VoiceChannelId.Value);
         }
     }
 
     private async ValueTask<TPlayer> CreatePlayerAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
         Debug.Assert(_voiceServer is not null);
@@ -166,5 +208,41 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             Logger: _logger);
 
         return await _playerFactory(properties, cancellationToken).ConfigureAwait(false);
+    }
+}
+
+file static class Diagnostics
+{
+    private static long _playerHandles;
+    private static long _pendingHandles;
+    private static long _activePlayers;
+
+    public static ref long PlayerHandles => ref _playerHandles;
+
+    public static ref long PendingHandles => ref _pendingHandles;
+
+    public static ref long ActivePlayers => ref _activePlayers;
+
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        meter.CreateObservableGauge(
+            name: "active-players",
+            observeValue: static () => Volatile.Read(ref _activePlayers),
+            unit: "Players",
+            description: "The number of active players managed over all audio services.");
+
+        meter.CreateObservableGauge(
+            name: "player-handles",
+            observeValue: static () => Volatile.Read(ref _playerHandles),
+            unit: "Handles",
+            description: "The number of player handles managed over all audio services.");
+
+        meter.CreateObservableGauge(
+            name: "pending-handles",
+            observeValue: static () => Volatile.Read(ref _pendingHandles),
+            unit: "Handles",
+            description: "The number of pending player handles managed over all audio services.");
     }
 }
