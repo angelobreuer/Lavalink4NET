@@ -33,6 +33,10 @@ public partial record class LavalinkTrack
 
     public Uri? Uri { get; init; }
 
+    public Uri? ArtworkUri { get; init; }
+
+    public string? Isrc { get; init; }
+
     public string? SourceName { get; init; }
 
     public TimeSpan? StartPosition { get; init; }

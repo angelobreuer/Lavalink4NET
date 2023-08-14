@@ -220,6 +220,8 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         Uri = track.Information.Uri,
         TrackData = track.Data,
         Author = track.Information.Author,
+        ArtworkUri = track.Information.ArtworkUri,
+        Isrc = track.Information.Isrc,
     };
 
     private async ValueTask<LoadResultModel> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)

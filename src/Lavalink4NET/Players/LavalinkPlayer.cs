@@ -317,6 +317,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
                     Uri = track.Uri,
                     SourceName = track.SourceName,
                     StartPosition = track.Position,
+                    ArtworkUri = track.ArtworkUri,
+                    Isrc = track.Isrc,
                 };
             }
         }
