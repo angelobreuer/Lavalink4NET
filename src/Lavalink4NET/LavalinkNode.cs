@@ -478,6 +478,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         var socketOptions = new LavalinkSocketOptions
         {
+            Label = Label,
             HttpClientName = _options.HttpClientName,
             Uri = webSocketUri,
             ShardCount = clientInformation.Value.ShardCount,
