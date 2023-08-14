@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 
 public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 {
+    private readonly string _label;
     private readonly ILogger<LavalinkPlayer> _logger;
     private readonly ISystemClock _systemClock;
     private string? _currentTrackState;
@@ -35,6 +36,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         GuildId = properties.InitialState.GuildId;
         VoiceChannelId = properties.VoiceChannelId;
 
+        _label = properties.Label;
         _systemClock = properties.SystemClock;
         _logger = properties.Logger;
         _syncedAt = properties.SystemClock.UtcNow;
@@ -362,7 +364,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             IsConnected: connected,
             Latency: latency);
 
-        _logger.PlayerUpdateProcessed(GuildId, timestamp, position, connected, latency);
+        _logger.PlayerUpdateProcessed(_label, timestamp, position, connected, latency);
 
         return default;
     }
@@ -370,6 +372,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
 internal static partial class Logging
 {
-    [LoggerMessage(1, LogLevel.Debug, "[{PlayerId}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).", EventName = nameof(PlayerUpdateProcessed))]
-    public static partial void PlayerUpdateProcessed(this ILogger<LavalinkPlayer> logger, ulong playerId, DateTimeOffset absoluteTimestamp, TimeSpan position, bool isConnected, TimeSpan? latency);
+    [LoggerMessage(1, LogLevel.Debug, "[{Label}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).", EventName = nameof(PlayerUpdateProcessed))]
+    public static partial void PlayerUpdateProcessed(this ILogger<LavalinkPlayer> logger, string label, DateTimeOffset absoluteTimestamp, TimeSpan position, bool isConnected, TimeSpan? latency);
 }

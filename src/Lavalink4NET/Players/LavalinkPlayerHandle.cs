@@ -153,7 +153,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             .UpdatePlayerAsync(playerSession.SessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
 
-        var label = _options.Value.Label ?? $"{typeof(TPlayer)}@{_guildId}";
+        var label = _options.Value.Label ?? $"{typeof(TPlayer).Name}@{_guildId}";
 
         var properties = new PlayerProperties<TPlayer, TOptions>(
             Context: _playerContext,
