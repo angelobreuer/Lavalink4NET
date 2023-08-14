@@ -9,16 +9,17 @@ using Lavalink4NET.Rest.Entities;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
 
-public static class LavalinkRestClientExtensions
+public static class TrackManagerExtensions
 {
     public static ValueTask<LavalinkTrack?> GetTextToSpeechTrackAsync(
-        this ILavalinkApiClient apiClient,
+        this ITrackManager trackManager,
         string textToSpeech,
         string? languageName = null,
         CacheMode cacheMode = CacheMode.Dynamic,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(apiClient);
+        ArgumentNullException.ThrowIfNull(trackManager);
         ArgumentNullException.ThrowIfNull(textToSpeech);
 
         var encodedUri = TextToSpeechTrackEncoder.EncodeMessage(textToSpeech, languageName);
@@ -28,18 +29,19 @@ public static class LavalinkRestClientExtensions
             StrictSearch: false,
             CacheMode: cacheMode);
 
-        return apiClient.LoadTrackAsync(encodedUri.ToString(), loadOptions, cancellationToken);
+        return trackManager.LoadTrackAsync(encodedUri.ToString(), loadOptions, resolutionScope, cancellationToken);
     }
 
     public static ValueTask<LavalinkTrack?> GetTextToSpeechTrackAsync(
-        this ILavalinkApiClient apiClient,
+        this ITrackManager trackManager,
         SynthesisInput input,
         VoiceSelectionParameters? voiceSelectionParameters = null,
         AudioConfiguration? audioConfiguration = null,
         CacheMode cacheMode = CacheMode.Dynamic,
+        LavalinkApiResolutionScope resolutionScope = default,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(apiClient);
+        ArgumentNullException.ThrowIfNull(trackManager);
         ArgumentNullException.ThrowIfNull(input);
 
         var encodedUri = TextToSpeechTrackEncoder.EncodeMessage(input, voiceSelectionParameters, audioConfiguration);
@@ -49,6 +51,6 @@ public static class LavalinkRestClientExtensions
             StrictSearch: false,
             CacheMode: cacheMode);
 
-        return apiClient.LoadTrackAsync(encodedUri.ToString(), loadOptions, cancellationToken);
+        return trackManager.LoadTrackAsync(encodedUri.ToString(), loadOptions, resolutionScope, cancellationToken);
     }
 }
