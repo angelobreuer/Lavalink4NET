@@ -84,6 +84,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Samples.Remora
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.Lavasearch", "Lavalink4NET.Integrations.Lavasearch\Lavalink4NET.Integrations.Lavasearch.csproj", "{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.Lavasrc", "Lavalink4NET.Integrations.Lavasrc\Lavalink4NET.Integrations.Lavasrc.csproj", "{AA551948-593B-4245-ACFB-D392A499C08F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -222,6 +224,10 @@ Global
 		{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA551948-593B-4245-ACFB-D392A499C08F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA551948-593B-4245-ACFB-D392A499C08F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA551948-593B-4245-ACFB-D392A499C08F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA551948-593B-4245-ACFB-D392A499C08F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -244,6 +250,7 @@ Global
 		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A} = {5FAEC63E-9752-48C4-8BC9-B101E0DBDBD3}
 		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 		{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
+		{AA551948-593B-4245-ACFB-D392A499C08F} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}
