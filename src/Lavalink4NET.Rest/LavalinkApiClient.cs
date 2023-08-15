@@ -85,12 +85,18 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             cacheAccessor.Set(loadResult, relativeExpiration);
         }
 
+        static TrackLoadResult CreatePlaylist(PlaylistLoadResultData loadResult)
+        {
+            var (playlist, tracks) = LavalinkApiClient.CreatePlaylist(loadResult);
+            return TrackLoadResult.CreatePlaylist(tracks, playlist);
+        }
+
         return loadResult switch
         {
             TrackLoadResultModel result => TrackLoadResult.CreateTrack(CreateTrack(result.Data)),
-            PlaylistLoadResultModel result => CreatePlaylist(result.Data),
             SearchLoadResultModel result => TrackLoadResult.CreateSearch(result.Data.Select(CreateTrack).ToImmutableArray()),
             ErrorLoadResultModel result => TrackLoadResult.CreateError(new TrackException(result.Data.Severity, result.Data.Message, result.Data.Cause)),
+            PlaylistLoadResultModel result => CreatePlaylist(result.Data),
 
             _ => TrackLoadResult.CreateEmpty(),
         };
@@ -193,8 +199,10 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         throw new InvalidOperationException($"The query '{identifier}' has an search mode specified while search mode is set explicitly and strict mode is enabled.");
     }
 
-    private static TrackLoadResult CreatePlaylist(PlaylistLoadResultData loadResult)
+    internal static (PlaylistInformation Playlist, ImmutableArray<LavalinkTrack> Tracks) CreatePlaylist(PlaylistLoadResultData loadResult)
     {
+        ArgumentNullException.ThrowIfNull(loadResult);
+
         var tracks = loadResult.Tracks.Select(CreateTrack).ToImmutableArray();
 
         var selectedTrack = loadResult.PlaylistInformation.SelectedTrack is null
@@ -205,10 +213,10 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             Name: loadResult.PlaylistInformation.Name,
             SelectedTrack: selectedTrack);
 
-        return TrackLoadResult.CreatePlaylist(tracks, playlistInformation);
+        return (playlistInformation, tracks);
     }
 
-    private static LavalinkTrack CreateTrack(TrackModel track) => new()
+    internal static LavalinkTrack CreateTrack(TrackModel track) => new()
     {
         Duration = track.Information.Duration,
         Identifier = track.Information.Identifier,
