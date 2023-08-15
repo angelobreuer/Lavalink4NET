@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,9 @@ public sealed class LavalinkSocketTests
     public async Task TestAuthorizationHeaderMatchesPassphraseAsync()
     {
         // Arrange
-        var socketFactory = new LavalinkSocketFactory(NullLogger<LavalinkSocket>.Instance);
+        var socketFactory = new LavalinkSocketFactory(
+            httpMessageHandlerFactory: new HttpMessageHandlerFactory(),
+            logger: NullLogger<LavalinkSocket>.Instance);
 
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddWebSockets(_ => { });
@@ -73,7 +76,9 @@ public sealed class LavalinkSocketTests
     public async Task TestReceiveAsync()
     {
         // Arrange
-        var socketFactory = new LavalinkSocketFactory(NullLogger<LavalinkSocket>.Instance);
+        var socketFactory = new LavalinkSocketFactory(
+            httpMessageHandlerFactory: new HttpMessageHandlerFactory(),
+            logger: NullLogger<LavalinkSocket>.Instance);
 
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddWebSockets(_ => { });
@@ -116,4 +121,9 @@ public sealed class LavalinkSocketTests
         // Assert
         Assert.IsType<ReadyPayload>(payload);
     }
+}
+
+file sealed class HttpMessageHandlerFactory : IHttpMessageHandlerFactory
+{
+    public HttpMessageHandler CreateHandler(string name) => new HttpClientHandler();
 }
