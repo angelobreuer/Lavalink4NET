@@ -1,10 +1,13 @@
 ﻿namespace Lavalink4NET.Filters;
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential, Size = EqualizerData.Size)]
-public sealed record class Equalizer
+public sealed record class Equalizer : IEnumerable<float>
 {
     public const int Bands = 15; // 0-14
 
@@ -121,6 +124,10 @@ public sealed record class Equalizer
 
     public static Builder CreateBuilder() => default;
 
+    public IEnumerator<float> GetEnumerator() => new Enumerator(_data);
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     public struct Builder
     {
         private EqualizerData _equalizer;
@@ -236,7 +243,7 @@ internal struct EqualizerData
 
     public unsafe fixed float Data[Equalizer.Bands];
 
-    private unsafe ref float GetBand(int band)
+    public unsafe ref float GetBand(int band)
     {
         if (band is < 0 or >= Equalizer.Bands)
         {
@@ -254,4 +261,47 @@ internal struct EqualizerData
         get => GetBand(band);
         set => GetBand(band) = Math.Clamp(value, -0.25F, 1.0F);
     }
+}
+
+file sealed class Enumerator : IEnumerator<float>
+{
+    private readonly EqualizerData _data;
+    private int _index;
+
+    public Enumerator(EqualizerData data)
+    {
+        _data = data;
+        _index = -1;
+    }
+
+    public bool MoveNext()
+    {
+        var index = _index + 1;
+
+        if (index < Equalizer.Bands)
+        {
+            _index = index;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Reset()
+    {
+        _index = -1;
+    }
+
+    public void Dispose()
+    {
+        // no-op
+    }
+
+    public float Current
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _data.GetBand(_index);
+    }
+
+    object IEnumerator.Current => Current;
 }
