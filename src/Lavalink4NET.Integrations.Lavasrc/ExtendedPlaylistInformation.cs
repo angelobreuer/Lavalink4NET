@@ -33,7 +33,7 @@ public readonly record struct ExtendedPlaylistInformation(PlaylistInformation Pl
     {
         get
         {
-            var uri = AdditionalInformation["url"]?.ToString();
+            var uri = AdditionalInformation.GetValueOrDefault("url")?.ToString();
             return uri is null ? null : new Uri(uri);
         }
     }
@@ -42,12 +42,12 @@ public readonly record struct ExtendedPlaylistInformation(PlaylistInformation Pl
     {
         get
         {
-            var artworkUri = AdditionalInformation["artworkUrl"]?.ToString();
+            var artworkUri = AdditionalInformation?.GetValueOrDefault("artworkUrl")?.ToString();
             return artworkUri is null ? null : new Uri(artworkUri);
         }
     }
 
-    public string? Author => AdditionalInformation["author"]?.ToString();
+    public string? Author => AdditionalInformation.GetValueOrDefault("author")?.ToString();
 
-    public int? TotalTracks => AdditionalInformation["totalTracks"]?.GetValue<int>();
+    public int? TotalTracks => AdditionalInformation.GetValueOrDefault("totalTracks")?.GetValue<int>();
 }
