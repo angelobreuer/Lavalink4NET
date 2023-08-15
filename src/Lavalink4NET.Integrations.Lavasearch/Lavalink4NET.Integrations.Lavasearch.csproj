@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
+    <ProjectReference Include="..\Lavalink4NET.Rest\Lavalink4NET.Rest.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+  </ItemGroup>
+
+</Project>

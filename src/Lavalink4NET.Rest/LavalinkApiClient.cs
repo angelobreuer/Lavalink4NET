@@ -359,7 +359,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async ValueTask EnsureSuccessStatusCodeAsync(HttpResponseMessage responseMessage, CancellationToken cancellationToken = default)
+    internal static async ValueTask EnsureSuccessStatusCodeAsync(HttpResponseMessage responseMessage, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(responseMessage);
