@@ -16,7 +16,6 @@ using Microsoft.Extensions.Options;
 
 internal sealed class PlayerManager : IPlayerManager, IDisposable
 {
-    private readonly IDiscordClientWrapper _clientWrapper;
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -37,7 +36,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         _handles = new ConcurrentDictionary<ulong, ILavalinkPlayerHandle>();
 
-        _clientWrapper = discordClient;
+        DiscordClient = discordClient;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<PlayerManager>();
 
@@ -47,8 +46,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             DiscordClient: discordClient,
             SystemClock: systemClock);
 
-        _clientWrapper.VoiceStateUpdated += OnVoiceStateUpdated;
-        _clientWrapper.VoiceServerUpdated += OnVoiceServerUpdated;
+        DiscordClient.VoiceStateUpdated += OnVoiceStateUpdated;
+        DiscordClient.VoiceServerUpdated += OnVoiceServerUpdated;
     }
 
     public IEnumerable<ILavalinkPlayer> Players
@@ -60,6 +59,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 .Where(x => x is not null && x.State is not PlayerState.Destroyed)!;
         }
     }
+
+    public IDiscordClientWrapper DiscordClient { get; }
 
     public async ValueTask<T?> GetPlayerAsync<T>(ulong guildId, CancellationToken cancellationToken = default) where T : class, ILavalinkPlayer
     {
@@ -115,7 +116,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         var selfDeaf = options.Value.SelfDeaf;
         var selfMute = options.Value.SelfMute;
 
-        await _clientWrapper
+        await DiscordClient
             .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: selfDeaf, selfMute: selfMute, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
@@ -172,8 +173,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         if (disposing)
         {
-            _clientWrapper.VoiceStateUpdated -= OnVoiceStateUpdated;
-            _clientWrapper.VoiceServerUpdated -= OnVoiceServerUpdated;
+            DiscordClient.VoiceStateUpdated -= OnVoiceStateUpdated;
+            DiscordClient.VoiceServerUpdated -= OnVoiceServerUpdated;
         }
     }
 
@@ -239,7 +240,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
                 if (memberVoiceChannel is not null && channelBehavior is PlayerChannelBehavior.Move)
                 {
                     // It is specified that the player should be moved to the user's channel
-                    await _clientWrapper
+                    await DiscordClient
                         .SendVoiceUpdateAsync(guildId, memberVoiceChannel.Value, selfDeaf: options.Value.SelfDeaf, selfMute: options.Value.SelfMute, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                 }

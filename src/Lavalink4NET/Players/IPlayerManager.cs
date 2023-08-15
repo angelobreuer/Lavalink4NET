@@ -3,10 +3,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Microsoft.Extensions.Options;
 
 public interface IPlayerManager
 {
+    IDiscordClientWrapper DiscordClient { get; }
+
     IEnumerable<ILavalinkPlayer> Players { get; }
 
     ValueTask<ILavalinkPlayer?> GetPlayerAsync(ulong guildId, CancellationToken cancellationToken = default);
