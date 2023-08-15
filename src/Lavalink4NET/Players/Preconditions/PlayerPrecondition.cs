@@ -13,4 +13,8 @@ public static class PlayerPrecondition
     public static IPlayerPrecondition QueueEmpty { get; } = new QueueEmptyPrecondition();
 
     public static IPlayerPrecondition QueueNotEmpty { get; } = new QueueNotEmptyPrecondition();
+
+    public static IPlayerPrecondition HistoryEmpty { get; } = new HistoryEmptyPrecondition();
+
+    public static IPlayerPrecondition HistoryNotEmpty { get; } = new HistoryNotEmptyPrecondition();
 }
