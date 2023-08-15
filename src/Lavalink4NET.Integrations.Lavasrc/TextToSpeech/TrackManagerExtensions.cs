@@ -41,7 +41,7 @@ public static class TrackManagerExtensions
 
             if (options.Silence is not null)
             {
-                queryParameters["silence"] = options.Silence.Value.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
+                queryParameters["silence"] = ((int)options.Silence.Value.TotalMilliseconds).ToString(CultureInfo.InvariantCulture);
             }
 
             if (options.Format is not null)
