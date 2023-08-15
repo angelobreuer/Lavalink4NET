@@ -20,22 +20,14 @@ public readonly record struct ExtendedPlaylistInformation(PlaylistInformation Pl
 
     public IImmutableDictionary<string, JsonNode> AdditionalInformation => Playlist.AdditionalInformation;
 
-    public PlaylistType? Type
+    public PlaylistType? Type => AdditionalInformation.GetValueOrDefault("type")?.ToString() switch
     {
-        get
-        {
-            var playlistType = AdditionalInformation["type"]?.ToString();
-
-            return playlistType switch
-            {
-                "album" => PlaylistType.Album,
-                "playlist" => PlaylistType.Playlist,
-                "artist" => PlaylistType.Artist,
-                "recommendations" => PlaylistType.Recommendations,
-                _ => null
-            };
-        }
-    }
+        "album" => PlaylistType.Album,
+        "playlist" => PlaylistType.Playlist,
+        "artist" => PlaylistType.Artist,
+        "recommendations" => PlaylistType.Recommendations,
+        _ => null,
+    };
 
     public Uri? Uri
     {
