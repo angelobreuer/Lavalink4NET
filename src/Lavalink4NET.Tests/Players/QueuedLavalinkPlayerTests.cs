@@ -316,7 +316,7 @@ public sealed class QueuedLavalinkPlayerTests
         var playerModel = new PlayerInformationModel(
             GuildId: guildId,
             CurrentTrack: new TrackModel(
-                Data: "track1",
+                Data: "QAAAMwMABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAAAAZtYW51YWwAAAAAAAAnEA==",
                 Information: CreateDummyTrack(),
                 AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
             Volume: 1F,
@@ -395,7 +395,7 @@ public sealed class QueuedLavalinkPlayerTests
         var playerModel = new PlayerInformationModel(
             GuildId: guildId,
             CurrentTrack: new TrackModel(
-                Data: "track1",
+                Data: "QAAAMwMABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAAAAZtYW51YWwAAAAAAAAnEA==",
                 Information: CreateDummyTrack(),
                 AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
             Volume: 1F,
@@ -406,7 +406,7 @@ public sealed class QueuedLavalinkPlayerTests
         var resultModel = playerModel with
         {
             CurrentTrack = new TrackModel(
-                Data: "track1",
+                Data: "QAAAMwMABXZpZGVvAAZhdXRob3IAAAAAAAAnEAAFdmlkZW8AAAAAAAZtYW51YWwAAAAAAAAnEA==",
                 Information: CreateDummyTrack(),
                 AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
