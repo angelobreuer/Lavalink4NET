@@ -28,7 +28,8 @@ public sealed class TrackExceptionEventPayloadTests
                   "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
                   "isrc": null,
                   "sourceName": "youtube"
-                }
+                },
+                "pluginInfo": {}
               },
               "exception": {
                 "message": "...",

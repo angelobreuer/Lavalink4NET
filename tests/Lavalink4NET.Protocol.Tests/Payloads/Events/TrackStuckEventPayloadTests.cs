@@ -28,7 +28,8 @@ public sealed class TrackStuckEventPayloadTests
                   "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
                   "isrc": null,
                   "sourceName": "youtube"
-                }
+                },
+                "pluginInfo": {}
               },
               "thresholdMs": 123456789
             }

@@ -27,7 +27,8 @@ public sealed class PlayerInformationModelTests
                       "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
                       "isrc": null,
                       "sourceName": "youtube"
-                    }
+                    },
+                    "pluginInfo": {}
                 },
                 "volume": 100,
                 "paused": false,
