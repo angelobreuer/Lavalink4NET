@@ -45,9 +45,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        // when using StopAsync(true) the player also disconnects and clears the track queue.
-        // DisconnectAsync only disconnects from the channel.
-        await player.StopAsync(true).ConfigureAwait(false);
+        await player.DisconnectAsync().ConfigureAwait(false);
         await RespondAsync("Disconnected.").ConfigureAwait(false);
     }
 
