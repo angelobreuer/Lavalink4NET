@@ -20,7 +20,7 @@ public readonly record struct PlayerResult<TPlayer> where TPlayer : class, ILava
     public TPlayer? Player { get; }
 
     [MemberNotNullWhen(true, nameof(Player))]
-    public bool IsSuccess => Player is not null;
+    public bool IsSuccess => Status is PlayerRetrieveStatus.Success && Player is not null;
 
     public static PlayerResult<TPlayer> Success(TPlayer player)
     {
@@ -34,9 +34,10 @@ public readonly record struct PlayerResult<TPlayer> where TPlayer : class, ILava
 
     public static PlayerResult<TPlayer> BotNotConnected => new(null, PlayerRetrieveStatus.BotNotConnected, null);
 
-    public static PlayerResult<TPlayer> PreconditionFailed(IPlayerPrecondition precondition)
+    public static PlayerResult<TPlayer> PreconditionFailed(TPlayer player, IPlayerPrecondition precondition)
     {
+        ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(precondition);
-        return new(null, PlayerRetrieveStatus.PreconditionFailed, precondition);
+        return new(player, PlayerRetrieveStatus.PreconditionFailed, precondition);
     }
 }

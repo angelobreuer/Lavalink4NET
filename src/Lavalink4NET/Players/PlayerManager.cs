@@ -203,7 +203,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             {
                 if (!await precondition.CheckAsync(player, cancellationToken).ConfigureAwait(false))
                 {
-                    return PlayerResult<TPlayer>.PreconditionFailed(precondition);
+                    return PlayerResult<TPlayer>.PreconditionFailed(player, precondition);
                 }
             }
 
