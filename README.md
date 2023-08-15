@@ -43,6 +43,10 @@
   
 [![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
 
+### Documentation
+
+You can find the documentation for Lavalink4NET v4 [here](https://lavalink4net.angelobreuer.de/docs/introduction/intro).
+
 ### Components
 
 Lavalink4NET offers high flexibility and extensibility by providing an isolated interface. You can extend Lavalink4NET by adding additional packages which add integrations with other services, support for additional lavalink/lavaplayer plugins, or additional client support.
@@ -116,6 +120,4 @@ await audioService.Players
     .ConfigureAwait(false);
 ```
 
-You can take a look at the [example bots](https://github.com/angelobreuer/Lavalink4NET/tree/feature/angelobreuer/lavalink-v4/samples).
-
-For **more documentation, see: [Lavalink4NET Wiki](https://github.com/angelobreuer/Lavalink4NET/wiki)**.
+You can take a look at the [example bots](https://github.com/angelobreuer/Lavalink4NET/tree/dev/samples).
