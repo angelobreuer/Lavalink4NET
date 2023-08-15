@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
@@ -18,19 +19,22 @@ using Microsoft.Extensions.Options;
 internal sealed class LavalinkSocket : ILavalinkSocket
 {
     private readonly Channel<IPayload> _channel;
+    private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
     private readonly ILogger<LavalinkSocket> _logger;
     private readonly IOptions<LavalinkSocketOptions> _options;
     private bool _disposed;
 
     public LavalinkSocket(
+        IHttpMessageHandlerFactory httpMessageHandlerFactory,
         ILogger<LavalinkSocket> logger,
         IOptions<LavalinkSocketOptions> options)
     {
+        ArgumentNullException.ThrowIfNull(httpMessageHandlerFactory);
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(options);
 
         Label = options.Value.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
-
+        _httpMessageHandlerFactory = httpMessageHandlerFactory;
         _logger = logger;
         _options = options;
         _channel = Channel.CreateUnbounded<IPayload>();
@@ -81,9 +85,18 @@ internal sealed class LavalinkSocket : ILavalinkSocket
 
                 try
                 {
+#if NET7_0_OR_GREATER
+                    var httpMessageHandler = _httpMessageHandlerFactory.CreateHandler(_options.Value.HttpClientName);
+                    var httpMessageInvoker = new HttpMessageInvoker(httpMessageHandler, disposeHandler: true);
+
+                    await webSocket
+                        .ConnectAsync(_options.Value.Uri, httpMessageInvoker, cancellationToken)
+                        .ConfigureAwait(false);
+#else
                     await webSocket
                         .ConnectAsync(_options.Value.Uri, cancellationToken)
                         .ConfigureAwait(false);
+#endif
 
                     _logger.ConnectionEstablished(Label);
 
