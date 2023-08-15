@@ -74,9 +74,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Samples.Lyrics
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Cluster", "Lavalink4NET.Cluster\Lavalink4NET.Cluster.csproj", "{30BC4B69-87C2-478B-BD8D-6961477DBDB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Samples.Cluster", "..\samples\Lavalink4NET.Samples.Cluster\Lavalink4NET.Samples.Cluster.csproj", "{448336F1-5D2D-4A27-B37E-C12A922E6209}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Samples.Cluster", "..\samples\Lavalink4NET.Samples.Cluster\Lavalink4NET.Samples.Cluster.csproj", "{448336F1-5D2D-4A27-B37E-C12A922E6209}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Cluster.Tests", "..\tests\Lavalink4NET.Cluster.Tests\Lavalink4NET.Cluster.Tests.csproj", "{523BE0A5-8E7E-40CD-9EA1-1977218017EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Cluster.Tests", "..\tests\Lavalink4NET.Cluster.Tests\Lavalink4NET.Cluster.Tests.csproj", "{523BE0A5-8E7E-40CD-9EA1-1977218017EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Remora.Discord", "Lavalink4NET.Remora.Discord\Lavalink4NET.Remora.Discord.csproj", "{10594A0A-7730-4AA6-8E97-6F9A38B61A1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Samples.Remora.Discord", "..\samples\Lavalink4NET.Samples.Remora.Discord\Lavalink4NET.Samples.Remora.Discord.csproj", "{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -204,6 +208,14 @@ Global
 		{523BE0A5-8E7E-40CD-9EA1-1977218017EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{523BE0A5-8E7E-40CD-9EA1-1977218017EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{523BE0A5-8E7E-40CD-9EA1-1977218017EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -223,6 +235,8 @@ Global
 		{49BDCD19-D86B-4657-9804-3EF46899F52E} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 		{951D2DFD-15F1-4344-ADF8-CCF2F0F3E783} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 		{448336F1-5D2D-4A27-B37E-C12A922E6209} = {B9402D29-5B12-4672-97B8-570A60C0F878}
+		{10594A0A-7730-4AA6-8E97-6F9A38B61A1A} = {5FAEC63E-9752-48C4-8BC9-B101E0DBDBD3}
+		{500740AC-ACCE-41D8-BF13-7A2C17AE92F0} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}
