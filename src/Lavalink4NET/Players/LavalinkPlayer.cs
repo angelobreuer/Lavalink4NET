@@ -149,6 +149,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
+        CurrentTrack = track;
         return NotifyTrackStartedAsync(track, cancellationToken);
     }
 
