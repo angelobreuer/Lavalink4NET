@@ -27,6 +27,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private int _disposed;
     private DateTimeOffset _syncedAt;
     private TimeSpan _unstretchedRelativePosition;
+    private bool _connectedOnce;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -43,6 +44,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger = properties.Logger;
         _syncedAt = properties.SystemClock.UtcNow;
         _unstretchedRelativePosition = default;
+        _connectedOnce = false;
 
         _destroyPlayerOnDisconnect = properties.Options.Value.DestroyPlayerOnDisconnect;
 
@@ -103,6 +105,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         if (voiceChannelId is null)
         {
             _logger.PlayerDisconnected(_label);
+        }
+        else if (!_connectedOnce || VoiceChannelId is null)
+        {
+            _connectedOnce = true;
+            _logger.PlayerConnected(_label, voiceChannelId);
         }
         else
         {
@@ -438,24 +445,27 @@ internal static partial class Logging
     [LoggerMessage(2, LogLevel.Information, "[{Label}] Player moved to channel {ChannelId}.", EventName = nameof(PlayerMoved))]
     public static partial void PlayerMoved(this ILogger<LavalinkPlayer> logger, string label, ulong? channelId);
 
-    [LoggerMessage(3, LogLevel.Information, "[{Label}] Player disconnected from channel.", EventName = nameof(PlayerDisconnected))]
+    [LoggerMessage(3, LogLevel.Information, "[{Label}] Player connected to channel {ChannelId}.", EventName = nameof(PlayerMoved))]
+    public static partial void PlayerConnected(this ILogger<LavalinkPlayer> logger, string label, ulong? channelId);
+
+    [LoggerMessage(4, LogLevel.Information, "[{Label}] Player disconnected from channel.", EventName = nameof(PlayerDisconnected))]
     public static partial void PlayerDisconnected(this ILogger<LavalinkPlayer> logger, string label);
 
-    [LoggerMessage(4, LogLevel.Information, "[{Label}] Player paused.", EventName = nameof(PlayerPaused))]
+    [LoggerMessage(5, LogLevel.Information, "[{Label}] Player paused.", EventName = nameof(PlayerPaused))]
     public static partial void PlayerPaused(this ILogger<LavalinkPlayer> logger, string label);
 
-    [LoggerMessage(5, LogLevel.Information, "[{Label}] Player resumed.", EventName = nameof(PlayerResumed))]
+    [LoggerMessage(6, LogLevel.Information, "[{Label}] Player resumed.", EventName = nameof(PlayerResumed))]
     public static partial void PlayerResumed(this ILogger<LavalinkPlayer> logger, string label);
 
-    [LoggerMessage(6, LogLevel.Information, "[{Label}] Player stopped.", EventName = nameof(PlayerStopped))]
+    [LoggerMessage(7, LogLevel.Information, "[{Label}] Player stopped.", EventName = nameof(PlayerStopped))]
     public static partial void PlayerStopped(this ILogger<LavalinkPlayer> logger, string label);
 
-    [LoggerMessage(7, LogLevel.Information, "[{Label}] Player volume changed to {Volume}.", EventName = nameof(PlayerVolumeChanged))]
+    [LoggerMessage(8, LogLevel.Information, "[{Label}] Player volume changed to {Volume}.", EventName = nameof(PlayerVolumeChanged))]
     public static partial void PlayerVolumeChanged(this ILogger<LavalinkPlayer> logger, string label, float volume);
 
-    [LoggerMessage(8, LogLevel.Information, "[{Label}] Player filters changed.", EventName = nameof(PlayerFiltersChanged))]
+    [LoggerMessage(9, LogLevel.Information, "[{Label}] Player filters changed.", EventName = nameof(PlayerFiltersChanged))]
     public static partial void PlayerFiltersChanged(this ILogger<LavalinkPlayer> logger, string label);
 
-    [LoggerMessage(9, LogLevel.Information, "[{Label}] Player destroyed.", EventName = nameof(PlayerDestroyed))]
+    [LoggerMessage(10, LogLevel.Information, "[{Label}] Player destroyed.", EventName = nameof(PlayerDestroyed))]
     public static partial void PlayerDestroyed(this ILogger<LavalinkPlayer> logger, string label);
 }
