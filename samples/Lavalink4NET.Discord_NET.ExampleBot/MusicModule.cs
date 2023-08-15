@@ -98,11 +98,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         if (position == 0)
         {
-            await ReplyAsync("🔈 Playing: " + track.Source);
+            await ReplyAsync("🔈 Playing: " + track.Uri);
         }
         else
         {
-            await ReplyAsync("🔈 Added to queue: " + track.Source);
+            await ReplyAsync("🔈 Added to queue: " + track.Uri);
         }
     }
 
