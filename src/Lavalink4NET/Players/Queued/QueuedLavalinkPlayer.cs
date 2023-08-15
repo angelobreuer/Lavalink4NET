@@ -13,7 +13,6 @@ using Lavalink4NET.Tracks;
 /// </summary>
 public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 {
-    private readonly bool _disconnectOnStop;
     private readonly bool _clearQueueOnStop;
     private readonly bool _clearHistoryOnStop;
     private readonly bool _resetTrackRepeatOnStop;
@@ -34,7 +33,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         Queue = new TrackQueue(historyCapacity: options.HistoryCapacity);
 
         _respectTrackRepeatOnSkip = options.RespectTrackRepeatOnSkip;
-        _disconnectOnStop = options.DisconnectOnStop;
         _clearQueueOnStop = options.ClearQueueOnStop;
         _resetTrackRepeatOnStop = options.ResetTrackRepeatOnStop;
         _resetShuffleOnStop = options.ResetShuffleOnStop;
@@ -138,7 +136,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         return PlayNextAsync(count, _respectTrackRepeatOnSkip, cancellationToken);
     }
 
-    public override async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
+    public override async ValueTask StopAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
@@ -168,7 +166,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         }
 
         await base
-            .StopAsync(disconnect, cancellationToken)
+            .StopAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -208,7 +206,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         if (!track.IsPresent)
         {
             // Do nothing, stop
-            await StopAsync(_disconnectOnStop, cancellationToken).ConfigureAwait(false);
+            await StopAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
 

@@ -22,11 +22,12 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private readonly string _label;
     private readonly ILogger<LavalinkPlayer> _logger;
     private readonly ISystemClock _systemClock;
-    private readonly bool _destroyPlayerOnDisconnect;
+    private readonly bool _disconnectOnStop;
     private string? _currentTrackState;
     private int _disposed;
     private DateTimeOffset _syncedAt;
     private TimeSpan _unstretchedRelativePosition;
+    private bool _disconnectOnDestroy;
     private bool _connectedOnce;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
@@ -46,7 +47,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _unstretchedRelativePosition = default;
         _connectedOnce = false;
 
-        _destroyPlayerOnDisconnect = properties.Options.Value.DestroyPlayerOnDisconnect;
+        _disconnectOnDestroy = properties.Options.Value.DisconnectOnDestroy;
+        _disconnectOnStop = properties.Options.Value.DisconnectOnStop;
 
         Filters = new PlayerFilterMap(this);
 
@@ -124,7 +126,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
         finally
         {
-            if (_destroyPlayerOnDisconnect && voiceChannelId is null)
+            if (_disconnectOnDestroy && voiceChannelId is null)
             {
                 await DisposeAsync().ConfigureAwait(false);
             }
@@ -279,7 +281,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger.PlayerVolumeChanged(_label, volume);
     }
 
-    public virtual async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
+    public virtual async ValueTask StopAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
@@ -289,16 +291,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             TrackData = new Optional<string?>(null),
         };
 
-        if (disconnect)
-        {
-            await DiscordClient
-                .SendVoiceUpdateAsync(GuildId, null, false, false, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
 
         _logger.PlayerStopped(_label);
+
+        if (_disconnectOnStop)
+        {
+            await DisposeAsync().ConfigureAwait(false);
+        }
     }
 
     protected void EnsureNotDestroyed()
@@ -411,6 +411,13 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await ApiClient
             .DestroyPlayerAsync(SessionId, GuildId)
             .ConfigureAwait(false);
+
+        if (_disconnectOnDestroy)
+        {
+            await DiscordClient
+                .SendVoiceUpdateAsync(GuildId, null, false, false)
+                .ConfigureAwait(false);
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -438,6 +445,19 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger.PlayerUpdateProcessed(_label, timestamp, position, connected, latency);
 
         return default;
+    }
+
+    public async ValueTask DisconnectAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var _ = this.ConfigureAwait(false);
+
+        await DiscordClient
+            .SendVoiceUpdateAsync(GuildId, null, false, false, cancellationToken)
+            .ConfigureAwait(false);
+
+        _disconnectOnDestroy = false;
     }
 }
 

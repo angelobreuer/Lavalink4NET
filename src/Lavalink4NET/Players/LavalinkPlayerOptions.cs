@@ -6,7 +6,7 @@ public record class LavalinkPlayerOptions
 {
     public bool DisconnectOnStop { get; set; }
 
-    public bool DestroyPlayerOnDisconnect { get; set; } = true;
+    public bool DisconnectOnDestroy { get; set; } = true;
 
     public string? Label { get; set; }
 
