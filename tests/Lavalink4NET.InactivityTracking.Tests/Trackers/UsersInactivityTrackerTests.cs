@@ -57,7 +57,9 @@ public sealed class UsersInactivityTrackerTests
             => x.GetChannelUsersAsync(It.IsAny<ulong>(), It.IsAny<ulong>(), false, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(userIds));
 
-        var player = Mock.Of<ILavalinkPlayer>(x => x.State == PlayerState.Playing);
+        var player = Mock.Of<ILavalinkPlayer>(x
+            => x.State == PlayerState.Playing
+            && x.VoiceChannelId == 123UL);
 
         var context = new InactivityTrackingContext(
             InactivityTrackingService: inactivityTrackingService,
