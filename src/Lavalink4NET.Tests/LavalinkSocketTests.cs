@@ -20,7 +20,7 @@ using Xunit;
 public sealed class LavalinkSocketTests
 {
     [Fact]
-    public async void TestAuthorizationHeaderMatchesPassphraseAsync()
+    public async Task TestAuthorizationHeaderMatchesPassphraseAsync()
     {
         // Arrange
         var socketFactory = new LavalinkSocketFactory(NullLogger<LavalinkSocket>.Instance);
@@ -70,7 +70,7 @@ public sealed class LavalinkSocketTests
     }
 
     [Fact]
-    public async void TestReceiveAsync()
+    public async Task TestReceiveAsync()
     {
         // Arrange
         var socketFactory = new LavalinkSocketFactory(NullLogger<LavalinkSocket>.Instance);
