@@ -100,6 +100,15 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         EnsureNotDestroyed();
 
+        if (voiceChannelId is null)
+        {
+            _logger.PlayerMoved(_label, voiceChannelId);
+        }
+        else
+        {
+            _logger.PlayerDisconnected(_label);
+        }
+
         VoiceChannelId = voiceChannelId;
 
         try
@@ -150,6 +159,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         var properties = new PlayerUpdateProperties { IsPaused = true, };
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+
+        _logger.PlayerPaused(_label);
     }
 
     public ValueTask PlayAsync(LavalinkTrack track, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
@@ -218,6 +229,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         var properties = new PlayerUpdateProperties { IsPaused = false, };
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+
+        _logger.PlayerResumed(_label);
     }
 
     public virtual async ValueTask SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
@@ -254,6 +267,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         var properties = new PlayerUpdateProperties { Volume = volume, };
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+
+        _logger.PlayerVolumeChanged(_label, volume);
     }
 
     public virtual async ValueTask StopAsync(bool disconnect = false, CancellationToken cancellationToken = default)
@@ -274,6 +289,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+
+        _logger.PlayerStopped(_label);
     }
 
     protected void EnsureNotDestroyed()
@@ -366,6 +383,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             Filters = filterMap,
         };
 
+        _logger.PlayerFiltersChanged(_label);
+
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
     }
 
@@ -375,6 +394,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         {
             return;
         }
+
+        _logger.PlayerDestroyed(_label);
 
         await ApiClient
             .DestroyPlayerAsync(SessionId, GuildId)
@@ -411,6 +432,30 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
 internal static partial class Logging
 {
-    [LoggerMessage(1, LogLevel.Debug, "[{Label}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).", EventName = nameof(PlayerUpdateProcessed))]
+    [LoggerMessage(1, LogLevel.Trace, "[{Label}] Processed player update (absolute timestamp: {AbsoluteTimestamp}, relative track position: {Position}, connected: {IsConnected}, latency: {Latency}).", EventName = nameof(PlayerUpdateProcessed))]
     public static partial void PlayerUpdateProcessed(this ILogger<LavalinkPlayer> logger, string label, DateTimeOffset absoluteTimestamp, TimeSpan position, bool isConnected, TimeSpan? latency);
+
+    [LoggerMessage(2, LogLevel.Information, "[{Label}] Player moved to channel {ChannelId}.", EventName = nameof(PlayerMoved))]
+    public static partial void PlayerMoved(this ILogger<LavalinkPlayer> logger, string label, ulong? channelId);
+
+    [LoggerMessage(3, LogLevel.Information, "[{Label}] Player disconnected from channel.", EventName = nameof(PlayerDisconnected))]
+    public static partial void PlayerDisconnected(this ILogger<LavalinkPlayer> logger, string label);
+
+    [LoggerMessage(4, LogLevel.Information, "[{Label}] Player paused.", EventName = nameof(PlayerPaused))]
+    public static partial void PlayerPaused(this ILogger<LavalinkPlayer> logger, string label);
+
+    [LoggerMessage(5, LogLevel.Information, "[{Label}] Player resumed.", EventName = nameof(PlayerResumed))]
+    public static partial void PlayerResumed(this ILogger<LavalinkPlayer> logger, string label);
+
+    [LoggerMessage(6, LogLevel.Information, "[{Label}] Player stopped.", EventName = nameof(PlayerStopped))]
+    public static partial void PlayerStopped(this ILogger<LavalinkPlayer> logger, string label);
+
+    [LoggerMessage(7, LogLevel.Information, "[{Label}] Player volume changed to {Volume}.", EventName = nameof(PlayerVolumeChanged))]
+    public static partial void PlayerVolumeChanged(this ILogger<LavalinkPlayer> logger, string label, float volume);
+
+    [LoggerMessage(8, LogLevel.Information, "[{Label}] Player filters changed.", EventName = nameof(PlayerFiltersChanged))]
+    public static partial void PlayerFiltersChanged(this ILogger<LavalinkPlayer> logger, string label);
+
+    [LoggerMessage(9, LogLevel.Information, "[{Label}] Player destroyed.", EventName = nameof(PlayerDestroyed))]
+    public static partial void PlayerDestroyed(this ILogger<LavalinkPlayer> logger, string label);
 }
