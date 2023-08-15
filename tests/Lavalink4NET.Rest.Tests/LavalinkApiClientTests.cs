@@ -299,7 +299,7 @@ public class LavalinkApiClientTests
 
         // Assert
         Assert.True(result.IsPlaylist);
-        Assert.Equal("Top Songs of 2022", result.Playlist.Value.Name);
+        Assert.Equal("Top Songs of 2022", result.Playlist.Name);
     }
 
     [Fact]
