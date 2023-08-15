@@ -6,7 +6,7 @@ public record class QueuedLavalinkPlayerOptions : LavalinkPlayerOptions
 
     public bool ClearQueueOnStop { get; init; } = true;
 
-    public bool ClearHistoryOnStop { get; init; } = true;
+    public bool ClearHistoryOnStop { get; init; } = false;
 
     public bool ResetTrackRepeatOnStop { get; init; } = true;
 
