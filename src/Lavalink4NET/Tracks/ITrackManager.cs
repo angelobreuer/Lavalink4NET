@@ -7,6 +7,8 @@ using Lavalink4NET.Rest.Entities.Tracks;
 
 public interface ITrackManager
 {
+    ILavalinkApiClientProvider ApiClientProvider { get; }
+
     ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
         TrackLoadOptions loadOptions = default,

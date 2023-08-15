@@ -10,14 +10,14 @@ using Lavalink4NET.Rest.Entities.Tracks;
 
 internal sealed class TrackManager : ITrackManager
 {
-    private readonly ILavalinkApiClientProvider _apiClientProvider;
-
     public TrackManager(ILavalinkApiClientProvider apiClientProvider)
     {
         ArgumentNullException.ThrowIfNull(apiClientProvider);
 
-        _apiClientProvider = apiClientProvider;
+        ApiClientProvider = apiClientProvider;
     }
+
+    public ILavalinkApiClientProvider ApiClientProvider { get; }
 
     public async ValueTask<LavalinkTrack?> LoadTrackAsync(
         string identifier,
@@ -31,7 +31,7 @@ internal sealed class TrackManager : ITrackManager
         var metricTag = KeyValuePair.Create<string, object?>("Identifier", identifier);
 
         var apiClient = await resolutionScope
-            .GetClientAsync(_apiClientProvider, cancellationToken)
+            .GetClientAsync(ApiClientProvider, cancellationToken)
             .ConfigureAwait(false);
 
         try
@@ -87,7 +87,7 @@ internal sealed class TrackManager : ITrackManager
         var metricTag = KeyValuePair.Create<string, object?>("Identifier", identifier);
 
         var apiClient = await resolutionScope
-            .GetClientAsync(_apiClientProvider, cancellationToken)
+            .GetClientAsync(ApiClientProvider, cancellationToken)
             .ConfigureAwait(false);
 
         try
