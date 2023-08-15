@@ -48,9 +48,11 @@ public partial class AudioService : AudioServiceBase
             IntegrationManager: integrationManager,
             PlayerManager: playerManager,
             NodeListener: this);
+
+        Label = _options.Label ?? "default";
     }
 
-    public string Label => _options.Label;
+    public string Label { get; }
 
     public override ValueTask StartAsync(CancellationToken cancellationToken = default)
     {
