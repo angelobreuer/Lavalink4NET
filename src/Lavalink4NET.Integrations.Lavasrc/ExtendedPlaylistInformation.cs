@@ -42,7 +42,7 @@ public readonly record struct ExtendedPlaylistInformation(PlaylistInformation Pl
     {
         get
         {
-            var artworkUri = AdditionalInformation?.GetValueOrDefault("artworkUrl")?.ToString();
+            var artworkUri = AdditionalInformation.GetValueOrDefault("artworkUrl")?.ToString();
             return artworkUri is null ? null : new Uri(artworkUri);
         }
     }
