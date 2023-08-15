@@ -375,6 +375,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
                     StartPosition = track.Position,
                     ArtworkUri = track.ArtworkUri,
                     Isrc = track.Isrc,
+                    TrackData = model.CurrentTrack.Data,
                 };
             }
         }
