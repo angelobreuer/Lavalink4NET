@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Responses;
 
 public sealed record class SearchResultModel
 {
@@ -13,15 +14,15 @@ public sealed record class SearchResultModel
 
     [JsonPropertyName("albums")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ImmutableArray<PlaylistInformationModel>? Albums { get; set; }
+    public ImmutableArray<PlaylistLoadResultData>? Albums { get; set; }
 
     [JsonPropertyName("artists")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ImmutableArray<PlaylistInformationModel>? Artists { get; set; }
+    public ImmutableArray<PlaylistLoadResultData>? Artists { get; set; }
 
     [JsonPropertyName("playlists")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ImmutableArray<PlaylistInformationModel>? Playlists { get; set; }
+    public ImmutableArray<PlaylistLoadResultData>? Playlists { get; set; }
 
     [JsonPropertyName("texts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -29,5 +30,5 @@ public sealed record class SearchResultModel
 
     [JsonRequired]
     [JsonPropertyName("plugin")]
-    public IDictionary<string, JsonNode> AdditionalData { get; set; } = null!;
+    public IImmutableDictionary<string, JsonNode> AdditionalInformation { get; set; } = null!;
 }

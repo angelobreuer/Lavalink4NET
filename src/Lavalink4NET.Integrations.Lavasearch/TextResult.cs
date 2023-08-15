@@ -1,3 +1,8 @@
 ﻿namespace Lavalink4NET.Integrations.Lavasearch;
 
-public readonly record struct TextResult(string Text);
+using System.Collections.Immutable;
+using System.Text.Json.Nodes;
+
+public readonly record struct TextResult(
+    string Text,
+    IImmutableDictionary<string, JsonNode> AdditionalInformation);

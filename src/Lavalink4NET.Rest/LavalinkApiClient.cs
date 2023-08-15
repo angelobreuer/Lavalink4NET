@@ -211,7 +211,8 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         var playlistInformation = new PlaylistInformation(
             Name: loadResult.PlaylistInformation.Name,
-            SelectedTrack: selectedTrack);
+            SelectedTrack: selectedTrack,
+            AdditionalInformation: loadResult.AdditionalInformation);
 
         return (playlistInformation, tracks);
     }

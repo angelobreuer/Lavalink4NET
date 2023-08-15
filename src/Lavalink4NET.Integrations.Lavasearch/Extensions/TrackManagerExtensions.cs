@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Responses;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
@@ -33,10 +33,14 @@ public static class TrackManagerExtensions
             return null;
         }
 
-        static PlaylistInformation CreatePlaylist(PlaylistInformationModel playlistInformationModel)
+        static PlaylistInformation CreatePlaylist(PlaylistLoadResultData data)
         {
-            var playlistName = playlistInformationModel.Name;
-            return new PlaylistInformation(playlistName, null);
+            var playlistName = data.PlaylistInformation.Name;
+
+            return new PlaylistInformation(
+                Name: playlistName,
+                SelectedTrack: null,
+                AdditionalInformation: data.AdditionalInformation);
         }
 
         var tracks = searchResult.Tracks is null
@@ -57,8 +61,14 @@ public static class TrackManagerExtensions
 
         var texts = searchResult.Texts is null
             ? ImmutableArray<TextResult>.Empty
-            : searchResult.Texts.Value.Select(x => new TextResult(x.Text)).ToImmutableArray();
+            : searchResult.Texts.Value.Select(x => new TextResult(x.Text, x.AdditionalInformation)).ToImmutableArray();
 
-        return new SearchResult(tracks, albums, artists, playlists, texts);
+        return new SearchResult(
+            Tracks: tracks,
+            Albums: albums,
+            Artists: artists,
+            Playlists: playlists,
+            Texts: texts,
+            AdditionalInformation: searchResult.AdditionalInformation);
     }
 }

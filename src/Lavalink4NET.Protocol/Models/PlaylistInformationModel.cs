@@ -1,5 +1,4 @@
 ﻿namespace Lavalink4NET.Protocol.Models;
-
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
 
