@@ -1,5 +1,7 @@
 ﻿namespace Lavalink4NET.Protocol.Models;
 
+using System.Collections.Immutable;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 public sealed record class TrackModel(
@@ -9,4 +11,8 @@ public sealed record class TrackModel(
 
     [property:JsonRequired]
     [property:JsonPropertyName("info")]
-    TrackInformationModel Information);
+    TrackInformationModel Information,
+
+    [property: JsonRequired]
+    [property: JsonPropertyName("pluginInfo")]
+    IImmutableDictionary<string, JsonNode> AdditionalInformation);

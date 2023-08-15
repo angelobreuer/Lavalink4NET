@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -540,7 +542,10 @@ public sealed class AudioServiceTests
             Isrc: null, // TODO
             SourceName: track.SourceName!);
 
-        return new(track.ToString(), information);
+        return new(
+            Data: track.ToString(),
+            Information: information,
+            AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty);
     }
 
     private static async Task AssertRaisesAsync<T>(

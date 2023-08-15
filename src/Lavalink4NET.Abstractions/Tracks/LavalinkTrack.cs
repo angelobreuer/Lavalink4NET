@@ -1,5 +1,8 @@
 ﻿namespace Lavalink4NET.Tracks;
 
+using System.Collections.Immutable;
+using System.Text.Json.Nodes;
+
 public partial record class LavalinkTrack
 {
     private StreamProvider? _cachedProvider;
@@ -58,6 +61,8 @@ public partial record class LavalinkTrack
             return _cachedProvider;
         }
     }
+
+    public IImmutableDictionary<string, JsonNode> AdditionalInformation { get; init; } = ImmutableDictionary<string, JsonNode>.Empty;
 
     internal string? TrackData { get; set; }
 

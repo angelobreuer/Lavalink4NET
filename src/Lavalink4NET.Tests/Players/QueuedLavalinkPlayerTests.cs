@@ -1,6 +1,8 @@
 ﻿namespace Lavalink4NET.Tests.Players;
 
 using System;
+using System.Collections.Immutable;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
@@ -40,7 +42,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock
@@ -108,7 +111,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track2",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock
@@ -177,7 +181,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track2",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock
@@ -236,7 +241,8 @@ public sealed class QueuedLavalinkPlayerTests
             GuildId: guildId,
             CurrentTrack: new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
             Volume: 1F,
             IsPaused: false,
             VoiceState: CreateVoiceState(),
@@ -246,7 +252,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track2",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock
@@ -310,7 +317,8 @@ public sealed class QueuedLavalinkPlayerTests
             GuildId: guildId,
             CurrentTrack: new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
             Volume: 1F,
             IsPaused: false,
             VoiceState: CreateVoiceState(),
@@ -320,7 +328,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock
@@ -387,7 +396,8 @@ public sealed class QueuedLavalinkPlayerTests
             GuildId: guildId,
             CurrentTrack: new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
             Volume: 1F,
             IsPaused: false,
             VoiceState: CreateVoiceState(),
@@ -397,7 +407,8 @@ public sealed class QueuedLavalinkPlayerTests
         {
             CurrentTrack = new TrackModel(
                 Data: "track1",
-                Information: CreateDummyTrack()),
+                Information: CreateDummyTrack(),
+                AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
         };
 
         apiClientMock

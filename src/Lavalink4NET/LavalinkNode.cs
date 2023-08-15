@@ -121,6 +121,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         Author = track.Information.Author,
         ArtworkUri = track.Information.ArtworkUri,
         Isrc = track.Information.Isrc,
+        AdditionalInformation = track.AdditionalInformation,
     };
 
     private static string SerializePayload(IPayload payload)
