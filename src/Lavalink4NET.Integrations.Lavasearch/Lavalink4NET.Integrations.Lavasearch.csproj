@@ -7,12 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
-    <ProjectReference Include="..\Lavalink4NET.Rest\Lavalink4NET.Rest.csproj" />
+	<PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+    <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
 </Project>
