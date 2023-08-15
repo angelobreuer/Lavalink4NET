@@ -102,11 +102,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         if (voiceChannelId is null)
         {
-            _logger.PlayerMoved(_label, voiceChannelId);
+            _logger.PlayerDisconnected(_label);
         }
         else
         {
-            _logger.PlayerDisconnected(_label);
+            _logger.PlayerMoved(_label, voiceChannelId);
         }
 
         VoiceChannelId = voiceChannelId;
