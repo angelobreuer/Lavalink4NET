@@ -4,10 +4,15 @@
 	<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+	<Description>
+		High performance Lavalink wrapper for .NET | Expand your audio playback experience with adding support for the Lavasrc audio source manager which adds support for searching tracks on Spotify, Apple Music, Deezer, Yandex Music and Flowery TTS.
+	</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
+  <Import Project="../Lavalink4NET.targets" />
 </Project>
