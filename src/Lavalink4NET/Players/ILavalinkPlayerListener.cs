@@ -9,7 +9,7 @@ using Lavalink4NET.Tracks;
 
 public interface ILavalinkPlayerListener
 {
-    void NotifyChannelUpdate(ulong voiceChannelId);
+    ValueTask NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken = default);
 
     ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default);
 

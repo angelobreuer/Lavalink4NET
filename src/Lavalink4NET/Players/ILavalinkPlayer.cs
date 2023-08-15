@@ -26,7 +26,7 @@ public interface ILavalinkPlayer : IAsyncDisposable
 
     PlayerState State { get; }
 
-    ulong VoiceChannelId { get; }
+    ulong? VoiceChannelId { get; }
 
     PlayerConnectionState ConnectionState { get; }
 

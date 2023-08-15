@@ -22,6 +22,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private readonly string _label;
     private readonly ILogger<LavalinkPlayer> _logger;
     private readonly ISystemClock _systemClock;
+    private readonly bool _destroyPlayerOnDisconnect;
     private string? _currentTrackState;
     private int _disposed;
     private DateTimeOffset _syncedAt;
@@ -42,6 +43,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger = properties.Logger;
         _syncedAt = properties.SystemClock.UtcNow;
         _unstretchedRelativePosition = default;
+
+        _destroyPlayerOnDisconnect = properties.Options.Value.DestroyPlayerOnDisconnect;
 
         Filters = new PlayerFilterMap(this);
 
@@ -79,7 +82,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _ => PlayerState.Playing,
     };
 
-    public ulong VoiceChannelId { get; private set; }
+    public ulong? VoiceChannelId { get; private set; }
 
     public float Volume { get; private set; }
 
@@ -93,10 +96,23 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public IPlayerFilters Filters { get; }
 
-    void ILavalinkPlayerListener.NotifyChannelUpdate(ulong voiceChannelId)
+    async ValueTask ILavalinkPlayerListener.NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
     {
         EnsureNotDestroyed();
+
         VoiceChannelId = voiceChannelId;
+
+        try
+        {
+            await NotifyChannelUpdateAsync(voiceChannelId, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (_destroyPlayerOnDisconnect && voiceChannelId is null)
+            {
+                await DisposeAsync().ConfigureAwait(false);
+            }
+        }
     }
 
     ValueTask ILavalinkPlayerListener.NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken)
@@ -277,6 +293,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         CurrentTrack = null;
         return default;
     }
+
+    protected virtual ValueTask NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken = default) => default;
 
     protected virtual ValueTask NotifyTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken = default) => default;
 

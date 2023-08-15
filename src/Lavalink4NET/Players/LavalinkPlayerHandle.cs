@@ -141,9 +141,11 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             Interlocked.Increment(ref Diagnostics.ActivePlayers);
         }
 
-        if (_voiceState.Value.VoiceChannelId is not null && _value is ILavalinkPlayerListener playerListener)
+        if (_value is ILavalinkPlayerListener playerListener)
         {
-            playerListener.NotifyChannelUpdate(_voiceState.Value.VoiceChannelId.Value);
+            await playerListener
+                .NotifyChannelUpdateAsync(_voiceState.Value.VoiceChannelId, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 

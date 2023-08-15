@@ -4,6 +4,7 @@ public enum UserVoteResult : byte
 {
     Submitted,
     Skipped,
+    NotConnected,
     AlreadySubmitted,
     UserNotInChannel,
 }
