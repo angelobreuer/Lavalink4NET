@@ -600,4 +600,72 @@ public class LavalinkApiClientTests
         var exception = await Assert.ThrowsAsync<HttpRequestException>(Action);
         Assert.Contains("Can't access disabled route planner", exception.Message);
     }
+
+    [Fact]
+    public async Task TestUpdatePlayerAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+        var called = false;
+
+        httpClientFactory.Application.MapPatch("/v4/sessions/abc/players/1234567890", async (HttpContext context) =>
+        {
+            using var streamReader = new StreamReader(context.Request.Body);
+            var body = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+
+            Assert.Equal("""{"paused":true}""", body);
+
+            called = true;
+            return TypedResults.Text(
+                """
+                {
+                    "guildId": 123,
+                    "track": {
+                        "encoded": "QAAAjQIAJVJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAADlJpY2tBc3RsZXlWRVZPAAAAAAADPCAAC2RRdzR3OVdnWGNRAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9ZFF3NHc5V2dYY1EAB3lvdXR1YmUAAAAAAAAAAA==",
+                        "info": {
+                          "identifier": "dQw4w9WgXcQ",
+                          "isSeekable": true,
+                          "author": "RickAstleyVEVO",
+                          "length": 212000,
+                          "isStream": false,
+                          "position": 60000,
+                          "title": "Rick Astley - Never Gonna Give You Up",
+                          "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                          "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+                          "isrc": null,
+                          "sourceName": "youtube"
+                        },
+                        "pluginInfo": {}
+                    },
+                    "volume": 1,
+                    "paused": true,
+                    "voice": {
+                      "token": "...",
+                      "endpoint": "...",
+                      "sessionId": "..."
+                    },
+                    "filters": {}
+                }
+                """, "application/json");
+        });
+
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+            optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        var playerUpdate = new PlayerUpdateProperties { IsPaused = true, };
+
+        // Act
+        await client
+            .UpdatePlayerAsync("abc", 1234567890, playerUpdate)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(called);
+    }
 }
