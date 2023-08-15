@@ -326,6 +326,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     protected virtual ValueTask NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default) => default;
 
+    protected virtual ValueTask NotifyFiltersUpdatedAsync(IPlayerFilters filters, CancellationToken cancellationToken = default) => default;
+
     private async ValueTask PerformUpdateAsync(PlayerUpdateProperties properties, CancellationToken cancellationToken = default)
     {
         EnsureNotDestroyed();
@@ -393,6 +395,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _logger.PlayerFiltersChanged(_label);
 
         await PerformUpdateAsync(properties, cancellationToken).ConfigureAwait(false);
+        await NotifyFiltersUpdatedAsync(Filters, cancellationToken).ConfigureAwait(false);
     }
 
     protected virtual async ValueTask DisposeAsyncCore()
