@@ -50,3 +50,19 @@ var artworkUri = playlist.ArtworkUri;
 var uri = playlist.Uri;
 var type = playlist.Type;
 ```
+
+### Flowery TTS
+
+The Lavasrc plugin provides a TTS source manager which allows to play TTS audio using the [Flowery TTS](https://flowery.pw/docs/flowery/synthesize-v-1-tts-get/).
+
+You can use the `GetTextToSpeechTrackAsync` method to resolve a TTS track.
+
+```charp
+var options = new TextToSpeechOptions(
+    Speed: 1.2F,
+    Format: TextToSpeechFormat.Mp3);
+
+var track = await _trackManager
+    .GetTextToSpeechTrackAsync(query, options)
+    .ConfigureAwait(false);
+```
