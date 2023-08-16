@@ -408,7 +408,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         }
         finally
         {
-            _readyTaskCompletionSource.TrySetCanceled();
+            _readyTaskCompletionSource.TrySetCanceled(CancellationToken.None);
         }
     }
 
