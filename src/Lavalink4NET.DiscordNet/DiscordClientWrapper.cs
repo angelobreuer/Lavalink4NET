@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
@@ -147,15 +148,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             return ValueTask.FromResult(ImmutableArray<ulong>.Empty);
         }
 
-        var channel = guild.GetVoiceChannel(voiceChannelId);
-
-        if (channel is null)
-        {
-            // It may be that the channel has been deleted while there was a player for it, return no users
-            return ValueTask.FromResult(ImmutableArray<ulong>.Empty);
-        }
-
-        var usersEnumerable = channel.ConnectedUsers.AsEnumerable();
+        var usersEnumerable = guild.Users.Where(x => x.VoiceChannel?.Id == voiceChannelId);
 
         if (includeBots)
         {
@@ -248,14 +241,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     private Task OnShardReady(DiscordSocketClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
-
-        var clientInformation = new ClientInformation(
-            Label: "discord.net",
-            CurrentUserId: client.CurrentUser.Id,
-            ShardCount: GetShardCount());
-
-        _readyTaskCompletionSource.TrySetResult(clientInformation);
-        return Task.CompletedTask;
+        return OnClientReady();
     }
 
     private Task OnVoiceServerUpdated(SocketVoiceServer voiceServer)
