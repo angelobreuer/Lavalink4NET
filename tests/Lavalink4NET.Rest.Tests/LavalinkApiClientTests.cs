@@ -668,4 +668,215 @@ public class LavalinkApiClientTests
         // Assert
         Assert.True(called);
     }
+
+    [Fact]
+    public async Task TestDestroyPlayerAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+        var called = false;
+
+        httpClientFactory.Application.MapDelete("/v4/sessions/abc/players/1234567890", async (HttpContext context) =>
+        {
+            called = true;
+            return TypedResults.NoContent();
+        });
+
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+            optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        await client
+            .DestroyPlayerAsync("abc", 1234567890)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [Fact]
+    public async Task TestGetPlayerAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+        var called = false;
+
+        httpClientFactory.Application.MapGet("/v4/sessions/abc/players/1234567890", async (HttpContext context) =>
+        {
+            called = true;
+
+            return TypedResults.Text(
+                """
+                {
+                    "guildId": 123,
+                    "track": {
+                        "encoded": "QAAAjQIAJVJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAADlJpY2tBc3RsZXlWRVZPAAAAAAADPCAAC2RRdzR3OVdnWGNRAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9ZFF3NHc5V2dYY1EAB3lvdXR1YmUAAAAAAAAAAA==",
+                        "info": {
+                          "identifier": "dQw4w9WgXcQ",
+                          "isSeekable": true,
+                          "author": "RickAstleyVEVO",
+                          "length": 212000,
+                          "isStream": false,
+                          "position": 60000,
+                          "title": "Rick Astley - Never Gonna Give You Up",
+                          "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                          "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+                          "isrc": null,
+                          "sourceName": "youtube"
+                        },
+                        "pluginInfo": {}
+                    },
+                    "volume": 1,
+                    "paused": true,
+                    "voice": {
+                      "token": "...",
+                      "endpoint": "...",
+                      "sessionId": "..."
+                    },
+                    "filters": {}
+                }
+                """, "application/json");
+        });
+
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+            optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var model = await client
+            .GetPlayerAsync("abc", 1234567890)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(called);
+        Assert.NotNull(model);
+        Assert.Equal(123UL, model.GuildId);
+    }
+
+    [Fact]
+    public async Task TestGetPlayerNullIfNotFoundAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+            optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var model = await client
+            .GetPlayerAsync("abc", 1234567890)
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.Null(model);
+    }
+
+    [Fact]
+    public async Task TestGetPlayersAsync()
+    {
+        // Arrange
+        await using var httpClientFactory = new HttpClientFactory();
+        var called = false;
+
+        httpClientFactory.Application.MapGet("/v4/sessions/abc/players", async (HttpContext context) =>
+        {
+            called = true;
+
+            return TypedResults.Text(
+                """
+                [
+                    {
+                        "guildId": 123,
+                        "track": {
+                            "encoded": "QAAAjQIAJVJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAADlJpY2tBc3RsZXlWRVZPAAAAAAADPCAAC2RRdzR3OVdnWGNRAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9ZFF3NHc5V2dYY1EAB3lvdXR1YmUAAAAAAAAAAA==",
+                            "info": {
+                              "identifier": "dQw4w9WgXcQ",
+                              "isSeekable": true,
+                              "author": "RickAstleyVEVO",
+                              "length": 212000,
+                              "isStream": false,
+                              "position": 60000,
+                              "title": "Rick Astley - Never Gonna Give You Up",
+                              "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                              "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+                              "isrc": null,
+                              "sourceName": "youtube"
+                            },
+                            "pluginInfo": {}
+                        },
+                        "volume": 1,
+                        "paused": true,
+                        "voice": {
+                          "token": "...",
+                          "endpoint": "...",
+                          "sessionId": "..."
+                        },
+                        "filters": {}
+                    },
+                    {
+                        "guildId": 124,
+                        "track": {
+                            "encoded": "QAAAjQIAJVJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAADlJpY2tBc3RsZXlWRVZPAAAAAAADPCAAC2RRdzR3OVdnWGNRAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9ZFF3NHc5V2dYY1EAB3lvdXR1YmUAAAAAAAAAAA==",
+                            "info": {
+                              "identifier": "dQw4w9WgXcQ",
+                              "isSeekable": true,
+                              "author": "RickAstleyVEVO",
+                              "length": 212000,
+                              "isStream": false,
+                              "position": 120000,
+                              "title": "Rick Astley - Never Gonna Give You Up",
+                              "uri": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                              "artworkUrl": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+                              "isrc": null,
+                              "sourceName": "youtube"
+                            },
+                            "pluginInfo": {}
+                        },
+                        "volume": 120,
+                        "paused": false,
+                        "voice": {
+                          "token": "...",
+                          "endpoint": "...",
+                          "sessionId": "..."
+                        },
+                        "filters": {}
+                    }
+                ]
+                """, "application/json");
+        });
+
+        httpClientFactory.Start();
+
+        var client = new LavalinkApiClient(
+            httpClientFactory: httpClientFactory,
+            options: Options.Create(new LavalinkApiClientOptions()),
+            memoryCache: new MemoryCache(
+            optionsAccessor: Options.Create(new MemoryCacheOptions())),
+            logger: NullLogger<LavalinkApiClient>.Instance);
+
+        // Act
+        var model = await client
+            .GetPlayersAsync("abc")
+            .ConfigureAwait(false);
+
+        // Assert
+        Assert.True(called);
+        Assert.Equal(2, model.Length);
+    }
 }
