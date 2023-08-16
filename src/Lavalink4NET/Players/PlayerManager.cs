@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class PlayerManager : IPlayerManager, IDisposable
+internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecycleNotifier
 {
     private readonly ConcurrentDictionary<ulong, ILavalinkPlayerHandle> _handles;
     private readonly ILogger<PlayerManager> _logger;
@@ -44,7 +45,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
             ServiceProvider: serviceProvider,
             SessionProvider: sessionProvider,
             DiscordClient: discordClient,
-            SystemClock: systemClock);
+            SystemClock: systemClock,
+            LifecycleNotifier: this);
 
         DiscordClient.VoiceStateUpdated += OnVoiceStateUpdated;
         DiscordClient.VoiceServerUpdated += OnVoiceServerUpdated;
@@ -113,12 +115,15 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
 
         var handle = _handles.GetOrAdd(guildId, Create);
 
-        var selfDeaf = options.Value.SelfDeaf;
-        var selfMute = options.Value.SelfMute;
+        if (handle.Player?.VoiceChannelId != voiceChannelId)
+        {
+            var selfDeaf = options.Value.SelfDeaf;
+            var selfMute = options.Value.SelfMute;
 
-        await DiscordClient
-            .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: selfDeaf, selfMute: selfMute, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+            await DiscordClient
+                .SendVoiceUpdateAsync(guildId, voiceChannelId, selfDeaf: selfDeaf, selfMute: selfMute, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         var player = await handle
             .GetPlayerAsync(cancellationToken)
@@ -264,6 +269,19 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable
         player = await JoinAsync(guildId, memberVoiceChannel.Value, playerFactory, options, cancellationToken).ConfigureAwait(false);
 
         return await CheckPreconditionsAsync(player, preconditions, cancellationToken).ConfigureAwait(false);
+    }
+
+    ValueTask IPlayerLifecycleNotifier.NotifyDisposeAsync(ulong guildId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_handles.TryRemove(guildId, out var playerHandle))
+        {
+            Debug.Assert(playerHandle.Player is not null);
+            Debug.Assert(playerHandle.Player is { State: PlayerState.Destroyed, });
+        }
+
+        return default;
     }
 }
 

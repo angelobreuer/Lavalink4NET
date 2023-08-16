@@ -14,6 +14,7 @@ internal sealed record class PlayerProperties<TPlayer, TOptions>(
     string Label,
     ulong VoiceChannelId,
     string SessionId,
+    IPlayerLifecycle Lifecycle,
     ILavalinkApiClient ApiClient,
     IOptions<TOptions> Options,
     ILogger<TPlayer> Logger)

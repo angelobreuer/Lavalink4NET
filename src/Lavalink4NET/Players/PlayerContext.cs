@@ -8,4 +8,5 @@ internal sealed record class PlayerContext(
     IServiceProvider? ServiceProvider,
     ILavalinkSessionProvider SessionProvider,
     IDiscordClientWrapper DiscordClient,
-    ISystemClock SystemClock);
+    ISystemClock SystemClock,
+    IPlayerLifecycleNotifier? LifecycleNotifier);

@@ -91,5 +91,6 @@ public sealed class LavalinkPlayerHandleTests
         SessionProvider: Mock.Of<ILavalinkSessionProvider>(x
             => x.GetSessionAsync(123UL, It.IsAny<CancellationToken>())
             == ValueTask.FromResult(new LavalinkPlayerSession(CreateApiClientMock(), "abc", "abc"))),
-        SystemClock: new SystemClock());
+        SystemClock: new SystemClock(),
+        LifecycleNotifier: null);
 }

@@ -23,6 +23,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private readonly ILogger<LavalinkPlayer> _logger;
     private readonly ISystemClock _systemClock;
     private readonly bool _disconnectOnStop;
+    private readonly IPlayerLifecycle _playerLifecycle;
     private string? _currentTrackState;
     private int _disposed;
     private DateTimeOffset _syncedAt;
@@ -44,6 +45,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _systemClock = properties.SystemClock;
         _logger = properties.Logger;
         _syncedAt = properties.SystemClock.UtcNow;
+        _playerLifecycle = properties.Lifecycle;
+
         _unstretchedRelativePosition = default;
         _connectedOnce = false;
 
@@ -410,6 +413,9 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         {
             return;
         }
+
+        // Dispose the lifecycle to notify the player is being destroyed
+        await using var _ = _playerLifecycle.ConfigureAwait(false);
 
         _logger.PlayerDestroyed(_label);
 

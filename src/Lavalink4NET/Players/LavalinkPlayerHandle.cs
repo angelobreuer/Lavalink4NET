@@ -199,18 +199,46 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         var label = _options.Value.Label ?? $"{typeof(TPlayer).Name}@{_guildId} on {playerSession.Label}";
 
+        var lifecycle = _playerContext.LifecycleNotifier is null
+            ? EmptyPlayerLifecycle.Instance as IPlayerLifecycle
+            : new PlayerLifecycle(_guildId, _playerContext.LifecycleNotifier);
+
         var properties = new PlayerProperties<TPlayer, TOptions>(
             Context: _playerContext,
             VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
             InitialState: initialState,
             Label: label,
             SessionId: playerSession.SessionId,
+            Lifecycle: lifecycle,
             ApiClient: playerSession.ApiClient,
             Options: _options,
             Logger: _logger);
 
         return await _playerFactory(properties, cancellationToken).ConfigureAwait(false);
     }
+}
+
+file sealed class EmptyPlayerLifecycle : IPlayerLifecycle
+{
+    public static EmptyPlayerLifecycle Instance { get; } = new();
+
+    public ValueTask DisposeAsync() => default;
+}
+
+file sealed class PlayerLifecycle : IPlayerLifecycle
+{
+    private readonly ulong _guildId;
+    private readonly IPlayerLifecycleNotifier _lifecycleNotifier;
+
+    public PlayerLifecycle(ulong guildId, IPlayerLifecycleNotifier lifecycleNotifier)
+    {
+        ArgumentNullException.ThrowIfNull(lifecycleNotifier);
+
+        _guildId = guildId;
+        _lifecycleNotifier = lifecycleNotifier;
+    }
+
+    public ValueTask DisposeAsync() => _lifecycleNotifier.NotifyDisposeAsync(_guildId);
 }
 
 file static class Diagnostics

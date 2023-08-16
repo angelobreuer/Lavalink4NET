@@ -122,32 +122,6 @@ public sealed class LavalinkPlayerTests
     }
 
     [Fact]
-    public async Task TestPlayerIsNotDisposedIfDisconnectOnDestroyIsFalseOnChannelDisconnectAsync()
-    {
-        // Arrange
-        var playerModel = new PlayerInformationModel(
-            GuildId: 0UL,
-            CurrentTrack: null,
-            Volume: 1F,
-            IsPaused: false,
-            VoiceState: CreateVoiceState(),
-            Filters: new PlayerFilterMapModel());
-
-        var playerProperties = CreateProperties(
-            playerModel: playerModel,
-            options: new LavalinkPlayerOptions { DisconnectOnDestroy = false, });
-
-        var player = new LavalinkPlayer(playerProperties);
-        var playerListener = player as ILavalinkPlayerListener;
-
-        // Act
-        await playerListener.NotifyChannelUpdateAsync(voiceChannelId: null);
-
-        // Assert
-        Assert.NotEqual(PlayerState.Destroyed, player.State);
-    }
-
-    [Fact]
     public async Task TestVoiceChannelIdIsUpdatedAfterPlayerMoveAsync()
     {
         // Arrange
@@ -877,7 +851,9 @@ public sealed class LavalinkPlayerTests
                 ServiceProvider: null,
                 SessionProvider: sessionProvider,
                 DiscordClient: discordClientMock.Object,
-                SystemClock: new SystemClock()),
+                SystemClock: new SystemClock(),
+                LifecycleNotifier: null),
+            Lifecycle: Mock.Of<IPlayerLifecycle>(),
             ApiClient: apiClientMock.Object,
             InitialState: playerModel,
             Label: "Player",

@@ -31,4 +31,6 @@ public interface IPlayerProperties<out TPlayer, out TOptions>
     ulong VoiceChannelId { get; }
 
     string SessionId { get; }
+
+    IPlayerLifecycle Lifecycle { get; }
 }
