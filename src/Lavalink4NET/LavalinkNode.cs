@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -354,7 +355,24 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(webSocketClosedEvent);
 
-        // TODO
+        var closeCode = (WebSocketCloseStatus)webSocketClosedEvent.Code;
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyWebSocketClosedAsync(closeCode, webSocketClosedEvent.Reason, webSocketClosedEvent.WasByRemote, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var eventArgs = new WebSocketClosedEventArgs(
+            player: player,
+            closeCode: closeCode,
+            reason: webSocketClosedEvent.Reason,
+            byRemote: webSocketClosedEvent.WasByRemote);
+
+        await _serviceContext.NodeListener
+            .OnWebSocketClosedAsync(eventArgs, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async ValueTask RunAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
@@ -419,6 +437,11 @@ internal sealed class LavalinkNode : IAsyncDisposable
         while (!_shutdownCancellationToken.IsCancellationRequested)
         {
             using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));
+
+            if (socket is null)
+            {
+                break;
+            }
 
             _ = socket.RunAsync(cancellationTokenSource.Token).AsTask();
 

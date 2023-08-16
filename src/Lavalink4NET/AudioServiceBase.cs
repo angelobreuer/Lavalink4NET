@@ -141,6 +141,8 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 
     public event AsyncEventHandler<StatisticsUpdatedEventArgs>? StatisticsUpdated;
 
+    public event AsyncEventHandler<WebSocketClosedEventArgs>? WebSocketClosed;
+
     protected virtual ValueTask OnTrackEndedAsync(TrackEndedEventArgs eventArgs, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -176,6 +178,13 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         return StatisticsUpdated.InvokeAsync(this, eventArgs);
     }
 
+    protected virtual ValueTask OnWebSocketClosedAsync(WebSocketClosedEventArgs eventArgs, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+        return WebSocketClosed.InvokeAsync(this, eventArgs);
+    }
+
     ValueTask ILavalinkNodeListener.OnTrackEndedAsync(TrackEndedEventArgs eventArgs, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -204,6 +213,12 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
     {
         cancellationToken.ThrowIfCancellationRequested();
         return OnStatisticsUpdatedAsync(eventArgs, cancellationToken);
+    }
+
+    ValueTask ILavalinkNodeListener.OnWebSocketClosedAsync(WebSocketClosedEventArgs eventArgs, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return OnWebSocketClosedAsync(eventArgs, cancellationToken);
     }
 
     private async ValueTask<ClientInformation> WaitForClientReadyAsync(TimeSpan timeout, CancellationToken cancellationToken = default)

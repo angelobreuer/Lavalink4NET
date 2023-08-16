@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
@@ -307,6 +308,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
     }
 
+    async ValueTask ILavalinkPlayerListener.NotifyWebSocketClosedAsync(WebSocketCloseStatus closeStatus, string reason, bool byRemote, CancellationToken cancellationToken)
+    {
+        await using var _ = this.ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await NotifyWebSocketClosedAsync(closeStatus, reason, byRemote, cancellationToken).ConfigureAwait(false);
+    }
+
     protected void EnsureNotDestroyed()
     {
 #if NET7_0_OR_GREATER
@@ -318,6 +327,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 #endif
     }
+
+    protected virtual ValueTask NotifyWebSocketClosedAsync(WebSocketCloseStatus closeStatus, string reason, bool byRemote = false, CancellationToken cancellationToken = default) => default;
 
     protected virtual ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {

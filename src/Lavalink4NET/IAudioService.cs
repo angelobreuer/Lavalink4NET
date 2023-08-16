@@ -26,6 +26,8 @@ public interface IAudioService : IAsyncDisposable
 
     event AsyncEventHandler<StatisticsUpdatedEventArgs>? StatisticsUpdated;
 
+    event AsyncEventHandler<WebSocketClosedEventArgs>? WebSocketClosed;
+
     IDiscordClientWrapper DiscordClient { get; }
 
     IIntegrationManager Integrations { get; }

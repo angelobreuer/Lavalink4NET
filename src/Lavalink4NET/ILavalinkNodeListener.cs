@@ -16,4 +16,6 @@ internal interface ILavalinkNodeListener
     ValueTask OnTrackStuckAsync(TrackStuckEventArgs eventArgs, CancellationToken cancellationToken = default);
 
     ValueTask OnStatisticsUpdatedAsync(StatisticsUpdatedEventArgs eventArgs, CancellationToken cancellationToken = default);
+
+    ValueTask OnWebSocketClosedAsync(WebSocketClosedEventArgs eventArgs, CancellationToken cancellationToken = default);
 }

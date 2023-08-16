@@ -19,7 +19,7 @@ internal sealed class LavalinkSocketFactory : ILavalinkSocketFactory
         _logger = logger;
     }
 
-    public ILavalinkSocket Create(IOptions<LavalinkSocketOptions> options)
+    public ILavalinkSocket? Create(IOptions<LavalinkSocketOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options);
         return new LavalinkSocket(_httpMessageHandlerFactory, _logger, options);

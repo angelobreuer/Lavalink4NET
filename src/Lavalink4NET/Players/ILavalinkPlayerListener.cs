@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Players;
 
 using System;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Protocol.Payloads.Events;
@@ -20,4 +21,6 @@ public interface ILavalinkPlayerListener
     ValueTask NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default);
 
     ValueTask NotifyPlayerUpdateAsync(DateTimeOffset timestamp, TimeSpan position, bool connected, TimeSpan? latency, CancellationToken cancellationToken = default);
+
+    ValueTask NotifyWebSocketClosedAsync(WebSocketCloseStatus closeStatus, string reason, bool byRemote = false, CancellationToken cancellationToken = default);
 }
