@@ -16,6 +16,8 @@ using Microsoft.Extensions.Logging;
 public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 {
     private readonly CancellationTokenSource _shutdownCancellationTokenSource;
+    private readonly TaskCompletionSource _readyTaskCompletionSource;
+    private readonly TimeSpan _readyTimeout;
     private readonly ILogger<AudioServiceBase> _logger;
     private Task? _executeTask;
     private int _disposeState;
@@ -26,6 +28,7 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         IIntegrationManager integrations,
         IPlayerManager players,
         ITrackManager tracks,
+        TimeSpan readyTimeout,
         ILogger<AudioServiceBase> logger)
     {
         ArgumentNullException.ThrowIfNull(apiClientProvider);
@@ -37,11 +40,15 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         _shutdownCancellationTokenSource = new CancellationTokenSource();
         ShutdownCancellationToken = _shutdownCancellationTokenSource.Token;
 
+        _readyTaskCompletionSource = new TaskCompletionSource(
+            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
+
         DiscordClient = discordClient;
         ApiClientProvider = apiClientProvider;
         Integrations = integrations;
         Players = players;
         Tracks = tracks;
+        _readyTimeout = readyTimeout;
         _logger = logger;
     }
 
@@ -100,7 +107,29 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         }
     }
 
-    public abstract ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default);
+    protected void NotifyReady()
+    {
+        _readyTaskCompletionSource.TrySetResult();
+    }
+
+    public async ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await _readyTaskCompletionSource.Task
+                .WaitAsync(_readyTimeout, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (TimeoutException exception)
+        {
+            throw new TimeoutException(
+                message: "Reached timeout while waiting for the audio service being ready.",
+                innerException: exception);
+        }
+    }
 
     public event AsyncEventHandler<TrackEndedEventArgs>? TrackEnded;
 

@@ -35,6 +35,7 @@ public partial class AudioService : AudioServiceBase
             integrations: integrationManager,
             players: playerManager,
             tracks: trackManager,
+            readyTimeout: options.Value.ReadyTimeout,
             logger: loggerFactory.CreateLogger<AudioService>())
     {
         ArgumentNullException.ThrowIfNull(discordClient);
@@ -70,9 +71,15 @@ public partial class AudioService : AudioServiceBase
 
         _nodeTaskCompletionSource.TrySetResult(_node);
 
+        var nodeTask = _node.RunAsync(clientInformation, cancellationToken).AsTask();
+
         await _node
-            .RunAsync(clientInformation, cancellationToken)
+            .WaitForReadyAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        NotifyReady();
+
+        await nodeTask.ConfigureAwait(false);
     }
 
     public string? SessionId
@@ -82,20 +89,6 @@ public partial class AudioService : AudioServiceBase
             ThrowIfDisposed();
             return _node?.SessionId;
         }
-    }
-
-    public override async ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var node = await _nodeTaskCompletionSource.Task
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        await node
-            .WaitForReadyAsync(cancellationToken)
-            .ConfigureAwait(false);
     }
 
     private void ThrowIfDisposed()

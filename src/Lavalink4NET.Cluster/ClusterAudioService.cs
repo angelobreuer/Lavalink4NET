@@ -22,7 +22,6 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
     private readonly ILavalinkApiClientFactory _lavalinkApiClientFactory;
     private readonly ILoggerFactory _loggerFactory;
     private readonly TaskCompletionSource<ClientInformation> _clientReadyTaskCompletionSource;
-    private readonly TaskCompletionSource _serviceReadyTaskCompletionSource;
 
     public ClusterAudioService(
         IDiscordClientWrapper discordClient,
@@ -34,16 +33,13 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         ITrackManager tracks,
         IOptions<ClusterAudioServiceOptions> options,
         ILoggerFactory loggerFactory)
-        : base(discordClient, lavalinkApiClientProvider, integrations, players, tracks, loggerFactory.CreateLogger<ClusterAudioService>())
+        : base(discordClient, lavalinkApiClientProvider, integrations, players, tracks, options.Value.ReadyTimeout, loggerFactory.CreateLogger<ClusterAudioService>())
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _clientReadyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(
-            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
-
-        _serviceReadyTaskCompletionSource = new TaskCompletionSource(
             creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
 
         _syncRoot = new object();
@@ -110,12 +106,6 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         return true;
     }
 
-    public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return new ValueTask(_serviceReadyTaskCompletionSource.Task.WaitAsync(cancellationToken));
-    }
-
     protected override async ValueTask RunInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -125,8 +115,6 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         {
             await AddAsync(Options.Create(nodeOptions), cancellationToken).ConfigureAwait(false);
         }
-
-        _serviceReadyTaskCompletionSource.TrySetResult();
 
         try
         {

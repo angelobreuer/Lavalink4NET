@@ -29,7 +29,6 @@ internal sealed class LavalinkNode : IAsyncDisposable
     private readonly TaskCompletionSource<string> _readyTaskCompletionSource;
     private readonly CancellationTokenSource _shutdownCancellationTokenSource;
     private readonly CancellationToken _shutdownCancellationToken;
-    private readonly TaskCompletionSource _startTaskCompletionSource;
     private readonly LavalinkNodeOptions _options;
     private readonly LavalinkNodeServiceContext _serviceContext;
     private readonly LavalinkApiEndpoints _apiEndpoints;
@@ -44,8 +43,8 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
-        _readyTaskCompletionSource = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _startTaskCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _readyTaskCompletionSource = new TaskCompletionSource<string>(
+            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
 
         _serviceContext = serviceContext;
         _apiEndpoints = apiEndpoints;
@@ -66,48 +65,14 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
     public string? SessionId { get; private set; }
 
-    public ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
+    public async ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
-        static async Task WaitForReadyInternalAsync(Task startTask, Task readyTask, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (!startTask.IsCompleted)
-            {
-                try
-                {
-                    await startTask
-                        .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (TimeoutException exception)
-                {
-                    throw new InvalidOperationException(
-                        message: "Attempted to wait for the audio service being ready but the audio service has never been initialized. Check whether you have called IAudioService#StartAsync() on the audio service instance to initialize the audio service.",
-                        innerException: exception);
-                }
-            }
-
-            if (cancellationToken.CanBeCanceled)
-            {
-                readyTask = readyTask.WaitAsync(cancellationToken);
-            }
-
-            await readyTask.ConfigureAwait(false);
-        }
-
-        var task = _readyTaskCompletionSource.Task;
-
-        if (task.IsCompleted)
-        {
-            _ = task.Result;
-            return ValueTask.CompletedTask;
-        }
-
-        return new ValueTask(WaitForReadyInternalAsync(_startTaskCompletionSource.Task, task, cancellationToken));
+        await _readyTaskCompletionSource.Task
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private static LavalinkTrack CreateTrack(TrackModel track) => new()
@@ -411,8 +376,6 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
         try
         {
-            _startTaskCompletionSource.TrySetResult();
-
             _executeTask = ReceiveInternalAsync(clientInformation, linkedCancellationToken);
             await _executeTask.ConfigureAwait(false);
         }
@@ -511,7 +474,6 @@ internal sealed class LavalinkNode : IAsyncDisposable
         _disposed = true;
 
         _readyTaskCompletionSource.TrySetCanceled();
-        _startTaskCompletionSource.TrySetCanceled();
         _shutdownCancellationTokenSource.Cancel();
         _shutdownCancellationTokenSource.Dispose();
 
