@@ -17,6 +17,7 @@ public partial class AudioService : AudioServiceBase
     private readonly AudioServiceOptions _options;
     private readonly ILoggerFactory _loggerFactory;
     private readonly LavalinkNodeServiceContext _serviceContext;
+    private readonly TaskCompletionSource<LavalinkNode> _nodeTaskCompletionSource;
     private LavalinkNode? _node;
     private int _disposeState;
 
@@ -44,6 +45,9 @@ public partial class AudioService : AudioServiceBase
         _options = options.Value;
         _loggerFactory = loggerFactory;
 
+        _nodeTaskCompletionSource = new TaskCompletionSource<LavalinkNode>(
+            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
+
         _serviceContext = new LavalinkNodeServiceContext(
             ClientWrapper: discordClient,
             LavalinkSocketFactory: socketFactory,
@@ -64,7 +68,11 @@ public partial class AudioService : AudioServiceBase
             apiEndpoints: new LavalinkApiEndpoints(_options.BaseAddress),
             logger: _loggerFactory.CreateLogger<LavalinkNode>());
 
-        await _node.RunAsync(clientInformation, cancellationToken).ConfigureAwait(false);
+        _nodeTaskCompletionSource.TrySetResult(_node);
+
+        await _node
+            .RunAsync(clientInformation, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public string? SessionId
@@ -76,17 +84,18 @@ public partial class AudioService : AudioServiceBase
         }
     }
 
-    public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (_node is null)
-        {
-            throw new InvalidOperationException("The node is not initialized.");
-        }
+        var node = await _nodeTaskCompletionSource.Task
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        return _node.WaitForReadyAsync(cancellationToken);
+        await node
+            .WaitForReadyAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private void ThrowIfDisposed()
