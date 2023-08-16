@@ -1,29 +1,53 @@
 ﻿namespace Lavalink4NET;
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Players;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
 
 public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 {
-    protected AudioServiceBase(ILavalinkApiClientProvider apiClientProvider, IIntegrationManager integrations, IPlayerManager players, ITrackManager tracks)
+    private readonly CancellationTokenSource _shutdownCancellationTokenSource;
+    private readonly ILogger<AudioServiceBase> _logger;
+    private Task? _executeTask;
+    private int _disposeState;
+
+    protected AudioServiceBase(
+        IDiscordClientWrapper discordClient,
+        ILavalinkApiClientProvider apiClientProvider,
+        IIntegrationManager integrations,
+        IPlayerManager players,
+        ITrackManager tracks,
+        ILogger<AudioServiceBase> logger)
     {
         ArgumentNullException.ThrowIfNull(apiClientProvider);
         ArgumentNullException.ThrowIfNull(integrations);
         ArgumentNullException.ThrowIfNull(players);
         ArgumentNullException.ThrowIfNull(tracks);
+        ArgumentNullException.ThrowIfNull(logger);
 
+        _shutdownCancellationTokenSource = new CancellationTokenSource();
+        ShutdownCancellationToken = _shutdownCancellationTokenSource.Token;
+
+        DiscordClient = discordClient;
         ApiClientProvider = apiClientProvider;
         Integrations = integrations;
         Players = players;
         Tracks = tracks;
+        _logger = logger;
     }
+
+    protected internal CancellationToken ShutdownCancellationToken { get; }
+
+    public IDiscordClientWrapper DiscordClient { get; }
 
     public ILavalinkApiClientProvider ApiClientProvider { get; }
 
@@ -33,9 +57,48 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 
     public ITrackManager Tracks { get; }
 
-    public abstract ValueTask StartAsync(CancellationToken cancellationToken = default);
+    public ValueTask StartAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfDisposed();
 
-    public abstract ValueTask StopAsync(CancellationToken cancellationToken = default);
+        if (_executeTask is not null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            token1: cancellationToken,
+            token2: ShutdownCancellationToken);
+
+        cancellationToken = cancellationTokenSource.Token;
+
+        _executeTask = RunAsync(cancellationToken).AsTask();
+
+        return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
+    }
+
+    public async ValueTask StopAsync(CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_executeTask is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _shutdownCancellationTokenSource.Cancel();
+        }
+        finally
+        {
+            await _executeTask
+                .WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
 
     public abstract ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default);
 
@@ -114,21 +177,118 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         return OnStatisticsUpdatedAsync(eventArgs, cancellationToken);
     }
 
-    public void Dispose()
+    private async ValueTask<ClientInformation> WaitForClientReadyAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var originalCancellationToken = cancellationToken;
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cancellationTokenSource.CancelAfter(timeout);
+        cancellationToken = cancellationTokenSource.Token;
+
+        _logger.WaitingForClientBeingReady();
+
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            var clientInformation = await DiscordClient
+                .WaitForReadyAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            _logger.DiscordClientIsReady(clientInformation.Label, (int)stopwatch.ElapsedMilliseconds);
+
+            return clientInformation;
+        }
+        catch (OperationCanceledException exception) when (!originalCancellationToken.IsCancellationRequested)
+        {
+            _logger.TimedOutWhileWaitingForDiscordClientBeingReady(exception);
+            throw new TimeoutException("Timed out while waiting for discord client being ready.", exception);
+        }
+    }
+
+    private async ValueTask RunAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.StartingAudioService();
+
+        try
+        {
+            var clientTask = WaitForClientReadyAsync(
+                timeout: TimeSpan.FromSeconds(30),
+                cancellationToken: cancellationToken);
+
+            var clientInformation = await clientTask.ConfigureAwait(false);
+            await RunInternalAsync(clientInformation, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _logger.AudioServiceStopped();
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+#if NET7_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(_disposeState is not 0, this);
+#else
+        if (_disposeState is not 0)
+        {
+            throw new ObjectDisposedException(nameof(AudioService));
+        }
+#endif
+    }
+
+    protected virtual async ValueTask DisposeAsyncCore()
+    {
+        if (Interlocked.CompareExchange(ref _disposeState, 1, 0) is 0)
+        {
+            return;
+        }
+
+        _shutdownCancellationTokenSource.Cancel();
+        _shutdownCancellationTokenSource.Dispose();
+
+        if (_executeTask is not null)
+        {
+            try
+            {
+                await _executeTask.ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
         await DisposeAsyncCore().ConfigureAwait(false);
-
-        Dispose(disposing: false);
         GC.SuppressFinalize(this);
     }
 
-    protected abstract void Dispose(bool disposing);
+    protected abstract ValueTask RunInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default);
+}
 
-    protected abstract ValueTask DisposeAsyncCore();
+internal static partial class Logging
+{
+    [LoggerMessage(1, LogLevel.Debug, "Waiting for client being ready...", EventName = nameof(WaitingForClientBeingReady))]
+    public static partial void WaitingForClientBeingReady(this ILogger<AudioServiceBase> logger);
+
+    [LoggerMessage(2, LogLevel.Error, "Timed out while waiting for discord client being ready.", EventName = nameof(TimedOutWhileWaitingForDiscordClientBeingReady))]
+    public static partial void TimedOutWhileWaitingForDiscordClientBeingReady(this ILogger<AudioServiceBase> logger, Exception exception);
+
+    [LoggerMessage(3, LogLevel.Information, "Discord client ({ClientLabel}) is ready ({Duration}ms).", EventName = nameof(DiscordClientIsReady))]
+    public static partial void DiscordClientIsReady(this ILogger<AudioServiceBase> logger, string clientLabel, int duration);
+
+    [LoggerMessage(4, LogLevel.Information, "Starting audio service...", EventName = nameof(StartingAudioService))]
+    public static partial void StartingAudioService(this ILogger<AudioServiceBase> logger);
+
+    [LoggerMessage(5, LogLevel.Information, "Audio service stopped.", EventName = nameof(AudioServiceStopped))]
+    public static partial void AudioServiceStopped(this ILogger<AudioServiceBase> logger);
+
+    [LoggerMessage(6, LogLevel.Information, "Audio Service is ready ({Duration}ms).", EventName = nameof(AudioServiceIsReady))]
+    public static partial void AudioServiceIsReady(this ILogger<AudioServiceBase> logger, long duration);
 }

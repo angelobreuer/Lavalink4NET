@@ -3,6 +3,7 @@ namespace Lavalink4NET;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Clients;
 using Lavalink4NET.Events;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Integrations;
@@ -13,7 +14,7 @@ using Lavalink4NET.Tracks;
 /// <summary>
 ///     The interface for a lavalink audio provider service.
 /// </summary>
-public interface IAudioService : IDisposable, IAsyncDisposable
+public interface IAudioService : IAsyncDisposable
 {
     event AsyncEventHandler<TrackEndedEventArgs>? TrackEnded;
 
@@ -24,6 +25,8 @@ public interface IAudioService : IDisposable, IAsyncDisposable
     event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
 
     event AsyncEventHandler<StatisticsUpdatedEventArgs>? StatisticsUpdated;
+
+    IDiscordClientWrapper DiscordClient { get; }
 
     IIntegrationManager Integrations { get; }
 

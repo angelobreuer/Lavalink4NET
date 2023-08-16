@@ -34,6 +34,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
     private readonly LavalinkNodeServiceContext _serviceContext;
     private readonly LavalinkApiEndpoints _apiEndpoints;
     private readonly ILogger<LavalinkNode> _logger;
+    private readonly Stopwatch _readyStopwatch;
     private Task? _executeTask;
     private bool _disposed;
 
@@ -50,6 +51,8 @@ internal sealed class LavalinkNode : IAsyncDisposable
         _apiEndpoints = apiEndpoints;
         _options = options.Value;
         _logger = logger;
+
+        _readyStopwatch = new Stopwatch();
 
         Label = _options.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
 
@@ -389,10 +392,9 @@ internal sealed class LavalinkNode : IAsyncDisposable
         // TODO
     }
 
-    public async ValueTask RunAsync(CancellationToken cancellationToken = default)
+    public async ValueTask RunAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        _logger.StartingAudioService(Label);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -411,7 +413,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         {
             _startTaskCompletionSource.TrySetResult();
 
-            _executeTask = ReceiveInternalAsync(linkedCancellationToken);
+            _executeTask = ReceiveInternalAsync(clientInformation, linkedCancellationToken);
             await _executeTask.ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -426,54 +428,13 @@ internal sealed class LavalinkNode : IAsyncDisposable
         finally
         {
             _readyTaskCompletionSource.TrySetCanceled();
-            _logger.AudioServiceStopped(Label);
         }
     }
 
-    private async Task ReceiveInternalAsync(CancellationToken cancellationToken = default)
+    private async Task ReceiveInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
-
-        var stopwatch = Stopwatch.StartNew();
-
-        static async ValueTask<ClientInformation?> WaitForClientReadyAsync(IDiscordClientWrapper clientWrapper, TimeSpan timeout, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ArgumentNullException.ThrowIfNull(clientWrapper);
-
-            var originalCancellationToken = cancellationToken;
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cancellationTokenSource.CancelAfter(timeout);
-            cancellationToken = cancellationTokenSource.Token;
-
-            try
-            {
-                return await clientWrapper
-                    .WaitForReadyAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (!originalCancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
-        }
-
-        _logger.WaitingForClientBeingReady(Label);
-
-        var clientInformation = await WaitForClientReadyAsync(
-            clientWrapper: _serviceContext.ClientWrapper,
-            timeout: _options.ReadyTimeout,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        if (clientInformation is null)
-        {
-            var exception = new TimeoutException("Timed out while waiting for discord client being ready.");
-            _logger.TimedOutWhileWaitingForDiscordClientBeingReady(Label, exception);
-            throw exception;
-        }
-
-        _logger.DiscordClientIsReady(Label, clientInformation.Value.Label);
 
         var webSocketUri = _options.WebSocketUri ?? _apiEndpoints.WebSocket;
 
@@ -482,14 +443,12 @@ internal sealed class LavalinkNode : IAsyncDisposable
             Label = Label,
             HttpClientName = _options.HttpClientName,
             Uri = webSocketUri,
-            ShardCount = clientInformation.Value.ShardCount,
-            UserId = clientInformation.Value.CurrentUserId,
+            ShardCount = clientInformation.ShardCount,
+            UserId = clientInformation.CurrentUserId,
             Passphrase = _options.Passphrase,
         };
 
-        stopwatch.Stop();
-
-        _logger.AudioServiceIsReady(Label, stopwatch.ElapsedMilliseconds);
+        _readyStopwatch.Restart();
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationToken);
         using var __ = new CancellationTokenDisposable(cancellationTokenSource);
@@ -586,7 +545,7 @@ internal static partial class Logging
     [LoggerMessage(3, LogLevel.Warning, "[{Label}] Multiple ready payloads were received.", EventName = nameof(MultipleReadyPayloadsReceived))]
     public static partial void MultipleReadyPayloadsReceived(this ILogger<LavalinkNode> logger, string label);
 
-    [LoggerMessage(4, LogLevel.Information, "[{Label}] Lavalink4NET is ready (session identifier: {SessionId}).", EventName = nameof(Ready))]
+    [LoggerMessage(4, LogLevel.Information, "[{Label}] Node is ready (session identifier: {SessionId}).", EventName = nameof(Ready))]
     public static partial void Ready(this ILogger<LavalinkNode> logger, string label, string sessionId);
 
     [LoggerMessage(5, LogLevel.Warning, "[{Label}] A payload was received before the ready payload was received. The payload will be ignored.", EventName = nameof(PayloadReceivedBeforeReadyPayload))]
@@ -595,24 +554,6 @@ internal static partial class Logging
     [LoggerMessage(6, LogLevel.Debug, "[{Label}] Received a player update payload for a non-registered player: {GuildId}.", EventName = nameof(ReceivedPlayerUpdatePayloadForNonRegisteredPlayer))]
     public static partial void ReceivedPlayerUpdatePayloadForNonRegisteredPlayer(this ILogger<LavalinkNode> logger, string label, ulong guildId);
 
-    [LoggerMessage(7, LogLevel.Information, "[{Label}] Starting audio service...", EventName = nameof(StartingAudioService))]
-    public static partial void StartingAudioService(this ILogger<LavalinkNode> logger, string label);
-
-    [LoggerMessage(8, LogLevel.Information, "[{Label}] Audio service stopped.", EventName = nameof(AudioServiceStopped))]
-    public static partial void AudioServiceStopped(this ILogger<LavalinkNode> logger, string label);
-
-    [LoggerMessage(9, LogLevel.Debug, "[{Label}] Waiting for client being ready...", EventName = nameof(WaitingForClientBeingReady))]
-    public static partial void WaitingForClientBeingReady(this ILogger<LavalinkNode> logger, string label);
-
-    [LoggerMessage(10, LogLevel.Error, "[{Label}] Timed out while waiting for discord client being ready.", EventName = nameof(TimedOutWhileWaitingForDiscordClientBeingReady))]
-    public static partial void TimedOutWhileWaitingForDiscordClientBeingReady(this ILogger<LavalinkNode> logger, string label, Exception exception);
-
-    [LoggerMessage(11, LogLevel.Debug, "[{Label}] Discord client ({ClientLabel}) is ready.", EventName = nameof(DiscordClientIsReady))]
-    public static partial void DiscordClientIsReady(this ILogger<LavalinkNode> logger, string label, string clientLabel);
-
-    [LoggerMessage(12, LogLevel.Information, "[{Label}] Audio Service is ready ({Duration}ms).", EventName = nameof(AudioServiceIsReady))]
-    public static partial void AudioServiceIsReady(this ILogger<LavalinkNode> logger, string label, long duration);
-
-    [LoggerMessage(13, LogLevel.Error, "[{Label}] Exception occurred while executing integration handler.", EventName = nameof(ExceptionOccurredWhileExecutingIntegrationHandler))]
+    [LoggerMessage(10, LogLevel.Error, "[{Label}] Exception occurred while executing integration handler.", EventName = nameof(ExceptionOccurredWhileExecutingIntegrationHandler))]
     public static partial void ExceptionOccurredWhileExecutingIntegrationHandler(this ILogger<LavalinkNode> logger, string label, Exception exception);
 }

@@ -19,11 +19,10 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
     private readonly object _syncRoot;
     private readonly ClusterAudioServiceOptions _options;
     private readonly LavalinkNodeServiceContext _serviceContext;
-    private readonly CancellationTokenSource _shutdownCancellationTokenSource;
-    private readonly CancellationToken _shutdownCancellationToken;
     private readonly ILavalinkApiClientFactory _lavalinkApiClientFactory;
     private readonly ILoggerFactory _loggerFactory;
-    private bool _disposed;
+    private readonly TaskCompletionSource<ClientInformation> _clientReadyTaskCompletionSource;
+    private readonly TaskCompletionSource _serviceReadyTaskCompletionSource;
 
     public ClusterAudioService(
         IDiscordClientWrapper discordClient,
@@ -35,11 +34,17 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         ITrackManager tracks,
         IOptions<ClusterAudioServiceOptions> options,
         ILoggerFactory loggerFactory)
-        : base(lavalinkApiClientProvider, integrations, players, tracks)
+        : base(discordClient, lavalinkApiClientProvider, integrations, players, tracks, loggerFactory.CreateLogger<ClusterAudioService>())
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(loggerFactory);
+
+        _clientReadyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(
+            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _serviceReadyTaskCompletionSource = new TaskCompletionSource(
+            creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
 
         _syncRoot = new object();
         _options = options.Value;
@@ -54,9 +59,6 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         Nodes = ImmutableArray<ILavalinkNode>.Empty;
         _lavalinkApiClientFactory = lavalinkApiClientFactory;
         _loggerFactory = loggerFactory;
-
-        _shutdownCancellationTokenSource = new CancellationTokenSource();
-        _shutdownCancellationToken = _shutdownCancellationTokenSource.Token;
     }
 
     public ImmutableArray<ILavalinkNode> Nodes { get; private set; }
@@ -74,7 +76,8 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
             apiClient: apiClient,
             serviceContext: _serviceContext,
             options: options,
-            shutdownCancellationToken: _shutdownCancellationToken,
+            shutdownCancellationToken: ShutdownCancellationToken,
+            readyTask: _clientReadyTaskCompletionSource.Task,
             logger: nodeLogger);
 
         lock (_syncRoot)
@@ -107,61 +110,38 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         return true;
     }
 
-    public override async ValueTask StartAsync(CancellationToken cancellationToken = default)
+    public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        return new ValueTask(_serviceReadyTaskCompletionSource.Task.WaitAsync(cancellationToken));
+    }
+
+    protected override async ValueTask RunInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _clientReadyTaskCompletionSource.TrySetResult(clientInformation);
 
         foreach (var nodeOptions in _options.Nodes)
         {
             await AddAsync(Options.Create(nodeOptions), cancellationToken).ConfigureAwait(false);
         }
-    }
 
-    public override async ValueTask StopAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+        _serviceReadyTaskCompletionSource.TrySetResult();
 
-        _shutdownCancellationTokenSource.Cancel();
+        try
+        {
+            await Task
+                .Delay(Timeout.Infinite, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
+        }
 
-        var nodes = Nodes;
-
-        foreach (var node in nodes)
+        foreach (var node in Nodes)
         {
             await RemoveAsync(node, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    public override ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException(); // TODO
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-
-        if (disposing)
-        {
-            StopAsync().AsTask().GetAwaiter().GetResult();
-            _shutdownCancellationTokenSource.Dispose();
-        }
-    }
-
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        _disposed = true;
-
-        await StopAsync().ConfigureAwait(false);
-        _shutdownCancellationTokenSource.Dispose();
     }
 }
