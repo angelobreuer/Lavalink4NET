@@ -52,7 +52,7 @@ public static class TrackManagerExtensions
                     TextToSpeechFormat.OggOpus => "ogg_opus",
                     TextToSpeechFormat.OggVorbis => "ogg_vorbis",
                     TextToSpeechFormat.Aac => "aac",
-                    TextToSpeechFormat.Wav => "wac",
+                    TextToSpeechFormat.Wav => "wav",
                     TextToSpeechFormat.Flac => "flac",
                     _ => throw new NotSupportedException(),
                 };
