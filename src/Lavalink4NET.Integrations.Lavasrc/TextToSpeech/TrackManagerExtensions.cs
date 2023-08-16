@@ -21,7 +21,7 @@ public static class TrackManagerExtensions
 
         options ??= TextToSpeechOptions.Default;
 
-        var textToSpeechUri = new Uri($"ftts://{Uri.EscapeDataString(text)}");
+        var textToSpeechUri = $"ftts://{Uri.EscapeDataString(text)}";
 
         // optimize for the most common case where the user wants to use the default options,
         // so we don't have to create a new dictionary and copy all the values
@@ -63,7 +63,7 @@ public static class TrackManagerExtensions
                 queryParameters["translate"] = options.Translate.Value.ToString(CultureInfo.InvariantCulture);
             }
 
-            textToSpeechUri = new UriBuilder(textToSpeechUri) { Query = queryParameters.ToString(), }.Uri;
+            textToSpeechUri = $"{textToSpeechUri}?{queryParameters}";
         }
 
         var loadOptions = new TrackLoadOptions(
@@ -72,7 +72,7 @@ public static class TrackManagerExtensions
             CacheMode: options.CacheMode ?? CacheMode.Dynamic);
 
         var track = await trackManager
-            .LoadTrackAsync(textToSpeechUri.ToString().TrimEnd('/'), loadOptions, resolutionScope, cancellationToken)
+            .LoadTrackAsync(textToSpeechUri.ToString().TrimEnd('/', '?'), loadOptions, resolutionScope, cancellationToken)
             .ConfigureAwait(false);
 
         return track ?? throw new InvalidOperationException("The Flowery TTS track could not be loaded. Ensure Flowery TTS is enabled.");
