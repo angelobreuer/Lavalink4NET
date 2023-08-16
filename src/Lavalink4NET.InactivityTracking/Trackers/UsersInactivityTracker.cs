@@ -16,13 +16,8 @@ public sealed class UsersInactivityTracker : IInactivityTracker
     {
         var includeBots = !_options.ExcludeBots.GetValueOrDefault(true);
 
-        if (context.Player.VoiceChannelId is null)
-        {
-            return PlayerActivityStatus.Inactive;
-        }
-
         var usersInChannel = await context.Client
-            .GetChannelUsersAsync(context.Player.GuildId, context.Player.VoiceChannelId.Value, includeBots, cancellationToken)
+            .GetChannelUsersAsync(context.Player.GuildId, context.Player.VoiceChannelId, includeBots, cancellationToken)
             .ConfigureAwait(false);
 
         return usersInChannel.Length >= _options.Threshold.GetValueOrDefault(1)

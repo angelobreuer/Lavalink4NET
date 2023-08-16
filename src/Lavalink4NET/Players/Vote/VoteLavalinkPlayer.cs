@@ -46,16 +46,8 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (VoiceChannelId is null)
-        {
-            return new VoteSkipInformation(
-                Votes: ImmutableArray<UserVote>.Empty,
-                TotalUsers: 0,
-                Percentage: 0.0F);
-        }
-
         var channelUsers = await _discordClient
-            .GetChannelUsersAsync(GuildId, VoiceChannelId.Value, includeBots: false, cancellationToken)
+            .GetChannelUsersAsync(GuildId, VoiceChannelId, includeBots: false, cancellationToken)
             .ConfigureAwait(false);
 
         return await ComputeAsync(channelUsers, cancellationToken).ConfigureAwait(false);
@@ -98,13 +90,8 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (VoiceChannelId is null)
-        {
-            return UserVoteResult.NotConnected;
-        }
-
         var channelUsers = await _discordClient
-            .GetChannelUsersAsync(GuildId, VoiceChannelId.Value, includeBots: false, cancellationToken)
+            .GetChannelUsersAsync(GuildId, VoiceChannelId, includeBots: false, cancellationToken)
             .ConfigureAwait(false);
 
         if (_requireUserToBeInVoiceChannel && !channelUsers.Contains(userId))

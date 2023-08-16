@@ -86,7 +86,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _ => PlayerState.Playing,
     };
 
-    public ulong? VoiceChannelId { get; private set; }
+    public ulong VoiceChannelId { get; private set; }
 
     public float Volume { get; private set; }
 
@@ -102,13 +102,16 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     async ValueTask ILavalinkPlayerListener.NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
     {
-        EnsureNotDestroyed();
-
         if (voiceChannelId is null)
         {
             _logger.PlayerDisconnected(_label);
+            await using var _ = this.ConfigureAwait(false);
+            return;
         }
-        else if (!_connectedOnce || VoiceChannelId is null)
+
+        EnsureNotDestroyed();
+
+        if (!_connectedOnce)
         {
             _connectedOnce = true;
             _logger.PlayerConnected(_label, voiceChannelId);
@@ -118,7 +121,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             _logger.PlayerMoved(_label, voiceChannelId);
         }
 
-        VoiceChannelId = voiceChannelId;
+        VoiceChannelId = voiceChannelId.Value;
 
         try
         {
