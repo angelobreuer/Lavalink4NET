@@ -67,7 +67,20 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
     public async ValueTask<T?> GetPlayerAsync<T>(ulong guildId, CancellationToken cancellationToken = default) where T : class, ILavalinkPlayer
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await GetPlayerAsync(guildId, cancellationToken) as T;
+
+        var player = await GetPlayerAsync(guildId, cancellationToken).ConfigureAwait(false);
+
+        if (player is null)
+        {
+            return null;
+        }
+
+        if (player is not T typedPlayer)
+        {
+            throw new InvalidOperationException($"It was attempted to retrieve a player of type {typeof(T)} for the guild {guildId}. However, the player is of type {player?.GetType()}.");
+        }
+
+        return typedPlayer;
     }
 
     public async ValueTask<ILavalinkPlayer?> GetPlayerAsync(ulong guildId, CancellationToken cancellationToken = default)
