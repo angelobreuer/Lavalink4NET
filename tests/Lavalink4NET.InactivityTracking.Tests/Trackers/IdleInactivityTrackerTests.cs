@@ -1,6 +1,12 @@
 ﻿namespace Lavalink4NET.InactivityTracking.Tests.Trackers;
+
+using Lavalink4NET.Clients;
+using Lavalink4NET.InactivityTracking.Trackers;
+using Lavalink4NET.Players;
+using Moq;
+
 public sealed class IdleInactivityTrackerTests
-{/*
+{
     [Fact]
     public async Task CheckWhenPlayerPlayingNotIdleAsync()
     {
@@ -11,18 +17,17 @@ public sealed class IdleInactivityTrackerTests
 
         var context = new InactivityTrackingContext(
             InactivityTrackingService: inactivityTrackingService,
-            Client: discordClientWrapper,
-            Player: player);
+            Client: discordClientWrapper);
 
-        var tracker = new IdleInactivityTracker();
+        var tracker = new IdleInactivityTracker(IdleInactivityTrackerOptions.Default);
 
         // Act
         var result = await tracker
-            .CheckAsync(context)
+            .CheckAsync(context, player)
             .ConfigureAwait(false);
 
         // Assert
-        Assert.Equal(PlayerActivityStatus.Active, result);
+        Assert.Equal(PlayerActivityStatus.Active, result.Status);
     }
 
     [Fact]
@@ -35,17 +40,16 @@ public sealed class IdleInactivityTrackerTests
 
         var context = new InactivityTrackingContext(
             InactivityTrackingService: inactivityTrackingService,
-            Client: discordClientWrapper,
-            Player: player);
+            Client: discordClientWrapper);
 
-        var tracker = new IdleInactivityTracker();
+        var tracker = new IdleInactivityTracker(IdleInactivityTrackerOptions.Default);
 
         // Act
         var result = await tracker
-            .CheckAsync(context)
+            .CheckAsync(context, player)
             .ConfigureAwait(false);
 
         // Assert
-        Assert.Equal(PlayerActivityStatus.Inactive, result);
-    }*/
+        Assert.Equal(PlayerActivityStatus.Inactive, result.Status);
+    }
 }
