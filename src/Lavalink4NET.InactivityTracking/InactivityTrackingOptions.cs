@@ -11,15 +11,15 @@ using Lavalink4NET.InactivityTracking.Trackers;
 public sealed class InactivityTrackingOptions
 {
     /// <summary>
-    ///     Gets or sets the delay for a player stop. Use <see cref="TimeSpan.Zero"/> for
-    ///     disconnect immediately from the channel.
+    ///     Gets or sets the default inactivity timeout for a player stop. Use <see cref="TimeSpan.Zero"/> for
+    ///     disconnect immediately from the channel. The default timeout is used if a tracker does not specify a timeout.
     /// </summary>
     /// <remarks>This property defaults to <c>TimeSpan.FromSeconds(30)</c></remarks>
-    public TimeSpan DisconnectDelay { get; set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan DefaultTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     ///     Gets or sets the poll interval for the <see cref="InactivityTrackingService"/> in
-    ///     which the players should be tested for inactivity. This also affects the <see cref="DisconnectDelay"/>.
+    ///     which the players should be tested for inactivity. This also affects the <see cref="DefaultTimeout"/>.
     /// </summary>
     /// <remarks>This property defaults to <c>TimeSpan.FromSeconds(5)</c></remarks>
     public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(5);

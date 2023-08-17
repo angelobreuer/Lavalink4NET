@@ -204,7 +204,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
 
             computedEntryMap.GetEntry(trackerIndex) = result.Status is PlayerActivityStatus.Active
                 ? default
-                : new PlayerTrackingMapEntry(utcNow, result.Timeout ?? _options.DisconnectDelay);
+                : new PlayerTrackingMapEntry(utcNow, result.Timeout ?? _options.DefaultTimeout);
         }
 
         PlayerTrackingMap? Apply(out PlayerTrackingStatus previousStatus)
