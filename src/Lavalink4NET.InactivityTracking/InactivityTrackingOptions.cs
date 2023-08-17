@@ -31,8 +31,6 @@ public sealed class InactivityTrackingOptions
     /// <remarks>This property defaults to <see langword="false"/>.</remarks>
     public bool TrackInactivity { get; set; } = false;
 
-    public InactivityTrackingMode Mode { get; set; } = InactivityTrackingMode.Any;
-
     public ImmutableArray<IInactivityTracker> Trackers { get; set; } = InactivityTrackingOptionsDefaults.Trackers;
 }
 
@@ -40,5 +38,5 @@ file static class InactivityTrackingOptionsDefaults
 {
     public static ImmutableArray<IInactivityTracker> Trackers { get; } = ImmutableArray.Create<IInactivityTracker>(
         new UsersInactivityTracker(UsersInactivityTrackerOptions.Default),
-        new IdleInactivityTracker());
+        new IdleInactivityTracker(IdleInactivityTrackerOptions.Default));
 }

@@ -6,14 +6,22 @@ using Lavalink4NET.Players;
 
 public sealed class IdleInactivityTracker : IInactivityTracker
 {
-    public ValueTask<PlayerActivityStatus> CheckAsync(InactivityTrackingContext context, CancellationToken cancellationToken = default)
+    private readonly IdleInactivityTrackerOptions _options;
+
+    public IdleInactivityTracker(IdleInactivityTrackerOptions options)
+    {
+        _options = options;
+    }
+
+    public ValueTask<PlayerActivityResult> CheckAsync(InactivityTrackingContext context, ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var status = context.Player.State is not PlayerState.Playing
-            ? PlayerActivityStatus.Inactive
-            : PlayerActivityStatus.Active;
+        if (player.State is not PlayerState.Playing)
+        {
+            return new ValueTask<PlayerActivityResult>(PlayerActivityResult.Inactive(_options.Timeout));
+        }
 
-        return new ValueTask<PlayerActivityStatus>(status);
+        return new ValueTask<PlayerActivityResult>(PlayerActivityResult.Active);
     }
 }

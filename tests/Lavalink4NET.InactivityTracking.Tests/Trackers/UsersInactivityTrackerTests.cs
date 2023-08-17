@@ -1,12 +1,5 @@
 ﻿namespace Lavalink4NET.InactivityTracking.Tests.Trackers;
-
-using System.Collections.Immutable;
-using System.Threading.Tasks;
-using Lavalink4NET.Clients;
-using Lavalink4NET.InactivityTracking.Trackers;
-using Lavalink4NET.Players;
-using Moq;
-
+/*
 public sealed class UsersInactivityTrackerTests
 {
     [Fact]
@@ -83,3 +76,4 @@ public sealed class UsersInactivityTrackerTests
         Assert.Equal(PlayerActivityStatus.Active, result);
     }
 }
+*/

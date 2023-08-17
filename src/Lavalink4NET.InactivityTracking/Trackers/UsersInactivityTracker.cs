@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Players;
 
 public sealed class UsersInactivityTracker : IInactivityTracker
 {
@@ -12,16 +13,19 @@ public sealed class UsersInactivityTracker : IInactivityTracker
         _options = options;
     }
 
-    public async ValueTask<PlayerActivityStatus> CheckAsync(InactivityTrackingContext context, CancellationToken cancellationToken = default)
+    public async ValueTask<PlayerActivityResult> CheckAsync(InactivityTrackingContext context, ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
         var includeBots = !_options.ExcludeBots.GetValueOrDefault(true);
 
         var usersInChannel = await context.Client
-            .GetChannelUsersAsync(context.Player.GuildId, context.Player.VoiceChannelId, includeBots, cancellationToken)
+            .GetChannelUsersAsync(player.GuildId, player.VoiceChannelId, includeBots, cancellationToken)
             .ConfigureAwait(false);
 
-        return usersInChannel.Length >= _options.Threshold.GetValueOrDefault(1)
-            ? PlayerActivityStatus.Active
-            : PlayerActivityStatus.Inactive;
+        if (usersInChannel.Length >= _options.Threshold.GetValueOrDefault(1))
+        {
+            return PlayerActivityResult.Active;
+        }
+
+        return PlayerActivityResult.Inactive(_options.Timeout);
     }
 }

@@ -592,8 +592,7 @@ public sealed class PlayerManagerTests
             systemClock: new SystemClock(),
             loggerFactory: NullLoggerFactory.Instance);
 
-        var initial
-            RetrieveOptions = new PlayerRetrieveOptions(
+        var initialRetrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join,
             VoiceStateBehavior: MemberVoiceStateBehavior.AlwaysRequired,
             Preconditions: ImmutableArray.Create(PlayerPrecondition.QueueNotEmpty));
@@ -602,7 +601,7 @@ public sealed class PlayerManagerTests
            guildId: 0,
            memberVoiceChannel: null,
            playerFactory: PlayerFactory.Queued,
-           retrieveOptions: default,
+           retrieveOptions: initialRetrieveOptions,
            options: Options.Create(new QueuedLavalinkPlayerOptions()));
 
         var retrieveOptions = new PlayerRetrieveOptions(

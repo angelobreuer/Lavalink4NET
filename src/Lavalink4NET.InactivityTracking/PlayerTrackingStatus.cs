@@ -3,7 +3,7 @@ namespace Lavalink4NET.Tracking;
 /// <summary>
 ///     The tracking states for players.
 /// </summary>
-public enum InactivityTrackingStatus
+public enum PlayerTrackingStatus
 {
     /// <summary>
     ///     The player is not tracked and is active.

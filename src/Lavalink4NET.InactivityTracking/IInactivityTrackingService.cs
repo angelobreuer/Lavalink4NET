@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
+using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
-using Lavalink4NET.Tracking;
 
 public interface IInactivityTrackingService
 {
@@ -13,9 +13,9 @@ public interface IInactivityTrackingService
 
     event AsyncEventHandler<InactivePlayerEventArgs>? InactivePlayer;
 
-    event AsyncEventHandler<PlayerTrackingStatusUpdateEventArgs>? PlayerTrackingStatusUpdated;
+    event AsyncEventHandler<TrackingStatusChangedEventArgs>? TrackingStatusChanged;
 
-    InactivityTrackingStatus GetStatus(ILavalinkPlayer player);
+    ValueTask<PlayerTrackingState> GetPlayerAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default);
 
     ValueTask StartAsync(CancellationToken cancellationToken = default);
 
@@ -28,6 +28,4 @@ public interface IInactivityTrackingService
     ValueTask RunAsync(CancellationToken cancellationToken = default);
 
     ValueTask PollAsync(CancellationToken cancellationToken = default);
-
-    ValueTask NotifyAsync(ulong guildId, ILavalinkPlayer? player, CancellationToken cancellationToken = default);
 }
