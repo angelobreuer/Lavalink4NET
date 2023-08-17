@@ -150,7 +150,7 @@ public partial record class LavalinkTrack
         }
     }
 
-    private static bool TryParse(ReadOnlySpan<char> originalTrackData, ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out LavalinkTrack result)
+    internal static bool TryParse(ReadOnlySpan<char> originalTrackData, ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out LavalinkTrack result)
     {
         var trackDecoder = new LavalinkTrackDecoder(buffer);
         return TryParse(originalTrackData, ref trackDecoder, out result);
