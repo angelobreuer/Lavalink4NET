@@ -31,4 +31,9 @@ public sealed class InactivityTrackingOptions
     public bool TrackInactivity { get; set; } = false;
 
     public ImmutableArray<IInactivityTracker>? Trackers { get; set; }
+
+    /// <summary>
+    ///     Gets or sets a value indicating whether to add the default trackers if no trackers were explicitly registered.
+    /// </summary>
+    public bool UseDefaultTrackers { get; set; } = true;
 }

@@ -73,6 +73,11 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
             ? trackers.ToImmutableArray()
             : options.Value.Trackers.Value;
 
+        if (_trackers.IsDefaultOrEmpty && options.Value.UseDefaultTrackers)
+        {
+            _trackers = InactivityTrackingOptionsDefaults.Trackers;
+        }
+
         _playerManager = playerManager;
         _systemClock = systemClock;
         _options = options.Value;
