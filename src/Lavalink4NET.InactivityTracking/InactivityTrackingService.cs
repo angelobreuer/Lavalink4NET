@@ -55,6 +55,7 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         IPlayerManager playerManager,
         IDiscordClientWrapper discordClient,
         ISystemClock systemClock,
+        IEnumerable<IInactivityTracker> trackers,
         IOptions<InactivityTrackingOptions> options,
         ILogger<InactivityTrackingService> logger)
     {
@@ -68,14 +69,17 @@ public class InactivityTrackingService : IDisposable, IInactivityTrackingService
         _playersSemaphoreSlim = new SemaphoreSlim(1, 1);
         _stoppingCancellationTokenSource = new CancellationTokenSource();
 
+        _trackers = options.Value.Trackers is null
+            ? trackers.ToImmutableArray()
+            : options.Value.Trackers.Value;
+
         _playerManager = playerManager;
         _systemClock = systemClock;
         _options = options.Value;
         _logger = logger;
 
         _trackingContext = new InactivityTrackingContext(this, discordClient);
-        _defaultTrackingState = CreateDefaultTrackingState(_options.Trackers);
-        _trackers = options.Value.Trackers;
+        _defaultTrackingState = CreateDefaultTrackingState(_trackers);
 
         if (options.Value.TrackInactivity)
         {
@@ -586,4 +590,11 @@ internal static partial class Logger
 
     [LoggerMessage(3, LogLevel.Debug, "Removed player {GuildId} from tracking list.", EventName = nameof(RemovedPlayerFromTrackingList))]
     public static partial void RemovedPlayerFromTrackingList(this ILogger<InactivityTrackingService> logger, ulong guildId);
+}
+
+file static class InactivityTrackingOptionsDefaults
+{
+    public static ImmutableArray<IInactivityTracker> Trackers { get; } = ImmutableArray.Create<IInactivityTracker>(
+        new UsersInactivityTracker(UsersInactivityTrackerOptions.Default),
+        new IdleInactivityTracker(IdleInactivityTrackerOptions.Default));
 }
