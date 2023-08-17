@@ -25,6 +25,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: Mock.Of<IDiscordClientWrapper>(),
             new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             Options.Create(new InactivityTrackingOptions()),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -45,6 +46,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: Mock.Of<IDiscordClientWrapper>(),
             new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             Options.Create(new InactivityTrackingOptions()),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -70,6 +72,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: Mock.Of<IDiscordClientWrapper>(),
             systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions()),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -92,6 +95,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: Mock.Of<IDiscordClientWrapper>(),
             systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions()),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -114,6 +118,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: Mock.Of<IDiscordClientWrapper>(),
             systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions()),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -138,6 +143,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -167,6 +173,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -199,6 +206,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -233,6 +241,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -274,6 +283,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -312,6 +322,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
@@ -353,6 +364,7 @@ public sealed class InactivityTrackingServiceTests
             playerManager: playerManager,
             discordClient: discordClient,
             systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
             logger: NullLogger<InactivityTrackingService>.Instance);
 
