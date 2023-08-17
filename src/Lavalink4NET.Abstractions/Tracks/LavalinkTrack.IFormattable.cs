@@ -104,7 +104,7 @@ public partial record class LavalinkTrack : ISpanFormattable
         }
     }
 
-    private bool TryEncode(Span<byte> buffer, int? version, out int bytesWritten)
+    internal bool TryEncode(Span<byte> buffer, int? version, out int bytesWritten)
     {
         var versionValue = version ?? 3;
 
@@ -240,6 +240,11 @@ public partial record class LavalinkTrack : ISpanFormattable
 
     private static bool TryEncodeString(ref Span<byte> span, ReadOnlySpan<char> value, ref int bytesWritten)
     {
+        if (span.Length < 2)
+        {
+            return false;
+        }
+
         var lengthBuffer = span[..2];
         span = span[2..];
 
