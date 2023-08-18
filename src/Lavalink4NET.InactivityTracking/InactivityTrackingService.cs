@@ -524,21 +524,6 @@ internal record struct PlayerTrackingMap
             ref var computedEntry = ref _entries[trackerIndex];
             var presentEntry = presentMap.GetEntry(trackerIndex);
 
-            /*if (presentEntry.IsTracked)
-            {
-                // Entry is already tracked, check if the timeout has elapsed
-                computedEntry = presentEntry.TrackedSince + presentEntry.Timeout < utcNow
-                    ? new PlayerTrackingMapEntry(presentEntry.TrackedSince, computedEntry.Timeout)
-                    : presentEntry; // Timeout has not elapsed, use the present entry
-            }
-            else
-            {
-                // Entry is not tracked, check if the player is inactive
-                computedEntry = computedEntry.IsTracked
-                    ? new PlayerTrackingMapEntry(computedEntry.TrackedSince, computedEntry.Timeout) // Player is inactive, update the entry
-                    : presentEntry; // Player is active, use the present entry
-            }*/
-
             computedEntry = computedEntry.IsTracked
                 ? new PlayerTrackingMapEntry(presentEntry.TrackedSince ?? computedEntry.TrackedSince, computedEntry.Timeout)
                 : computedEntry;
