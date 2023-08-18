@@ -27,5 +27,10 @@ public readonly record struct TrackReference
 
     public LavalinkTrack? Track => _value as LavalinkTrack;
 
-    public string? Identifier => _value as string;
+    public string? Identifier => _value switch
+    {
+        string identifier => identifier,
+        LavalinkTrack track => track.Identifier,
+        _ => null,
+    };
 }

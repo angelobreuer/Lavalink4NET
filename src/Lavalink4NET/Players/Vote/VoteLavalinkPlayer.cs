@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Protocol.Payloads.Events;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Internal;
 
 /// <summary>
@@ -118,10 +117,10 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
         return UserVoteResult.Skipped;
     }
 
-    protected override async ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
+    protected override async ValueTask NotifyTrackEndedAsync(ITrackQueueItem queueItem, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(track);
+        ArgumentNullException.ThrowIfNull(queueItem);
 
         if (_clearVotesAfterTrack)
         {
@@ -131,7 +130,7 @@ public class VoteLavalinkPlayer : QueuedLavalinkPlayer, IVoteLavalinkPlayer
         }
 
         await base
-            .NotifyTrackEndedAsync(track, endReason, cancellationToken)
+            .NotifyTrackEndedAsync(queueItem, endReason, cancellationToken)
             .ConfigureAwait(false);
     }
 }

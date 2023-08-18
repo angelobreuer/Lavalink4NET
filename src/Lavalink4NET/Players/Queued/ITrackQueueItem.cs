@@ -1,5 +1,7 @@
 ﻿namespace Lavalink4NET.Players.Queued;
 
+using Lavalink4NET.Tracks;
+
 /// <summary>
 ///     Represents an item in the track queue.
 /// </summary>
@@ -9,5 +11,11 @@ public interface ITrackQueueItem
     ///     Gets the enqueued track.
     /// </summary>
     /// <value>the enqueued track.</value>
-    TrackReference Track { get; }
+    TrackReference Reference { get; }
+
+    LavalinkTrack? Track => Reference.Track;
+
+    string Identifier => Reference.Identifier!;
+
+    T? As<T>() where T : class, ITrackQueueItem => this as T;
 }

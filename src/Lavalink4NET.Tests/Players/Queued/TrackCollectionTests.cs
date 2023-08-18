@@ -315,11 +315,11 @@ file sealed class TestTrackCollection : TrackCollection
 
 file sealed record class TestTrackQueueItem : ITrackQueueItem
 {
-    public TrackReference Track => new TrackReference("track1");
+    public TrackReference Reference => new("track1");
 }
 
 
 file sealed record class TestTrackQueueItem2 : ITrackQueueItem
 {
-    public TrackReference Track => new TrackReference("track2");
+    public TrackReference Reference => new("track2");
 }

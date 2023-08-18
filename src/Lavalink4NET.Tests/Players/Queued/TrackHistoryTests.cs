@@ -120,5 +120,5 @@ public sealed class TrackHistoryTests
 
 file sealed record class TestTrackQueueItem(string Id) : ITrackQueueItem
 {
-    public TrackReference Track => new TrackReference(Id);
+    public TrackReference Reference => new TrackReference(Id);
 }

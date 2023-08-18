@@ -101,7 +101,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player.CurrentTrack is null)
+        if (player.CurrentItem is null)
         {
             await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
@@ -124,7 +124,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player.CurrentTrack is null)
+        if (player.CurrentItem is null)
         {
             await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
@@ -169,7 +169,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player.CurrentTrack is null)
+        if (player.CurrentItem is null)
         {
             await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
@@ -177,11 +177,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         await player.SkipAsync().ConfigureAwait(false);
 
-        var track = player.CurrentTrack;
+        var track = player.CurrentItem;
 
         if (track is not null)
         {
-            await RespondAsync($"Skipped. Now playing: {track.Uri}").ConfigureAwait(false);
+            await RespondAsync($"Skipped. Now playing: {track.Track!.Uri}").ConfigureAwait(false);
         }
         else
         {

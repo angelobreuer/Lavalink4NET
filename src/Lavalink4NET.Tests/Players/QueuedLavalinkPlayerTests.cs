@@ -377,8 +377,10 @@ public sealed class QueuedLavalinkPlayerTests
             Options: Options.Create(new QueuedLavalinkPlayerOptions()),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
-        var player = new QueuedLavalinkPlayer(playerProperties);
-        player.RepeatMode = TrackRepeatMode.Track;
+        var player = new QueuedLavalinkPlayer(playerProperties)
+        {
+            RepeatMode = TrackRepeatMode.Track
+        };
 
         await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 
@@ -458,8 +460,10 @@ public sealed class QueuedLavalinkPlayerTests
             Options: Options.Create(new QueuedLavalinkPlayerOptions { RespectTrackRepeatOnSkip = true, }),
             Logger: NullLogger<QueuedLavalinkPlayer>.Instance);
 
-        var player = new QueuedLavalinkPlayer(playerProperties);
-        player.RepeatMode = TrackRepeatMode.Track;
+        var player = new QueuedLavalinkPlayer(playerProperties)
+        {
+            RepeatMode = TrackRepeatMode.Track,
+        };
 
         await player.Queue.AddAsync(new TrackQueueItem(new TrackReference("track2")));
 

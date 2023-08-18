@@ -142,5 +142,5 @@ public sealed class TrackQueueTests
 
 file sealed record class TestTrackQueueItem(string Id) : ITrackQueueItem
 {
-    public TrackReference Track => new(Id);
+    public TrackReference Reference => new(Id);
 }

@@ -102,13 +102,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player.CurrentTrack is null)
+        if (player.CurrentItem is null)
         {
             await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
         }
 
-        await RespondAsync($"Position: {player.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
+        await RespondAsync($"Position: {player.Position} / {player.CurrentTrack!.Duration}.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player.CurrentTrack is null)
+        if (player.CurrentItem is null)
         {
             await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;

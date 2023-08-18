@@ -6,6 +6,8 @@ using Lavalink4NET.Tracks;
 
 public interface IQueuedLavalinkPlayer : ILavalinkPlayer
 {
+    ITrackQueueItem? CurrentItem { get; }
+
     ITrackQueue Queue { get; }
 
     TrackRepeatMode RepeatMode { get; set; }

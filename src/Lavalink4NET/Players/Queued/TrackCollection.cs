@@ -210,7 +210,7 @@ file sealed class TrackEqualityComparer : IEqualityComparer<ITrackQueueItem>
 
     private static string? GetKey(ITrackQueueItem? item)
     {
-        return item?.Track.Identifier ?? item?.Track.Identifier;
+        return item?.Reference.Identifier ?? item?.Reference.Identifier;
     }
 
     public bool Equals(ITrackQueueItem? x, ITrackQueueItem? y)
