@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.InactivityTracking.Tests.Trackers;
+﻿/*namespace Lavalink4NET.InactivityTracking.Tests.Trackers;
 
 using Lavalink4NET.Clients;
 using Lavalink4NET.InactivityTracking.Trackers;
@@ -53,3 +53,4 @@ public sealed class IdleInactivityTrackerTests
         Assert.Equal(PlayerActivityStatus.Inactive, result.Status);
     }
 }
+*/

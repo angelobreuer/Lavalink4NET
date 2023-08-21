@@ -208,9 +208,16 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             VoiceChannelId: voiceStateUpdateEventArgs.After?.Channel?.Id,
             SessionId: sessionId);
 
+        var oldVoiceState = new VoiceState(
+            VoiceChannelId: voiceStateUpdateEventArgs.Before?.Channel?.Id,
+            SessionId: sessionId);
+
         // invoke event
         var eventArgs = new VoiceStateUpdatedEventArgs(
             guildId: voiceStateUpdateEventArgs.Guild.Id,
+            userId: voiceStateUpdateEventArgs.User.Id,
+            isCurrentUser: voiceStateUpdateEventArgs.User.Id == discordClient.CurrentUser.Id,
+            oldVoiceState: oldVoiceState,
             voiceState: voiceState);
 
         return VoiceStateUpdated.InvokeAsync(this, eventArgs).AsTask();

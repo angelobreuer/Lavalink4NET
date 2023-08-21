@@ -1,5 +1,6 @@
 ﻿namespace Lavalink4NET.InactivityTracking;
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Events;
@@ -7,25 +8,28 @@ using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
 
-public interface IInactivityTrackingService
+public interface IInactivityTrackingService : IAsyncDisposable
 {
-    InactivityTrackingState State { get; }
+    event AsyncEventHandler<PlayerInactiveEventArgs>? PlayerInactive;
 
-    event AsyncEventHandler<InactivePlayerEventArgs>? InactivePlayer;
+    event AsyncEventHandler<PlayerActiveEventArgs>? PlayerActive;
 
-    event AsyncEventHandler<TrackingStatusChangedEventArgs>? TrackingStatusChanged;
+    event AsyncEventHandler<PlayerTrackedEventArgs>? PlayerTracked;
 
-    ValueTask<PlayerTrackingState> GetPlayerAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default);
+    event AsyncEventHandler<TrackerActiveEventArgs>? TrackerActive;
+
+    event AsyncEventHandler<TrackerInactiveEventArgs>? TrackerInactive;
 
     ValueTask StartAsync(CancellationToken cancellationToken = default);
 
     ValueTask StopAsync(CancellationToken cancellationToken = default);
 
-    ValueTask PauseAsync(CancellationToken cancellationToken = default);
+    ValueTask<PlayerTrackingState> GetPlayerAsync(
+        ILavalinkPlayer player,
+        CancellationToken cancellationToken = default);
 
-    ValueTask ResumeAsync(CancellationToken cancellationToken = default);
-
-    ValueTask RunAsync(CancellationToken cancellationToken = default);
-
-    ValueTask PollAsync(CancellationToken cancellationToken = default);
+    void Report(
+        IInactivityTracker inactivityTracker,
+        IImmutableSet<ulong> activePlayers,
+        IImmutableDictionary<ulong, InactivityTrackerEntry> trackedPlayers);
 }

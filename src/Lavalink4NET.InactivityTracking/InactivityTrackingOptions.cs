@@ -18,17 +18,10 @@ public sealed class InactivityTrackingOptions
 
     /// <summary>
     ///     Gets or sets the poll interval for the <see cref="InactivityTrackingService"/> in
-    ///     which the players should be tested for inactivity. This also affects the <see cref="DefaultTimeout"/>.
+    ///     which the players should be tested for inactivity.
     /// </summary>
     /// <remarks>This property defaults to <c>TimeSpan.FromSeconds(5)</c></remarks>
-    public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(5);
-
-    /// <summary>
-    ///     Gets or sets a value indicating whether the <see cref="InactivityTrackingService"/>
-    ///     should start tracking inactive players after constructing it.
-    /// </summary>
-    /// <remarks>This property defaults to <see langword="false"/>.</remarks>
-    public bool TrackInactivity { get; set; } = false;
+    public TimeSpan DefaultPollInterval { get; set; } = TimeSpan.FromSeconds(5);
 
     public ImmutableArray<IInactivityTracker>? Trackers { get; set; }
 
@@ -36,4 +29,10 @@ public sealed class InactivityTrackingOptions
     ///     Gets or sets a value indicating whether to add the default trackers if no trackers were explicitly registered.
     /// </summary>
     public bool UseDefaultTrackers { get; set; } = true;
+
+    public InactivityTrackingMode TrackingMode { get; set; } = InactivityTrackingMode.Any;
+
+    public InactivityTrackingTimeoutBehavior TimeoutBehavior { get; set; } = InactivityTrackingTimeoutBehavior.Lowest;
+
+    public PlayerInactivityBehavior InactivityBehavior { get; set; } = PlayerInactivityBehavior.None;
 }

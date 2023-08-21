@@ -1,15 +1,18 @@
 ﻿namespace Lavalink4NET.InactivityTracking;
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 using Lavalink4NET.Clients;
-using Lavalink4NET.Events;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.InactivityTracking.Players;
+using Lavalink4NET.InactivityTracking.Queue;
 using Lavalink4NET.InactivityTracking.Trackers;
+using Lavalink4NET.InactivityTracking.Trackers.Idle;
+using Lavalink4NET.InactivityTracking.Trackers.Lifetime;
+using Lavalink4NET.InactivityTracking.Trackers.Users;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
 using Microsoft.Extensions.Internal;
@@ -19,572 +22,839 @@ using Microsoft.Extensions.Options;
 /// <summary>
 ///     A service that tracks not-playing players to reduce the usage of the Lavalink nodes.
 /// </summary>
-public class InactivityTrackingService : IDisposable, IInactivityTrackingService
+public partial class InactivityTrackingService : IInactivityTrackingService
 {
-    private readonly InactivityTrackingContext _trackingContext;
-    private readonly IPlayerManager _playerManager;
-    private readonly ISystemClock _systemClock;
-    private readonly ILogger<InactivityTrackingService> _logger;
-    private readonly InactivityTrackingOptions _options;
-    private readonly ImmutableArray<IInactivityTracker> _trackers;
-    private readonly Dictionary<ulong, PlayerTrackingMap> _players;
-    private readonly SemaphoreSlim _playersSemaphoreSlim;
-    private readonly CancellationTokenSource _stoppingCancellationTokenSource;
-    private readonly PlayerTrackingState _defaultTrackingState;
-    private TaskCompletionSource? _pauseTaskCompletionSource;
-    private bool _disposed;
-    private Task? _executeTask;
+	private readonly IInactivityExpirationQueue _expirationQueue;
+	private readonly IPlayerManager _playerManager;
+	private readonly ISystemClock _systemClock;
+	private readonly ImmutableArray<IInactivityTrackerLifetime> _lifetimes;
+	private readonly Dictionary<ulong, PlayerTrackerMap> _trackingMap;
+	private readonly SemaphoreSlim _playersSemaphoreSlim;
+	private readonly PlayerTrackingState _defaultTrackingState;
+	private readonly Channel<IEventDispatch> _eventQueueChannel;
+	private readonly InactivityTrackingMode _trackingMode;
+	private readonly InactivityTrackingTimeoutBehavior _timeoutBehavior;
+	private readonly TimeSpan _defaultTimeout;
+	private readonly TimeSpan _defaultPollInterval;
+	private readonly uint _allMask;
+	private CancellationTokenSource? _stoppingCancellationTokenSource;
+	private bool _disposed;
+	private Task? _executeTask;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="InactivityTrackingService"/> class.
-    /// </summary>
-    /// <param name="audioService">the audio service where the players should be tracked</param>
-    /// <param name="discordClient">the discord client wrapper</param>
-    /// <param name="options">the tracking options</param>
-    /// <param name="logger">the optional logger</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="discordClient"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="options"/> is <see langword="null"/>.
-    /// </exception>
-    public InactivityTrackingService(
-        IPlayerManager playerManager,
-        IDiscordClientWrapper discordClient,
-        ISystemClock systemClock,
-        IEnumerable<IInactivityTracker> trackers,
-        IOptions<InactivityTrackingOptions> options,
-        ILogger<InactivityTrackingService> logger)
-    {
-        ArgumentNullException.ThrowIfNull(playerManager);
-        ArgumentNullException.ThrowIfNull(discordClient);
-        ArgumentNullException.ThrowIfNull(systemClock);
-        ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(logger);
+	public InactivityTrackingService(
+		IPlayerManager playerManager,
+		IInactivityExpirationQueue expirationQueue,
+		IDiscordClientWrapper discordClient,
+		ISystemClock systemClock,
+		IEnumerable<IInactivityTracker> trackers,
+		IOptions<InactivityTrackingOptions> options,
+		ILoggerFactory loggerFactory)
+	{
+		ArgumentNullException.ThrowIfNull(playerManager);
+		ArgumentNullException.ThrowIfNull(expirationQueue);
+		ArgumentNullException.ThrowIfNull(discordClient);
+		ArgumentNullException.ThrowIfNull(systemClock);
+		ArgumentNullException.ThrowIfNull(options);
+		ArgumentNullException.ThrowIfNull(loggerFactory);
 
-        _players = new Dictionary<ulong, PlayerTrackingMap>();
-        _playersSemaphoreSlim = new SemaphoreSlim(1, 1);
-        _stoppingCancellationTokenSource = new CancellationTokenSource();
+		IInactivityTrackerLifetime CreateLifetime(IInactivityTracker inactivityTracker)
+		{
+			ArgumentNullException.ThrowIfNull(inactivityTracker);
 
-        _trackers = options.Value.Trackers is null
-            ? trackers.ToImmutableArray()
-            : options.Value.Trackers.Value;
+			var trackerOptions = inactivityTracker.Options;
+			var label = trackerOptions.Label ?? inactivityTracker.GetType().Name;
 
-        if (_trackers.IsDefaultOrEmpty && options.Value.UseDefaultTrackers)
-        {
-            _trackers = InactivityTrackingOptionsDefaults.Trackers;
-        }
+			var inactivityTrackerContext = new InactivityTrackerContext(
+				inactivityTrackingService: this,
+				inactivityTracker: inactivityTracker,
+				systemClock: systemClock);
 
-        _playerManager = playerManager;
-        _systemClock = systemClock;
-        _options = options.Value;
-        _logger = logger;
+			if (trackerOptions.Mode is InactivityTrackerMode.Polling)
+			{
+				var pollInterval = trackerOptions.PollInterval ?? _defaultPollInterval;
 
-        _trackingContext = new InactivityTrackingContext(this, discordClient);
-        _defaultTrackingState = CreateDefaultTrackingState(_trackers);
+				return new PollingInactivityTrackerLifetime(
+					label,
+					inactivityTracker: inactivityTracker,
+					inactivityTrackerContext: inactivityTrackerContext,
+					logger: loggerFactory.CreateLogger<PollingInactivityTrackerLifetime>(),
+					pollInterval: pollInterval);
+			}
+			else
+			{
+				return new RealtimeInactivityTrackerLifetime(
+					label,
+					inactivityTracker: inactivityTracker,
+					inactivityTrackerContext: inactivityTrackerContext,
+					logger: loggerFactory.CreateLogger<RealtimeInactivityTrackerLifetime>());
+			}
+		}
 
-        if (options.Value.TrackInactivity)
-        {
-            _executeTask = RunAsync(CancellationToken.None).AsTask();
-        }
-    }
+		var eventQueueChannelOptions = new UnboundedChannelOptions
+		{
+			SingleReader = true,
+			SingleWriter = false,
+			AllowSynchronousContinuations = false,
+		};
 
-    /// <summary>
-    ///     An asynchronously event that is triggered when an inactive player was found.
-    /// </summary>
-    public event AsyncEventHandler<InactivePlayerEventArgs>? InactivePlayer;
+		_eventQueueChannel = Channel.CreateUnbounded<IEventDispatch>(eventQueueChannelOptions);
+		_trackingMap = new Dictionary<ulong, PlayerTrackerMap>();
+		_stoppingCancellationTokenSource = new CancellationTokenSource();
 
-    /// <summary>
-    ///     An asynchronously event that is triggered when a player's tracking status ( <see
-    ///     cref="PlayerTrackingStatus"/>) was updated.
-    /// </summary>
-    public event AsyncEventHandler<TrackingStatusChangedEventArgs>? TrackingStatusChanged;
+		var trackersArray = options.Value.Trackers is null
+			 ? trackers.ToImmutableArray()
+			 : options.Value.Trackers.Value;
 
-    public InactivityTrackingState State => this switch
-    {
-        { _executeTask: null, } => InactivityTrackingState.Inactive,
-        { _executeTask.IsCompleted: true, } => InactivityTrackingState.Stopped,
-        { _disposed: true, } => InactivityTrackingState.Destroyed,
-        { _pauseTaskCompletionSource: not null, } => InactivityTrackingState.Paused,
-        _ => InactivityTrackingState.Running,
-    };
+		if (trackersArray.IsDefaultOrEmpty && options.Value.UseDefaultTrackers)
+		{
+			trackersArray = ImmutableArray.Create<IInactivityTracker>(
+				item1: new UsersInactivityTracker(discordClient, playerManager),
+				item2: new IdleInactivityTracker(playerManager));
+		}
 
-    /// <summary>
-    ///     Gets the tracking status of the specified <paramref name="player"/>.
-    /// </summary>
-    /// <param name="player">the player</param>
-    /// <returns>the inactivity tracking status of the player</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async ValueTask<PlayerTrackingState> GetPlayerAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
+		if (trackersArray.Length > 32)
+		{
+			throw new InvalidOperationException("The maximum number of trackers is 32.");
+		}
 
-        await _playersSemaphoreSlim
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
+		_lifetimes = trackersArray
+			.Select(CreateLifetime)
+			.ToImmutableArray();
 
-        try
-        {
-            return _players.TryGetValue(player.GuildId, out var trackingMap)
-                ? CreateTrackingState(trackingMap, _systemClock.UtcNow)
-                : _defaultTrackingState;
-        }
-        finally
-        {
-            _playersSemaphoreSlim.Release();
-        }
-    }
+		_playerManager = playerManager;
+		_expirationQueue = expirationQueue;
+		_systemClock = systemClock;
 
-    /// <summary>
-    ///     Force polls tracking of all inactive players asynchronously.
-    /// </summary>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public virtual async ValueTask PollAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ThrowIfDisposed();
+		_defaultTimeout = options.Value.DefaultTimeout;
+		_defaultPollInterval = options.Value.DefaultPollInterval;
+		_trackingMode = options.Value.TrackingMode;
+		_timeoutBehavior = options.Value.TimeoutBehavior;
 
-        var destroyedPlayers = _players.Keys.ToHashSet();
+		Logger = loggerFactory.CreateLogger<InactivityTrackingService>();
 
-        await _playersSemaphoreSlim
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
+		PausedPlayers = options.Value.InactivityBehavior is PlayerInactivityBehavior.Pause
+			? new PausedPlayersState(new object(), new HashSet<ulong>())
+			: null;
 
-        try
-        {
-            foreach (var player in _playerManager.Players)
-            {
-                var activityStatus = await CheckAsync(player, cancellationToken).ConfigureAwait(false);
+		_playersSemaphoreSlim = new SemaphoreSlim(1, 1);
+		_defaultTrackingState = CreateDefaultTrackingState(trackersArray);
 
-                if (activityStatus is not PlayerActivityStatus.Inactive)
-                {
-                    _ = destroyedPlayers.Remove(player.GuildId);
-                    continue;
-                }
+		// mask used to detect when all players are active, used when the tracking mode is "All"
+		_allMask = trackersArray.Length is 32
+			? uint.MaxValue
+			: (uint)(1 << trackersArray.Length) - 1;
+	}
 
-                var eventArgs = new InactivePlayerEventArgs(_playerManager, player);
-                await OnInactivePlayerAsync(eventArgs).ConfigureAwait(false);
+	internal PausedPlayersState? PausedPlayers { get; }
 
-                if (eventArgs.ShouldStop)
-                {
-                    await using var _ = player.ConfigureAwait(false);
-                    await player.DisconnectAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
-        }
-        finally
-        {
-            _playersSemaphoreSlim.Release();
-        }
+	internal ILogger<InactivityTrackingService> Logger { get; }
 
-        // Untrack destroyed players
-        foreach (var destroyedPlayer in destroyedPlayers)
-        {
-            if (_players.Remove(destroyedPlayer, out _))
-            {
-                _logger.RemovedPlayerFromTrackingList(destroyedPlayer);
-            }
-        }
-    }
+	public void Report(
+		IInactivityTracker inactivityTracker,
+		IImmutableSet<ulong> activePlayers,
+		IImmutableDictionary<ulong, InactivityTrackerEntry> trackedPlayers)
+	{
+		ArgumentNullException.ThrowIfNull(inactivityTracker);
+		ArgumentNullException.ThrowIfNull(trackedPlayers);
+		ArgumentNullException.ThrowIfNull(activePlayers);
 
-    protected virtual async ValueTask<PlayerActivityStatus> CheckAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(player);
+		int GetTrackerIndex(IInactivityTracker tracker)
+		{
+			for (var trackerIndex = 0; trackerIndex < _lifetimes.Length; trackerIndex++)
+			{
+				if (_lifetimes[trackerIndex].InactivityTracker == tracker)
+				{
+					return trackerIndex;
+				}
+			}
 
-        var utcNow = _systemClock.UtcNow;
+			throw new InvalidOperationException("The tracker is not registered.");
+		}
 
-        var computedEntryMap = new PlayerTrackingMap(
-            entries: new PlayerTrackingMapEntry[_trackers.Length],
-            computedAt: utcNow);
+		var trackerIndex = GetTrackerIndex(inactivityTracker);
 
-        for (var trackerIndex = 0; trackerIndex < _trackers.Length; trackerIndex++)
-        {
-            var inactivityTracker = _trackers[trackerIndex];
+		_playersSemaphoreSlim.Wait();
 
-            var result = await inactivityTracker
-                .CheckAsync(_trackingContext, player, cancellationToken)
-                .ConfigureAwait(false);
+		try
+		{
+			ReportInternal(activePlayers, trackedPlayers, trackerIndex);
+		}
+		finally
+		{
+			_playersSemaphoreSlim.Release();
+		}
+	}
 
-            computedEntryMap.GetEntry(trackerIndex) = result.Status is PlayerActivityStatus.Active
-                ? default
-                : new PlayerTrackingMapEntry(utcNow, result.Timeout ?? _options.DefaultTimeout);
-        }
+	private void ReportInternal(IImmutableSet<ulong> activePlayers, IImmutableDictionary<ulong, InactivityTrackerEntry> trackedPlayers, int trackerIndex)
+	{
+		Debug.Assert(!activePlayers.Any(trackedPlayers.ContainsKey));
 
-        PlayerTrackingMap? Apply(out PlayerTrackingStatus previousStatus)
-        {
-            ref var presentEntryMap = ref CollectionsMarshal.GetValueRefOrAddDefault(_players, player.GuildId, out var exists);
+		var utcNow = _systemClock.UtcNow;
+		var lifetime = _lifetimes[trackerIndex];
+		var mask = 1U << trackerIndex;
+		var inverseMask = ~mask;
 
-            if (exists)
-            {
-                previousStatus = presentEntryMap.Compute(presentEntryMap.ComputedAt, out _);
+		TimeSpan? ComputeLowestTimeout(PlayerTrackerMap entryMap)
+		{
+			var lowestTimeout = default(TimeSpan?);
 
-                var previousMap = presentEntryMap;
-                presentEntryMap = computedEntryMap.Apply(presentEntryMap, utcNow);
-                return previousMap;
-            }
-            else
-            {
-                previousStatus = PlayerTrackingStatus.NotTracked;
-                presentEntryMap = computedEntryMap;
-                return null;
-            }
-        }
+			for (var trackerIndex = 0; trackerIndex < _lifetimes.Length; trackerIndex++)
+			{
+				if ((entryMap.Bits & (1 << trackerIndex)) is 0)
+				{
+					continue;
+				}
 
-        var presentEntryMap = Apply(out var previousStatus);
-        var currentStatus = computedEntryMap.Compute(utcNow, out var inactiveTrackerIndex);
+				var entry = entryMap.Entries.First(
+					 x => x.TrackerIndex == trackerIndex);
 
-        if (previousStatus == currentStatus)
-        {
-            return currentStatus is PlayerTrackingStatus.Inactive
-                ? PlayerActivityStatus.Inactive
-                : PlayerActivityStatus.Active;
-        }
+				if (lowestTimeout is null || entry.Timeout < lowestTimeout)
+				{
+					lowestTimeout = entry.Timeout;
+				}
+			}
 
-        var previousTrackingState = presentEntryMap is null
-            ? _defaultTrackingState
-            : CreateTrackingState(presentEntryMap.Value, utcNow);
+			return lowestTimeout;
+		}
 
-        var currentTrackingState = CreateTrackingState(
-            entryMap: computedEntryMap,
-            utcNow: utcNow);
+		TimeSpan? ComputeHighestTimeout(PlayerTrackerMap entryMap)
+		{
+			var highestTimeout = default(TimeSpan?);
 
-        if (player is IInactivityPlayerListener playerListener)
-        {
-            var task = currentStatus switch
-            {
-                PlayerTrackingStatus.NotTracked => playerListener.NotifyPlayerActiveAsync(
-                    trackingState: currentTrackingState,
-                    previousTrackingState: previousTrackingState,
-                    cancellationToken: cancellationToken),
+			for (var trackerIndex = 0; trackerIndex < _lifetimes.Length; trackerIndex++)
+			{
+				if ((entryMap.Bits & (1 << trackerIndex)) is 0)
+				{
+					continue;
+				}
 
-                PlayerTrackingStatus.Tracked => playerListener.NotifyPlayerTrackedAsync(
-                    trackingState: currentTrackingState,
-                    previousTrackingState: previousTrackingState,
-                    cancellationToken: cancellationToken),
+				var entry = entryMap.Entries.First(
+					 x => x.TrackerIndex == trackerIndex);
 
-                PlayerTrackingStatus.Inactive => playerListener.NotifyPlayerInactiveAsync(
-                    trackingState: currentTrackingState,
-                    previousTrackingState: previousTrackingState,
-                    inactivityTracker: _trackers[inactiveTrackerIndex],
-                    cancellationToken: cancellationToken),
+				if (highestTimeout is null || entry.Timeout > highestTimeout)
+				{
+					highestTimeout = entry.Timeout;
+				}
+			}
 
-                _ => throw new NotSupportedException(),
-            };
+			return highestTimeout;
+		}
 
-            await task.ConfigureAwait(false);
-        }
+		TimeSpan? ComputeAverageTimeout(PlayerTrackerMap entryMap)
+		{
+			var activeTrackers = 0;
+			var averageTimeout = TimeSpan.Zero;
 
-        var eventArgs = new TrackingStatusChangedEventArgs(
-            playerManager: _playerManager,
-            player: player,
-            trackingState: currentTrackingState,
-            previousTrackingState: previousTrackingState);
+			for (var trackerIndex = 0; trackerIndex < _lifetimes.Length; trackerIndex++)
+			{
+				if ((entryMap.Bits & (1 << trackerIndex)) is 0)
+				{
+					continue;
+				}
 
-        await OnTrackingStatusChangedAsync(eventArgs).ConfigureAwait(false);
+				var entry = entryMap.Entries.First(
+					 x => x.TrackerIndex == trackerIndex);
 
-        return currentStatus is PlayerTrackingStatus.Inactive
-            ? PlayerActivityStatus.Inactive
-            : PlayerActivityStatus.Active;
-    }
+				averageTimeout += entry.Timeout;
+				activeTrackers++;
+			}
 
-    /// <summary>
-    ///     Triggers the <see cref="InactivePlayer"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual ValueTask OnInactivePlayerAsync(InactivePlayerEventArgs eventArgs)
-        => InactivePlayer.InvokeAsync(this, eventArgs);
+			if (activeTrackers is 0)
+			{
+				return null;
+			}
 
-    /// <summary>
-    ///     Triggers the <see cref="TrackingStatusChanged"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual ValueTask OnTrackingStatusChangedAsync(TrackingStatusChangedEventArgs eventArgs)
-        => TrackingStatusChanged.InvokeAsync(this, eventArgs);
+			return averageTimeout / activeTrackers;
+		}
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
+		TimeSpan? ComputeTimeout(PlayerTrackerMap entryMap) => _timeoutBehavior switch
+		{
+			InactivityTrackingTimeoutBehavior.Lowest => ComputeLowestTimeout(entryMap),
+			InactivityTrackingTimeoutBehavior.Highest => ComputeHighestTimeout(entryMap),
+			InactivityTrackingTimeoutBehavior.Average => ComputeAverageTimeout(entryMap),
+			_ => throw new NotSupportedException(),
+		};
 
-        if (disposing)
-        {
-            _stoppingCancellationTokenSource.Dispose();
-        }
+		void UpdateTimeout(ILavalinkPlayer player, in PlayerTrackerMap entryMap)
+		{
+			var timeout = _trackingMode is not InactivityTrackingMode.All || entryMap.Bits == _allMask
+				? ComputeTimeout(entryMap)
+				: default;
 
-        _disposed = true;
-    }
+			_expirationQueue.TryCancel(player);
 
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+			if (timeout is not null)
+			{
+				_expirationQueue.TryNotify(player, utcNow + timeout.Value);
+			}
+		}
 
-    protected void ThrowIfDisposed()
-    {
+		void ActivatePlayer(ILavalinkPlayer player)
+		{
+			ref var trackerMap = ref CollectionsMarshal.GetValueRefOrNullRef(_trackingMap, player.GuildId);
+
+			if (Unsafe.IsNullRef(ref trackerMap))
+			{
+				return;
+			}
+
+			Debug.Assert(trackerMap.Entries.Any(x => x.TrackerIndex == trackerIndex));
+			Debug.Assert((trackerMap.Bits & mask) is not 0);
+
+			trackerMap.Bits &= inverseMask;
+			trackerMap.Entries = trackerMap.Entries.RemoveAll(x => x.TrackerIndex == trackerIndex);
+
+			Dispatch(new TrackerActiveEventDispatch(player, lifetime.InactivityTracker));
+
+			if (trackerMap.Bits is 0)
+			{
+				// All bits cleared, player is active again
+				Dispatch(new PlayerActiveEventDispatch(player));
+
+				// Clear the entry from the tracker map since no trackers are tracking it anymore
+				var result = _trackingMap.Remove(player.GuildId);
+				Debug.Assert(result);
+			}
+
+			UpdateTimeout(player, trackerMap);
+		}
+
+		void UpdateTrackerEntry(ref PlayerTrackerMap trackerMap, InactivityTrackerEntry presentEntry)
+		{
+			for (var index = 0; index < trackerMap.Entries.Length; index++)
+			{
+				if (trackerMap.Entries[index].TrackerIndex == trackerIndex)
+				{
+					var updatedEntry = new PlayerTrackerMapEntry(
+						TrackerIndex: trackerIndex,
+						InactiveSince: trackerMap.Entries[index].InactiveSince,
+						Timeout: presentEntry.Timeout ?? _defaultTimeout);
+
+					trackerMap.Entries = trackerMap.Entries.SetItem(
+						index,
+						item: updatedEntry);
+
+					return;
+				}
+			}
+
+			Debug.Assert(false);
+		}
+
+		void MarkPlayerInactive(ILavalinkPlayer player, InactivityTrackerEntry entry)
+		{
+			ref var trackerMap = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackingMap, player.GuildId, out var exists);
+
+			if (!exists)
+			{
+				// Player is now tracked initially
+				trackerMap.Entries = ImmutableArray.Create(new PlayerTrackerMapEntry(
+					TrackerIndex: trackerIndex,
+					InactiveSince: entry.InactiveSince,
+					Timeout: entry.Timeout ?? _defaultTimeout));
+
+				trackerMap.Bits = mask;
+
+				Dispatch(new PlayerTrackedEventDispatch(player));
+				Dispatch(new TrackerInactiveEventDispatch(player, lifetime.InactivityTracker));
+			}
+			else if ((trackerMap.Bits & mask) is not 0)
+			{
+				// Player is already tracked by this tracker
+				UpdateTrackerEntry(ref trackerMap, entry);
+			}
+			else
+			{
+				// Player is initially tracked by this tracker but was marked inactive by another tracker
+				trackerMap.Bits |= mask;
+
+				trackerMap.Entries = trackerMap.Entries.Add(new PlayerTrackerMapEntry(
+					TrackerIndex: trackerIndex,
+					InactiveSince: entry.InactiveSince,
+					Timeout: entry.Timeout ?? _defaultTimeout));
+
+				Dispatch(new TrackerInactiveEventDispatch(player, lifetime.InactivityTracker));
+			}
+
+			UpdateTimeout(player, trackerMap);
+		}
+
+		foreach (var activePlayerId in activePlayers)
+		{
+			if (!_playerManager.TryGetPlayer(activePlayerId, out var player))
+			{
+				continue;
+			}
+
+			Logger.PlayerMarkedActive(lifetime.Label, player.Label);
+			ActivatePlayer(player);
+		}
+
+		foreach (var (trackedPlayerId, entry) in trackedPlayers)
+		{
+			if (!_playerManager.TryGetPlayer(trackedPlayerId, out var player))
+			{
+				continue;
+			}
+
+			MarkPlayerInactive(player, entry);
+
+			var expireAfter = entry.InactiveSince + (entry.Timeout ?? _defaultTimeout);
+			Logger.PlayerMarkedInactive(lifetime.Label, player.Label, expireAfter);
+		}
+	}
+
+	private void Dispatch(IEventDispatch eventDispatch)
+	{
+		_eventQueueChannel.Writer.TryWrite(eventDispatch);
+	}
+
+	/// <summary>
+	///     Gets the tracking status of the specified <paramref name="player"/>.
+	/// </summary>
+	/// <param name="player">the player</param>
+	/// <returns>the inactivity tracking status of the player</returns>
+	/// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+	public async ValueTask<PlayerTrackingState> GetPlayerAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+
+		await _playersSemaphoreSlim
+			.WaitAsync(cancellationToken)
+			.ConfigureAwait(false);
+
+		try
+		{
+			return _trackingMap.TryGetValue(player.GuildId, out var trackingMap)
+				? CreateTrackingState(trackingMap)
+				: _defaultTrackingState;
+		}
+		finally
+		{
+			_playersSemaphoreSlim.Release();
+		}
+	}
+
+	internal PlayerTrackingState GetPlayer(ILavalinkPlayer player)
+	{
+		ThrowIfDisposed();
+
+		_playersSemaphoreSlim.Wait();
+
+		try
+		{
+			return _trackingMap.TryGetValue(player.GuildId, out var trackingMap)
+				? CreateTrackingState(trackingMap)
+				: _defaultTrackingState;
+		}
+		finally
+		{
+			_playersSemaphoreSlim.Release();
+		}
+	}
+
+	protected virtual async ValueTask DisposeAsyncCore()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+
+		await StopAsync().ConfigureAwait(false);
+		_disposed = true;
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		await DisposeAsyncCore().ConfigureAwait(false);
+		GC.SuppressFinalize(this);
+	}
+
+	protected void ThrowIfDisposed()
+	{
 #if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(_disposed, this);
 #else
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(LavalinkPlayer));
-        }
+		if (_disposed)
+		{
+			throw new ObjectDisposedException(nameof(LavalinkPlayer));
+		}
 #endif
-    }
+	}
 
-    public ValueTask StartAsync(CancellationToken cancellationToken = default)
-    {
-        if (_executeTask is not null)
-        {
-            if (_executeTask.IsCompleted)
-            {
-                throw new InvalidOperationException("The inactivity tracking service was stopped.");
-            }
+	private PlayerTrackingState CreateTrackingState(PlayerTrackerMap entryMap)
+	{
+		PlayerTrackerInformation CreateTrackerInformation(IInactivityTrackerLifetime trackerLifetime, int trackerIndex)
+		{
+			var mask = 1 << trackerIndex;
 
-            return ValueTask.CompletedTask;
-        }
+			if ((entryMap.Bits & mask) is 0)
+			{
+				return new PlayerTrackerInformation(
+					Tracker: trackerLifetime.InactivityTracker,
+					Status: PlayerTrackingStatus.NotTracked,
+					TrackedSince: null,
+					Timeout: null);
+			}
 
-        _executeTask = RunAsync(cancellationToken).AsTask();
+			var entry = entryMap.Entries.First(
+				x => x.TrackerIndex == trackerIndex);
 
-        return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
-    }
+			return new PlayerTrackerInformation(
+				Tracker: trackerLifetime.InactivityTracker,
+				Status: PlayerTrackingStatus.Tracked,
+				TrackedSince: entry.InactiveSince,
+				Timeout: entry.Timeout);
+		}
 
-    public async ValueTask StopAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+		Debug.Assert(entryMap.Bits is not 0);
 
-        if (_executeTask is null)
-        {
-            return;
-        }
+		var trackers = _lifetimes
+			.Select(CreateTrackerInformation)
+			.ToImmutableArray();
 
-        try
-        {
-            _pauseTaskCompletionSource?.SetCanceled(CancellationToken.None);
-            _stoppingCancellationTokenSource.Cancel();
-        }
-        finally
-        {
-            await _executeTask
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-    }
+		return new PlayerTrackingState(
+			Status: PlayerTrackingStatus.Tracked,
+			Trackers: trackers);
+	}
 
-    public ValueTask PauseAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+	private static PlayerTrackingState CreateDefaultTrackingState(ImmutableArray<IInactivityTracker> trackers)
+	{
+		var trackerInformation = trackers
+			.Select(tracker => new PlayerTrackerInformation(tracker, PlayerTrackingStatus.NotTracked))
+			.ToImmutableArray();
 
-        Interlocked.CompareExchange(
-            location1: ref _pauseTaskCompletionSource,
-            value: new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously),
-            comparand: null);
+		return new PlayerTrackingState(
+			Status: PlayerTrackingStatus.NotTracked,
+			Trackers: trackerInformation);
+	}
 
-        return ValueTask.CompletedTask;
-    }
+	public ValueTask StartAsync(CancellationToken cancellationToken = default)
+	{
+		_stoppingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		_executeTask = RunAsync(_stoppingCancellationTokenSource.Token);
 
-    public ValueTask ResumeAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+		if (_executeTask.IsCompleted)
+		{
+			return new ValueTask(_executeTask);
+		}
 
-        var pauseTaskCompletionSource = Interlocked.Exchange(ref _pauseTaskCompletionSource, null);
-        pauseTaskCompletionSource?.TrySetResult();
+		return ValueTask.CompletedTask;
+	}
 
-        return ValueTask.CompletedTask;
-    }
+	public async ValueTask StopAsync(CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
 
-    public async ValueTask RunAsync(CancellationToken cancellationToken = default)
-    {
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            token1: cancellationToken,
-            token2: _stoppingCancellationTokenSource.Token);
+		if (_executeTask == null)
+		{
+			return;
+		}
 
-        cancellationToken = cancellationTokenSource.Token;
+		try
+		{
+			_stoppingCancellationTokenSource!.Cancel();
+		}
+		finally
+		{
+			await _executeTask
+				.WaitAsync(cancellationToken)
+				.ConfigureAwait(false);
+		}
+	}
 
-        using var periodicTimer = new PeriodicTimer(_options.PollInterval);
+	private async Task RunAsync(CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
 
-        try
-        {
-            while (await periodicTimer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await PollAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // ignore
-        }
-    }
+		Logger.InactivityTrackingServiceStarting();
 
-    private PlayerTrackingState CreateTrackingState(PlayerTrackingMap entryMap, DateTimeOffset utcNow)
-    {
-        PlayerTrackerInformation CreateTrackerInformation(IInactivityTracker tracker, int index)
-        {
-            var entry = entryMap.GetEntry(index);
+		foreach (var lifetime in _lifetimes)
+		{
+			await lifetime
+				.StartAsync(cancellationToken)
+				.ConfigureAwait(false);
+		}
 
-            return new PlayerTrackerInformation(
-                Tracker: tracker,
-                Status: entry.Compute(utcNow),
-                TrackedSince: entry.TrackedSince,
-                Timeout: entry.Timeout);
-        }
+		try
+		{
+			Logger.InactivityTrackingServiceStarted();
 
-        return new PlayerTrackingState(
-            Status: entryMap.Compute(utcNow, out _),
-            Trackers: _trackers.Select(CreateTrackerInformation).ToImmutableArray());
-    }
+			var events = _eventQueueChannel.Reader
+				.ReadAllAsync(cancellationToken)
+				.ConfigureAwait(false);
 
-    private static PlayerTrackingState CreateDefaultTrackingState(ImmutableArray<IInactivityTracker> trackers)
-    {
-        var trackerInformation = trackers
-            .Select(tracker => new PlayerTrackerInformation(tracker, PlayerTrackingStatus.NotTracked))
-            .ToImmutableArray();
+			await foreach (var eventDispatch in events)
+			{
+				await eventDispatch
+					.InvokeAsync(this, cancellationToken)
+					.ConfigureAwait(false);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			// Ignore
+		}
+		finally
+		{
+			Logger.InactivityTrackingServiceStopping();
 
-        return new PlayerTrackingState(
-            Status: PlayerTrackingStatus.NotTracked,
-            Trackers: trackerInformation);
-    }
-}
+			foreach (var lifetime in _lifetimes)
+			{
+				await lifetime
+					.StopAsync(CancellationToken.None)
+					.ConfigureAwait(false);
+			}
 
-internal record struct PlayerTrackingMap
-{
-    private readonly PlayerTrackingMapEntry[] _entries;
-
-    public PlayerTrackingMap(PlayerTrackingMapEntry[] entries, DateTimeOffset computedAt)
-    {
-        _entries = entries;
-        ComputedAt = computedAt;
-    }
-
-    public readonly ref PlayerTrackingMapEntry GetEntry(int trackerIndex)
-    {
-        return ref _entries[trackerIndex];
-    }
-
-    public DateTimeOffset ComputedAt { get; set; }
-
-    public readonly PlayerTrackingStatus Compute(DateTimeOffset utcNow, out int inactiveTrackerIndex)
-    {
-        inactiveTrackerIndex = 0;
-
-        var tracked = false;
-        var inactive = false;
-
-        var inactiveTimeout = default(TimeSpan?);
-
-        for (var trackerIndex = 0; trackerIndex < _entries.Length; trackerIndex++)
-        {
-            var entry = _entries[trackerIndex];
-            var trackedSince = entry.TrackedSince;
-
-            if (trackedSince is not null)
-            {
-                tracked = true;
-
-                if (utcNow >= trackedSince.Value + entry.Timeout)
-                {
-                    if (inactiveTimeout is null || entry.Timeout > inactiveTimeout)
-                    {
-                        inactiveTimeout = entry.Timeout;
-                        inactiveTrackerIndex = trackerIndex;
-                    }
-
-                    inactive = true;
-                }
-            }
-        }
-
-        if (inactive)
-        {
-            return PlayerTrackingStatus.Inactive;
-        }
-
-        if (tracked)
-        {
-            return PlayerTrackingStatus.Tracked;
-        }
-
-        return PlayerTrackingStatus.NotTracked;
-    }
-
-    public readonly PlayerTrackingMap Apply(PlayerTrackingMap presentMap, DateTimeOffset utcNow)
-    {
-        for (var trackerIndex = 0; trackerIndex < _entries.Length; trackerIndex++)
-        {
-            ref var computedEntry = ref _entries[trackerIndex];
-            var presentEntry = presentMap.GetEntry(trackerIndex);
-
-            computedEntry = computedEntry.IsTracked
-                ? new PlayerTrackingMapEntry(presentEntry.TrackedSince ?? computedEntry.TrackedSince, computedEntry.Timeout)
-                : computedEntry;
-        }
-
-        return this;
-    }
-}
-
-internal readonly record struct PlayerTrackingMapEntry
-{
-    private readonly DateTimeOffset _trackedSince;
-
-    public PlayerTrackingMapEntry(DateTimeOffset? trackedSince, TimeSpan timeout)
-    {
-        _trackedSince = trackedSince is null
-            ? default
-            : trackedSince.Value;
-
-        Timeout = timeout;
-    }
-
-    public PlayerTrackingStatus Compute(DateTimeOffset utcNow)
-    {
-        if (_trackedSince == default)
-        {
-            return PlayerTrackingStatus.NotTracked;
-        }
-
-        if (utcNow >= _trackedSince + Timeout)
-        {
-            return PlayerTrackingStatus.Inactive;
-        }
-
-        return PlayerTrackingStatus.Tracked;
-    }
-
-    public bool IsTracked => _trackedSince != default;
-
-    public DateTimeOffset? TrackedSince => _trackedSince == default
-        ? null
-        : _trackedSince;
-
-    public TimeSpan Timeout { get; }
+			Logger.InactivityTrackingServiceStopped();
+		}
+	}
 }
 
 internal static partial class Logger
 {
-    [LoggerMessage(1, LogLevel.Debug, "Tracked player {GuildId} as inactive.", EventName = nameof(TrackedPlayerAsInactive))]
-    public static partial void TrackedPlayerAsInactive(this ILogger<InactivityTrackingService> logger, ulong guildId);
+	[LoggerMessage(1, LogLevel.Debug, "Tracked player {GuildId} as inactive.", EventName = nameof(TrackedPlayerAsInactive))]
+	public static partial void TrackedPlayerAsInactive(this ILogger<InactivityTrackingService> logger, ulong guildId);
 
-    [LoggerMessage(2, LogLevel.Debug, "Destroyed player {GuildId} due inactivity.", EventName = nameof(DestroyedPlayerDueInactivity))]
-    public static partial void DestroyedPlayerDueInactivity(this ILogger<InactivityTrackingService> logger, ulong guildId);
+	[LoggerMessage(2, LogLevel.Debug, "Destroyed player {GuildId} due inactivity.", EventName = nameof(DestroyedPlayerDueInactivity))]
+	public static partial void DestroyedPlayerDueInactivity(this ILogger<InactivityTrackingService> logger, ulong guildId);
 
-    [LoggerMessage(3, LogLevel.Debug, "Removed player {GuildId} from tracking list.", EventName = nameof(RemovedPlayerFromTrackingList))]
-    public static partial void RemovedPlayerFromTrackingList(this ILogger<InactivityTrackingService> logger, ulong guildId);
+	[LoggerMessage(3, LogLevel.Debug, "Removed player {GuildId} from tracking list.", EventName = nameof(RemovedPlayerFromTrackingList))]
+	public static partial void RemovedPlayerFromTrackingList(this ILogger<InactivityTrackingService> logger, ulong guildId);
+
+	[LoggerMessage(4, LogLevel.Information, "The inactivity tracking service is starting...", EventName = nameof(InactivityTrackingServiceStarting))]
+	public static partial void InactivityTrackingServiceStarting(this ILogger<InactivityTrackingService> logger);
+
+	[LoggerMessage(5, LogLevel.Information, "The inactivity tracking service has started.", EventName = nameof(InactivityTrackingServiceStarted))]
+	public static partial void InactivityTrackingServiceStarted(this ILogger<InactivityTrackingService> logger);
+
+	[LoggerMessage(6, LogLevel.Information, "The inactivity tracking service is stopping...", EventName = nameof(InactivityTrackingServiceStopping))]
+	public static partial void InactivityTrackingServiceStopping(this ILogger<InactivityTrackingService> logger);
+
+	[LoggerMessage(7, LogLevel.Information, "The inactivity tracking service has stopped.", EventName = nameof(InactivityTrackingServiceStopped))]
+	public static partial void InactivityTrackingServiceStopped(this ILogger<InactivityTrackingService> logger);
+
+	[LoggerMessage(8, LogLevel.Debug, "Tracker '{Tracker}' reported the following player(s) as inactive: '{Label}' (expires after: {ExpireAfter}).", EventName = nameof(PlayerMarkedInactive))]
+	public static partial void PlayerMarkedInactive(this ILogger<InactivityTrackingService> logger, string tracker, string label, DateTimeOffset expireAfter);
+
+	[LoggerMessage(9, LogLevel.Debug, "Tracker '{Tracker}' reported the following player as active: '{Label}'.", EventName = nameof(PlayerMarkedActive))]
+	public static partial void PlayerMarkedActive(this ILogger<InactivityTrackingService> logger, string tracker, string label);
+
+	[LoggerMessage(10, LogLevel.Debug, "Player '{Label}' was paused by the inactivity tracking service.", EventName = nameof(PlayerPausedByInactivityTrackingService))]
+	public static partial void PlayerPausedByInactivityTrackingService(this ILogger<InactivityTrackingService> logger, string label);
+
+	[LoggerMessage(11, LogLevel.Debug, "Player '{Label}' was not paused by the inactivity tracking service as it is already paused.", EventName = nameof(PlayerNotPausedByInactivityTrackingServiceBecauseAlreadyPaused))]
+	public static partial void PlayerNotPausedByInactivityTrackingServiceBecauseAlreadyPaused(this ILogger<InactivityTrackingService> logger, string label);
+
+	[LoggerMessage(12, LogLevel.Debug, "Player '{Label}' was resumed by the inactivity tracking service.", EventName = nameof(PlayerResumedByInactivityTrackingService))]
+	public static partial void PlayerResumedByInactivityTrackingService(this ILogger<InactivityTrackingService> logger, string label);
 }
 
-file static class InactivityTrackingOptionsDefaults
+internal readonly record struct PausedPlayersState(
+	object SynchronizationRoot,
+	HashSet<ulong> PausedPlayers);
+
+internal readonly record struct PlayerTrackerMapEntry(int TrackerIndex, DateTimeOffset InactiveSince, TimeSpan Timeout)
 {
-    public static ImmutableArray<IInactivityTracker> Trackers { get; } = ImmutableArray.Create<IInactivityTracker>(
-        new UsersInactivityTracker(UsersInactivityTrackerOptions.Default),
-        new IdleInactivityTracker(IdleInactivityTrackerOptions.Default));
+	private readonly int _timeoutValue = (int)Timeout.TotalMilliseconds;
+
+	public TimeSpan Timeout => TimeSpan.FromMilliseconds(_timeoutValue);
+
+	public DateTimeOffset InactiveSince { get; } = InactiveSince;
+}
+
+internal struct PlayerTrackerMap
+{
+	public uint Bits;
+	public ImmutableArray<PlayerTrackerMapEntry> Entries;
+}
+
+internal interface IEventDispatch
+{
+	ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default);
+}
+
+file sealed class PlayerActiveEventDispatch(ILavalinkPlayer Player) : IEventDispatch
+{
+	public async ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var state = inactivityTrackingService.GetPlayer(Player);
+
+		if (Player is IInactivityPlayerListener inactivityPlayerListener)
+		{
+			await inactivityPlayerListener
+				.NotifyPlayerActiveAsync(state, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		if (inactivityTrackingService.HasPlayerActiveEventHandler)
+		{
+			var eventArgs = new PlayerActiveEventArgs(Player, state);
+
+			await inactivityTrackingService
+				.OnPlayerActiveAsync(eventArgs)
+				.ConfigureAwait(false);
+		}
+
+		var pausedPlayers = inactivityTrackingService.PausedPlayers;
+
+		if (pausedPlayers is not null)
+		{
+			bool wasPausedByService;
+			lock (pausedPlayers.Value.SynchronizationRoot)
+			{
+				wasPausedByService = pausedPlayers.Value.PausedPlayers.Remove(Player.GuildId);
+			}
+
+			if (wasPausedByService && Player.State is PlayerState.Paused)
+			{
+				await Player
+					.ResumeAsync(cancellationToken)
+					.ConfigureAwait(false);
+
+				inactivityTrackingService.Logger.PlayerResumedByInactivityTrackingService(Player.Label);
+			}
+		}
+	}
+}
+
+file sealed class PlayerInactiveEventDispatch(ILavalinkPlayer Player) : IEventDispatch
+{
+	public async ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var state = inactivityTrackingService.GetPlayer(Player);
+
+		if (Player is IInactivityPlayerListener inactivityPlayerListener)
+		{
+			await inactivityPlayerListener
+				.NotifyPlayerInactiveAsync(state, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		if (inactivityTrackingService.HasPlayerInactiveEventHandler)
+		{
+			var eventArgs = new PlayerInactiveEventArgs(Player, state);
+
+			await inactivityTrackingService
+				.OnPlayerInactiveAsync(eventArgs)
+				.ConfigureAwait(false);
+		}
+	}
+}
+
+file sealed class PlayerTrackedEventDispatch(ILavalinkPlayer Player) : IEventDispatch
+{
+	public async ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var state = inactivityTrackingService.GetPlayer(Player);
+
+		if (Player is IInactivityPlayerListener inactivityPlayerListener)
+		{
+			await inactivityPlayerListener
+				.NotifyPlayerTrackedAsync(state, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		if (inactivityTrackingService.HasPlayerTrackedEventHandler)
+		{
+			var eventArgs = new PlayerTrackedEventArgs(Player, state);
+
+			await inactivityTrackingService
+				.OnPlayerTrackedAsync(eventArgs)
+				.ConfigureAwait(false);
+		}
+
+		var pausedPlayers = inactivityTrackingService.PausedPlayers;
+
+		if (pausedPlayers is not null && Player.State is not PlayerState.Paused)
+		{
+			if (Player.State is not PlayerState.Paused)
+			{
+				await Player
+					.PauseAsync(cancellationToken)
+					.ConfigureAwait(false);
+
+				lock (pausedPlayers.Value.SynchronizationRoot)
+				{
+					pausedPlayers.Value.PausedPlayers.Add(Player.GuildId);
+				}
+
+				inactivityTrackingService.Logger.PlayerPausedByInactivityTrackingService(Player.Label);
+			}
+			else
+			{
+				inactivityTrackingService.Logger.PlayerNotPausedByInactivityTrackingServiceBecauseAlreadyPaused(Player.Label);
+			}
+		}
+	}
+}
+
+file sealed class TrackerActiveEventDispatch(ILavalinkPlayer Player, IInactivityTracker Tracker) : IEventDispatch
+{
+	public async ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var state = inactivityTrackingService.GetPlayer(Player);
+
+		if (Tracker is IInactivityTrackerPlayerListener inactivityTrackerListener)
+		{
+			await inactivityTrackerListener
+				.NotifyPlayerTrackerActiveAsync(state, Tracker, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		if (inactivityTrackingService.HasTrackerActiveEventHandler)
+		{
+			var eventArgs = new TrackerActiveEventArgs(Player, state, Tracker);
+
+			await inactivityTrackingService
+				.OnTrackerActiveAsync(eventArgs)
+				.ConfigureAwait(false);
+		}
+	}
+}
+
+file sealed class TrackerInactiveEventDispatch(ILavalinkPlayer Player, IInactivityTracker Tracker) : IEventDispatch
+{
+	public async ValueTask InvokeAsync(
+		InactivityTrackingService inactivityTrackingService,
+		CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var state = inactivityTrackingService.GetPlayer(Player);
+
+		if (Tracker is IInactivityTrackerPlayerListener inactivityTrackerListener)
+		{
+			await inactivityTrackerListener
+				.NotifyPlayerTrackerInactiveAsync(state, Tracker, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		if (inactivityTrackingService.HasTrackerInactiveEventHandler)
+		{
+			var eventArgs = new TrackerInactiveEventArgs(Player, state, Tracker);
+
+			await inactivityTrackingService
+				.OnTrackerInactiveAsync(eventArgs)
+				.ConfigureAwait(false);
+		}
+	}
 }

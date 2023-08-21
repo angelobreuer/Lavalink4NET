@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.InactivityTracking.Trackers;
+﻿namespace Lavalink4NET.InactivityTracking.Trackers.Users;
 
 /// <param name="ExcludeBots">
 ///     A value indicating whether to respect bot users in the channel.
@@ -8,7 +8,13 @@
 ///     The number of users and bots (depending on <paramref name="ExcludeBots"/>) that must be in the channel
 ///     to mark the player as "active". By default, this is 1, so that at least one user must be in the channel.
 /// </param>
-public readonly record struct UsersInactivityTrackerOptions(bool? ExcludeBots = null, int? Threshold = null, TimeSpan? Timeout = null)
+public sealed record class UsersInactivityTrackerOptions
 {
-    public static UsersInactivityTrackerOptions Default => default;
+    public string? Label { get; set; }
+
+    public bool? ExcludeBots { get; set; }
+
+    public int? Threshold { get; set; }
+
+    public TimeSpan? Timeout { get; set; }
 }

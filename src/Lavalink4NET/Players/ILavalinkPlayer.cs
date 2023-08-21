@@ -12,6 +12,8 @@ public interface ILavalinkPlayer : IAsyncDisposable
 {
     IPlayerFilters Filters { get; }
 
+    string Label { get; }
+
     ILavalinkApiClient ApiClient { get; }
 
     IDiscordClientWrapper DiscordClient { get; }

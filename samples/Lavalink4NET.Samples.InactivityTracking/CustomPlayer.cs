@@ -3,7 +3,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.InactivityTracking.Players;
 using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
@@ -19,7 +18,7 @@ public sealed class CustomPlayer : QueuedLavalinkPlayer, IInactivityPlayerListen
         _textChannel = properties.Options.Value.TextChannel;
     }
 
-    public async ValueTask NotifyPlayerActiveAsync(PlayerTrackingState trackingState, PlayerTrackingState previousTrackingState, CancellationToken cancellationToken = default)
+    public async ValueTask NotifyPlayerActiveAsync(PlayerTrackingState trackingState, CancellationToken cancellationToken = default)
     {
         if (_textChannel is not null)
         {
@@ -29,7 +28,7 @@ public sealed class CustomPlayer : QueuedLavalinkPlayer, IInactivityPlayerListen
         }
     }
 
-    public async ValueTask NotifyPlayerInactiveAsync(PlayerTrackingState trackingState, PlayerTrackingState previousTrackingState, IInactivityTracker inactivityTracker, CancellationToken cancellationToken = default)
+    public async ValueTask NotifyPlayerInactiveAsync(PlayerTrackingState trackingState, CancellationToken cancellationToken = default)
     {
         if (_textChannel is not null)
         {
@@ -39,7 +38,7 @@ public sealed class CustomPlayer : QueuedLavalinkPlayer, IInactivityPlayerListen
         }
     }
 
-    public async ValueTask NotifyPlayerTrackedAsync(PlayerTrackingState trackingState, PlayerTrackingState previousTrackingState, CancellationToken cancellationToken = default)
+    public async ValueTask NotifyPlayerTrackedAsync(PlayerTrackingState trackingState, CancellationToken cancellationToken = default)
     {
         if (_textChannel is not null)
         {

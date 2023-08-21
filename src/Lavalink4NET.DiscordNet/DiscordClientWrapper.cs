@@ -263,11 +263,6 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        if (user.Id != _baseSocketClient.CurrentUser.Id)
-        {
-            return Task.CompletedTask;
-        }
-
         var guildId = oldSocketVoiceState.VoiceChannel?.Guild?.Id ?? socketVoiceState.VoiceChannel.Guild.Id;
 
         // create voice state
@@ -275,9 +270,16 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             VoiceChannelId: socketVoiceState.VoiceChannel?.Id,
             SessionId: socketVoiceState.VoiceSessionId);
 
+        var oldVoiceState = new VoiceState(
+            VoiceChannelId: oldSocketVoiceState.VoiceChannel?.Id,
+            SessionId: oldSocketVoiceState.VoiceSessionId);
+
         var eventArgs = new VoiceStateUpdatedEventArgs(
             guildId: guildId,
-            voiceState: voiceState);
+            userId: user.Id,
+            isCurrentUser: user.Id == _baseSocketClient.CurrentUser.Id,
+            voiceState: voiceState,
+            oldVoiceState: oldVoiceState);
 
         // invoke event
         return VoiceStateUpdated.InvokeAsync(this, eventArgs).AsTask();

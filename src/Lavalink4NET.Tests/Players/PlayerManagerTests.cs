@@ -637,6 +637,9 @@ file sealed class VoiceEmulatingDiscordClientWrapper : IDiscordClientWrapper
     {
         var voiceStateUpdatedEventArgs = new VoiceStateUpdatedEventArgs(
             guildId: guildId,
+            userId: 123UL,
+            isCurrentUser: true,
+            oldVoiceState: new VoiceState(null, "abc"),
             voiceState: new VoiceState(voiceChannelId, "abc"));
 
         await VoiceStateUpdated

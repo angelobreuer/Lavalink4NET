@@ -3,17 +3,15 @@
 using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
 
-public interface IInactivityPlayerListener : ILavalinkPlayerListener
+public interface IInactivityTrackerPlayerListener : ILavalinkPlayerListener
 {
-    ValueTask NotifyPlayerInactiveAsync(
+    ValueTask NotifyPlayerTrackerInactiveAsync(
         PlayerTrackingState trackingState,
+        IInactivityTracker inactivityTracker,
         CancellationToken cancellationToken = default);
 
-    ValueTask NotifyPlayerActiveAsync(
+    ValueTask NotifyPlayerTrackerActiveAsync(
         PlayerTrackingState trackingState,
-        CancellationToken cancellationToken = default);
-
-    ValueTask NotifyPlayerTrackedAsync(
-        PlayerTrackingState trackingState,
+        IInactivityTracker inactivityTracker,
         CancellationToken cancellationToken = default);
 }

@@ -2,9 +2,11 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.InactivityTracking.Players;
+using Lavalink4NET.InactivityTracking.Queue;
 using Lavalink4NET.InactivityTracking.Trackers;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
@@ -16,173 +18,60 @@ using Moq;
 public sealed class InactivityTrackingServiceTests
 {
     [Fact]
-    public async Task TestStateIsRunningAfterStartAsync()
-    {
-        // Arrange
-        var playerManager = Mock.Of<IPlayerManager>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: Mock.Of<IDiscordClientWrapper>(),
-            new SystemClock(),
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            Options.Create(new InactivityTrackingOptions()),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        // Act
-        await inactivityTrackingService.StartAsync();
-
-        // Assert
-        Assert.Equal(InactivityTrackingState.Running, inactivityTrackingService.State);
-    }
-
-    [Fact]
-    public async Task TestSubsequentStartReturnsCompletedTaskAsync()
-    {
-        // Arrange
-        var playerManager = Mock.Of<IPlayerManager>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: Mock.Of<IDiscordClientWrapper>(),
-            new SystemClock(),
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            Options.Create(new InactivityTrackingOptions()),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        await inactivityTrackingService.StartAsync();
-
-        // Act
-        var task = inactivityTrackingService.StartAsync();
-
-        // Assert
-        Assert.True(task.IsCompleted);
-
-        // Clean Up
-        await task.ConfigureAwait(false);
-    }
-
-    [Fact]
-    public async Task TestStateIsStoppedAfterStopAsync()
-    {
-        // Arrange
-        var playerManager = Mock.Of<IPlayerManager>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: Mock.Of<IDiscordClientWrapper>(),
-            systemClock: new SystemClock(),
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions()),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        // Act
-        await inactivityTrackingService.StartAsync();
-        await inactivityTrackingService.StopAsync();
-
-        // Assert
-        Assert.Equal(InactivityTrackingState.Stopped, inactivityTrackingService.State);
-    }
-
-    [Fact]
-    public async Task TestStateIsDestroyedAfterDispose()
-    {
-        // Arrange
-        var playerManager = Mock.Of<IPlayerManager>();
-
-#pragma warning disable S3966 // Objects should not be disposed more than once
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: Mock.Of<IDiscordClientWrapper>(),
-            systemClock: new SystemClock(),
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions()),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        // Act
-        await inactivityTrackingService.StartAsync();
-        inactivityTrackingService.Dispose();
-#pragma warning restore S3966 // Objects should not be disposed more than once
-
-        // Assert
-        Assert.Equal(InactivityTrackingState.Destroyed, inactivityTrackingService.State);
-    }
-
-    [Fact]
-    public async Task TestStartAfterStopThrowsAsync()
-    {
-        // Arrange
-        var playerManager = Mock.Of<IPlayerManager>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: Mock.Of<IDiscordClientWrapper>(),
-            systemClock: new SystemClock(),
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions()),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        // Act
-        await inactivityTrackingService.StartAsync();
-        await inactivityTrackingService.StopAsync();
-
-        // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => inactivityTrackingService.StartAsync().AsTask());
-    }
-
-    [Fact]
     public async Task TestPlayerIsNotTrackedInitially()
     {
         // Arrange
         var player = Mock.Of<ILavalinkPlayerWithListener>();
         var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
+        var inactivityTracker = new DynamicTracker(player);
         var discordClient = Mock.Of<IDiscordClientWrapper>();
 
-        using var inactivityTrackingService = new InactivityTrackingService(
+        var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
+            expirationQueue: Mock.Of<IInactivityExpirationQueue>(),
             discordClient: discordClient,
             systemClock: new SystemClock(),
             trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
+            loggerFactory: NullLoggerFactory.Instance);
+
+        await using var __ = inactivityTrackingService.ConfigureAwait(false);
 
         // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        // Assert
         var trackingInformation = await inactivityTrackingService
             .GetPlayerAsync(player)
             .ConfigureAwait(false);
 
+        // Assert
         Assert.Equal(PlayerTrackingStatus.NotTracked, trackingInformation.Status);
     }
 
     [Fact]
-    public async Task TestPlayerIsTrackedWhenInactiveWithoutDeadlineAsync()
+    public async Task TestPlayerIsTrackedWhenInactiveAsync()
     {
         // Arrange
         var player = Mock.Of<ILavalinkPlayerWithListener>();
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
-        var discordClient = Mock.Of<IDiscordClientWrapper>();
 
-        using var inactivityTrackingService = new InactivityTrackingService(
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+        var inactivityTracker = new DynamicTracker(player);
+
+        var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
+            expirationQueue: Mock.Of<IInactivityExpirationQueue>(),
             discordClient: discordClient,
             systemClock: new SystemClock(),
             trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
+            loggerFactory: NullLoggerFactory.Instance);
 
-        inactivityTracker.Result = PlayerActivityResult.Inactive(timeout: TimeSpan.FromHours(1));
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
 
-        // Act
         await inactivityTrackingService
-            .PollAsync()
+            .StartAsync()
             .ConfigureAwait(false);
+
+        inactivityTracker.Report(active: false);
 
         // Assert
         var trackingInformation = await inactivityTrackingService
@@ -193,153 +82,31 @@ public sealed class InactivityTrackingServiceTests
     }
 
     [Fact]
-    public async Task TestPlayerIsInactiveWhenInactiveAfterDeadlineAsync()
-    {
-        // Arrange
-        var player = new Mock<ILavalinkPlayerWithListener>();
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player.Object as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
-        var systemClock = new SystemClock();
-        var discordClient = Mock.Of<IDiscordClientWrapper>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: discordClient,
-            systemClock: systemClock,
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        inactivityTracker.Result = PlayerActivityResult.Inactive();
-
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        systemClock.UtcNow = systemClock.UtcNow.AddDays(1);
-
-        // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        // Assert
-        player.Verify(x => x.NotifyPlayerInactiveAsync(It.IsAny<PlayerTrackingState>(), It.IsAny<PlayerTrackingState>(), It.IsAny<IInactivityTracker>(), It.IsAny<CancellationToken>()));
-    }
-
-    [Fact]
-    public async Task TestPlayerIsInactiveWhenInactiveAfterDeadlineWithInitialActivePeriodAsync()
-    {
-        // Arrange
-        var player = new Mock<ILavalinkPlayerWithListener>();
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player.Object as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
-        var systemClock = new SystemClock();
-        var discordClient = Mock.Of<IDiscordClientWrapper>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: discordClient,
-            systemClock: systemClock,
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        systemClock.UtcNow = systemClock.UtcNow.AddDays(1);
-        inactivityTracker.Result = PlayerActivityResult.Inactive();
-
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        systemClock.UtcNow = systemClock.UtcNow.AddDays(1);
-
-        // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        // Assert
-        player.Verify(x => x.NotifyPlayerInactiveAsync(It.IsAny<PlayerTrackingState>(), It.IsAny<PlayerTrackingState>(), It.IsAny<IInactivityTracker>(), It.IsAny<CancellationToken>()));
-    }
-
-    [Fact]
-    public async Task TestPlayerRemovedFromTrackingListIfRemovedFromPlayerManagerAsync()
-    {
-        // Arrange
-        var player1 = Mock.Of<ILavalinkPlayerWithListener>(x => x.GuildId == 1UL);
-        var player2 = Mock.Of<ILavalinkPlayerWithListener>(x => x.GuildId == 2UL);
-        var players = new[] { player1 as ILavalinkPlayer, };
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == players);
-        var inactivityTracker = new DynamicTracker();
-        var systemClock = new SystemClock();
-        var discordClient = Mock.Of<IDiscordClientWrapper>();
-
-        using var inactivityTrackingService = new InactivityTrackingService(
-            playerManager: playerManager,
-            discordClient: discordClient,
-            systemClock: systemClock,
-            trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
-
-        inactivityTracker.Result = PlayerActivityResult.Inactive();
-
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        players[0] = player2;
-
-        // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
-
-        // Assert
-        var trackingInformation = await inactivityTrackingService
-            .GetPlayerAsync(player1)
-            .ConfigureAwait(false);
-
-        Assert.Equal(PlayerTrackingStatus.NotTracked, trackingInformation.Status);
-    }
-
-    [Fact]
-    public async Task TestPlayerTrackedButThenActiveAgainAsync()
+    public async Task TestPlayerIsNotTrackedWhenActiveAsync()
     {
         // Arrange
         var player = Mock.Of<ILavalinkPlayerWithListener>();
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
-        var systemClock = new SystemClock();
-        var discordClient = Mock.Of<IDiscordClientWrapper>();
 
-        using var inactivityTrackingService = new InactivityTrackingService(
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+        var inactivityTracker = new DynamicTracker(player);
+
+        var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
+            expirationQueue: Mock.Of<IInactivityExpirationQueue>(),
             discordClient: discordClient,
-            systemClock: systemClock,
+            systemClock: new SystemClock(),
             trackers: Enumerable.Empty<IInactivityTracker>(),
             options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
+            loggerFactory: NullLoggerFactory.Instance);
 
-        inactivityTracker.Result = PlayerActivityResult.Inactive();
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
 
         await inactivityTrackingService
-            .PollAsync()
+            .StartAsync()
             .ConfigureAwait(false);
 
-        systemClock.UtcNow = systemClock.UtcNow.AddDays(1);
-
-        inactivityTracker.Result = PlayerActivityResult.Active;
-
-        // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
+        inactivityTracker.Report(active: true);
 
         // Assert
         var trackingInformation = await inactivityTrackingService
@@ -350,39 +117,215 @@ public sealed class InactivityTrackingServiceTests
     }
 
     [Fact]
-    public async Task TestPlayerInactiveAsync()
+    public async Task TestPlayerIsNotTrackedWhenInactiveButThenActiveAgainAsync()
     {
         // Arrange
-        var player = new Mock<ILavalinkPlayerWithListener>();
+        var player = Mock.Of<ILavalinkPlayerWithListener>();
 
-        var playerManager = Mock.Of<IPlayerManager>(x => x.Players == new[] { player.Object as ILavalinkPlayer, });
-        var inactivityTracker = new DynamicTracker();
-        var systemClock = new SystemClock();
         var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+        var inactivityTracker = new DynamicTracker(player);
 
-        using var inactivityTrackingService = new InactivityTrackingService(
+        var inactivityTrackingService = new InactivityTrackingService(
             playerManager: playerManager,
+            expirationQueue: Mock.Of<IInactivityExpirationQueue>(),
+            discordClient: discordClient,
+            systemClock: new SystemClock(),
+            trackers: Enumerable.Empty<IInactivityTracker>(),
+            options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
+            loggerFactory: NullLoggerFactory.Instance);
+
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
+
+        await inactivityTrackingService
+            .StartAsync()
+            .ConfigureAwait(false);
+
+        inactivityTracker.Report(active: false);
+        inactivityTracker.Report(active: true);
+
+        // Assert
+        var trackingInformation = await inactivityTrackingService
+            .GetPlayerAsync(player)
+            .ConfigureAwait(false);
+
+        Assert.Equal(PlayerTrackingStatus.NotTracked, trackingInformation.Status);
+    }
+
+    [Fact]
+    public async Task TestPlayerTimeoutIsLowestOfAllTrackersIfTimeoutBehaviorIsSetToLowestAsync()
+    {
+        // Arrange
+        var player = Mock.Of<ILavalinkPlayerWithListener>();
+
+        var relativeTime = DateTimeOffset.UtcNow;
+        var systemClock = Mock.Of<ISystemClock>(x => x.UtcNow == relativeTime);
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+
+        var inactivityTracker1 = new DynamicTracker(player, TimeSpan.FromSeconds(60));
+        var inactivityTracker2 = new DynamicTracker(player, TimeSpan.FromSeconds(30));
+
+        var expirationQueue = new Mock<IInactivityExpirationQueue>();
+
+        var inactivityTrackingService = new InactivityTrackingService(
+            playerManager: playerManager,
+            expirationQueue: expirationQueue.Object,
             discordClient: discordClient,
             systemClock: systemClock,
             trackers: Enumerable.Empty<IInactivityTracker>(),
-            options: Options.Create(new InactivityTrackingOptions { Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker), }),
-            logger: NullLogger<InactivityTrackingService>.Instance);
+            options: Options.Create(new InactivityTrackingOptions
+            {
+                Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker1, inactivityTracker2),
+                TimeoutBehavior = InactivityTrackingTimeoutBehavior.Lowest, // explicit
+            }),
+            loggerFactory: NullLoggerFactory.Instance);
 
-        inactivityTracker.Result = PlayerActivityResult.Inactive();
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
 
         await inactivityTrackingService
-            .PollAsync()
+            .StartAsync()
             .ConfigureAwait(false);
 
-        systemClock.UtcNow = systemClock.UtcNow.AddDays(1);
-
-        // Act
-        await inactivityTrackingService
-            .PollAsync()
-            .ConfigureAwait(false);
+        inactivityTracker1.Report(active: false);
+        inactivityTracker2.Report(active: false);
 
         // Assert
-        player.Verify(x => x.NotifyPlayerInactiveAsync(It.IsAny<PlayerTrackingState>(), It.IsAny<PlayerTrackingState>(), It.IsAny<IInactivityTracker>(), It.IsAny<CancellationToken>()));
+        expirationQueue.Verify(x => x.TryNotify(player, relativeTime.AddSeconds(30)));
+    }
+
+    [Fact]
+    public async Task TestPlayerTimeoutIsHighestOfAllTrackersIfTimeoutBehaviorIsSetToHighestAsync()
+    {
+        // Arrange
+        var player = Mock.Of<ILavalinkPlayerWithListener>();
+
+        var relativeTime = DateTimeOffset.UtcNow;
+        var systemClock = Mock.Of<ISystemClock>(x => x.UtcNow == relativeTime);
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+
+        var inactivityTracker1 = new DynamicTracker(player, TimeSpan.FromSeconds(60));
+        var inactivityTracker2 = new DynamicTracker(player, TimeSpan.FromSeconds(30));
+
+        var expirationQueue = new Mock<IInactivityExpirationQueue>();
+
+        var inactivityTrackingService = new InactivityTrackingService(
+            playerManager: playerManager,
+            expirationQueue: expirationQueue.Object,
+            discordClient: discordClient,
+            systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
+            options: Options.Create(new InactivityTrackingOptions
+            {
+                Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker1, inactivityTracker2),
+                TimeoutBehavior = InactivityTrackingTimeoutBehavior.Highest,
+            }),
+            loggerFactory: NullLoggerFactory.Instance);
+
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
+
+        await inactivityTrackingService
+            .StartAsync()
+            .ConfigureAwait(false);
+
+        inactivityTracker1.Report(active: false);
+        inactivityTracker2.Report(active: false);
+
+        // Assert
+        expirationQueue.Verify(x => x.TryNotify(player, relativeTime.AddSeconds(60)));
+    }
+
+    [Fact]
+    public async Task TestPlayerTimeoutIsAverageOfAllTrackersIfTimeoutBehaviorIsSetToAverageAsync()
+    {
+        // Arrange
+        var player = Mock.Of<ILavalinkPlayerWithListener>();
+
+        var relativeTime = DateTimeOffset.UtcNow;
+        var systemClock = Mock.Of<ISystemClock>(x => x.UtcNow == relativeTime);
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+
+        var inactivityTracker1 = new DynamicTracker(player, TimeSpan.FromSeconds(60));
+        var inactivityTracker2 = new DynamicTracker(player, TimeSpan.FromSeconds(30));
+
+        var expirationQueue = new Mock<IInactivityExpirationQueue>();
+
+        var inactivityTrackingService = new InactivityTrackingService(
+            playerManager: playerManager,
+            expirationQueue: expirationQueue.Object,
+            discordClient: discordClient,
+            systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
+            options: Options.Create(new InactivityTrackingOptions
+            {
+                Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker1, inactivityTracker2),
+                TimeoutBehavior = InactivityTrackingTimeoutBehavior.Average,
+            }),
+            loggerFactory: NullLoggerFactory.Instance);
+
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
+
+        await inactivityTrackingService
+            .StartAsync()
+            .ConfigureAwait(false);
+
+        inactivityTracker1.Report(active: false);
+        inactivityTracker2.Report(active: false);
+
+        // Assert
+        expirationQueue.Verify(x => x.TryNotify(player, relativeTime.AddSeconds(45)));
+    }
+
+    [Fact]
+    public async Task TestTrackerUpdateKeepsPreviousTimestampIfUpdatedAsync()
+    {
+        // Arrange
+        var player = Mock.Of<ILavalinkPlayerWithListener>();
+        var systemClock = new SystemClock();
+        var discordClient = Mock.Of<IDiscordClientWrapper>();
+        var playerManager = new PlayerManagerMock(discordClient, new[] { player });
+        var inactivityTracker = new DynamicTracker(player);
+
+        var inactivityTrackingService = new InactivityTrackingService(
+            playerManager: playerManager,
+            expirationQueue: Mock.Of<IInactivityExpirationQueue>(),
+            discordClient: discordClient,
+            systemClock: systemClock,
+            trackers: Enumerable.Empty<IInactivityTracker>(),
+            options: Options.Create(new InactivityTrackingOptions
+            {
+                Trackers = ImmutableArray.Create<IInactivityTracker>(inactivityTracker),
+                DefaultTimeout = TimeSpan.FromSeconds(1000),
+            }),
+            loggerFactory: NullLoggerFactory.Instance);
+
+        await using var _ = inactivityTrackingService.ConfigureAwait(false);
+
+        await inactivityTrackingService
+            .StartAsync()
+            .ConfigureAwait(false);
+
+        var initialTimestamp = systemClock.UtcNow;
+
+        inactivityTracker.Report(active: false);
+
+        systemClock.UtcNow = systemClock.UtcNow.AddSeconds(60);
+
+        inactivityTracker.Report(active: false);
+
+        // Assert
+        var trackingInformation = await inactivityTrackingService
+            .GetPlayerAsync(player)
+            .ConfigureAwait(false);
+
+        Assert.Equal(PlayerTrackingStatus.Tracked, trackingInformation.Status);
+
+        Assert.Equal(
+            expected: initialTimestamp.DateTime,
+            actual: trackingInformation.Trackers[0].TrackedSince!.Value.DateTime,
+            precision: TimeSpan.FromSeconds(1));
     }
 }
 
@@ -397,10 +340,49 @@ file sealed class SystemClock : ISystemClock
 
 file sealed class DynamicTracker : IInactivityTracker
 {
-    public PlayerActivityResult Result { get; set; } = PlayerActivityResult.Active;
+    private readonly ILavalinkPlayer _player;
+    private readonly TimeSpan? _timeout;
+    private readonly Channel<bool> _channel;
+    private readonly SemaphoreSlim _semaphoreSlim;
 
-    public ValueTask<PlayerActivityResult> CheckAsync(InactivityTrackingContext context, ILavalinkPlayer player, CancellationToken cancellationToken = default)
+    public DynamicTracker(ILavalinkPlayer player, TimeSpan? timeout = null)
     {
-        return new ValueTask<PlayerActivityResult>(Result);
+        ArgumentNullException.ThrowIfNull(player);
+
+        _player = player;
+        _timeout = timeout;
+        _semaphoreSlim = new SemaphoreSlim(0, int.MaxValue);
+        _channel = Channel.CreateUnbounded<bool>();
+    }
+
+    public InactivityTrackerOptions Options => InactivityTrackerOptions.Realtime("Dynamic Tracker");
+
+    public void Report(bool active)
+    {
+        _channel.Writer.TryWrite(active);
+        _semaphoreSlim.Wait();
+    }
+
+    public async ValueTask RunAsync(IInactivityTrackerContext trackerContext, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(trackerContext);
+
+        await foreach (var isActive in _channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+        {
+            using (var scope = trackerContext.CreateScope())
+            {
+                if (isActive)
+                {
+                    scope.MarkActive(_player.GuildId);
+                }
+                else
+                {
+                    scope.MarkInactive(_player.GuildId, _timeout);
+                }
+            }
+
+            _semaphoreSlim.Release();
+        }
     }
 }

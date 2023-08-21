@@ -125,6 +125,9 @@ internal sealed class DiscordClientWrapper : IDiscordClientWrapper, IDiscordVoic
 
         var channelId = voiceState.VoiceChannelId;
 
+        var oldVoiceChannelId = _voiceStateCache.TryGetValue(guildId, out var oldVoiceStateMap)
+            && oldVoiceStateMap.TryGetValue(userId, out var oldVoiceChannelIdRaw) ? oldVoiceChannelIdRaw : default(ulong?);
+
         if (channelId is null)
         {
             static IImmutableDictionary<ulong, ulong> AddValueFactory(ulong guildId)
@@ -149,14 +152,16 @@ internal sealed class DiscordClientWrapper : IDiscordClientWrapper, IDiscordVoic
         // Task is already completed when this method is called
         Debug.Assert(_clientInformationTaskCompletionSource.Task.IsCompleted);
 
-        if (userId == _clientInformationTaskCompletionSource.Task.Result.CurrentUserId)
-        {
-            var eventArgs = new VoiceStateUpdatedEventArgs(guildId, voiceState);
+        var eventArgs = new VoiceStateUpdatedEventArgs(
+            guildId: guildId,
+            userId: userId,
+            isCurrentUser: userId == _clientInformationTaskCompletionSource.Task.Result.CurrentUserId,
+            voiceState: voiceState,
+            oldVoiceState: new VoiceState(oldVoiceChannelId, null));
 
-            await VoiceStateUpdated
-                .InvokeAsync(this, eventArgs)
-                .ConfigureAwait(false);
-        }
+        await VoiceStateUpdated
+            .InvokeAsync(this, eventArgs)
+            .ConfigureAwait(false);
     }
 
     internal bool TryGetUserChannelId(ulong guildId, ulong userId, out ulong voiceChannelId)

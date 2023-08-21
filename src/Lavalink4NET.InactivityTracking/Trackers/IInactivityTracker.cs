@@ -1,9 +1,12 @@
 ﻿namespace Lavalink4NET.InactivityTracking;
 
-using System.Threading.Tasks;
-using Lavalink4NET.Players;
+using Lavalink4NET.InactivityTracking.Trackers;
 
 public interface IInactivityTracker
 {
-    ValueTask<PlayerActivityResult> CheckAsync(InactivityTrackingContext context, ILavalinkPlayer player, CancellationToken cancellationToken = default);
+    InactivityTrackerOptions Options { get; }
+
+    ValueTask RunAsync(
+        IInactivityTrackerContext trackerContext,
+        CancellationToken cancellationToken = default);
 }
