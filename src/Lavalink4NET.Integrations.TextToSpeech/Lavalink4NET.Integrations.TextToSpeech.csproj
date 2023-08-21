@@ -4,15 +4,20 @@
 		<OutputType>Library</OutputType>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+
+		<Description>
+			High performance Lavalink wrapper for .NET | Enable text-to-speech functionality in Lavalink4NET. Convert written text into spoken words, allowing your application to generate and play audio from text inputs. Requires the installation of the corresponding plugin on the Lavalink node.
+		</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+	  <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
 	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
   </ItemGroup>
 
+	<Import Project="../Lavalink4NET.targets" />
 </Project>

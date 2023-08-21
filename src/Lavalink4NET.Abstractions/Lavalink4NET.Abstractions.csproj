@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	  <LangVersion>preview</LangVersion>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+	  <RootNamespace>Lavalink4NET</RootNamespace>
+
+	  <Description>
+		  High performance Lavalink wrapper for .NET | General abstractions and common primitives for the Lavalink4NET client library.
+	  </Description>
+  </PropertyGroup>
+
+	<Import Project="../Lavalink4NET.targets" />
+</Project>

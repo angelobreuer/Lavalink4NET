@@ -1,37 +1,12 @@
-/*
- *  File:   MusicModule.cs
- *  Author: Angelo Breuer
- *
- *  The MIT License (MIT)
- *
- *  Copyright (c) Angelo Breuer 2022
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-
 namespace Lavalink4NET.Discord_NET.ExampleBot;
 
 using System;
 using System.Threading.Tasks;
 using Discord.Interactions;
-using Lavalink4NET.Player;
-using Lavalink4NET.Rest;
+using Lavalink4NET.DiscordNet;
+using Lavalink4NET.Players;
+using Lavalink4NET.Players.Vote;
+using Lavalink4NET.Rest.Entities.Tracks;
 
 /// <summary>
 ///     Presents some of the main features of the Lavalink4NET-Library.
@@ -49,7 +24,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     ///     thrown if the specified <paramref name="audioService"/> is <see langword="null"/>.
     /// </exception>
     public MusicModule(IAudioService audioService)
-        => _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+    {
+        ArgumentNullException.ThrowIfNull(audioService);
+
+        _audioService = audioService;
+    }
 
     /// <summary>
     ///     Disconnects from the current voice channel connected to asynchronously.
@@ -58,17 +37,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("disconnect", "Disconnects from the current voice channel connected to", runMode: RunMode.Async)]
     public async Task Disconnect()
     {
-        var player = await GetPlayerAsync();
+        var player = await GetPlayerAsync().ConfigureAwait(false);
 
-        if (player == null)
+        if (player is null)
         {
             return;
         }
 
-        // when using StopAsync(true) the player also disconnects and clears the track queue.
-        // DisconnectAsync only disconnects from the channel.
-        await player.StopAsync(true);
-        await ReplyAsync("Disconnected.");
+        await player.DisconnectAsync().ConfigureAwait(false);
+        await RespondAsync("Disconnected.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -79,30 +56,34 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task Play(string query)
     {
-        var player = await GetPlayerAsync();
+        await DeferAsync().ConfigureAwait(false);
 
-        if (player == null)
+        var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
+
+        if (player is null)
         {
             return;
         }
 
-        var track = await _audioService.GetTrackAsync(query, SearchMode.YouTube);
+        var track = await _audioService.Tracks
+            .LoadTrackAsync(query, TrackSearchMode.YouTube)
+            .ConfigureAwait(false);
 
-        if (track == null)
+        if (track is null)
         {
-            await ReplyAsync("😖 No results.");
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
             return;
         }
 
-        var position = await player.PlayAsync(track, enqueue: true);
+        var position = await player.PlayAsync(track).ConfigureAwait(false);
 
-        if (position == 0)
+        if (position is 0)
         {
-            await ReplyAsync("🔈 Playing: " + track.Uri);
+            await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
         }
         else
         {
-            await ReplyAsync("🔈 Added to queue: " + track.Uri);
+            await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
         }
     }
 
@@ -113,20 +94,20 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("position", description: "Shows the track position", runMode: RunMode.Async)]
     public async Task Position()
     {
-        var player = await GetPlayerAsync();
+        var player = await GetPlayerAsync(connectToVoiceChannel: false).ConfigureAwait(false);
 
-        if (player == null)
+        if (player is null)
         {
             return;
         }
 
-        if (player.CurrentTrack == null)
+        if (player.CurrentItem is null)
         {
-            await ReplyAsync("Nothing playing!");
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
         }
 
-        await ReplyAsync($"Position: {player.Position.Position} / {player.CurrentTrack.Duration}.");
+        await RespondAsync($"Position: {player.Position?.Position} / {player.CurrentTrack.Duration}.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -138,19 +119,19 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         var player = await GetPlayerAsync(connectToVoiceChannel: false);
 
-        if (player == null)
+        if (player is null)
         {
             return;
         }
 
-        if (player.CurrentTrack == null)
+        if (player.CurrentItem is null)
         {
-            await ReplyAsync("Nothing playing!");
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
             return;
         }
 
-        await player.StopAsync();
-        await ReplyAsync("Stopped playing.");
+        await player.StopAsync().ConfigureAwait(false);
+        await RespondAsync("Stopped playing.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -163,19 +144,89 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         if (volume is > 1000 or < 0)
         {
-            await ReplyAsync("Volume out of range: 0% - 1000%!");
+            await RespondAsync("Volume out of range: 0% - 1000%!").ConfigureAwait(false);
             return;
         }
 
-        var player = await GetPlayerAsync();
+        var player = await GetPlayerAsync(connectToVoiceChannel: false).ConfigureAwait(false);
 
-        if (player == null)
+        if (player is null)
         {
             return;
         }
 
-        await player.SetVolumeAsync(volume / 100f);
-        await ReplyAsync($"Volume updated: {volume}%");
+        await player.SetVolumeAsync(volume / 100f).ConfigureAwait(false);
+        await RespondAsync($"Volume updated: {volume}%").ConfigureAwait(false);
+    }
+
+    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    public async Task Skip()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.CurrentItem is null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+            return;
+        }
+
+        await player.SkipAsync().ConfigureAwait(false);
+
+        var track = player.CurrentItem;
+
+        if (track is not null)
+        {
+            await RespondAsync($"Skipped. Now playing: {track.Track!.Uri}").ConfigureAwait(false);
+        }
+        else
+        {
+            await RespondAsync("Skipped. Stopped playing because the queue is now empty.").ConfigureAwait(false);
+        }
+    }
+
+    [SlashCommand("pause", description: "Pauses the player.", runMode: RunMode.Async)]
+    public async Task PauseAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.State is PlayerState.Paused)
+        {
+            await RespondAsync("Player is already paused.").ConfigureAwait(false);
+            return;
+        }
+
+        await player.PauseAsync().ConfigureAwait(false);
+        await RespondAsync("Paused.").ConfigureAwait(false);
+    }
+
+    [SlashCommand("resume", description: "Resumes the player.", runMode: RunMode.Async)]
+    public async Task ResumeAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        if (player.State is not PlayerState.Paused)
+        {
+            await RespondAsync("Player is not paused.").ConfigureAwait(false);
+            return;
+        }
+
+        await player.ResumeAsync().ConfigureAwait(false);
+        await RespondAsync("Resumed.").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -187,31 +238,28 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     /// <returns>
     ///     a task that represents the asynchronous operation. The task result is the lavalink player.
     /// </returns>
-    private async ValueTask<VoteLavalinkPlayer> GetPlayerAsync(bool connectToVoiceChannel = true)
+    private async ValueTask<VoteLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
-        var player = _audioService.GetPlayer<VoteLavalinkPlayer>(Context.Guild.Id);
+        var retrieveOptions = new PlayerRetrieveOptions(
+            ChannelBehavior: connectToVoiceChannel ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None);
 
-        if (player != null
-            && player.State != PlayerState.NotConnected
-            && player.State != PlayerState.Destroyed)
+        var result = await _audioService.Players
+            .RetrieveAsync(Context, playerFactory: PlayerFactory.Vote, retrieveOptions)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
         {
-            return player;
-        }
+            var errorMessage = result.Status switch
+            {
+                PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
+                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
+                _ => "Unknown error.",
+            };
 
-        var user = Context.Guild.GetUser(Context.User.Id);
-
-        if (!user.VoiceState.HasValue)
-        {
-            await ReplyAsync("You must be in a voice channel!");
+            await FollowupAsync(errorMessage).ConfigureAwait(false);
             return null;
         }
 
-        if (!connectToVoiceChannel)
-        {
-            await ReplyAsync("The bot is not in a voice channel!");
-            return null;
-        }
-
-        return await _audioService.JoinAsync<VoteLavalinkPlayer>(user.Guild.Id, user.VoiceChannel.Id);
+        return result.Player;
     }
 }

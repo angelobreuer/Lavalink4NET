@@ -1,124 +1,225 @@
-/*
- *  File:   DiscordClientWrapper.cs
- *  Author: Angelo Breuer
- *
- *  The MIT License (MIT)
- *
- *  Copyright (c) Angelo Breuer 2022
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
+namespace Lavalink4NET.DSharpPlus;
 
-namespace Lavalink4NET.DSharpPlus
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
+using global::DSharpPlus;
+using global::DSharpPlus.Entities;
+using global::DSharpPlus.EventArgs;
+using global::DSharpPlus.Exceptions;
+using Lavalink4NET.Clients;
+using Lavalink4NET.Clients.Events;
+using Lavalink4NET.Events;
+
+public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 {
-    using System;
-    using global::DSharpPlus;
-    using global::DSharpPlus.Entities;
+    private readonly object _client; // either DiscordShardedClient or DiscordClient
+    private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
+    private bool _disposed;
 
-    /// <summary>
-    ///     A wrapper for the discord client from the "DSharpPlus" discord client library. (https://github.com/DSharpPlus/DSharpPlus)
-    /// </summary>
-    public class DiscordClientWrapper : DiscordClientWrapperBase, IDisposable
+    public DiscordClientWrapper(DiscordClient discordClient)
     {
-        private readonly DiscordClient _client;
-        private bool _disposed;
+        ArgumentNullException.ThrowIfNull(discordClient);
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
-        /// </summary>
-        /// <param name="client">the sharded discord client</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
-        /// </exception>
-        public DiscordClientWrapper(DiscordClient client)
+        _client = discordClient;
+        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        discordClient.VoiceStateUpdated += OnVoiceStateUpdated;
+        discordClient.VoiceServerUpdated += OnVoiceServerUpdated;
+        discordClient.Ready += OnClientReady;
+    }
+
+    public DiscordClientWrapper(DiscordShardedClient discordClient)
+    {
+        ArgumentNullException.ThrowIfNull(discordClient);
+
+        _client = discordClient;
+        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        discordClient.VoiceStateUpdated += OnVoiceStateUpdated;
+        discordClient.VoiceServerUpdated += OnVoiceServerUpdated;
+        discordClient.Ready += OnClientReady;
+    }
+
+    /// <inheritdoc/>
+    public event AsyncEventHandler<VoiceServerUpdatedEventArgs>? VoiceServerUpdated;
+
+    /// <inheritdoc/>
+    public event AsyncEventHandler<VoiceStateUpdatedEventArgs>? VoiceStateUpdated;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-
-            _client.VoiceStateUpdated += OnVoiceStateUpdated;
-            _client.VoiceServerUpdated += OnVoiceServerUpdated;
+            return;
         }
 
-        /// <inheritdoc/>
-        public override int ShardCount
+        _disposed = true;
+
+        if (_client is DiscordClient discordClient)
         {
-            get
-            {
-                EnsureNotDisposed();
-                return _client.ShardCount;
-            }
+            discordClient.VoiceStateUpdated -= OnVoiceStateUpdated;
+            discordClient.VoiceServerUpdated -= OnVoiceServerUpdated;
+            discordClient.Ready -= OnClientReady;
+        }
+        else
+        {
+            var shardedClient = Unsafe.As<object, DiscordShardedClient>(ref Unsafe.AsRef(_client));
+
+            shardedClient.VoiceStateUpdated -= OnVoiceStateUpdated;
+            shardedClient.VoiceServerUpdated -= OnVoiceServerUpdated;
+            shardedClient.Ready -= OnClientReady;
         }
 
-        /// <inheritdoc/>
-        protected override DiscordUser CurrentUser
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public async ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(
+        ulong guildId,
+        ulong voiceChannelId,
+        bool includeBots = false,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        DiscordChannel channel;
+        try
         {
-            get
-            {
-                EnsureNotDisposed();
-                return _client.CurrentUser;
-            }
+            channel = await GetClientForGuild(guildId)
+                .GetChannelAsync(voiceChannelId)
+                .ConfigureAwait(false);
+        }
+        catch (UnauthorizedException)
+        {
+            // The channel was possibly deleted
+            return ImmutableArray<ulong>.Empty;
         }
 
-        /// <inheritdoc/>
-        public void Dispose()
+        if (channel is null)
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            return ImmutableArray<ulong>.Empty;
         }
 
-        /// <summary>
-        ///     Releases the unmanaged resources used by the <see
-        ///     cref="DiscordShardedClientWrapper"/> and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">
-        ///     <see langword="true"/> to release both managed and unmanaged resources; <see
-        ///     langword="false"/> to release only unmanaged resources.
-        /// </param>
-        protected virtual void Dispose(bool disposing)
+        var usersEnumerable = channel.Users.AsEnumerable();
+
+        if (includeBots)
         {
-            if (_disposed)
-            {
-                return;
-            }
+            var currentUserId = _client is DiscordClient discordClient
+                ? discordClient.CurrentUser.Id
+                : ((DiscordShardedClient)_client).CurrentUser.Id;
 
-            if (disposing)
-            {
-                _client.VoiceStateUpdated -= OnVoiceStateUpdated;
-                _client.VoiceServerUpdated -= OnVoiceServerUpdated;
-            }
-
-            _disposed = true;
+            usersEnumerable = usersEnumerable.Where(x => x.Id != currentUserId);
+        }
+        else
+        {
+            usersEnumerable = usersEnumerable.Where(x => !x.IsBot);
         }
 
-        /// <inheritdoc/>
-        protected override DiscordClient GetClient(ulong guildId) => _client;
 
-        /// <summary>
-        ///     Throws an <see cref="ObjectDisposedException"/> if the <see
-        ///     cref="DiscordClientWrapper"/> is disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-        private void EnsureNotDisposed()
+        return usersEnumerable.Select(s => s.Id).ToImmutableArray();
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
+    public async ValueTask SendVoiceUpdateAsync(
+        ulong guildId,
+        ulong? voiceChannelId,
+        bool selfDeaf = false,
+        bool selfMute = false,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var payload = new JsonObject();
+        var data = new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf);
+
+        payload.Add("op", 4);
+        payload.Add("d", JsonSerializer.SerializeToNode(data));
+
+        await GetClientForGuild(guildId).GetWebSocketClient().SendMessageAsync(payload.ToString()).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public ValueTask<ClientInformation> WaitForReadyAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return new(_readyTaskCompletionSource.Task.WaitAsync(cancellationToken));
+    }
+
+    private DiscordClient GetClientForGuild(ulong guildId)
+    {
+        if (_client is DiscordClient discordClient)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(DiscordClientWrapper));
-            }
+            return discordClient;
         }
+
+        return Unsafe.As<object, DiscordShardedClient>(ref Unsafe.AsRef(_client)).GetShard(guildId);
+    }
+
+    private Task OnClientReady(DiscordClient discordClient, ReadyEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(discordClient);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        var clientInformation = new ClientInformation(
+            Label: "DSharpPlus",
+            CurrentUserId: discordClient.CurrentUser.Id,
+            ShardCount: discordClient.ShardCount);
+
+        _readyTaskCompletionSource.TrySetResult(clientInformation);
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnVoiceServerUpdated(DiscordClient discordClient, VoiceServerUpdateEventArgs voiceServerUpdateEventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(discordClient);
+        ArgumentNullException.ThrowIfNull(voiceServerUpdateEventArgs);
+
+        var server = new VoiceServer(
+            Token: voiceServerUpdateEventArgs.VoiceToken,
+            Endpoint: voiceServerUpdateEventArgs.Endpoint);
+
+        var eventArgs = new VoiceServerUpdatedEventArgs(
+            guildId: voiceServerUpdateEventArgs.Guild.Id,
+            voiceServer: server);
+
+        return VoiceServerUpdated.InvokeAsync(this, eventArgs).AsTask();
+    }
+    private Task OnVoiceStateUpdated(DiscordClient discordClient, VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(discordClient);
+        ArgumentNullException.ThrowIfNull(voiceStateUpdateEventArgs);
+
+        // session id is the same as the resume key so DSharpPlus should be able to give us the
+        // session key in either before or after voice state
+        var sessionId = voiceStateUpdateEventArgs.Before?.GetSessionId()
+            ?? voiceStateUpdateEventArgs.After.GetSessionId();
+
+        // create voice state
+        var voiceState = new VoiceState(
+            VoiceChannelId: voiceStateUpdateEventArgs.After?.Channel?.Id,
+            SessionId: sessionId);
+
+        var oldVoiceState = new VoiceState(
+            VoiceChannelId: voiceStateUpdateEventArgs.Before?.Channel?.Id,
+            SessionId: sessionId);
+
+        // invoke event
+        var eventArgs = new VoiceStateUpdatedEventArgs(
+            guildId: voiceStateUpdateEventArgs.Guild.Id,
+            userId: voiceStateUpdateEventArgs.User.Id,
+            isCurrentUser: voiceStateUpdateEventArgs.User.Id == discordClient.CurrentUser.Id,
+            oldVoiceState: oldVoiceState,
+            voiceState: voiceState);
+
+        return VoiceStateUpdated.InvokeAsync(this, eventArgs).AsTask();
     }
 }

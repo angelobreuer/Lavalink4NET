@@ -1,43 +1,43 @@
-/*
- *  File:   EqualizerFilterOptions.cs
- *  Author: Angelo Breuer
- *
- *  The MIT License (MIT)
- *
- *  Copyright (c) Angelo Breuer 2022
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-
 namespace Lavalink4NET.Filters;
 
 using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using System.Collections.Immutable;
+using Lavalink4NET.Protocol.Models.Filters;
 
-[JsonConverter(typeof(EqualizerFilterOptionsJsonConverter))]
-public sealed class EqualizerFilterOptions : IFilterOptions
+public sealed record class EqualizerFilterOptions(Equalizer Equalizer) : IFilterOptions
 {
-    public const string Name = "equalizer";
+    public bool IsDefault
+    {
+        get
+        {
+            for (var index = 0; index < Equalizer.Bands; index++)
+            {
+                if (Equalizer[index] is not 0.0F)
+                {
+                    return false;
+                }
+            }
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
+            return true;
+        }
+    }
 
-    public IReadOnlyList<EqualizerBand> Bands { get; set; } = Array.Empty<EqualizerBand>();
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        ArgumentNullException.ThrowIfNull(filterMap);
+
+        var equalizer = ImmutableArray.CreateBuilder<EqualizerBandModel>();
+
+        for (var index = 0; index < Equalizer.Bands; index++)
+        {
+            var gain = Equalizer[index];
+
+            if (gain is not 0.0F)
+            {
+                equalizer.Add(new EqualizerBandModel(index, gain));
+            }
+        }
+
+        filterMap = filterMap with { Equalizer = equalizer.ToImmutable(), };
+    }
 }

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+	  <Description>
+		  High performance Lavalink wrapper for .NET | Expand your bot features by adding the more advanced Lavasearch search module for Lavalink. This package adds support for loading tracks using Lavasearch.
+	  </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
+  </ItemGroup>
+
+  <Import Project="../Lavalink4NET.targets" />
+</Project>

@@ -1,0 +1,939 @@
+﻿namespace Lavalink4NET.Tests.Players;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
+using Lavalink4NET.Clients;
+using Lavalink4NET.Filters;
+using Lavalink4NET.Players;
+using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Models.Filters;
+using Lavalink4NET.Protocol.Payloads.Events;
+using Lavalink4NET.Protocol.Requests;
+using Lavalink4NET.Rest;
+using Lavalink4NET.Rest.Entities.Tracks;
+using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
+using Xunit;
+
+public sealed class LavalinkPlayerTests
+{
+	[Fact]
+	public void TestPlayerIsNotPlayingInitially()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: null,
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		var status = player.State;
+
+		// Assert
+		Assert.Equal(PlayerState.NotPlaying, status);
+	}
+
+	[Fact]
+	public void TestPlayerIsPausedWhenSpecifiedInModelAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		var status = player.State;
+
+		// Assert
+		Assert.Equal(PlayerState.Paused, status);
+	}
+
+	[Fact]
+	public void TestPlayerIsPlayingIfCurrentTrackIsSpecifiedAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		var status = player.State;
+
+		// Assert
+		Assert.Equal(PlayerState.Playing, status);
+	}
+
+	[Fact]
+	public async Task TestPlayerIsDisposedIfDisconnectOnDestroyIsTrueOnChannelDisconnectAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: null,
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+
+		var player = new LavalinkPlayer(playerProperties);
+		var playerListener = player as ILavalinkPlayerListener;
+
+		// Act
+		await playerListener.NotifyChannelUpdateAsync(voiceChannelId: null);
+
+		// Assert
+		Assert.Equal(PlayerState.Destroyed, player.State);
+	}
+
+	[Fact]
+	public async Task TestVoiceChannelIdIsUpdatedAfterPlayerMoveAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: null,
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			options: new LavalinkPlayerOptions { DisconnectOnDestroy = false, });
+
+		var player = new LavalinkPlayer(playerProperties);
+		var playerListener = player as ILavalinkPlayerListener;
+
+		// Act
+		await playerListener.NotifyChannelUpdateAsync(voiceChannelId: 0UL); // initial update
+		await playerListener.NotifyChannelUpdateAsync(voiceChannelId: 123UL); // move
+
+		// Assert
+		Assert.Equal(123UL, player.VoiceChannelId);
+	}
+
+	[Fact]
+	public void TestPositionIsNullIfPlayerNotPlaying()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: null,
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		var position = player.Position;
+
+		// Assert
+		Assert.Null(position);
+	}
+
+	[Fact]
+	public async Task TestPositionIsNotNullIfPlayerReceivedTrackPosition()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(playerModel);
+		var player = new LavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		await listener
+			.NotifyPlayerUpdateAsync(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(30), true, TimeSpan.FromMilliseconds(130))
+			.ConfigureAwait(false);
+
+		// Act
+		var position = player.Position;
+
+		// Assert
+		Assert.NotNull(position);
+	}
+
+	[Fact]
+	public async Task TestUpdateSetPausedToTrueIfPlayerIsPausedAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.IsPaused.IsPresent);
+				Assert.True(properties.IsPaused.Value);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.PauseAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestUpdateSetPausedToFalseIfPlayerIsResumedAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.IsPaused.IsPresent);
+				Assert.False(properties.IsPaused.Value);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.ResumeAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestUpdateSetsVolumeIfPlayerIsResumedAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Volume.IsPresent);
+				Assert.Equal(0.1F, properties.Volume.Value);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.SetVolumeAsync(0.1F)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestStopStopsTrackAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			mutatedPlayerModel: playerModel with { CurrentTrack = null, },
+			updateAction: properties =>
+			{
+				Assert.True(properties.TrackData.IsPresent);
+				Assert.Null(properties.TrackData.Value);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.StopAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestStopSetsCurrentTrackToNullAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			mutatedPlayerModel: playerModel with { CurrentTrack = null, });
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.StopAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Null(player.CurrentTrack);
+	}
+
+	[Fact]
+	public async Task TestStopDestroysPlayerIfSpecifiedInOptionsAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			mutatedPlayerModel: playerModel with { CurrentTrack = null, },
+			options: new LavalinkPlayerOptions { DisconnectOnStop = true, });
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.StopAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Equal(PlayerState.Destroyed, player.State);
+	}
+
+	[Fact]
+	public async Task TestSeekAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Position.IsPresent);
+				Assert.Equal(30, properties.Position.Value.TotalSeconds);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		await player
+			.SeekAsync(TimeSpan.FromSeconds(30))
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestSeekWithOriginBeginAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Position.IsPresent);
+				Assert.Equal(30, properties.Position.Value.TotalSeconds);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		await listener
+			.NotifyPlayerUpdateAsync(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(20), connected: true, latency: null)
+			.ConfigureAwait(false);
+
+		// Act
+		await player
+			.SeekAsync(TimeSpan.FromSeconds(30), SeekOrigin.Begin)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestSeekRelativePositiveAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Position.IsPresent);
+				Assert.Equal(50, properties.Position.Value.TotalSeconds, tolerance: 2);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		await listener
+			.NotifyPlayerUpdateAsync(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(20), connected: true, latency: null)
+			.ConfigureAwait(false);
+
+		// Act
+		await player
+			.SeekAsync(TimeSpan.FromSeconds(30), SeekOrigin.Current)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestSeekRelativeNegativeAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Position.IsPresent);
+				Assert.Equal(10, properties.Position.Value.TotalSeconds, tolerance: 2);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		await listener
+			.NotifyPlayerUpdateAsync(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(20), connected: true, latency: null)
+			.ConfigureAwait(false);
+
+		// Act
+		await player
+			.SeekAsync(TimeSpan.FromSeconds(-10), SeekOrigin.Current)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestSeekEndAsync()
+	{
+		// Arrange
+		var playerModel = new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(), // 120 seconds long
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel());
+
+		var called = false;
+
+		var playerProperties = CreateProperties(
+			playerModel: playerModel,
+			updateAction: properties =>
+			{
+				Assert.True(properties.Position.IsPresent);
+				Assert.Equal(120 - 10, properties.Position.Value.TotalSeconds, tolerance: 2);
+
+				called = true;
+			});
+
+		var player = new LavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		await listener
+			.NotifyPlayerUpdateAsync(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(20), connected: true, latency: null)
+			.ConfigureAwait(false);
+
+		// Act
+		await player
+			.SeekAsync(TimeSpan.FromSeconds(-10), SeekOrigin.End)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.True(called);
+	}
+
+	[Fact]
+	public async Task TestSeekWithUnknownSeekOriginThrowsArgumentOufOfRangeExceptionAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel()));
+
+		var player = new LavalinkPlayer(playerProperties);
+
+		// Act
+		var exception = await Record
+			.ExceptionAsync(async () => await player
+				.SeekAsync(TimeSpan.FromSeconds(30), (SeekOrigin)42)
+				.ConfigureAwait(false))
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.IsType<ArgumentOutOfRangeException>(exception);
+	}
+
+	[Fact]
+	public async Task TestTrackEndedEventIsTriggeredWhenReceivedAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: false,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		// Act
+		await listener
+			.NotifyTrackEndedAsync(player.CurrentTrack!, TrackEndReason.Finished)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyTrackEndedAsync", player.TriggeredEvents);
+	}
+
+	[Fact]
+	public async Task TestChannelUpdateEventIsTriggeredWhenReceivedAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+				GuildId: 0UL,
+				CurrentTrack: new TrackModel(
+					Data: "abc",
+					Information: CreateDummyTrack(),
+					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				Volume: 1F,
+				IsPaused: true,
+				VoiceState: CreateVoiceState(),
+				Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		// Act
+		await listener
+			.NotifyChannelUpdateAsync(42)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyChannelUpdateAsync", player.TriggeredEvents);
+	}
+
+	[Fact]
+	public async Task TestTrackExceptionEventIsTriggeredWhenReceivedAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+			GuildId: 0UL,
+			CurrentTrack: new TrackModel(
+				Data: "abc",
+				Information: CreateDummyTrack(),
+				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+			Volume: 1F,
+			IsPaused: true,
+			VoiceState: CreateVoiceState(),
+			Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+		var exception = new TrackException(ExceptionSeverity.Common, "abc", "abc");
+
+		// Act
+		await listener
+			.NotifyTrackExceptionAsync(player.CurrentTrack!, exception)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyTrackExceptionAsync", player.TriggeredEvents);
+	}
+
+	[Fact]
+	public async Task TestTrackStartedEventIsTriggeredWhenReceivedAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+				GuildId: 0UL,
+				CurrentTrack: new TrackModel(
+					Data: "abc",
+					Information: CreateDummyTrack(),
+					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				Volume: 1F,
+				IsPaused: true,
+				VoiceState: CreateVoiceState(),
+				Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		// Act
+		await listener
+			.NotifyTrackStartedAsync(player.CurrentTrack!)
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyTrackStartedAsync", player.TriggeredEvents);
+	}
+
+	[Fact]
+	public async Task TestTrackStuckEventIsTriggeredWhenReceivedAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+				GuildId: 0UL,
+				CurrentTrack: new TrackModel(
+					Data: "abc",
+					Information: CreateDummyTrack(),
+					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				Volume: 1F,
+				IsPaused: true,
+				VoiceState: CreateVoiceState(),
+				Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		var listener = player as ILavalinkPlayerListener;
+
+		// Act
+		await listener
+			.NotifyTrackStuckAsync(player.CurrentTrack!, TimeSpan.FromSeconds(1))
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyTrackStuckAsync", player.TriggeredEvents);
+	}
+
+	[Fact]
+	public async Task TestFiltersUpdatedEventIsTriggeredAfterFiltersCommitAsync()
+	{
+		// Arrange
+		var playerProperties = CreateProperties(
+			playerModel: new PlayerInformationModel(
+				GuildId: 0UL,
+				CurrentTrack: new TrackModel(
+					Data: "abc",
+					Information: CreateDummyTrack(),
+					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				Volume: 1F,
+				IsPaused: true,
+				VoiceState: CreateVoiceState(),
+				Filters: new PlayerFilterMapModel()));
+
+		var player = new CustomTracingLavalinkPlayer(playerProperties);
+		player.Filters.Equalizer = new EqualizerFilterOptions(new Equalizer());
+
+		// Act
+		await player.Filters
+			.CommitAsync()
+			.ConfigureAwait(false);
+
+		// Assert
+		Assert.Contains("NotifyFiltersUpdatedAsync", player.TriggeredEvents);
+	}
+
+	private static PlayerProperties<CustomTracingLavalinkPlayer, LavalinkPlayerOptions> CreateProperties(
+		PlayerInformationModel playerModel,
+		PlayerInformationModel? mutatedPlayerModel = null,
+		LavalinkPlayerOptions? options = null,
+		Action<PlayerUpdateProperties>? updateAction = null)
+	{
+		var sessionId = "abc";
+		var apiClientMock = new Mock<ILavalinkApiClient>(MockBehavior.Strict);
+
+		apiClientMock
+			.Setup(x => x.UpdatePlayerAsync(
+				sessionId,
+				playerModel.GuildId,
+				It.IsAny<PlayerUpdateProperties>(),
+				It.IsAny<CancellationToken>()))
+			.Callback<string, ulong, PlayerUpdateProperties, CancellationToken>((s, g, p, c) => updateAction?.Invoke(p))
+			.ReturnsAsync(mutatedPlayerModel ?? playerModel);
+
+		apiClientMock
+			.Setup(x => x.DestroyPlayerAsync("abc", 0, It.IsAny<CancellationToken>()))
+			.Returns(ValueTask.CompletedTask);
+
+		var discordClientMock = new Mock<IDiscordClientWrapper>();
+
+		var sessionProvider = Mock.Of<ILavalinkSessionProvider>(x
+			=> x.GetSessionAsync(playerModel.GuildId, It.IsAny<CancellationToken>())
+			== ValueTask.FromResult(new LavalinkPlayerSession(apiClientMock.Object, "abc", "abc")));
+
+		return new PlayerProperties<CustomTracingLavalinkPlayer, LavalinkPlayerOptions>(
+			Context: new PlayerContext(
+				ServiceProvider: null,
+				SessionProvider: sessionProvider,
+				DiscordClient: discordClientMock.Object,
+				SystemClock: new SystemClock(),
+				LifecycleNotifier: null),
+			Lifecycle: Mock.Of<IPlayerLifecycle>(),
+			ApiClient: apiClientMock.Object,
+			InitialState: playerModel,
+			Label: "Player",
+			VoiceChannelId: 0,
+			SessionId: sessionId,
+			Options: Options.Create(options ?? new LavalinkPlayerOptions()),
+			Logger: NullLogger<CustomTracingLavalinkPlayer>.Instance);
+	}
+
+	private static TrackInformationModel CreateDummyTrack()
+	{
+		return new TrackInformationModel(
+			Identifier: "video",
+			IsSeekable: true,
+			Author: "author",
+			Duration: TimeSpan.FromSeconds(120),
+			IsLiveStream: false,
+			Position: TimeSpan.FromSeconds(10),
+			Title: "video",
+			Uri: null,
+			ArtworkUri: null,
+			Isrc: null,
+			SourceName: "manual");
+	}
+
+	private static VoiceStateModel CreateVoiceState()
+	{
+		return new VoiceStateModel(
+			Token: "abc",
+			Endpoint: "server.discord.gg",
+			SessionId: "abc");
+	}
+}
+
+internal sealed class CustomTracingLavalinkPlayer : LavalinkPlayer
+{
+	public CustomTracingLavalinkPlayer(IPlayerProperties<CustomTracingLavalinkPlayer, LavalinkPlayerOptions> properties)
+		: base(properties)
+	{
+	}
+
+	public List<string> TriggeredEvents { get; } = new();
+
+	protected override ValueTask NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyChannelUpdateAsync));
+		return base.NotifyChannelUpdateAsync(voiceChannelId, cancellationToken);
+	}
+
+	protected override ValueTask NotifyFiltersUpdatedAsync(IPlayerFilters filters, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyFiltersUpdatedAsync));
+		return base.NotifyFiltersUpdatedAsync(filters, cancellationToken);
+	}
+
+	protected override ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyTrackEndedAsync));
+		return base.NotifyTrackEndedAsync(track, endReason, cancellationToken);
+	}
+
+	protected override ValueTask NotifyTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyTrackExceptionAsync));
+		return base.NotifyTrackExceptionAsync(track, exception, cancellationToken);
+	}
+
+	protected override ValueTask NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyTrackStartedAsync));
+		return base.NotifyTrackStartedAsync(track, cancellationToken);
+	}
+
+	protected override ValueTask NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default)
+	{
+		TriggeredEvents.Add(nameof(NotifyTrackStuckAsync));
+		return base.NotifyTrackStuckAsync(track, threshold, cancellationToken);
+	}
+}

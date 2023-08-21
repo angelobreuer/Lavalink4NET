@@ -1,760 +1,596 @@
-/*
- *  File:   LavalinkNode.cs
- *  Author: Angelo Breuer
- *
- *  The MIT License (MIT)
- *
- *  Copyright (c) Angelo Breuer 2022
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-
-namespace Lavalink4NET;
+﻿namespace Lavalink4NET;
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Buffers;
+using System.Diagnostics;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Events;
-using Lavalink4NET.Logging;
-using Lavalink4NET.Payloads.Events;
-using Lavalink4NET.Payloads.Node;
-using Lavalink4NET.Payloads.Player;
-using Lavalink4NET.Player;
-using Lavalink4NET.Statistics;
-using Payloads;
+using Lavalink4NET.Clients;
+using Lavalink4NET.Events;
+using Lavalink4NET.Events.Players;
+using Lavalink4NET.Players;
+using Lavalink4NET.Protocol;
+using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Protocol.Payloads;
+using Lavalink4NET.Protocol.Payloads.Events;
+using Lavalink4NET.Protocol.Requests;
+using Lavalink4NET.Rest;
+using Lavalink4NET.Rest.Entities.Tracks;
+using Lavalink4NET.Rest.Entities.Usage;
+using Lavalink4NET.Socket;
+using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-/// <summary>
-///     Used for connecting to a single lavalink node.
-/// </summary>
-public class LavalinkNode : LavalinkSocket, IAudioService, IDisposable, IAsyncDisposable
+internal sealed class LavalinkNode : IAsyncDisposable
 {
-    private readonly bool _disconnectOnStop;
-    private readonly IDiscordClientWrapper _discordClient;
-    private bool _disposed;
+	private readonly CancellationTokenSource _shutdownCancellationTokenSource;
+	private readonly CancellationToken _shutdownCancellationToken;
+	private readonly LavalinkNodeOptions _options;
+	private readonly LavalinkNodeServiceContext _serviceContext;
+	private readonly ILavalinkApiClient _apiClient;
+	private readonly LavalinkApiEndpoints _apiEndpoints;
+	private readonly ILogger<LavalinkNode> _logger;
+	private readonly Stopwatch _readyStopwatch;
+	private TaskCompletionSource<string> _readyTaskCompletionSource;
+	private Task? _executeTask;
+	private bool _disposed;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="LavalinkNode"/> class.
-    /// </summary>
-    /// <param name="options">the node options for connecting</param>
-    /// <param name="client">the discord client</param>
-    /// <param name="logger">the logger</param>
-    /// <param name="cache">an optional cache that caches track requests</param>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="options"/> parameter is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="client"/> is <see langword="null"/>.
-    /// </exception>
-    public LavalinkNode(LavalinkNodeOptions options, IDiscordClientWrapper client, ILogger? logger = null, ILavalinkCache? cache = null)
-        : base(options, client, logger, cache)
-    {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+	public LavalinkNode(
+		LavalinkNodeServiceContext serviceContext,
+		ILavalinkApiClient apiClient,
+		IOptions<LavalinkNodeOptions> options,
+		LavalinkApiEndpoints apiEndpoints,
+		ILogger<LavalinkNode> logger)
+	{
+		ArgumentNullException.ThrowIfNull(serviceContext);
+		ArgumentNullException.ThrowIfNull(apiClient);
+		ArgumentNullException.ThrowIfNull(options);
+		ArgumentNullException.ThrowIfNull(logger);
 
-        Label = options.Label;
-        _discordClient = client ?? throw new ArgumentNullException(nameof(client));
-        Players = new ConcurrentDictionary<ulong, LavalinkPlayer>();
+		_readyTaskCompletionSource = new TaskCompletionSource<string>(
+			creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
 
-        _disconnectOnStop = options.DisconnectOnStop;
-        _discordClient.VoiceServerUpdated += VoiceServerUpdated;
-        _discordClient.VoiceStateUpdated += VoiceStateUpdated;
-    }
+		_serviceContext = serviceContext;
+		_apiClient = apiClient;
+		_apiEndpoints = apiEndpoints;
+		_options = options.Value;
+		_logger = logger;
 
-    /// <summary>
-    ///     Asynchronous event which is dispatched when a player connected to a voice channel.
-    /// </summary>
-    public event AsyncEventHandler<PlayerConnectedEventArgs>? PlayerConnected;
+		_readyStopwatch = new Stopwatch();
 
-    /// <summary>
-    ///     Asynchronous event which is dispatched when a player disconnected from a voice channel.
-    /// </summary>
-    public event AsyncEventHandler<PlayerDisconnectedEventArgs>? PlayerDisconnected;
+		Label = _options.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
 
-    /// <summary>
-    ///     An asynchronous event which is triggered when a new statistics update was received
-    ///     from the lavalink node.
-    /// </summary>
-    public event AsyncEventHandler<NodeStatisticsUpdateEventArgs>? StatisticsUpdated;
+		_shutdownCancellationTokenSource = new CancellationTokenSource();
+		_shutdownCancellationToken = _shutdownCancellationTokenSource.Token;
+	}
 
-    /// <summary>
-    ///     An asynchronous event which is triggered when a track ended.
-    /// </summary>
-    public event AsyncEventHandler<TrackEndEventArgs>? TrackEnd;
+	public string Label { get; }
 
-    /// <summary>
-    ///     An asynchronous event which is triggered when an exception occurred while playing a track.
-    /// </summary>
-    public event AsyncEventHandler<TrackExceptionEventArgs>? TrackException;
+	public bool IsReady => _readyTaskCompletionSource.Task.IsCompletedSuccessfully;
 
-    /// <summary>
-    ///     Asynchronous event which is dispatched when a track started.
-    /// </summary>
-    public event AsyncEventHandler<TrackStartedEventArgs>? TrackStarted;
+	public string? SessionId { get; private set; }
 
-    /// <summary>
-    ///     An asynchronous event which is triggered when a track got stuck.
-    /// </summary>
-    public event AsyncEventHandler<TrackStuckEventArgs>? TrackStuck;
+	public async ValueTask WaitForReadyAsync(CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
 
-    /// <summary>
-    ///     Asynchronous event which is dispatched when a voice WebSocket connection was closed.
-    /// </summary>
-    public event AsyncEventHandler<WebSocketClosedEventArgs> WebSocketClosed;
+		await _readyTaskCompletionSource.Task
+			.WaitAsync(cancellationToken)
+			.ConfigureAwait(false);
+	}
 
-    /// <summary>
-    ///     Gets the current lavalink server version that is supported by the library.
-    /// </summary>
-    public static Version SupportedVersion { get; } = new Version(3, 0, 0);
+	private static LavalinkTrack CreateTrack(TrackModel track) => new()
+	{
+		Duration = track.Information.Duration,
+		Identifier = track.Information.Identifier,
+		IsLiveStream = track.Information.IsLiveStream,
+		IsSeekable = track.Information.IsSeekable,
+		SourceName = track.Information.SourceName,
+		StartPosition = track.Information.Position,
+		Title = track.Information.Title,
+		Uri = track.Information.Uri,
+		TrackData = track.Data,
+		Author = track.Information.Author,
+		ArtworkUri = track.Information.ArtworkUri,
+		Isrc = track.Information.Isrc,
+		AdditionalInformation = track.AdditionalInformation,
+	};
 
-    /// <summary>
-    ///     Gets or sets the node label.
-    /// </summary>
-    public string? Label { get; set; }
+	private static string SerializePayload(IPayload payload)
+	{
+		ArgumentNullException.ThrowIfNull(payload);
 
-    /// <summary>
-    ///     Gets the last received node statistics; or <see langword="null"/> if no statistics
-    ///     are available for the node.
-    /// </summary>
-    public NodeStatistics? Statistics { get; private set; }
+		var jsonWriterOptions = new JsonWriterOptions
+		{
+			Indented = true,
+			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+		};
 
-    /// <summary>
-    ///     Gets the player dictionary.
-    /// </summary>
-    protected IDictionary<ulong, LavalinkPlayer> Players { get; }
+		var arrayBufferWriter = new ArrayBufferWriter<byte>();
+		var utf8JsonWriter = new Utf8JsonWriter(arrayBufferWriter, jsonWriterOptions);
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+		JsonSerializer.Serialize(utf8JsonWriter, payload, ProtocolSerializerContext.Default.IPayload);
 
-    /// <inheritdoc/>
-    public async ValueTask DisposeAsync()
-    {
-        await DisposeAsyncCore();
+		return Encoding.UTF8.GetString(arrayBufferWriter.WrittenSpan);
+	}
 
-        Dispose(disposing: false);
-        GC.SuppressFinalize(this);
-    }
+	private async ValueTask ProcessEventAsync(IEventPayload payload, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(payload);
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed || !disposing)
-        {
-            return;
-        }
+		var player = await _serviceContext.PlayerManager
+			.GetPlayerAsync(payload.GuildId, cancellationToken)
+			.ConfigureAwait(false);
 
-        _disposed = true;
+		if (player is null)
+		{
+			_logger.ReceivedEventPayloadForNonRegisteredPlayer(Label, payload.GuildId);
+			return;
+		}
 
-        // unregister event listeners
-        _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
-        _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
+		var task = payload switch
+		{
+			TrackEndEventPayload trackEvent => ProcessTrackEndEventAsync(player, trackEvent, cancellationToken),
+			TrackStartEventPayload trackEvent => ProcessTrackStartEventAsync(player, trackEvent, cancellationToken),
+			TrackStuckEventPayload trackEvent => ProcessTrackStuckEventAsync(player, trackEvent, cancellationToken),
+			TrackExceptionEventPayload trackEvent => ProcessTrackExceptionEventAsync(player, trackEvent, cancellationToken),
+			WebSocketClosedEventPayload closedEvent => ProcessWebSocketClosedEventAsync(player, closedEvent, cancellationToken),
+			_ => ValueTask.CompletedTask,
+		};
 
-        // dispose all players
-        foreach (var player in Players)
-        {
-            player.Value.Dispose();
-        }
+		await task.ConfigureAwait(false);
+	}
 
-        Players.Clear();
+	private async ValueTask ProcessPayloadAsync(IPayload payload, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(payload);
 
-        // call base handling
-        base.Dispose();
-    }
+		if (_logger.IsEnabled(LogLevel.Trace))
+		{
+			_logger.ReceivedPayloadFromLavalinkNode(Label, SerializePayload(payload));
+		}
 
-    protected virtual async ValueTask DisposeAsyncCore()
-    {
+		if (payload is ReadyPayload readyPayload)
+		{
+			if (!_readyTaskCompletionSource.TrySetResult(readyPayload.SessionId))
+			{
+				_logger.MultipleReadyPayloadsReceived(Label);
+			}
+
+			SessionId = readyPayload.SessionId;
+
+			// Enable resuming, if wanted
+			if (_options.ResumptionOptions.IsEnabled && !readyPayload.SessionResumed)
+			{
+				var sessionUpdateProperties = new SessionUpdateProperties
+				{
+					IsSessionResumptionEnabled = true,
+					Timeout = _options.ResumptionOptions.Timeout.Value,
+				};
+
+				await _apiClient
+					.UpdateSessionAsync(readyPayload.SessionId, sessionUpdateProperties, cancellationToken)
+					.ConfigureAwait(false);
+			}
+
+			_logger.Ready(Label, SessionId);
+		}
+
+		if (SessionId is null)
+		{
+			_logger.PayloadReceivedBeforeReadyPayload(Label);
+			return;
+		}
+
+		if (payload is IEventPayload eventPayload)
+		{
+			await ProcessEventAsync(eventPayload, cancellationToken).ConfigureAwait(false);
+			return;
+		}
+
+		if (payload is PlayerUpdatePayload playerUpdatePayload)
+		{
+			var player = await _serviceContext.PlayerManager
+				.GetPlayerAsync(playerUpdatePayload.GuildId, cancellationToken)
+				.ConfigureAwait(false);
+
+			if (player is null)
+			{
+				_logger.ReceivedPlayerUpdatePayloadForNonRegisteredPlayer(Label, playerUpdatePayload.GuildId);
+				return;
+			}
+
+			if (player is ILavalinkPlayerListener playerListener)
+			{
+				var state = playerUpdatePayload.State;
+
+				await playerListener
+					.NotifyPlayerUpdateAsync(state.AbsoluteTimestamp, state.Position, state.IsConnected, state.Latency, cancellationToken)
+					.ConfigureAwait(false);
+			}
+		}
+
+		if (payload is StatisticsPayload statisticsPayload)
+		{
+			await ProcessStatisticsPayloadAsync(statisticsPayload, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async ValueTask ProcessStatisticsPayloadAsync(StatisticsPayload statisticsPayload, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(statisticsPayload);
+
+		var memoryUsage = new ServerMemoryUsageStatistics(
+			FreeMemory: statisticsPayload.MemoryUsage.FreeMemory,
+			UsedMemory: statisticsPayload.MemoryUsage.UsedMemory,
+			AllocatedMemory: statisticsPayload.MemoryUsage.AllocatedMemory,
+			ReservableMemory: statisticsPayload.MemoryUsage.ReservableMemory);
+
+		var processorUsage = new ServerProcessorUsageStatistics(
+			CoreCount: statisticsPayload.ProcessorUsage.CoreCount,
+			SystemLoad: statisticsPayload.ProcessorUsage.SystemLoad,
+			LavalinkLoad: statisticsPayload.ProcessorUsage.LavalinkLoad);
+
+		var frameStatistics = statisticsPayload.FrameStatistics is null ? default(ServerFrameStatistics?) : new ServerFrameStatistics(
+			SentFrames: statisticsPayload.FrameStatistics.SentFrames,
+			NulledFrames: statisticsPayload.FrameStatistics.NulledFrames,
+			DeficitFrames: statisticsPayload.FrameStatistics.DeficitFrames);
+
+		var statistics = new LavalinkServerStatistics(
+			ConnectedPlayers: statisticsPayload.ConnectedPlayers,
+			PlayingPlayers: statisticsPayload.PlayingPlayers,
+			Uptime: statisticsPayload.Uptime,
+			MemoryUsage: memoryUsage,
+			ProcessorUsage: processorUsage,
+			FrameStatistics: frameStatistics);
+
+		var eventArgs = new StatisticsUpdatedEventArgs(statistics);
+
+		await _serviceContext.NodeListener
+			.OnStatisticsUpdatedAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	private async ValueTask ProcessTrackEndEventAsync(ILavalinkPlayer player, TrackEndEventPayload trackEndEvent, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(player);
+		ArgumentNullException.ThrowIfNull(trackEndEvent);
+
+		var track = CreateTrack(trackEndEvent.Track);
+
+		if (player is ILavalinkPlayerListener playerListener)
+		{
+			await playerListener
+				.NotifyTrackEndedAsync(track, trackEndEvent.Reason, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		var eventArgs = new TrackEndedEventArgs(
+			player: player,
+			track: track,
+			reason: trackEndEvent.Reason);
+
+		await _serviceContext.NodeListener
+			.OnTrackEndedAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	private async ValueTask ProcessTrackExceptionEventAsync(ILavalinkPlayer player, TrackExceptionEventPayload trackExceptionEvent, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(player);
+		ArgumentNullException.ThrowIfNull(trackExceptionEvent);
+
+		var track = CreateTrack(trackExceptionEvent.Track);
+
+		var exception = new TrackException(
+			Severity: trackExceptionEvent.Exception.Severity,
+			Message: trackExceptionEvent.Exception.Message,
+			Cause: trackExceptionEvent.Exception.Cause);
+
+		if (player is ILavalinkPlayerListener playerListener)
+		{
+			await playerListener
+				.NotifyTrackExceptionAsync(track, exception, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		var eventArgs = new TrackExceptionEventArgs(
+			player: player,
+			track: track,
+			exception: exception);
+
+		await _serviceContext.NodeListener
+			.OnTrackExceptionAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	private async ValueTask ProcessTrackStartEventAsync(ILavalinkPlayer player, TrackStartEventPayload trackStartEvent, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(player);
+		ArgumentNullException.ThrowIfNull(trackStartEvent);
+
+		var track = CreateTrack(trackStartEvent.Track);
+
+		if (player is ILavalinkPlayerListener playerListener)
+		{
+			await playerListener
+				.NotifyTrackStartedAsync(track, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		var eventArgs = new TrackStartedEventArgs(
+			player: player,
+			track: track);
+
+		await _serviceContext.NodeListener
+			.OnTrackStartedAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	private async ValueTask ProcessTrackStuckEventAsync(ILavalinkPlayer player, TrackStuckEventPayload trackStuckEvent, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(player);
+		ArgumentNullException.ThrowIfNull(trackStuckEvent);
+
+		var track = CreateTrack(trackStuckEvent.Track);
+
+		if (player is ILavalinkPlayerListener playerListener)
+		{
+			await playerListener
+				.NotifyTrackStuckAsync(track, trackStuckEvent.ExceededThreshold, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		var eventArgs = new TrackStuckEventArgs(
+			player: player,
+			track: track,
+			threshold: trackStuckEvent.ExceededThreshold);
+
+		await _serviceContext.NodeListener
+			.OnTrackStuckAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	private async ValueTask ProcessWebSocketClosedEventAsync(ILavalinkPlayer player, WebSocketClosedEventPayload webSocketClosedEvent, CancellationToken cancellationToken)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+		ArgumentNullException.ThrowIfNull(player);
+		ArgumentNullException.ThrowIfNull(webSocketClosedEvent);
+
+		var closeCode = (WebSocketCloseStatus)webSocketClosedEvent.Code;
+
+		if (player is ILavalinkPlayerListener playerListener)
+		{
+			await playerListener
+				.NotifyWebSocketClosedAsync(closeCode, webSocketClosedEvent.Reason, webSocketClosedEvent.WasByRemote, cancellationToken)
+				.ConfigureAwait(false);
+		}
+
+		var eventArgs = new WebSocketClosedEventArgs(
+			player: player,
+			closeCode: closeCode,
+			reason: webSocketClosedEvent.Reason,
+			byRemote: webSocketClosedEvent.WasByRemote);
+
+		await _serviceContext.NodeListener
+			.OnWebSocketClosedAsync(eventArgs, cancellationToken)
+			.ConfigureAwait(false);
+	}
+
+	public async ValueTask RunAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+
+		cancellationToken.ThrowIfCancellationRequested();
+
+		if (_executeTask is not null)
+		{
+			throw new InvalidOperationException("The node was already started.");
+		}
+
+		using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+			token1: cancellationToken,
+			token2: _shutdownCancellationToken);
+
+		var linkedCancellationToken = cancellationTokenSource.Token;
+
+		try
+		{
+			_executeTask = ReceiveInternalAsync(clientInformation, linkedCancellationToken);
+			await _executeTask.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			// ignore
+		}
+		catch (Exception exception)
+		{
+			_readyTaskCompletionSource.TrySetException(exception);
+			throw;
+		}
+		finally
+		{
+			_readyTaskCompletionSource.TrySetCanceled(CancellationToken.None);
+		}
+	}
+
+	private async Task ReceiveInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default)
+	{
+		ThrowIfDisposed();
+		cancellationToken.ThrowIfCancellationRequested();
+
+		var webSocketUri = _options.WebSocketUri ?? _apiEndpoints.WebSocket;
+
+		_readyStopwatch.Restart();
+
+		using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationToken);
+		using var __ = new CancellationTokenDisposable(cancellationTokenSource);
+
+		while (!_shutdownCancellationToken.IsCancellationRequested)
+		{
+			if (_readyTaskCompletionSource.Task.IsCompleted)
+			{
+				// Initiate reconnect
+				_readyTaskCompletionSource = new TaskCompletionSource<string>(
+					creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
+			}
+
+			var socketOptions = new LavalinkSocketOptions
+			{
+				Label = Label,
+				HttpClientName = _options.HttpClientName,
+				Uri = webSocketUri,
+				ShardCount = clientInformation.ShardCount,
+				UserId = clientInformation.CurrentUserId,
+				Passphrase = _options.Passphrase,
+				SessionId = SessionId,
+			};
+
+			using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));
+			using var socketCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token);
+			using var ___ = new CancellationTokenDisposable(socketCancellationSource);
+
+			if (socket is null)
+			{
+				break;
+			}
+
+			_ = socket.RunAsync(socketCancellationSource.Token).AsTask();
+
+			await ReceiveInternalAsync(socket, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async ValueTask ReceiveInternalAsync(ILavalinkSocket socket, CancellationToken cancellationToken)
+	{
+		while (true)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			IPayload? payload;
+			try
+			{
+				payload = await socket
+					.ReceiveAsync(cancellationToken)
+					.ConfigureAwait(false);
+			}
+			catch (WebSocketException exception)
+			{
+				_logger.ExceptionOccurredDuringCommunication(Label, exception);
+				break;
+			}
+
+			if (payload is null)
+			{
+				break;
+			}
+
+			await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
+
+			foreach (var (_, integration) in _serviceContext.IntegrationManager)
+			{
+				try
+				{
+					await integration
+						.ProcessPayloadAsync(payload, cancellationToken)
+						.ConfigureAwait(false);
+				}
+				catch (Exception exception)
+				{
+					_logger.ExceptionOccurredWhileExecutingIntegrationHandler(Label, exception);
+				}
+			}
+		}
+	}
+
+	private void ThrowIfDisposed()
+	{
+#if NET7_0_OR_GREATER
+		ObjectDisposedException.ThrowIf(_disposed, this);
+#else
         if (_disposed)
         {
-            return;
+            throw new ObjectDisposedException(nameof(AudioService));
         }
-
-        _disposed = true;
-
-        // unregister event listeners
-        _discordClient.VoiceServerUpdated -= VoiceServerUpdated;
-        _discordClient.VoiceStateUpdated -= VoiceStateUpdated;
-
-        // dispose all players
-        foreach (var player in Players)
-        {
-            await player.Value.DisposeAsync().ConfigureAwait(false);
-        }
-
-        Players.Clear();
-
-        // call base handling
-        base.Dispose();
-    }
-
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <typeparam name="TPlayer">the type of the player to use</typeparam>
-    /// <param name="guildId">the guild identifier to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown when a player was already created for the guild specified by <paramref
-    ///     name="guildId"/>, but the requested player type ( <typeparamref name="TPlayer"/>)
-    ///     differs from the created one.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    ///     thrown if the node socket has not been initialized. (Call <see
-    ///     cref="LavalinkSocket.InitializeAsync"/> before sending payloads)
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public TPlayer? GetPlayer<TPlayer>(ulong guildId)
-        where TPlayer : LavalinkPlayer
-    {
-        EnsureNotDisposed();
-        EnsureInitialized();
-
-        if (!Players.TryGetValue(guildId, out var player))
-        {
-            return null;
-        }
-
-        if (player.State == PlayerState.Destroyed)
-        {
-            Players.Remove(player.GuildId);
-            return null;
-        }
-
-        if (player is not TPlayer player1)
-        {
-            throw new InvalidOperationException("A player was already created for the specified guild, but " +
-                "the requested player type differs from the created one.");
-        }
-
-        return player1;
-    }
-
-    /// <summary>
-    ///     Gets the audio player for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <param name="guildId">the guild identifier to get the player for</param>
-    /// <returns>the player for the guild</returns>
-    public LavalinkPlayer? GetPlayer(ulong guildId) => GetPlayer<LavalinkPlayer>(guildId);
-
-    /// <summary>
-    ///     Gets all players of the specified <typeparamref name="TPlayer"/>.
-    /// </summary>
-    /// <typeparam name="TPlayer">
-    ///     the type of the players to get; use <see cref="LavalinkPlayer"/> to get all players
-    /// </typeparam>
-    /// <returns>the player list</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public IReadOnlyList<TPlayer> GetPlayers<TPlayer>() where TPlayer : LavalinkPlayer
-    {
-        EnsureNotDisposed();
-        return Players.Select(s => s.Value).OfType<TPlayer>().ToList().AsReadOnly();
-    }
-
-    /// <summary>
-    ///     Gets a value indicating whether a player is created for the specified <paramref name="guildId"/>.
-    /// </summary>
-    /// <param name="guildId">
-    ///     the snowflake identifier of the guild to create the player for
-    /// </param>
-    /// <returns>
-    ///     a value indicating whether a player is created for the specified <paramref name="guildId"/>
-    /// </returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public bool HasPlayer(ulong guildId)
-    {
-        EnsureNotDisposed();
-        return Players.ContainsKey(guildId);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<TPlayer> JoinAsync<TPlayer>(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false) where TPlayer : LavalinkPlayer, new()
-        => JoinAsync(CreateDefaultFactory<TPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public Task<LavalinkPlayer> JoinAsync(ulong guildId, ulong voiceChannelId, bool selfDeaf = false, bool selfMute = false)
-        => JoinAsync(CreateDefaultFactory<LavalinkPlayer>, guildId, voiceChannelId, selfDeaf, selfMute);
-
-    /// <inheritdoc/>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async Task<TPlayer> JoinAsync<TPlayer>(
-        PlayerFactory<TPlayer> playerFactory, ulong guildId, ulong voiceChannelId, bool selfDeaf = false,
-        bool selfMute = false) where TPlayer : LavalinkPlayer
-    {
-        EnsureNotDisposed();
-
-        var player = GetPlayer<TPlayer>(guildId);
-
-        if (player is null)
-        {
-            Players[guildId] = player = LavalinkPlayer.CreatePlayer(
-                playerFactory, this, _discordClient, guildId, _disconnectOnStop);
-        }
-
-        if (!player.VoiceChannelId.HasValue || player.VoiceChannelId != voiceChannelId)
-        {
-            await player.ConnectAsync(voiceChannelId, selfDeaf, selfMute);
-        }
-
-        return player;
-    }
-
-    /// <summary>
-    ///     Mass moves all players of the current node to the specified <paramref name="node"/> asynchronously.
-    /// </summary>
-    /// <param name="node">the node to move the players to</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    ///     thrown if the specified <paramref name="node"/> is the same as the player node.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async Task MoveAllPlayersAsync(LavalinkNode node)
-    {
-        EnsureNotDisposed();
-
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node), "The specified target node is null.");
-        }
-
-        if (node == this)
-        {
-            throw new ArgumentException("Can not move the player to the same node.", nameof(node));
-        }
-
-        var players = Players.ToArray();
-        Players.Clear();
-
-        // await until all players were moved to the new node
-        await Task.WhenAll(players.Select(player => MovePlayerInternalAsync(player.Value, node)));
-
-        // log
-        Logger?.Log(this, string.Format("Moved {0} player(s) to a new node.", players.Length), LogLevel.Debug);
-    }
-
-    /// <summary>
-    ///     Moves the specified <paramref name="player"/> to the specified <paramref
-    ///     name="node"/> asynchronously (while keeping its data and the same instance of the player).
-    /// </summary>
-    /// <param name="player">the player to move</param>
-    /// <param name="node">the node to move the player to</param>
-    /// <returns>a task that represents the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="player"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    ///     thrown if the specified <paramref name="node"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    ///     thrown if the specified <paramref name="node"/> is the same as the player node.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    ///     thrown if the specified <paramref name="player"/> is already served by the specified
-    ///     <paramref name="node"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    ///     thrown if the specified <paramref name="node"/> does not serve the specified
-    ///     <paramref name="player"/>.
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    public async Task MovePlayerAsync(LavalinkPlayer player, LavalinkNode node)
-    {
-        EnsureNotDisposed();
-
-        if (player is null)
-        {
-            throw new ArgumentNullException(nameof(player), "The player to move is null.");
-        }
-
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node), "The specified target node is null.");
-        }
-
-        if (node == this)
-        {
-            throw new ArgumentException("Can not move the player to the same node.", nameof(node));
-        }
-
-        if (player.LavalinkSocket == node)
-        {
-            throw new ArgumentException("The specified player is already served by the targeted node.");
-        }
-
-        if (!Players.Contains(new KeyValuePair<ulong, LavalinkPlayer>(player.GuildId, player)))
-        {
-            throw new ArgumentException("The specified player is not a player from the current node.", nameof(player));
-        }
-
-        // remove the player from the current node
-        Players.Remove(player.GuildId);
-
-        // move player
-        await MovePlayerInternalAsync(player, node);
-
-        // log
-        Logger?.Log(this, string.Format("Moved player for guild {0} to new node.", player.GuildId), LogLevel.Debug);
-    }
-
-    /// <summary>
-    ///     Notifies a player disconnect asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments passed with the event</param>
-    /// <returns>a task that represents the asynchronously operation.</returns>
-    protected internal override Task NotifyDisconnectAsync(PlayerDisconnectedEventArgs eventArgs)
-        => OnPlayerDisconnectedAsync(eventArgs);
-
-    /// <summary>
-    ///     Handles an event payload asynchronously.
-    /// </summary>
-    /// <param name="payload">the payload</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual async ValueTask HandleEventPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
-    {
-        EnsureNotDisposed();
-
-        if (!Players.TryGetValue(payloadContext.GuildId!.Value, out var player))
-        {
-            return;
-        }
-
-        // a track ended
-        if (payloadContext.EventType == EventType.TrackEnd)
-        {
-            var trackEndEvent = payloadContext.DeserializeAs<TrackEndEvent>();
-
-            var args = new TrackEndEventArgs(player,
-                trackIdentifier: trackEndEvent.TrackIdentifier,
-                reason: trackEndEvent.Reason);
-
-            await Task.WhenAll(OnTrackEndAsync(args),
-                player.OnTrackEndAsync(args));
-        }
-        // an exception occurred while playing a track
-        else if (payloadContext.EventType == EventType.TrackException)
-        {
-            var trackExceptionEvent = payloadContext.DeserializeAs<TrackExceptionEvent>();
-
-            var args = new TrackExceptionEventArgs(player,
-                trackIdentifier: trackExceptionEvent.TrackIdentifier,
-                errorMessage: trackExceptionEvent.ErrorMessage);
-
-            await Task.WhenAll(OnTrackExceptionAsync(args),
-                player.OnTrackExceptionAsync(args));
-        }
-
-        // a track got stuck
-        else if (payloadContext.EventType == EventType.TrackStuck)
-        {
-            var trackStuckEvent = payloadContext.DeserializeAs<TrackStuckEvent>();
-
-            var args = new TrackStuckEventArgs(player,
-                trackIdentifier: trackStuckEvent.TrackIdentifier,
-                threshold: trackStuckEvent.Threshold);
-
-            await Task.WhenAll(OnTrackStuckAsync(args),
-                player.OnTrackStuckAsync(args));
-        }
-
-        // a track started
-        else if (payloadContext.EventType == EventType.TrackStart)
-        {
-            var trackStartEvent = payloadContext.DeserializeAs<TrackStartEvent>();
-
-            var args = new TrackStartedEventArgs(player,
-                trackIdentifier: trackStartEvent.TrackIdentifier);
-
-            await Task.WhenAll(OnTrackStartedAsync(args),
-                player.OnTrackStartedAsync(args));
-        }
-
-        // the voice web socket was closed
-        else if (payloadContext.EventType == EventType.WebSocketClosed)
-        {
-            var webSocketClosedEvent = payloadContext.DeserializeAs<WebSocketClosedEvent>();
-
-            Logger?.Log(this, string.Format("Voice WebSocket was closed for player: {0}" +
-                "\nClose Code: {1} ({2}, Reason: {3}, By Remote: {4}",
-                payloadContext.GuildId, webSocketClosedEvent.CloseCode,
-                (int)webSocketClosedEvent.CloseCode, webSocketClosedEvent.Reason,
-                webSocketClosedEvent.ByRemote ? "Yes" : "No"),
-                webSocketClosedEvent.ByRemote ? LogLevel.Warning : LogLevel.Debug);
-
-            var eventArgs = new WebSocketClosedEventArgs(
-                closeCode: webSocketClosedEvent.CloseCode,
-                reason: webSocketClosedEvent.Reason,
-                byRemote: webSocketClosedEvent.ByRemote);
-
-            await OnWebSocketClosedAsync(eventArgs).ConfigureAwait(false);
-        }
-    }
-
-    /// <inheritdoc/>
-    protected override sealed async ValueTask ProcessPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureNotDisposed();
-
-        // received an event
-        if (payloadContext.IsEvent)
-        {
-            await HandleEventPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
-        }
-
-        // received a payload for a player
-        else if (payloadContext.GuildId is not null)
-        {
-            await HandlePlayerPayloadAsync(payloadContext, cancellationToken).ConfigureAwait(false);
-        }
-
-        // statistics update received
-        else if (payloadContext.OpCode == OpCode.NodeStats)
-        {
-            var statsUpdate = payloadContext.DeserializeAs<StatsUpdatePayload>();
-
-            Statistics = new NodeStatistics(
-                players: statsUpdate.Players,
-                playingPlayers: statsUpdate.PlayingPlayers,
-                uptime: statsUpdate.Uptime,
-                memory: statsUpdate.Memory,
-                processor: statsUpdate.Processor,
-                frameStatistics: statsUpdate.FrameStatistics);
-
-            await OnStatisticsUpdateAsync(new NodeStatisticsUpdateEventArgs(Statistics));
-        }
-    }
-
-    /// <summary>
-    ///     Dispatches the <see cref="PlayerConnected"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments passed with the event</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnPlayerConnectedAsync(PlayerConnectedEventArgs eventArgs)
-        => PlayerConnected.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Dispatches the <see cref="PlayerDisconnected"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments passed with the event</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnPlayerDisconnectedAsync(PlayerDisconnectedEventArgs eventArgs)
-        => PlayerDisconnected.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Handles a player payload asynchronously.
-    /// </summary>
-    /// <param name="payload">the payload</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual ValueTask HandlePlayerPayloadAsync(PayloadContext payloadContext, CancellationToken cancellationToken = default)
-    {
-        EnsureNotDisposed();
-
-        var player = GetPlayer<LavalinkPlayer>(payloadContext.GuildId!.Value);
-
-        if (player is null)
-        {
-            Logger?.Log(this, "Received a payload for a player that is not connected", LogLevel.Warning);
-            return default;
-        }
-
-        // a player update was received
-        if (payloadContext.OpCode == OpCode.PlayerUpdate)
-        {
-            var playerUpdate = payloadContext.DeserializeAs<PlayerUpdatePayload>();
-            player.UpdateTrackPosition(playerUpdate.Status.UpdateTime, playerUpdate.Status.Position);
-        }
-
-        return default;
-    }
-
-    /// <summary>
-    ///     Invokes the <see cref="StatisticsUpdated"/> event asynchronously. (Can be override
-    ///     for event catching)
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnStatisticsUpdateAsync(NodeStatisticsUpdateEventArgs eventArgs)
-        => StatisticsUpdated.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Invokes the <see cref="TrackEnd"/> event asynchronously. (Can be override for event catching)
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnTrackEndAsync(TrackEndEventArgs eventArgs)
-        => TrackEnd.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Invokes the <see cref="TrackException"/> event asynchronously. (Can be override for
-    ///     event catching)
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs)
-        => TrackException.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Dispatches the <see cref="TrackStarted"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments passed with the event</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnTrackStartedAsync(TrackStartedEventArgs eventArgs)
-        => TrackStarted.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Invokes the <see cref="TrackStuck"/> event asynchronously. (Can be override for
-    ///     event catching)
-    /// </summary>
-    /// <param name="eventArgs">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnTrackStuckAsync(TrackStuckEventArgs eventArgs)
-        => TrackStuck.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     Dispatches the <see cref="WebSocketClosed"/> event asynchronously.
-    /// </summary>
-    /// <param name="eventArgs">the event arguments passed with the event</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual Task OnWebSocketClosedAsync(WebSocketClosedEventArgs eventArgs)
-        => WebSocketClosed.InvokeAsync(this, eventArgs);
-
-    /// <summary>
-    ///     The asynchronous method which is triggered when a voice server updated was received
-    ///     from the discord gateway.
-    /// </summary>
-    /// <param name="sender">the event sender (unused here, but may be override)</param>
-    /// <param name="voiceServer">the voice server update data</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    protected virtual Task VoiceServerUpdated(object sender, VoiceServer voiceServer)
-    {
-        EnsureNotDisposed();
-
-        var player = GetPlayer<LavalinkPlayer>(voiceServer.GuildId);
-
-        if (player is null)
-        {
-            return Task.CompletedTask;
-        }
-
-        return player.UpdateAsync(voiceServer);
-    }
-
-    /// <summary>
-    ///     The asynchronous method which is triggered when a voice state updated was received
-    ///     from the discord gateway.
-    /// </summary>
-    /// <param name="sender">the event sender (unused here)</param>
-    /// <param name="args">the event arguments</param>
-    /// <returns>a task that represents the asynchronous operation</returns>
-    protected virtual async Task VoiceStateUpdated(object sender, VoiceStateUpdateEventArgs args)
-    {
-        EnsureNotDisposed();
-
-        // ignore other users except the bot
-        if (args.UserId != _discordClient.CurrentUserId)
-        {
-            return;
-        }
-
-        // try getting affected player
-        if (!Players.TryGetValue(args.VoiceState.GuildId, out var player))
-        {
-            return;
-        }
-
-        var voiceState = args.VoiceState;
-        var oldVoiceState = player.VoiceState;
-
-        // connect to a voice channel
-        if (oldVoiceState?.VoiceChannelId is null && voiceState.VoiceChannelId != null)
-        {
-            await player.UpdateAsync(voiceState);
-            await OnPlayerConnectedAsync(new PlayerConnectedEventArgs(player, voiceState.VoiceChannelId.Value));
-        }
-
-        // disconnect from a voice channel
-        else if (oldVoiceState?.VoiceChannelId != null && voiceState.VoiceChannelId is null)
-        {
-            // dispose the player
-            await player.DisconnectAsync(PlayerDisconnectCause.Disconnected);
-            player.Dispose();
-            Players.Remove(voiceState.GuildId);
-        }
-
-        // reconnected to a voice channel
-        else if (oldVoiceState?.VoiceChannelId != null && voiceState.VoiceChannelId != null)
-        {
-            await player.UpdateAsync(voiceState);
-        }
-    }
-
-    private static T CreateDefaultFactory<T>() where T : LavalinkPlayer, new() => new();
-
-    /// <summary>
-    ///     Throws an exception if the <see cref="LavalinkNode"/> instance is disposed.
-    /// </summary>
-    /// <exception cref="ObjectDisposedException">thrown if the instance is disposed</exception>
-    private void EnsureNotDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(LavalinkNode));
-        }
-    }
-
-    private async Task MovePlayerInternalAsync(LavalinkPlayer player, LavalinkNode node)
-    {
-        EnsureNotDisposed();
-
-        // capture previous player state
-        var capturedState = PlayerStateInfo.Capture(player);
-
-        // destroy (NOT DISCONNECT) the player
-        await player.DestroyAsync();
-
-        // update the communication node
-        var oldLavalinkSocket = player.LavalinkSocket;
-        player.LavalinkSocket = node;
-        await player.OnSocketChanged(new SocketChangedEventArgs(oldLavalinkSocket, node));
-
-        // resend voice update to the new node
-        await player.UpdateAsync();
-
-        // restore old player state
-        await capturedState
-            .RestoreAsync(player)
-            .ConfigureAwait(false);
-
-        // add player to the new node
-        node.Players[player.GuildId] = player;
-    }
+#endif
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+
+		_disposed = true;
+
+		_readyTaskCompletionSource.TrySetCanceled();
+		_shutdownCancellationTokenSource.Cancel();
+		_shutdownCancellationTokenSource.Dispose();
+
+		if (_executeTask is not null)
+		{
+			try
+			{
+				await _executeTask.ConfigureAwait(false);
+			}
+			catch (Exception)
+			{
+				// ignore
+			}
+		}
+	}
+}
+
+file readonly record struct CancellationTokenDisposable(CancellationTokenSource CancellationTokenSource) : IDisposable
+{
+	public void Dispose() => CancellationTokenSource.Cancel();
+}
+
+internal static partial class Logging
+{
+	[LoggerMessage(1, LogLevel.Debug, "[{Label}] Received an event payload for a non-registered player: {GuildId}.", EventName = nameof(ReceivedEventPayloadForNonRegisteredPlayer))]
+	public static partial void ReceivedEventPayloadForNonRegisteredPlayer(this ILogger<LavalinkNode> logger, string label, ulong guildId);
+
+	[LoggerMessage(2, LogLevel.Trace, "[{Label}] Received payload from lavalink node: {Payload}", EventName = nameof(ReceivedPayloadFromLavalinkNode))]
+	public static partial void ReceivedPayloadFromLavalinkNode(this ILogger<LavalinkNode> logger, string label, string payload);
+
+	[LoggerMessage(3, LogLevel.Warning, "[{Label}] Multiple ready payloads were received.", EventName = nameof(MultipleReadyPayloadsReceived))]
+	public static partial void MultipleReadyPayloadsReceived(this ILogger<LavalinkNode> logger, string label);
+
+	[LoggerMessage(4, LogLevel.Information, "[{Label}] Node is ready (session identifier: {SessionId}).", EventName = nameof(Ready))]
+	public static partial void Ready(this ILogger<LavalinkNode> logger, string label, string sessionId);
+
+	[LoggerMessage(5, LogLevel.Warning, "[{Label}] A payload was received before the ready payload was received. The payload will be ignored.", EventName = nameof(PayloadReceivedBeforeReadyPayload))]
+	public static partial void PayloadReceivedBeforeReadyPayload(this ILogger<LavalinkNode> logger, string label);
+
+	[LoggerMessage(6, LogLevel.Debug, "[{Label}] Received a player update payload for a non-registered player: {GuildId}.", EventName = nameof(ReceivedPlayerUpdatePayloadForNonRegisteredPlayer))]
+	public static partial void ReceivedPlayerUpdatePayloadForNonRegisteredPlayer(this ILogger<LavalinkNode> logger, string label, ulong guildId);
+
+	[LoggerMessage(7, LogLevel.Error, "[{Label}] Exception occurred while executing integration handler.", EventName = nameof(ExceptionOccurredWhileExecutingIntegrationHandler))]
+	public static partial void ExceptionOccurredWhileExecutingIntegrationHandler(this ILogger<LavalinkNode> logger, string label, Exception exception);
+
+	[LoggerMessage(8, LogLevel.Error, "[{Label}] Exception occurred during communication.", EventName = nameof(ExceptionOccurredDuringCommunication))]
+	public static partial void ExceptionOccurredDuringCommunication(this ILogger<LavalinkNode> logger, string label, Exception exception);
 }

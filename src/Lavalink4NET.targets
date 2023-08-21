@@ -1,16 +1,16 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- NuGet Packaging -->
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Angelo Breuer</Authors>
     <Company>Angelo Breuer</Company>
-    <PackageReleaseNotes>Compatible with Lavalink Server 3.x</PackageReleaseNotes>
+    <PackageReleaseNotes>Compatible with Lavalink Server 4.x</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl />
     <RepositoryUrl>https://github.com/angelobreuer/Lavalink4NET</RepositoryUrl>
 
     <!-- License -->
-    <Copyright>Angelo Breuer 2022</Copyright>
+    <Copyright>Angelo Breuer 2023</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
@@ -19,7 +19,7 @@
     <PackageIconUrl>https://imgur.com/DbTYXxY.png</PackageIconUrl>
 
     <!-- Nullable -->
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
   </PropertyGroup>

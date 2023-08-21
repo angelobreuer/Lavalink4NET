@@ -1,34 +1,9 @@
-/*
- *  File:   DiscordClientWrapperTests.cs
- *  Author: Angelo Breuer
- *
- *  The MIT License (MIT)
- *
- *  Copyright (c) Angelo Breuer 2022
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-
 namespace Lavalink4NET.Tests;
 
 using System;
-using Discord.WebSocket;
+using System.Reflection;
+using System.Threading.Tasks;
+using global::Discord.WebSocket;
 using Lavalink4NET.DiscordNet;
 using Xunit;
 
@@ -40,28 +15,151 @@ public sealed class DiscordClientWrapperTests
     [InlineData(-100)]
     public void TestConstructorThrowsIfInvalidShardCountPassed(int shards)
     {
+        // Arrange
         var client = new DiscordShardedClient();
-        Assert.Throws<ArgumentOutOfRangeException>(() => new DiscordClientWrapper(client, shards));
+
+        // Act
+        void Act()
+        {
+            using var _ = new DiscordClientWrapper(client, shards);
+        }
+
+        // Assert
+        Assert.Throws<ArgumentOutOfRangeException>(Act);
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(20)]
     [InlineData(100)]
-    public void TestConstructorDoesNotThrowIfValidShardCountPassed(int shards)
+    public async Task TestConstructorDoesNotThrowIfValidShardCountPassedAsync(int shards)
     {
-        var client = new DiscordShardedClient();
-        _ = new DiscordClientWrapper(client, shards);
+        // Arrange
+        await using var client = new DiscordShardedClient();
+
+        // Act
+        var exception = Record.Exception(() =>
+        {
+            using var _ = new DiscordClientWrapper(client, shards);
+        });
+
+        // Assert
+        Assert.Null(exception);
     }
 
     [Fact]
-    public void TestUnavailableAccessThrows()
+    public async Task TestCreateUsingShardedClientWithoutShardsAsync()
     {
-        var client = new DiscordShardedClient();
+        // Arrange
+        await using var client = new DiscordShardedClient();
 
-        Assert.Throws<InvalidOperationException>(() =>
+        // Act
+        var exception = Record.Exception(() =>
         {
-            _ = new DiscordClientWrapper(client).ShardCount;
+            using var _ = new DiscordClientWrapper(client);
         });
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task TestCreateUsingShardedClientWithExplicitShardsAsync()
+    {
+        // Arrange
+        await using var client = new DiscordShardedClient();
+
+        // Act
+        var exception = Record.Exception(() =>
+        {
+            using var _ = new DiscordClientWrapper(client, 8);
+        });
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task TestCreateUsingNonShardedClientWithShardsAsync()
+    {
+        // Arrange
+        await using var client = new DiscordSocketClient();
+
+        // Act
+        var exception = Record.Exception(() =>
+        {
+            using var _ = new DiscordClientWrapper(client, 8);
+        });
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task TestCreateUsingNonShardedClientWithNoShardsAsync()
+    {
+        // Arrange
+        await using var client = new DiscordSocketClient();
+
+        // Act
+        var exception = Record.Exception(() =>
+        {
+            using var _ = new DiscordClientWrapper(client);
+        });
+
+        // Assert
+        Assert.Null(exception);
+    }
+}
+
+file static class ReflectionHelpers
+{
+    public static object CreateSocketGlobalUser(DiscordSocketClient discordSocketClient, ulong id)
+    {
+        var socketGlobalUserType = typeof(SocketUser).Assembly.GetType("Discord.WebSocket.SocketGlobalUser")!;
+
+        var socketGlobalUserCtor = socketGlobalUserType.GetConstructor(
+            bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+            types: new[] { typeof(DiscordSocketClient), typeof(ulong), })!;
+
+        var parameters = new object[] { discordSocketClient, id, };
+        var socketGlobalUser = socketGlobalUserCtor.Invoke(parameters);
+        return socketGlobalUser;
+    }
+
+    public static SocketGuild CreateSocketGuild(DiscordSocketClient discordSocketClient, ulong id)
+    {
+        var bindingAttr = BindingFlags.NonPublic | BindingFlags.Instance;
+        var socketGuildCtor = typeof(SocketGuild).GetConstructor(
+         bindingAttr,
+         null, new[]{
+                    typeof(DiscordSocketClient),
+                    typeof(ulong),
+         }, null);
+
+        var socketGuild = (SocketGuild)socketGuildCtor.Invoke(new object[] {
+                discordSocketClient, id,
+            });
+        return socketGuild;
+    }
+
+    public static SocketGuildUser CreateSocketGuildUser(SocketGuild socketGuild, object socketGlobalUser)
+    {
+        var bindingAttr = BindingFlags.NonPublic | BindingFlags.Instance;
+        var types = new[]{
+                typeof(SocketGuild),
+                socketGlobalUser.GetType(),
+            };
+        var socketGuildUserCtor = typeof(SocketGuildUser).GetConstructor(
+           bindingAttr,
+           null, types, null);
+
+        var parameters = new object[] {
+                socketGuild, socketGlobalUser
+            };
+
+        var socketGuildUser = (SocketGuildUser)socketGuildUserCtor.Invoke(parameters);
+
+        return socketGuildUser;
     }
 }

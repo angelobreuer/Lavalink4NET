@@ -1,0 +1,78 @@
+﻿namespace Lavalink4NET.Tracks;
+
+using System.Collections.Immutable;
+using System.Text.Json.Nodes;
+
+public partial record class LavalinkTrack
+{
+    private StreamProvider? _cachedProvider;
+    private bool _providerCached;
+
+#if NET7_0_OR_GREATER
+    required
+#endif
+    public string Title
+    { get; init; } = null!;
+
+#if NET7_0_OR_GREATER
+    required
+#endif
+
+    public string Identifier
+    { get; init; } = null!;
+
+#if NET7_0_OR_GREATER
+    required
+#endif 
+
+    public string Author
+    { get; init; } = null!;
+
+    public TimeSpan Duration { get; init; }
+
+    public bool IsLiveStream { get; init; }
+
+    public bool IsSeekable { get; init; }
+
+    public Uri? Uri { get; init; }
+
+    public Uri? ArtworkUri { get; init; }
+
+    public string? Isrc { get; init; }
+
+    public string? SourceName { get; init; }
+
+    public TimeSpan? StartPosition { get; init; }
+
+    public string? ProbeInfo { get; init; }
+
+    public StreamProvider? Provider
+    {
+        get
+        {
+            if (_providerCached)
+            {
+                return _cachedProvider;
+            }
+
+            _cachedProvider = StreamHeuristics.GetStreamProvider(SourceName);
+            _providerCached = true;
+
+            return _cachedProvider;
+        }
+    }
+
+    public IImmutableDictionary<string, JsonNode> AdditionalInformation { get; init; } = ImmutableDictionary<string, JsonNode>.Empty;
+
+    internal string? TrackData { get; set; }
+
+    /// <summary>
+    ///     Allows you to override a track that will be sent to Lavalink for playback
+    /// </summary>
+    /// <returns>Track which will be sent to Lavalink node</returns>
+    public virtual ValueTask<LavalinkTrack> GetPlayableTrackAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ValueTask.FromResult(this);
+    }
+}

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	  <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+	  <Description>
+		  High performance Lavalink wrapper for .NET | Protocol implementation for the Lavalink4NET client library used to interact with the Lavalink REST API.
+	  </Description>
+  </PropertyGroup>
+
+	<Import Project="../Lavalink4NET.targets" />
+
+	<ItemGroup>
+	  <PackageReference Include="System.Text.Json" Version="7.0.3" />
+	</ItemGroup>
+</Project>

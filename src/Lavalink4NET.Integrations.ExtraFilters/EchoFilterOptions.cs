@@ -1,18 +1,28 @@
 ﻿namespace Lavalink4NET.Integrations.ExtraFilters;
 
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
+using System.Text.Json;
 using Lavalink4NET.Filters;
+using Lavalink4NET.Protocol.Models.Filters;
 
-public sealed class EchoFilterOptions : IFilterOptions
+public sealed record class EchoFilterOptions(
+    float? Delay = null,
+    float? Decay = null) : IFilterOptions
 {
-    public const string Name = "echo";
+    public bool IsDefault => this is { Delay: null, Decay: null, };
 
-    /// <inheritdoc/>
-    string IFilterOptions.Name => Name;
+    public void Apply(ref PlayerFilterMapModel filterMap)
+    {
+        var additionalFilters = filterMap.AdditionalFilters is null
+            ? new Dictionary<string, JsonElement>()
+            : new Dictionary<string, JsonElement>(filterMap.AdditionalFilters);
 
-    [JsonPropertyName("delay")]
-    public float Delay { get; init; } = 1.0F;
+        var model = new EchoFilterModel(Delay, Decay);
 
-    [JsonPropertyName("decay")]
-    public float Decay { get; init; } = 0.5F;
+        additionalFilters["echo"] = JsonSerializer.SerializeToElement(
+            value: model,
+            jsonTypeInfo: FilterJsonSerializerContext.Default.EchoFilterModel);
+
+        filterMap = filterMap with { AdditionalFilters = additionalFilters, };
+    }
 }

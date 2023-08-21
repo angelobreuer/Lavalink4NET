@@ -1,18 +1,51 @@
-﻿namespace Lavalink4NET.Player;
+﻿namespace Lavalink4NET.Integrations.SponsorBlock.Extensions;
 
 using System;
-using Lavalink4NET.Integrations.SponsorBlock;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Lavalink4NET.Players;
 
 public static class LavalinkPlayerExtensions
 {
-    private static ISponsorBlockIntegration GetIntegration(LavalinkPlayer player)
+    public static ValueTask UpdateSponsorBlockCategoriesAsync(
+        this ILavalinkPlayer lavalinkPlayer,
+        ImmutableArray<SegmentCategory> categories,
+        CancellationToken cancellationToken = default)
     {
-        return player.LavalinkSocket.Integrations.Get<ISponsorBlockIntegration>()
-            ?? throw new InvalidOperationException("SponsorBlock is not enabled as an integration for Lavalink4NET.");
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(lavalinkPlayer);
+
+        return lavalinkPlayer.ApiClient.UpdateCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            categories: categories,
+            cancellationToken: cancellationToken);
     }
 
-    public static ISkipCategories GetCategories(this LavalinkPlayer player)
+    public static ValueTask ResetSponsorBlockCategoriesAsync(
+        this ILavalinkPlayer lavalinkPlayer,
+        CancellationToken cancellationToken = default)
     {
-        return GetIntegration(player).GetCategories(player.GuildId);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(lavalinkPlayer);
+
+        return lavalinkPlayer.ApiClient.ResetCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<ImmutableArray<SegmentCategory>> GetSponsorBlockCategoriesAsync(
+        this ILavalinkPlayer lavalinkPlayer,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(lavalinkPlayer);
+
+        return lavalinkPlayer.ApiClient.GetCategoriesAsync(
+            sessionId: lavalinkPlayer.SessionId,
+            guildId: lavalinkPlayer.GuildId,
+            cancellationToken: cancellationToken);
     }
 }

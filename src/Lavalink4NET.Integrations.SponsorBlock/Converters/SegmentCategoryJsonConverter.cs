@@ -1,20 +1,51 @@
 ﻿namespace Lavalink4NET.Integrations.SponsorBlock.Converters;
 
-using Lavalink4NET.Converters;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Lavalink4NET.Integrations.SponsorBlock;
 
-internal sealed class SegmentCategoryJsonConverter : StaticJsonStringEnumConverter<SegmentCategory>
+internal sealed class SegmentCategoryJsonConverter : JsonConverter<SegmentCategory>
 {
-    /// <inheritdoc/>
-    protected override void RegisterMappings(RegistrationContext registrationContext)
+    public override SegmentCategory Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        registrationContext.Register("sponsor", SegmentCategory.Sponsor);
-        registrationContext.Register("selfpromo", SegmentCategory.SelfPromotion);
-        registrationContext.Register("interaction", SegmentCategory.Interaction);
-        registrationContext.Register("intro", SegmentCategory.Intro);
-        registrationContext.Register("outro", SegmentCategory.Outro);
-        registrationContext.Register("preview", SegmentCategory.Preview);
-        registrationContext.Register("music_offtopic", SegmentCategory.OfftopicMusic);
-        registrationContext.Register("filler", SegmentCategory.Filler);
+        ArgumentNullException.ThrowIfNull(typeToConvert);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var value = reader.GetString()!;
+
+        return value.ToUpperInvariant() switch
+        {
+            "sponsor" => SegmentCategory.Sponsor,
+            "selfpromo" => SegmentCategory.SelfPromotion,
+            "interaction" => SegmentCategory.Interaction,
+            "intro" => SegmentCategory.Intro,
+            "outro" => SegmentCategory.Outro,
+            "preview" => SegmentCategory.Preview,
+            "music_offtopic" => SegmentCategory.OffTopicMusic,
+            "filler" => SegmentCategory.Filler,
+            _ => throw new JsonException("Invalid segment category."),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, SegmentCategory value, JsonSerializerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var strValue = value switch
+        {
+            SegmentCategory.Sponsor => "sponsor",
+            SegmentCategory.SelfPromotion => "selfpromo",
+            SegmentCategory.Interaction => "interaction",
+            SegmentCategory.Intro => "intro",
+            SegmentCategory.Outro => "outro",
+            SegmentCategory.Preview => "preview",
+            SegmentCategory.OffTopicMusic => "music_offtopic",
+            SegmentCategory.Filler => "filler",
+            _ => throw new ArgumentException("Invalid segment category."),
+        };
+
+        writer.WriteStringValue(strValue);
     }
 }
