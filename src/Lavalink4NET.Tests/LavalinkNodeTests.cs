@@ -580,12 +580,15 @@ file sealed class LavalinkSocket : ILavalinkSocket
 
 file sealed class LavalinkSocketFactory : ILavalinkSocketFactory, IDisposable
 {
+	private LavalinkSocket? _socket;
+
 	public LavalinkSocketFactory()
 	{
-		Socket = new LavalinkSocket();
+		_socket = Socket = new LavalinkSocket();
 	}
 
-	public ILavalinkSocket? Create(IOptions<LavalinkSocketOptions> options) => Socket;
+	public ILavalinkSocket? Create(IOptions<LavalinkSocketOptions> options)
+		=> Interlocked.Exchange(ref _socket, null);
 
 	public void Dispose() => Socket.Dispose();
 
