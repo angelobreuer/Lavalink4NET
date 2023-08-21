@@ -74,12 +74,17 @@ public sealed class LavalinkNodeTests
 		_ = node.RunAsync(new ClientInformation("Client", 0, 1)).AsTask();
 		await using var __ = node.ConfigureAwait(false);
 
-		// Act
 		socketFactory.Socket.Send(new ReadyPayload(false, "abc"));
-		socketFactory.Socket.Complete();
+		await Task.Delay(100).ConfigureAwait(false);
+
+		// Act
+		var isReady = node.IsReady;
 
 		// Assert
-		Assert.True(node.IsReady);
+		Assert.True(isReady);
+
+		// Clean Up
+		socketFactory.Socket.Complete();
 	}
 
 	[Fact]
