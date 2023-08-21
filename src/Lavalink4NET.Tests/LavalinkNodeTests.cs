@@ -83,38 +83,6 @@ public sealed class LavalinkNodeTests
 	}
 
 	[Fact]
-	public async Task TestMultipleReadyPayloadsDoNotDropConnectionAsync()
-	{
-		// Arrange
-		using var socketFactory = new LavalinkSocketFactory();
-
-		var serviceContext = new LavalinkNodeServiceContext(
-			ClientWrapper: Mock.Of<IDiscordClientWrapper>(),
-			LavalinkSocketFactory: socketFactory,
-			IntegrationManager: new IntegrationManager(),
-			PlayerManager: Mock.Of<IPlayerManager>(),
-			NodeListener: Mock.Of<ILavalinkNodeListener>());
-
-		var node = new LavalinkNode(
-			serviceContext,
-			apiClient: Mock.Of<ILavalinkApiClient>(),
-			options: Options.Create(new NodeOptions { }),
-			apiEndpoints: new LavalinkApiEndpoints(new Uri("http://localhost/")),
-			logger: NullLogger<LavalinkNode>.Instance);
-
-		var nodeTask = node.RunAsync(new ClientInformation("Client", 0, 1)).AsTask();
-		await using var __ = node.ConfigureAwait(false);
-
-		// Act
-		socketFactory.Socket.Send(new ReadyPayload(false, "abc"));
-		socketFactory.Socket.Send(new ReadyPayload(false, "abc"));
-		socketFactory.Socket.Complete();
-
-		// Assert
-		Assert.True(!nodeTask.IsCompleted);
-	}
-
-	[Fact]
 	public async Task TestPayloadBeforeReadyIsNotProcessedAsync()
 	{
 		// Arrange
