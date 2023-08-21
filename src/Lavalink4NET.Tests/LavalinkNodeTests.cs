@@ -545,9 +545,8 @@ file sealed class LavalinkSocket : ILavalinkSocket
 				.WaitAsync(_shutdownCancellationTokenSource.Token)
 				.ConfigureAwait(false);
 		}
-		catch (Exception exception)
+		catch
 		{
-			var k = exception;
 			if (_flushSemaphoreSlim.CurrentCount is 0)
 			{
 				_flushSemaphoreSlim.Release();

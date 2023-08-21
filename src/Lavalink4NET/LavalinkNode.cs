@@ -449,6 +449,13 @@ internal sealed class LavalinkNode : IAsyncDisposable
 
 		while (!_shutdownCancellationToken.IsCancellationRequested)
 		{
+			if (_readyTaskCompletionSource.Task.IsCompleted)
+			{
+				// Initiate reconnect
+				_readyTaskCompletionSource = new TaskCompletionSource<string>(
+					creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
+			}
+
 			var socketOptions = new LavalinkSocketOptions
 			{
 				Label = Label,
@@ -472,10 +479,6 @@ internal sealed class LavalinkNode : IAsyncDisposable
 			_ = socket.RunAsync(socketCancellationSource.Token).AsTask();
 
 			await ReceiveInternalAsync(socket, cancellationToken).ConfigureAwait(false);
-
-			// Initiate reconnect
-			_readyTaskCompletionSource = new TaskCompletionSource<string>(
-				creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
 		}
 	}
 
