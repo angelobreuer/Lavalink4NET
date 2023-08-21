@@ -34,6 +34,8 @@ using Lavalink4NET.Protocol.Responses;
 [JsonSerializable(typeof(SearchLoadResultModel))]
 [JsonSerializable(typeof(TrackLoadResultModel))]
 [JsonSerializable(typeof(PlayerUpdateProperties))]
+[JsonSerializable(typeof(SessionUpdateProperties))]
+[JsonSerializable(typeof(SessionModel))]
 [JsonSerializable(typeof(RoutePlannerInformationModel))]
 [JsonSerializable(typeof(AddressUnmarkProperties))]
 internal sealed partial class ProtocolSerializerContext : JsonSerializerContext

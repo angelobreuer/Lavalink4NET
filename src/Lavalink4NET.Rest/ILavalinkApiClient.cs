@@ -13,37 +13,39 @@ using Lavalink4NET.Tracks;
 
 public interface ILavalinkApiClient
 {
-    LavalinkApiEndpoints Endpoints { get; }
+	LavalinkApiEndpoints Endpoints { get; }
 
-    HttpClient CreateHttpClient();
+	HttpClient CreateHttpClient();
 
-    ValueTask<LavalinkTrack?> LoadTrackAsync(
-        string identifier,
-        TrackLoadOptions loadOptions = default,
-        CancellationToken cancellationToken = default);
+	ValueTask<LavalinkTrack?> LoadTrackAsync(
+		string identifier,
+		TrackLoadOptions loadOptions = default,
+		CancellationToken cancellationToken = default);
 
-    ValueTask<TrackLoadResult> LoadTracksAsync(
-        string identifier,
-        TrackLoadOptions loadOptions = default,
-        CancellationToken cancellationToken = default);
+	ValueTask<TrackLoadResult> LoadTracksAsync(
+		string identifier,
+		TrackLoadOptions loadOptions = default,
+		CancellationToken cancellationToken = default);
 
-    ValueTask<LavalinkServerInformation> RetrieveServerInformationAsync(CancellationToken cancellationToken = default);
+	ValueTask<LavalinkServerInformation> RetrieveServerInformationAsync(CancellationToken cancellationToken = default);
 
-    ValueTask<LavalinkServerStatistics> RetrieveStatisticsAsync(CancellationToken cancellationToken = default);
+	ValueTask<LavalinkServerStatistics> RetrieveStatisticsAsync(CancellationToken cancellationToken = default);
 
-    ValueTask<string> RetrieveVersionAsync(CancellationToken cancellationToken = default);
+	ValueTask<string> RetrieveVersionAsync(CancellationToken cancellationToken = default);
 
-    ValueTask DestroyPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
+	ValueTask DestroyPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
 
-    ValueTask<PlayerInformationModel?> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
+	ValueTask<PlayerInformationModel?> GetPlayerAsync(string sessionId, ulong guildId, CancellationToken cancellationToken = default);
 
-    ValueTask<ImmutableArray<PlayerInformationModel>> GetPlayersAsync(string sessionId, CancellationToken cancellationToken = default);
+	ValueTask<ImmutableArray<PlayerInformationModel>> GetPlayersAsync(string sessionId, CancellationToken cancellationToken = default);
 
-    ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
+	ValueTask<PlayerInformationModel> UpdatePlayerAsync(string sessionId, ulong guildId, PlayerUpdateProperties properties, CancellationToken cancellationToken = default);
 
-    ValueTask<RoutePlannerInformationModel?> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default);
+	ValueTask<RoutePlannerInformationModel?> GetRoutePlannerInformationAsync(CancellationToken cancellationToken = default);
 
-    ValueTask UnmarkFailedAddressAsync(AddressUnmarkProperties properties, CancellationToken cancellationToken = default);
+	ValueTask UnmarkFailedAddressAsync(AddressUnmarkProperties properties, CancellationToken cancellationToken = default);
 
-    ValueTask UnmarkAllFailedAddressesAsync(CancellationToken cancellationToken = default);
+	ValueTask UnmarkAllFailedAddressesAsync(CancellationToken cancellationToken = default);
+
+	ValueTask<SessionModel> UpdateSessionAsync(string sessionId, SessionUpdateProperties properties, CancellationToken cancellationToken = default);
 }
