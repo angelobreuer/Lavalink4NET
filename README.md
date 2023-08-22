@@ -45,7 +45,8 @@
 
 ### Documentation
 
-You can find the documentation for Lavalink4NET v4 [here](https://lavalink4net.angelobreuer.de/docs/introduction/intro).
+> [!IMPORTANT]
+> You can find the documentation for Lavalink4NET v4 [here](https://lavalink4net.angelobreuer.de/docs/introduction/intro).
 
 ### Components
 
