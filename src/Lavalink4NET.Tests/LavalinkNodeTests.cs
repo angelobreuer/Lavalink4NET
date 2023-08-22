@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -469,7 +469,7 @@ public sealed class LavalinkNodeTests
 				ArtworkUri: null,
 				Isrc: null,
 				SourceName: "manual"),
-			AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty);
+			AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty);
 	}
 }
 

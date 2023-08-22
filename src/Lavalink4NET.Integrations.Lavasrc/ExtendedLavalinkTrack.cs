@@ -1,107 +1,104 @@
 ﻿namespace Lavalink4NET.Integrations.Lavasrc;
 
 using System.Collections.Immutable;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using Lavalink4NET.Tracks;
 
 public readonly record struct ExtendedLavalinkTrack(LavalinkTrack Track)
 {
-    public string Title => Track.Title;
+	public string Title => Track.Title;
 
-    public string Identifier => Track.Identifier;
+	public string Identifier => Track.Identifier;
 
-    public string Author => Track.Author;
+	public string Author => Track.Author;
 
-    public TimeSpan Duration => Track.Duration;
+	public TimeSpan Duration => Track.Duration;
 
-    public bool IsLiveStream => Track.IsLiveStream;
+	public bool IsLiveStream => Track.IsLiveStream;
 
-    public bool IsSeekable => Track.IsSeekable;
+	public bool IsSeekable => Track.IsSeekable;
 
-    public Uri? Uri => Track.Uri;
+	public Uri? Uri => Track.Uri;
 
-    public Uri? ArtworkUri => Track.ArtworkUri;
+	public Uri? ArtworkUri => Track.ArtworkUri;
 
-    public string? Isrc => Track.Isrc;
+	public string? Isrc => Track.Isrc;
 
-    public string? SourceName => Track.SourceName;
+	public string? SourceName => Track.SourceName;
 
-    public TimeSpan? StartPosition => Track.StartPosition;
+	public TimeSpan? StartPosition => Track.StartPosition;
 
-    public string? ProbeInfo => Track.ProbeInfo;
+	public string? ProbeInfo => Track.ProbeInfo;
 
-    public StreamProvider? Provider => Track.Provider;
+	public StreamProvider? Provider => Track.Provider;
 
-    public IImmutableDictionary<string, JsonNode> AdditionalInformation => Track.AdditionalInformation;
+	public IImmutableDictionary<string, JsonElement> AdditionalInformation => Track.AdditionalInformation;
 
-    public ValueTask<LavalinkTrack> GetPlayableTrackAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return Track.GetPlayableTrackAsync(cancellationToken);
-    }
+	public ValueTask<LavalinkTrack> GetPlayableTrackAsync(CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+		return Track.GetPlayableTrackAsync(cancellationToken);
+	}
 
-    public TrackAlbum? Album
-    {
-        get
-        {
-            var albumName = Track.AdditionalInformation.GetValueOrDefault("albumName")?.ToString();
-            var albumUriValue = Track.AdditionalInformation.GetValueOrDefault("albumUrl")?.ToString();
+	public TrackAlbum? Album
+	{
+		get
+		{
+			if (!TryGetElement("albumName", out var albumNameElement))
+			{
+				// Album name is required
+				return null;
+			}
 
-            if (albumName is null)
-            {
-                // Album name is required
-                return null;
-            }
+			var albumUri = !TryGetElement("albumUrl", out var albumUrlElement)
+				? null
+				: new Uri(albumUrlElement.GetString()!);
 
-            var albumUri = albumUriValue is null
-                ? null
-                : new Uri(albumUriValue);
+			return new TrackAlbum(albumNameElement.GetString()!, albumUri);
+		}
+	}
 
-            return new TrackAlbum(albumName, albumUri);
-        }
-    }
+	public TrackArtist? Artist
+	{
+		get
+		{
+			var artistUri = !TryGetElement("artistUrl", out var artistUriElement)
+				? null
+				: new Uri(artistUriElement.GetString()!);
 
-    public TrackArtist? Artist
-    {
-        get
-        {
-            var artistUriValue = Track.AdditionalInformation.GetValueOrDefault("artistUrl")?.ToString();
-            var artistArtworkUriValue = Track.AdditionalInformation.GetValueOrDefault("artistArtworkUrl")?.ToString();
+			var artistArtworkUri = !TryGetElement("artistArtworkUrl", out var artistArtworkUriElement)
+				? null
+				: new Uri(artistArtworkUriElement.GetString()!);
 
-            if (artistUriValue is null && artistArtworkUriValue is null)
-            {
-                return null;
-            }
+			if (artistUri is null && artistArtworkUri is null)
+			{
+				return null;
+			}
 
-            var artistUri = artistUriValue is null
-                ? null
-                : new Uri(artistUriValue);
+			return new TrackArtist(artistUri, artistArtworkUri);
+		}
+	}
 
-            var artistArtworkUri = artistArtworkUriValue is null
-                ? null
-                : new Uri(artistArtworkUriValue);
+	public bool IsPreview
+	{
+		get => TryGetElement("isPreview", out var previewElement) && previewElement.ValueKind is JsonValueKind.True;
+	}
 
-            return new TrackArtist(artistUri, artistArtworkUri);
-        }
-    }
+	public Uri? PreviewUri
+	{
+		get
+		{
+			if (!TryGetElement("previewUrl", out var previewUriElement))
+			{
+				return null;
+			}
 
-    public bool IsPreview
-    {
-        get => Track.AdditionalInformation.GetValueOrDefault("isPreview")?.GetValue<bool?>() ?? false;
-    }
+			return new Uri(previewUriElement.GetString()!);
+		}
+	}
 
-    public Uri? PreviewUri
-    {
-        get
-        {
-            var previewUriValue = Track.AdditionalInformation.GetValueOrDefault("previewUrl")?.ToString();
-
-            if (previewUriValue is null)
-            {
-                return null;
-            }
-
-            return new Uri(previewUriValue);
-        }
-    }
+	private bool TryGetElement(string key, out JsonElement element)
+	{
+		return Track.AdditionalInformation.TryGetValue(key, out element) && element.ValueKind is not JsonValueKind.Null;
+	}
 }

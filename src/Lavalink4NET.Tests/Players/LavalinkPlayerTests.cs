@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
@@ -56,7 +56,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -81,7 +81,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: false,
 			VoiceState: CreateVoiceState(),
@@ -179,7 +179,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: false,
 			VoiceState: CreateVoiceState(),
@@ -209,7 +209,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: false,
 			VoiceState: CreateVoiceState(),
@@ -247,7 +247,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -285,7 +285,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -323,7 +323,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -362,7 +362,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -392,7 +392,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -423,7 +423,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -461,7 +461,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -504,7 +504,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -547,7 +547,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -590,7 +590,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(), // 120 seconds long
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -634,7 +634,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -663,7 +663,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: false,
 			VoiceState: CreateVoiceState(),
@@ -691,7 +691,7 @@ public sealed class LavalinkPlayerTests
 				CurrentTrack: new TrackModel(
 					Data: "abc",
 					Information: CreateDummyTrack(),
-					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+					AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 				Volume: 1F,
 				IsPaused: true,
 				VoiceState: CreateVoiceState(),
@@ -719,7 +719,7 @@ public sealed class LavalinkPlayerTests
 			CurrentTrack: new TrackModel(
 				Data: "abc",
 				Information: CreateDummyTrack(),
-				AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+				AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 			Volume: 1F,
 			IsPaused: true,
 			VoiceState: CreateVoiceState(),
@@ -748,7 +748,7 @@ public sealed class LavalinkPlayerTests
 				CurrentTrack: new TrackModel(
 					Data: "abc",
 					Information: CreateDummyTrack(),
-					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+					AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 				Volume: 1F,
 				IsPaused: true,
 				VoiceState: CreateVoiceState(),
@@ -776,7 +776,7 @@ public sealed class LavalinkPlayerTests
 				CurrentTrack: new TrackModel(
 					Data: "abc",
 					Information: CreateDummyTrack(),
-					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+					AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 				Volume: 1F,
 				IsPaused: true,
 				VoiceState: CreateVoiceState(),
@@ -804,7 +804,7 @@ public sealed class LavalinkPlayerTests
 				CurrentTrack: new TrackModel(
 					Data: "abc",
 					Information: CreateDummyTrack(),
-					AdditionalInformation: ImmutableDictionary<string, JsonNode>.Empty),
+					AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
 				Volume: 1F,
 				IsPaused: true,
 				VoiceState: CreateVoiceState(),

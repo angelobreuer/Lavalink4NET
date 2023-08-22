@@ -1,53 +1,66 @@
 ﻿namespace Lavalink4NET.Integrations.Lavasrc;
 
 using System.Collections.Immutable;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using Lavalink4NET.Rest.Entities.Tracks;
 
 public readonly record struct ExtendedPlaylistInformation(PlaylistInformation Playlist)
 {
-    public string Name => Playlist.Name;
+	public string Name => Playlist.Name;
 
-    public ExtendedLavalinkTrack? SelectedTrack
-    {
-        get
-        {
-            return Playlist.SelectedTrack is null
-                ? null
-                : new ExtendedLavalinkTrack(Playlist.SelectedTrack);
-        }
-    }
+	public ExtendedLavalinkTrack? SelectedTrack
+	{
+		get
+		{
+			return Playlist.SelectedTrack is null
+				? null
+				: new ExtendedLavalinkTrack(Playlist.SelectedTrack);
+		}
+	}
 
-    public IImmutableDictionary<string, JsonNode> AdditionalInformation => Playlist.AdditionalInformation;
+	public IImmutableDictionary<string, JsonElement> AdditionalInformation => Playlist.AdditionalInformation;
 
-    public PlaylistType? Type => AdditionalInformation.GetValueOrDefault("type")?.ToString() switch
-    {
-        "album" => PlaylistType.Album,
-        "playlist" => PlaylistType.Playlist,
-        "artist" => PlaylistType.Artist,
-        "recommendations" => PlaylistType.Recommendations,
-        _ => null,
-    };
+	public PlaylistType? Type => !TryGetElement("type", out var typeElement) ? null : typeElement.GetString()! switch
+	{
+		"album" => PlaylistType.Album,
+		"playlist" => PlaylistType.Playlist,
+		"artist" => PlaylistType.Artist,
+		"recommendations" => PlaylistType.Recommendations,
+		_ => null,
+	};
 
-    public Uri? Uri
-    {
-        get
-        {
-            var uri = AdditionalInformation.GetValueOrDefault("url")?.ToString();
-            return uri is null ? null : new Uri(uri);
-        }
-    }
+	public Uri? Uri
+	{
+		get
+		{
+			if (!TryGetElement("url", out var uriElement))
+			{
+				return null;
+			}
 
-    public Uri? ArtworkUri
-    {
-        get
-        {
-            var artworkUri = AdditionalInformation.GetValueOrDefault("artworkUrl")?.ToString();
-            return artworkUri is null ? null : new Uri(artworkUri);
-        }
-    }
+			return new Uri(uriElement.GetString()!);
+		}
+	}
 
-    public string? Author => AdditionalInformation.GetValueOrDefault("author")?.ToString();
+	public Uri? ArtworkUri
+	{
+		get
+		{
+			if (!TryGetElement("artworkUrl", out var artworkUriElement))
+			{
+				return null;
+			}
 
-    public int? TotalTracks => AdditionalInformation.GetValueOrDefault("totalTracks")?.GetValue<int>();
+			return new Uri(artworkUriElement.GetString()!);
+		}
+	}
+
+	public string? Author => TryGetElement("author", out var authorElement) ? authorElement.GetString() : null;
+
+	public int? TotalTracks => TryGetElement("totalTracks", out var totalTracksElement) ? totalTracksElement.GetInt32() : null;
+
+	private bool TryGetElement(string key, out JsonElement element)
+	{
+		return Playlist.AdditionalInformation.TryGetValue(key, out element) && element.ValueKind is not JsonValueKind.Null;
+	}
 }
