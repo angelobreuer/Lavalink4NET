@@ -495,7 +495,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
 					.ReceiveAsync(cancellationToken)
 					.ConfigureAwait(false);
 			}
-			catch (WebSocketException exception)
+			catch (Exception exception)
 			{
 				_logger.ExceptionOccurredDuringCommunication(Label, exception);
 				break;
