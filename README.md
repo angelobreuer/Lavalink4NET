@@ -6,7 +6,7 @@
 <!-- Center badges -->
 <p align="center"><b>High performance Lavalink wrapper for .NET</b></p>
 
-[Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net) and [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/).
+[Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net), [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/) and [Remora](https://github.com/Remora/Remora.Discord).
 
 ### Features
 - ⚖️ **Node Clustering / Load Balancing**<br>Distribute load across nodes for efficient and reliable audio playback (for large scale bots).
@@ -39,7 +39,7 @@
 
 - 📊 **Statistics tracking support**<br>Lavalink4NET supports tracking and evaluation of node statistics. In clustering, node statistics can be used to evaluate the best node for efficient resource usage.
 
-- ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus) and [Discord.Net](https://github.com/discord-net/Discord.Net).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus and Discord.Net are supported out-of-the-box.
+- ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus), [Discord.Net](https://github.com/discord-net/Discord.Net), and [Remora](https://github.com/Remora/Remora.Discord).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus, Discord.Net and Remora are supported out-of-the-box.
   
 [![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
 
@@ -56,6 +56,8 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 - [**Lavalink4NET.Discord.Net**](https://www.nuget.org/packages/Lavalink4NET.Discord.Net/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Discord.Net.svg?style=flat-square)<br>Enhance your Discord bots with advanced audio playback using this integration for Lavalink4NET. Designed for end users building Discord.Net-based applications.
 
 - [**Lavalink4NET.DSharpPlus**](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg?style=flat-square)<br>Add powerful audio playback to your DSharpPlus-based applications with this integration for Lavalink4NET. Suitable for end users developing with DSharpPlus.
+
+- [**Lavalink4NET.Remora.Discord**](https://www.nuget.org/packages/Lavalink4NET.Remora.Discord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your Remora-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with Remora.
 
 #### _Clustering_
 
