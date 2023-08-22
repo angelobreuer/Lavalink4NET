@@ -5,13 +5,13 @@ using Lavalink4NET.Protocol.Converters;
 
 public sealed record class SessionUpdateProperties
 {
-	[JsonPropertyName("resuming")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-	[JsonConverter(typeof(OptionalJsonConverter<bool>))]
-	public Optional<bool> IsSessionResumptionEnabled { get; set; }
+    [JsonPropertyName("resuming")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonConverter(typeof(OptionalJsonConverter<bool>))]
+    public Optional<bool> IsSessionResumptionEnabled { get; set; }
 
-	[JsonPropertyName("timeout")]
-	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-	[JsonConverter(typeof(OptionalJsonConverter<TimeSpan?, NullableDurationJsonConverter>))]
-	public Optional<TimeSpan?> Timeout { get; set; }
+    [JsonPropertyName("timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonConverter(typeof(OptionalJsonConverter<TimeSpan?, NullableDurationJsonConverter>))]
+    public Optional<TimeSpan?> Timeout { get; set; }
 }

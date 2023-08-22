@@ -5,19 +5,19 @@ using Microsoft.Extensions.Options;
 
 public sealed record class LavalinkSocketOptions
 {
-	internal static readonly Uri DefaultAddress = new("ws://localhost:2333/");
+    internal static readonly Uri DefaultAddress = new("ws://localhost:2333/");
 
-	public string? Label { get; set; }
+    public string? Label { get; set; }
 
-	public Uri Uri { get; init; } = DefaultAddress;
+    public Uri Uri { get; init; } = DefaultAddress;
 
-	public string Passphrase { get; set; } = "youshallnotpass";
+    public string Passphrase { get; set; } = "youshallnotpass";
 
-	public string HttpClientName { get; init; } = Options.DefaultName;
+    public string HttpClientName { get; init; } = Options.DefaultName;
 
-	public int ShardCount { get; init; } = 1;
+    public int ShardCount { get; init; } = 1;
 
-	public ulong UserId { get; init; }
+    public ulong UserId { get; init; }
 
-	public string? SessionId { get; init; }
+    public string? SessionId { get; init; }
 }

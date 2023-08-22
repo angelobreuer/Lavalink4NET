@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 public interface ILavalinkApiClientProvider
 {
-	ValueTask<ILavalinkApiClient> GetClientAsync(CancellationToken cancellationToken = default);
+    ValueTask<ILavalinkApiClient> GetClientAsync(CancellationToken cancellationToken = default);
 }

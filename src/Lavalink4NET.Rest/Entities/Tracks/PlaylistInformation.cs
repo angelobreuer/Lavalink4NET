@@ -5,6 +5,6 @@ using System.Text.Json;
 using Lavalink4NET.Tracks;
 
 public sealed record class PlaylistInformation(
-	string Name,
-	LavalinkTrack? SelectedTrack,
-	IImmutableDictionary<string, JsonElement> AdditionalInformation);
+    string Name,
+    LavalinkTrack? SelectedTrack,
+    IImmutableDictionary<string, JsonElement> AdditionalInformation);

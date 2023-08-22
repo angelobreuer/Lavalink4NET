@@ -6,11 +6,11 @@ using System.Text.Json.Serialization;
 
 public sealed record class TextResultModel
 {
-	[JsonRequired]
-	[JsonPropertyName("text")]
-	public string Text { get; set; } = null!;
+    [JsonRequired]
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = null!;
 
-	[JsonRequired]
-	[JsonPropertyName("plugin")]
-	public IImmutableDictionary<string, JsonElement> AdditionalInformation { get; set; } = null!;
+    [JsonRequired]
+    [JsonPropertyName("plugin")]
+    public IImmutableDictionary<string, JsonElement> AdditionalInformation { get; set; } = null!;
 }

@@ -4,5 +4,5 @@ using Microsoft.Extensions.Options;
 
 public interface ILavalinkApiClientFactory
 {
-	ILavalinkApiClient Create(IOptions<LavalinkApiClientOptions> options);
+    ILavalinkApiClient Create(IOptions<LavalinkApiClientOptions> options);
 }

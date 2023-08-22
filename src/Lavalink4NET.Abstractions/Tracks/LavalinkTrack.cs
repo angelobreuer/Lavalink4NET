@@ -5,74 +5,74 @@ using System.Text.Json;
 
 public partial record class LavalinkTrack
 {
-	private StreamProvider? _cachedProvider;
-	private bool _providerCached;
+    private StreamProvider? _cachedProvider;
+    private bool _providerCached;
 
 #if NET7_0_OR_GREATER
     required
 #endif
-	public string Title
-	{ get; init; } = null!;
-
-#if NET7_0_OR_GREATER
-    required
-#endif
-
-	public string Identifier
-	{ get; init; } = null!;
+    public string Title
+    { get; init; } = null!;
 
 #if NET7_0_OR_GREATER
     required
 #endif
 
-	public string Author
-	{ get; init; } = null!;
+    public string Identifier
+    { get; init; } = null!;
 
-	public TimeSpan Duration { get; init; }
+#if NET7_0_OR_GREATER
+    required
+#endif
 
-	public bool IsLiveStream { get; init; }
+    public string Author
+    { get; init; } = null!;
 
-	public bool IsSeekable { get; init; }
+    public TimeSpan Duration { get; init; }
 
-	public Uri? Uri { get; init; }
+    public bool IsLiveStream { get; init; }
 
-	public Uri? ArtworkUri { get; init; }
+    public bool IsSeekable { get; init; }
 
-	public string? Isrc { get; init; }
+    public Uri? Uri { get; init; }
 
-	public string? SourceName { get; init; }
+    public Uri? ArtworkUri { get; init; }
 
-	public TimeSpan? StartPosition { get; init; }
+    public string? Isrc { get; init; }
 
-	public string? ProbeInfo { get; init; }
+    public string? SourceName { get; init; }
 
-	public StreamProvider? Provider
-	{
-		get
-		{
-			if (_providerCached)
-			{
-				return _cachedProvider;
-			}
+    public TimeSpan? StartPosition { get; init; }
 
-			_cachedProvider = StreamHeuristics.GetStreamProvider(SourceName);
-			_providerCached = true;
+    public string? ProbeInfo { get; init; }
 
-			return _cachedProvider;
-		}
-	}
+    public StreamProvider? Provider
+    {
+        get
+        {
+            if (_providerCached)
+            {
+                return _cachedProvider;
+            }
 
-	public IImmutableDictionary<string, JsonElement> AdditionalInformation { get; init; } = ImmutableDictionary<string, JsonElement>.Empty;
+            _cachedProvider = StreamHeuristics.GetStreamProvider(SourceName);
+            _providerCached = true;
 
-	internal string? TrackData { get; set; }
+            return _cachedProvider;
+        }
+    }
 
-	/// <summary>
-	///     Allows you to override a track that will be sent to Lavalink for playback
-	/// </summary>
-	/// <returns>Track which will be sent to Lavalink node</returns>
-	public virtual ValueTask<LavalinkTrack> GetPlayableTrackAsync(CancellationToken cancellationToken = default)
-	{
-		cancellationToken.ThrowIfCancellationRequested();
-		return ValueTask.FromResult(this);
-	}
+    public IImmutableDictionary<string, JsonElement> AdditionalInformation { get; init; } = ImmutableDictionary<string, JsonElement>.Empty;
+
+    internal string? TrackData { get; set; }
+
+    /// <summary>
+    ///     Allows you to override a track that will be sent to Lavalink for playback
+    /// </summary>
+    /// <returns>Track which will be sent to Lavalink node</returns>
+    public virtual ValueTask<LavalinkTrack> GetPlayableTrackAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ValueTask.FromResult(this);
+    }
 }

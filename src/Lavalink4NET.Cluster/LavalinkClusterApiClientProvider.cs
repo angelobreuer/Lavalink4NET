@@ -7,23 +7,23 @@ using Lavalink4NET.Rest;
 
 internal sealed class LavalinkClusterApiClientProvider : ILavalinkApiClientProvider
 {
-	private readonly ILavalinkClusterLoadBalancer _loadBalancer;
+    private readonly ILavalinkClusterLoadBalancer _loadBalancer;
 
-	public LavalinkClusterApiClientProvider(ILavalinkClusterLoadBalancer loadBalancer)
-	{
-		ArgumentNullException.ThrowIfNull(loadBalancer);
+    public LavalinkClusterApiClientProvider(ILavalinkClusterLoadBalancer loadBalancer)
+    {
+        ArgumentNullException.ThrowIfNull(loadBalancer);
 
-		_loadBalancer = loadBalancer;
-	}
+        _loadBalancer = loadBalancer;
+    }
 
-	public async ValueTask<ILavalinkApiClient> GetClientAsync(CancellationToken cancellationToken = default)
-	{
-		cancellationToken.ThrowIfCancellationRequested();
+    public async ValueTask<ILavalinkApiClient> GetClientAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-		var node = await _loadBalancer
-			.GetPreferredNodeAsync(cancellationToken)
-			.ConfigureAwait(false);
+        var node = await _loadBalancer
+            .GetPreferredNodeAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-		return node.ApiClient;
-	}
+        return node.ApiClient;
+    }
 }

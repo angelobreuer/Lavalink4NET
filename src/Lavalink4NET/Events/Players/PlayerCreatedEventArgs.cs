@@ -4,8 +4,8 @@ using Lavalink4NET.Players;
 
 public sealed class PlayerCreatedEventArgs : PlayerEventArgs
 {
-	public PlayerCreatedEventArgs(ILavalinkPlayer player)
-		: base(player)
-	{
-	}
+    public PlayerCreatedEventArgs(ILavalinkPlayer player)
+        : base(player)
+    {
+    }
 }
