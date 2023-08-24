@@ -72,7 +72,7 @@ Lavalink4NET adds support primitives for using the Lavasrc plugin using Lavalink
 
 ### Lavasearch Integration
 
-Lavalin4NET adds support primitives for using the Lavasearch plugin using Lavalink4NET.
+Lavalink4NET adds support primitives for using the Lavasearch plugin using Lavalink4NET.
 
 ## How to migrate
 
