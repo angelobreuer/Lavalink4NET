@@ -64,7 +64,7 @@ When retrieving a player, I often see users writing a lot of boilerplate to ensu
 
 ### Remora.Discord
 
-Lavalink v4 adds support for the [Remora](https://github.com/Remora/Remora.Discord) discord client.
+Lavalink4NET v4 adds support for the [Remora](https://github.com/Remora/Remora.Discord) discord client.
 
 ### Lavasrc Integration
 
