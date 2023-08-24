@@ -211,7 +211,7 @@ public async Task GetPositionAsync()
 
 ### SponsorBlock
 
-In v4 the SponsorBlock API has changed a bit due to changes in the SponorBlock plguin for Lavalink. Setting default skip categories is no longer possible. Instead, you can now set the skip categories for each player individually. This means that you will need to change your code to use the new SponsorBlock API.
+In v4 the SponsorBlock API has changed a bit due to changes in the SponorBlock plugin for Lavalink. Setting default skip categories is no longer possible. Instead, you can now set the skip categories for each player individually. This means that you will need to change your code to use the new SponsorBlock API.
 
 ## Need help?
 
