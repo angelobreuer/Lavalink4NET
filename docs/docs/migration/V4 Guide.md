@@ -213,6 +213,10 @@ public async Task GetPositionAsync()
 
 In v4 the SponsorBlock API has changed a bit due to changes in the SponorBlock plugin for Lavalink. Setting default skip categories is no longer possible. Instead, you can now set the skip categories for each player individually. This means that you will need to change your code to use the new SponsorBlock API.
 
+### Associating data with tracks
+
+In v3, the `LavalinkTrack` had a `Context` property that could be used to associate data with a track. This property has been removed in v4. Since a goal in the v4 redesign was to make the `LavalinkTrack` stateless, it was not possible to keep this property. Instead, you can now use the `ITrackQueueItem` interface to associate data with a track. You can implement this interface and pass it to the the queued lavalink player when playing tracks or adding tracks to the queue. You can access your associated track data at any time by accessing the `CurrentItem` property of the player, or by accessing the queue which stores all queued items.
+
 ## Need help?
 
 This guide covers the most common changes that you will need to make to migrate your codebase from v3 to v4. If you need help with migrating your codebase, feel free to join our Discord server. We will be happy to help you with migrating your codebase.
