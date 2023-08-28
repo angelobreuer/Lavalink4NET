@@ -81,12 +81,12 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return position;
         }
 
+        CurrentItem = queueItem;
+
         // play the track immediately
         await base
             .PlayAsync(queueItem.Reference, properties, cancellationToken)
             .ConfigureAwait(false);
-
-        CurrentItem = queueItem;
 
         // 0 = now playing
         return 0;
@@ -236,11 +236,11 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return;
         }
 
+        CurrentItem = track.Value;
+
         await base
             .PlayAsync(track.Value.Reference, properties: default, cancellationToken)
             .ConfigureAwait(false);
-
-        CurrentItem = track.Value;
     }
 
     protected sealed override ValueTask NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
