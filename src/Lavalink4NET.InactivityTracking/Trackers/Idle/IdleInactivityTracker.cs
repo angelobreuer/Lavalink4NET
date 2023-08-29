@@ -42,6 +42,7 @@ public sealed class IdleInactivityTracker : IInactivityTracker
 file sealed class IdleInactivityTrackerContext
 {
     private readonly IInactivityTrackerContext _trackerContext;
+    private readonly object _trackerContextSyncRoot;
     private readonly IPlayerManager _playerManager;
     private readonly ImmutableArray<PlayerState> _idleStates;
     private readonly TimeSpan? _timeout;
@@ -56,6 +57,7 @@ file sealed class IdleInactivityTrackerContext
         ArgumentNullException.ThrowIfNull(playerManager);
 
         _trackerContext = trackerContext;
+        _trackerContextSyncRoot = new object();
         _playerManager = playerManager;
         _timeout = timeout;
         _idleStates = idleStates;
@@ -89,16 +91,19 @@ file sealed class IdleInactivityTrackerContext
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(eventArgs);
 
-        using var scope = _trackerContext.CreateScope();
-        var isIdle = _idleStates.Contains(eventArgs.State);
+        lock (_trackerContextSyncRoot)
+        {
+            using var scope = _trackerContext.CreateScope();
+            var isIdle = _idleStates.Contains(eventArgs.State);
 
-        if (isIdle)
-        {
-            scope.MarkInactive(eventArgs.Player.GuildId, _timeout);
-        }
-        else
-        {
-            scope.MarkActive(eventArgs.Player.GuildId);
+            if (isIdle)
+            {
+                scope.MarkInactive(eventArgs.Player.GuildId, _timeout);
+            }
+            else
+            {
+                scope.MarkActive(eventArgs.Player.GuildId);
+            }
         }
 
         return Task.CompletedTask;

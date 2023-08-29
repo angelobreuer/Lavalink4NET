@@ -48,6 +48,7 @@ file sealed class UsersInactivityTrackerContext
 {
     private readonly IDiscordClientWrapper _discordClient;
     private readonly IInactivityTrackerContext _trackerContext;
+    private readonly object _trackerContextSyncRoot;
     private readonly IPlayerManager _playerManager;
     private readonly bool _excludeBots;
     private readonly int _threshold;
@@ -65,6 +66,7 @@ file sealed class UsersInactivityTrackerContext
 
         _discordClient = discordClient;
         _trackerContext = trackerContext;
+        _trackerContextSyncRoot = new();
         _playerManager = playerManager;
 
         _excludeBots = options?.ExcludeBots ?? true;
@@ -82,38 +84,29 @@ file sealed class UsersInactivityTrackerContext
             return; // ignore, no player allocated for this guild
         }
 
-        var scope = default(InactivityTrackerScope?);
-        try
+        if (eventArgs.VoiceState.VoiceChannelId is null)
         {
-            if (eventArgs.OldVoiceState.VoiceChannelId is not null)
-            {
-                scope ??= _trackerContext.CreateScope();
-
-                await UpdateChannelAsync(
-                    scope: scope,
-                    guildId: eventArgs.GuildId,
-                    voiceChannelId: eventArgs.OldVoiceState.VoiceChannelId.Value)
-                    .ConfigureAwait(false);
-            }
-
-            if (eventArgs.VoiceState.VoiceChannelId is not null)
-            {
-                scope ??= _trackerContext.CreateScope();
-
-                await UpdateChannelAsync(
-                    scope: scope,
-                    guildId: eventArgs.GuildId,
-                    voiceChannelId: eventArgs.VoiceState.VoiceChannelId.Value)
-                    .ConfigureAwait(false);
-            }
+            return; // ignore, user left the voice channel
         }
-        finally
+
+        var isActive = await IsActiveAsync(eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId.Value).ConfigureAwait(false);
+
+        lock (_trackerContextSyncRoot)
         {
-            scope?.Dispose();
+            using var scope = _trackerContext.CreateScope();
+
+            if (isActive)
+            {
+                scope.MarkActive(eventArgs.GuildId);
+            }
+            else
+            {
+                scope.MarkInactive(eventArgs.GuildId, _timeout);
+            }
         }
     }
 
-    private async ValueTask UpdateChannelAsync(InactivityTrackerScope scope, ulong guildId, ulong voiceChannelId, CancellationToken cancellationToken = default)
+    private async ValueTask<bool> IsActiveAsync(ulong guildId, ulong voiceChannelId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -121,14 +114,7 @@ file sealed class UsersInactivityTrackerContext
             .GetChannelUsersAsync(guildId, voiceChannelId, !_excludeBots, cancellationToken)
             .ConfigureAwait(false);
 
-        if (users.Length >= _threshold)
-        {
-            scope.MarkActive(guildId);
-        }
-        else
-        {
-            scope.MarkInactive(guildId, _timeout);
-        }
+        return users.Length >= _threshold;
     }
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
