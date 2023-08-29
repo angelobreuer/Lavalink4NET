@@ -149,6 +149,12 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
     internal ILogger<InactivityTrackingService> Logger { get; }
 
+    internal void NotifyDestroyed(ILavalinkPlayer player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        Dispatch(new PlayerInactiveEventDispatch(player));
+    }
+
     public void Report(
         IInactivityTracker inactivityTracker,
         IImmutableSet<ulong> activePlayers,

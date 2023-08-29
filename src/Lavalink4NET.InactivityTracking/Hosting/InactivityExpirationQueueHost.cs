@@ -8,12 +8,14 @@ using Microsoft.Extensions.Hosting;
 internal sealed class InactivityExpirationQueueHost : BackgroundService
 {
     private readonly IInactivityExpirationQueue _inactivityExpirationQueue;
+    private readonly InactivityTrackingService _inactivityTrackingService;
 
-    public InactivityExpirationQueueHost(IInactivityExpirationQueue inactivityExpirationQueue)
+    public InactivityExpirationQueueHost(IInactivityExpirationQueue inactivityExpirationQueue, IInactivityTrackingService inactivityTrackingService)
     {
         ArgumentNullException.ThrowIfNull(inactivityExpirationQueue);
 
         _inactivityExpirationQueue = inactivityExpirationQueue;
+        _inactivityTrackingService = (InactivityTrackingService)inactivityTrackingService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -31,6 +33,7 @@ internal sealed class InactivityExpirationQueueHost : BackgroundService
                 break;
             }
 
+            _inactivityTrackingService.NotifyDestroyed(player);
             await using var _ = player.ConfigureAwait(false);
         }
     }
