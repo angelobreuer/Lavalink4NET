@@ -91,6 +91,11 @@ file sealed class IdleInactivityTrackerContext
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(eventArgs);
 
+        if (eventArgs.Player.State is PlayerState.Destroyed)
+        {
+            return Task.CompletedTask; // ignore, player is destroyed
+        }
+
         lock (_trackerContextSyncRoot)
         {
             using var scope = _trackerContext.CreateScope();
