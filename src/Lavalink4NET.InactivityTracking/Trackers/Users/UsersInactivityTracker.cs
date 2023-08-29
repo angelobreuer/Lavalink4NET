@@ -79,17 +79,19 @@ file sealed class UsersInactivityTrackerContext
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(eventArgs);
 
-        if (!_playerManager.HasPlayer(eventArgs.GuildId))
+        if (!_playerManager.TryGetPlayer(eventArgs.GuildId, out var player))
         {
             return; // ignore, no player allocated for this guild
         }
 
-        if (eventArgs.VoiceState.VoiceChannelId is null)
+        var voiceChannelId = player.VoiceChannelId;
+
+        if (eventArgs.VoiceState.VoiceChannelId != voiceChannelId && eventArgs.OldVoiceState.VoiceChannelId != voiceChannelId)
         {
-            return; // ignore, user left the voice channel
+            return; // ignore, not the channel we are tracking
         }
 
-        var isActive = await IsActiveAsync(eventArgs.GuildId, eventArgs.VoiceState.VoiceChannelId.Value).ConfigureAwait(false);
+        var isActive = await IsActiveAsync(eventArgs.GuildId, voiceChannelId).ConfigureAwait(false);
 
         lock (_trackerContextSyncRoot)
         {
