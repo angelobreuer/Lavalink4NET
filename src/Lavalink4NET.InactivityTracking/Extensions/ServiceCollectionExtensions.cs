@@ -42,7 +42,6 @@ public static class ServiceCollectionExtensions
         services.AddOptions<InactivityTrackingOptions>();
 
         services.AddHostedService<InactivityTrackingServiceHost>();
-        services.AddHostedService<InactivityExpirationQueueHost>();
 
         return services;
     }

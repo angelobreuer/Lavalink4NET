@@ -15,6 +15,7 @@ using Lavalink4NET.InactivityTracking.Trackers.Lifetime;
 using Lavalink4NET.InactivityTracking.Trackers.Users;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracking;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -575,6 +576,14 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
         Logger.InactivityTrackingServiceStarting();
 
+        var queueExpirationHost = new InactivityExpirationQueueHost(
+            inactivityExpirationQueue: _expirationQueue,
+            inactivityTrackingService: this);
+
+        await queueExpirationHost
+            .StartAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         foreach (var lifetime in _lifetimes)
         {
             await lifetime
@@ -603,6 +612,10 @@ public partial class InactivityTrackingService : IInactivityTrackingService
         }
         finally
         {
+            await queueExpirationHost
+                .StopAsync(cancellationToken)
+                .ConfigureAwait(false);
+
             Logger.InactivityTrackingServiceStopping();
 
             foreach (var lifetime in _lifetimes)
@@ -861,6 +874,40 @@ file sealed class TrackerInactiveEventDispatch(ILavalinkPlayer Player, IInactivi
             await inactivityTrackingService
                 .OnTrackerInactiveAsync(eventArgs)
                 .ConfigureAwait(false);
+        }
+    }
+}
+
+file sealed class InactivityExpirationQueueHost : BackgroundService
+{
+    private readonly IInactivityExpirationQueue _inactivityExpirationQueue;
+    private readonly InactivityTrackingService _inactivityTrackingService;
+
+    public InactivityExpirationQueueHost(IInactivityExpirationQueue inactivityExpirationQueue, IInactivityTrackingService inactivityTrackingService)
+    {
+        ArgumentNullException.ThrowIfNull(inactivityExpirationQueue);
+
+        _inactivityExpirationQueue = inactivityExpirationQueue;
+        _inactivityTrackingService = (InactivityTrackingService)inactivityTrackingService;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        stoppingToken.ThrowIfCancellationRequested();
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var player = await _inactivityExpirationQueue
+                .GetExpiredPlayerAsync(stoppingToken)
+                .ConfigureAwait(false);
+
+            if (player is null)
+            {
+                break;
+            }
+
+            _inactivityTrackingService.NotifyDestroyed(player);
+            await using var _ = player.ConfigureAwait(false);
         }
     }
 }
