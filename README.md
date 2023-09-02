@@ -96,20 +96,23 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 ### Getting Started
 
-Lavalink4NET works by using dependency injection to make management of services very easy. You just have to add `services.AddLavalink();` to your startup code:
+Lavalink4NET works by using dependency injection to make management of services very easy. You just have to add `services.AddLavalink();` to your startup code. We prefer using the host application builder to manage services required by Lavalink4NET.
 
 ```csharp
-using var serviceProvider = new ServiceCollection()
-  .AddLavalink() // Contained in the client support packages
-  [...]
-  .BuildServiceProvider();
-	
-var audioService = serviceProvider.GetRequiredService<IAudioService>();
+var builder = new HostApplicationBuilder(args);
+
+builder.Services.AddLavalink(); // Contained in the client support packages
+
+var app = builder.Build();
+
+var audioService = app.Services.GetRequiredService<IAudioService>();
 
 // [...]
 ```
 
 > (ℹ️) Since Lavalink4NET v4, boilerplate code has been drastically reduced. It is also no longer required to initialize the node.
+
+> (ℹ️) If you only use Dependency Injection without `Microsoft.Extensions.Hosting`, you may need to call `.StartAsync()` on various Lavalink4NET services, like `IAudioService`, `IInactivityTrackingService`, ...
 
 ```csharp
 // Play a track
