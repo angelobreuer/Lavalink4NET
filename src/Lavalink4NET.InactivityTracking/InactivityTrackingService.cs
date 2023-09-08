@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Lavalink4NET.Clients;
+using Lavalink4NET.Events.Players;
 using Lavalink4NET.InactivityTracking.Events;
 using Lavalink4NET.InactivityTracking.Players;
 using Lavalink4NET.InactivityTracking.Queue;
@@ -144,6 +145,29 @@ public partial class InactivityTrackingService : IInactivityTrackingService
         _allMask = trackersArray.Length is 32
             ? uint.MaxValue
             : (uint)(1 << trackersArray.Length) - 1;
+
+        _playerManager.PlayerDestroyed += OnPlayerDestroyed;
+    }
+
+    private async Task OnPlayerDestroyed(object sender, PlayerDestroyedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        _expirationQueue.TryCancel(eventArgs.Player);
+
+        await _playersSemaphoreSlim
+            .WaitAsync()
+            .ConfigureAwait(false);
+
+        try
+        {
+            _trackingMap.Remove(eventArgs.Player.GuildId);
+        }
+        finally
+        {
+            _playersSemaphoreSlim.Release();
+        }
     }
 
     internal PausedPlayersState? PausedPlayers { get; }
@@ -468,6 +492,9 @@ public partial class InactivityTrackingService : IInactivityTrackingService
         }
 
         await StopAsync().ConfigureAwait(false);
+
+        _playerManager.PlayerDestroyed += OnPlayerDestroyed;
+
         _disposed = true;
     }
 

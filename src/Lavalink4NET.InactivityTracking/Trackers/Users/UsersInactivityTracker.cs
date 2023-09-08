@@ -1,8 +1,5 @@
 ﻿namespace Lavalink4NET.InactivityTracking.Trackers.Users;
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Players;
