@@ -59,7 +59,13 @@ public sealed class PlayerManagerTests
     public async Task TestPlayerManagerCreatesPlayer()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -92,7 +98,13 @@ public sealed class PlayerManagerTests
     public async Task TestPlayerManagerDoesNotReturnDestroyedPlayers()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -126,7 +138,13 @@ public sealed class PlayerManagerTests
     public async Task TestGetPlayerReturnsPlayerFromJoinAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -160,7 +178,13 @@ public sealed class PlayerManagerTests
     public async Task TestGetPlayerThrowsIfPlayerTypeDoesNotMatchAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -198,7 +222,13 @@ public sealed class PlayerManagerTests
     public async Task TestGetPlayerReturnsTypedPlayerAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -234,7 +264,13 @@ public sealed class PlayerManagerTests
     public async Task TestGetPlayersReturnsTypedPlayersAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -317,7 +353,13 @@ public sealed class PlayerManagerTests
     public async Task TestHasPlayerTrueIfGuildHasPlayerAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -351,7 +393,13 @@ public sealed class PlayerManagerTests
     public async Task TestHasPlayerFalseIfGuildHasPlayerButPlayerIsDestroyedAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -387,7 +435,13 @@ public sealed class PlayerManagerTests
     public async Task TestSimpleRetrieveAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -424,7 +478,13 @@ public sealed class PlayerManagerTests
     public async Task TestSimpleRetrieveWithoutJoinFailsWithBotNotConnectedAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -461,7 +521,13 @@ public sealed class PlayerManagerTests
     public async Task TestRetrieveWithFailingPreconditionAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -500,7 +566,13 @@ public sealed class PlayerManagerTests
     public async Task TestRetrieveWithNonFailingPreconditionAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -537,7 +609,13 @@ public sealed class PlayerManagerTests
     public async Task TestRetrieveWithJoinWithoutMemberChannelAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
@@ -575,7 +653,13 @@ public sealed class PlayerManagerTests
     public async Task TestRetrieveWithMemberVoiceStateAlwaysRequiredFailsAsync()
     {
         // Arrange
-        var model = new PlayerInformationModel(GuildId: 0, CurrentTrack: null, Volume: 1F, IsPaused: false, VoiceState: null!, Filters: null!);
+        var model = new PlayerInformationModel(
+            GuildId: 0,
+            CurrentTrack: null,
+            Volume: 1F,
+            IsPaused: false,
+            VoiceState: new VoiceStateModel("abc", "abc", "abc"),
+            Filters: null!);
 
         var apiClient = Mock.Of<ILavalinkApiClient>(x
             => x.UpdatePlayerAsync(It.IsAny<string>(), It.IsAny<ulong>(), It.IsAny<PlayerUpdateProperties>(), It.IsAny<CancellationToken>())
