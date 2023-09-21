@@ -2,26 +2,14 @@ namespace Lavalink4NET.Artwork;
 
 using System;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Tracks;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Internal;
 
 public class ArtworkService : IArtworkService, IDisposable
 {
-    private readonly ISystemClock _systemClock;
-    private readonly IMemoryCache? _cache;
     private bool _disposed;
     private HttpClient? _httpClient;
-
-    public ArtworkService(ISystemClock? systemClock = null, IMemoryCache? cache = null)
-    {
-        _systemClock = systemClock ?? new SystemClock();
-        _cache = cache;
-    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -93,41 +81,11 @@ public class ArtworkService : IArtworkService, IDisposable
         return default;
     }
 
-    protected virtual async ValueTask<Uri?> ResolveArtworkForSoundCloudAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Uri?> ResolveArtworkForSoundCloudAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDisposed();
-
-        var cacheKey = default(string?);
-        if (_cache is not null)
-        {
-            cacheKey = $"soundcloud-artwork-{lavalinkTrack.Identifier}";
-
-            if (_cache.TryGetValue<Uri>(cacheKey, out var cacheItem))
-            {
-                return cacheItem;
-            }
-        }
-
-        if (lavalinkTrack.Uri is null)
-        {
-            return null;
-        }
-
-        var requestUri = new Uri($"https://soundcloud.com/oembed?url={lavalinkTrack.Uri.AbsoluteUri}&format=json");
-        Uri? thumbnailUri;
-        try
-        {
-            thumbnailUri = await FetchTrackUriFromOEmbedCompatibleResourceAsync(requestUri, cancellationToken).ConfigureAwait(false);
-        }
-        catch (HttpRequestException)
-        {
-            return null;
-        }
-
-        _cache?.Set(cacheKey!, thumbnailUri, _systemClock.UtcNow + TimeSpan.FromMinutes(60));
-
-        return thumbnailUri;
+        return new ValueTask<Uri?>(lavalinkTrack.ArtworkUri);
     }
 
     protected virtual ValueTask<Uri?> ResolveArtworkForTwitchAsync(LavalinkTrack lavalinkTrack, CancellationToken cancellationToken = default)
@@ -161,19 +119,5 @@ public class ArtworkService : IArtworkService, IDisposable
         {
             throw new ObjectDisposedException(nameof(ArtworkService));
         }
-    }
-
-    private async ValueTask<Uri?> FetchTrackUriFromOEmbedCompatibleResourceAsync(Uri requestUri, CancellationToken cancellationToken = default)
-    {
-        var httpResponse = await GetHttpClient()
-            .GetFromJsonAsync<JsonObject>(requestUri, cancellationToken)
-            .ConfigureAwait(false);
-
-        // OEmbed responses contain a thumbnail_uri property as per standard
-        var thumbnailUriNode = httpResponse?["thumbnail_url"]
-            ?? throw new InvalidOperationException("Unable to find thumbnail URI in response.");
-
-        var rawThumbnailUri = thumbnailUriNode.GetValue<string>();
-        return rawThumbnailUri is null ? default : new Uri(rawThumbnailUri);
     }
 }
