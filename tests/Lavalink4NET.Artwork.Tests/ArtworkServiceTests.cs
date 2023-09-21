@@ -12,7 +12,7 @@ public sealed class ArtworkServiceTests
     public async Task TestResolveSoundCloudAsync(string uri, string thumbnail)
     {
         // Arrange
-        using var artworkService = new ArtworkService(cache: null);
+        using var artworkService = new ArtworkService();
 
         var track = new LavalinkTrack
         {
@@ -20,6 +20,7 @@ public sealed class ArtworkServiceTests
             Author = string.Empty,
             Duration = default,
             IsLiveStream = false,
+            ArtworkUri = new Uri(thumbnail),
             IsSeekable = false,
             Uri = new Uri(uri),
             SourceName = "soundcloud",
