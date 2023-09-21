@@ -20,7 +20,7 @@ public readonly record struct TrackLoadResult
     public PlaylistInformation? Playlist => _playlist?.Name is not null ? _playlist : null;
 
     [MemberNotNullWhen(true, nameof(Playlist))]
-    public bool IsPlaylist => _playlist.Name is not null;
+    public bool IsPlaylist => _playlist?.Name is not null;
 
     [MemberNotNullWhen(true, nameof(Track))]
     public bool IsSuccess => _value is LavalinkTrack[] or LavalinkTrack;
