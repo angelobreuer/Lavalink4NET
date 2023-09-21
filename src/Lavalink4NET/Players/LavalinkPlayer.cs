@@ -53,6 +53,9 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         _disconnectOnDestroy = properties.Options.Value.DisconnectOnDestroy;
         _disconnectOnStop = properties.Options.Value.DisconnectOnStop;
 
+        VoiceServer = new VoiceServer(properties.InitialState.VoiceState.Token, properties.InitialState.VoiceState.Endpoint);
+        VoiceState = new VoiceState(properties.VoiceChannelId, properties.InitialState.VoiceState.SessionId);
+
         Filters = new PlayerFilterMap(this);
 
         if (properties.InitialState.IsPaused)
@@ -76,6 +79,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     public ulong GuildId { get; }
 
     public bool IsPaused { get; private set; }
+
+    public VoiceServer? VoiceServer { get; private set; }
+
+    public VoiceState VoiceState { get; private set; }
 
     public TrackPosition? Position
     {
@@ -324,9 +331,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     async ValueTask ILavalinkPlayerListener.NotifyWebSocketClosedAsync(WebSocketCloseStatus closeStatus, string reason, bool byRemote, CancellationToken cancellationToken)
     {
-        await using var _ = this.ConfigureAwait(false);
-
         cancellationToken.ThrowIfCancellationRequested();
+
+        VoiceServer = null;
+        VoiceState = new VoiceState(VoiceState.VoiceChannelId, SessionId: null);
+
         await NotifyWebSocketClosedAsync(closeStatus, reason, byRemote, cancellationToken).ConfigureAwait(false);
     }
 
@@ -529,6 +538,58 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await _playerLifecycle
             .NotifyStateChangedAsync(playerState, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    protected virtual ValueTask NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        VoiceState = voiceState;
+
+        if (voiceState.VoiceChannelId is null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        return UpdateVoiceCredentialsAsync(cancellationToken);
+    }
+
+    protected virtual ValueTask NotifyVoiceServerUpdatedAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        VoiceServer = voiceServer;
+        return UpdateVoiceCredentialsAsync(cancellationToken);
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return NotifyVoiceStateUpdatedAsync(voiceState, cancellationToken);
+    }
+
+    ValueTask ILavalinkPlayerListener.NotifyVoiceServerUpdatedAsync(VoiceServer voiceServer, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return NotifyVoiceServerUpdatedAsync(voiceServer, cancellationToken);
+    }
+
+    private ValueTask UpdateVoiceCredentialsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (VoiceServer is null || VoiceState.SessionId is null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        var properties = new PlayerUpdateProperties
+        {
+            VoiceState = new VoiceStateProperties(
+                Token: VoiceServer.Value.Token,
+                Endpoint: VoiceServer.Value.Endpoint,
+                SessionId: VoiceState.SessionId),
+        };
+
+        return PerformUpdateAsync(properties, cancellationToken);
     }
 }
 

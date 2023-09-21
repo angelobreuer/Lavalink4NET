@@ -96,7 +96,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_voiceState is not null)
         {
-            await CompleteAsync(cancellationToken).ConfigureAwait(false);
+            await CompleteAsync(isVoiceServerUpdated: true, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -110,7 +110,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_voiceServer is not null)
         {
-            await CompleteAsync(cancellationToken).ConfigureAwait(false);
+            await CompleteAsync(isVoiceServerUpdated: false, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -122,7 +122,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         }
     }
 
-    private async ValueTask CompleteAsync(CancellationToken cancellationToken = default)
+    private async ValueTask CompleteAsync(bool isVoiceServerUpdated, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
@@ -143,6 +143,19 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_value is ILavalinkPlayerListener playerListener)
         {
+            if (isVoiceServerUpdated)
+            {
+                await playerListener
+                    .NotifyVoiceServerUpdatedAsync(_voiceServer.Value, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await playerListener
+                    .NotifyVoiceStateUpdatedAsync(_voiceState.Value, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await playerListener
                 .NotifyChannelUpdateAsync(_voiceState.Value.VoiceChannelId, cancellationToken)
                 .ConfigureAwait(false);
