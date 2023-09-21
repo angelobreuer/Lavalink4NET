@@ -576,7 +576,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (VoiceServer is null || VoiceState.SessionId is null)
+        if (_disposed is 1 || VoiceServer is null || VoiceState.SessionId is null)
         {
             return ValueTask.CompletedTask;
         }
