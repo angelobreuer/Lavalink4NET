@@ -115,7 +115,7 @@ public sealed class LavalinkPlayerTests
         var playerListener = player as ILavalinkPlayerListener;
 
         // Act
-        await playerListener.NotifyChannelUpdateAsync(voiceChannelId: null);
+        await playerListener.NotifyVoiceStateUpdatedAsync(new VoiceState(null, null));
 
         // Assert
         Assert.Equal(PlayerState.Destroyed, player.State);
@@ -141,8 +141,8 @@ public sealed class LavalinkPlayerTests
         var playerListener = player as ILavalinkPlayerListener;
 
         // Act
-        await playerListener.NotifyChannelUpdateAsync(voiceChannelId: 0UL); // initial update
-        await playerListener.NotifyChannelUpdateAsync(voiceChannelId: 123UL); // move
+        await playerListener.NotifyVoiceStateUpdatedAsync(new VoiceState(VoiceChannelId: 128UL, null)); // initial update
+        await playerListener.NotifyVoiceStateUpdatedAsync(new VoiceState(VoiceChannelId: 123UL, null)); // move
 
         // Assert
         Assert.Equal(123UL, player.VoiceChannelId);
@@ -702,7 +702,7 @@ public sealed class LavalinkPlayerTests
 
         // Act
         await listener
-            .NotifyChannelUpdateAsync(42)
+            .NotifyVoiceStateUpdatedAsync(new VoiceState(42, null))
             .ConfigureAwait(false);
 
         // Assert

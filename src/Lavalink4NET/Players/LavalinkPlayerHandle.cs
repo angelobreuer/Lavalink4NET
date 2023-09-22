@@ -88,9 +88,13 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
     public async ValueTask UpdateVoiceServerAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
-        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(voiceServer);
+
+        if (_disposeState is 1)
+        {
+            return;
+        }
 
         _voiceServer = voiceServer;
 
@@ -102,9 +106,13 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
     public async ValueTask UpdateVoiceStateAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
     {
-        ThrowIfDisposed();
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(voiceState);
+
+        if (_disposeState is 1)
+        {
+            return;
+        }
 
         _voiceState = voiceState;
 
@@ -155,10 +163,6 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
                     .NotifyVoiceStateUpdatedAsync(_voiceState.Value, cancellationToken)
                     .ConfigureAwait(false);
             }
-
-            await playerListener
-                .NotifyChannelUpdateAsync(_voiceState.Value.VoiceChannelId, cancellationToken)
-                .ConfigureAwait(false);
         }
     }
 

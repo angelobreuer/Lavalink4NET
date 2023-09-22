@@ -119,16 +119,19 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public string Label { get; }
 
-    async ValueTask ILavalinkPlayerListener.NotifyChannelUpdateAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
+    private async ValueTask NotifyChannelUpdateCoreAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
     {
+        if (_disposed is 1)
+        {
+            return;
+        }
+
         if (voiceChannelId is null)
         {
             _logger.PlayerDisconnected(Label);
             await using var _ = this.ConfigureAwait(false);
             return;
         }
-
-        EnsureNotDestroyed();
 
         if (!_connectedOnce)
         {
@@ -525,9 +528,14 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             .ConfigureAwait(false);
     }
 
-    protected virtual ValueTask NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
+    protected virtual async ValueTask NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (_disposed is 1)
+        {
+            return;
+        }
 
         if (VoiceState.VoiceChannelId != VoiceChannelId)
         {
@@ -535,18 +543,25 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 
         VoiceState = voiceState;
+        VoiceChannelId = voiceState.VoiceChannelId ?? VoiceChannelId;
 
-        if (voiceState.VoiceChannelId is null)
+        await NotifyChannelUpdateCoreAsync(voiceState.VoiceChannelId, cancellationToken).ConfigureAwait(false);
+
+        if (voiceState.VoiceChannelId is not null)
         {
-            return ValueTask.CompletedTask;
+            await UpdateVoiceCredentialsAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        return UpdateVoiceCredentialsAsync(cancellationToken);
     }
 
     protected virtual ValueTask NotifyVoiceServerUpdatedAsync(VoiceServer voiceServer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (_disposed is 1)
+        {
+            return ValueTask.CompletedTask;
+        }
+
         VoiceServer = voiceServer;
         return UpdateVoiceCredentialsAsync(cancellationToken);
     }
