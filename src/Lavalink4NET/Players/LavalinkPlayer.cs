@@ -140,19 +140,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             _logger.PlayerMoved(Label, voiceChannelId);
         }
 
-        VoiceChannelId = voiceChannelId.Value;
-
-        try
-        {
-            await NotifyChannelUpdateAsync(voiceChannelId, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            if (_disconnectOnDestroy && voiceChannelId is null)
-            {
-                await DisposeAsync().ConfigureAwait(false);
-            }
-        }
+        await NotifyChannelUpdateAsync(voiceChannelId, cancellationToken).ConfigureAwait(false);
     }
 
     async ValueTask ILavalinkPlayerListener.NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken)
@@ -332,9 +320,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     async ValueTask ILavalinkPlayerListener.NotifyWebSocketClosedAsync(WebSocketCloseStatus closeStatus, string reason, bool byRemote, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        VoiceServer = null;
-        VoiceState = new VoiceState(VoiceState.VoiceChannelId, SessionId: null);
 
         await NotifyWebSocketClosedAsync(closeStatus, reason, byRemote, cancellationToken).ConfigureAwait(false);
     }
@@ -543,6 +528,12 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     protected virtual ValueTask NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (VoiceState.VoiceChannelId != VoiceChannelId)
+        {
+            VoiceServer = null;
+        }
+
         VoiceState = voiceState;
 
         if (voiceState.VoiceChannelId is null)
