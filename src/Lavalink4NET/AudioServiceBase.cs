@@ -74,13 +74,7 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
             return ValueTask.CompletedTask;
         }
 
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            token1: cancellationToken,
-            token2: ShutdownCancellationToken);
-
-        cancellationToken = cancellationTokenSource.Token;
-
-        _executeTask = RunAsync(cancellationToken).AsTask();
+        _executeTask = RunAsync(ShutdownCancellationToken).AsTask();
 
         return _executeTask.IsCompleted ? new ValueTask(_executeTask) : ValueTask.CompletedTask;
     }
@@ -101,9 +95,17 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
         }
         finally
         {
-            await _executeTask
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
+            try
+            {
+                await _executeTask
+                    .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException exception)
+            {
+                _executeTask = null; // Abandon task
+                _logger.LogError(exception, "Reached timeout while waiting for the audio service being stopped.");
+            }
         }
     }
 

@@ -60,6 +60,10 @@ internal sealed class LavalinkSocket : ILavalinkSocket
         {
             return null;
         }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
     }
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
