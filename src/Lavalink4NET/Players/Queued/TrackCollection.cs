@@ -202,6 +202,29 @@ public abstract class TrackCollection : ITrackCollection
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public virtual int IndexOf(ITrackQueueItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return Items.IndexOf(item);
+    }
+
+    public virtual int IndexOf(Func<ITrackQueueItem, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        var items = Items;
+
+        for (var index = 0; index < items.Count; index++)
+        {
+            if (predicate(items[index]))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
 }
 
 file sealed class TrackEqualityComparer : IEqualityComparer<ITrackQueueItem>

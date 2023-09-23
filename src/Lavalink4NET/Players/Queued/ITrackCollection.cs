@@ -11,6 +11,10 @@ public interface ITrackCollection : IReadOnlyList<ITrackQueueItem>
 
     bool Contains(ITrackQueueItem item);
 
+    int IndexOf(ITrackQueueItem item);
+
+    int IndexOf(Func<ITrackQueueItem, bool> predicate);
+
     ValueTask<bool> RemoveAtAsync(int index, CancellationToken cancellationToken = default);
 
     ValueTask<bool> RemoveAsync(ITrackQueueItem item, CancellationToken cancellationToken = default);
