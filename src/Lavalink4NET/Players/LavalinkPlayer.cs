@@ -30,6 +30,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private TimeSpan _unstretchedRelativePosition;
     private bool _disconnectOnDestroy;
     private bool _connectedOnce;
+    private ulong _trackVersion;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -74,8 +75,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         Refresh(properties.InitialState);
     }
 
-    public LavalinkTrack? CurrentTrack { get; private set; }
-
     public ulong GuildId { get; }
 
     public bool IsPaused { get; private set; }
@@ -119,6 +118,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public string Label { get; }
 
+    public LavalinkTrack? CurrentTrack { get; private set; }
+
     private async ValueTask NotifyChannelUpdateCoreAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
     {
         if (_disposed is 1)
@@ -151,12 +152,22 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
 
-        CurrentTrack = null;
+        var currentTrackVersion = _trackVersion;
+        var previousTrack = CurrentTrack;
 
-        await UpdateStateAsync(PlayerState.NotPlaying, cancellationToken)
-            .ConfigureAwait(false);
-
-        await NotifyTrackEndedAsync(track, endReason, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await NotifyTrackEndedAsync(track, endReason, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (Volatile.Read(ref _trackVersion) == currentTrackVersion)
+            {
+                Debug.Assert(ReferenceEquals(previousTrack, CurrentTrack));
+                CurrentTrack = null;
+                await UpdateStateAsync(PlayerState.NotPlaying, cancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 
     ValueTask ILavalinkPlayerListener.NotifyTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken)
@@ -170,7 +181,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
+
         CurrentTrack = track;
+        Interlocked.Increment(ref _trackVersion);
+
         return NotifyTrackStartedAsync(track, cancellationToken);
     }
 
@@ -412,6 +426,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
                     AdditionalInformation = model.CurrentTrack.AdditionalInformation,
                 };
             }
+
+            Interlocked.Increment(ref _trackVersion);
         }
 
         Volume = model.Volume;
