@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Rest;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -20,21 +21,29 @@ internal sealed class LavalinkSocket : ILavalinkSocket
 {
     private readonly Channel<IPayload> _channel;
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
+    private readonly IReconnectStrategy _reconnectStrategy;
+    private readonly ISystemClock _systemClock;
     private readonly ILogger<LavalinkSocket> _logger;
     private readonly IOptions<LavalinkSocketOptions> _options;
     private bool _disposed;
 
     public LavalinkSocket(
         IHttpMessageHandlerFactory httpMessageHandlerFactory,
+        IReconnectStrategy reconnectStrategy,
+        ISystemClock systemClock,
         ILogger<LavalinkSocket> logger,
         IOptions<LavalinkSocketOptions> options)
     {
         ArgumentNullException.ThrowIfNull(httpMessageHandlerFactory);
+        ArgumentNullException.ThrowIfNull(reconnectStrategy);
+        ArgumentNullException.ThrowIfNull(systemClock);
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(options);
 
         Label = options.Value.Label ?? $"Lavalink-{CorrelationIdGenerator.GetNextId()}";
         _httpMessageHandlerFactory = httpMessageHandlerFactory;
+        _reconnectStrategy = reconnectStrategy;
+        _systemClock = systemClock;
         _logger = logger;
         _options = options;
         _channel = Channel.CreateUnbounded<IPayload>();
@@ -77,6 +86,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
             cancellationToken.ThrowIfCancellationRequested();
 
             var attempt = 0;
+            var interruptedSince = default(DateTimeOffset?);
 
             while (true)
             {
@@ -111,17 +121,36 @@ internal sealed class LavalinkSocket : ILavalinkSocket
                         .ConfigureAwait(false);
 #endif
 
+                    interruptedSince = null;
+                    attempt = 0;
+
                     _logger.ConnectionEstablished(Label);
 
                     return webSocket;
                 }
-                catch (Exception exception) when (attempt++ < 10)
+                catch (Exception exception)
                 {
-                    await Task
-                        .Delay(2500, cancellationToken)
+                    _logger.FailedToConnect(Label, exception);
+
+                    interruptedSince ??= _systemClock.UtcNow;
+
+                    var reconnectDelay = await _reconnectStrategy
+                        .GetNextDelayAsync(interruptedSince.Value, ++attempt, cancellationToken)
                         .ConfigureAwait(false);
 
-                    _logger.FailedToConnect(Label, exception);
+                    if (reconnectDelay is null)
+                    {
+                        throw;
+                    }
+
+                    if (reconnectDelay.Value > TimeSpan.Zero)
+                    {
+                        _logger.WaitingBeforeReconnect(Label, reconnectDelay.Value.TotalSeconds);
+
+                        await Task
+                            .Delay(reconnectDelay.Value, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
         }
@@ -233,4 +262,7 @@ internal static partial class Logging
 
     [LoggerMessage(3, LogLevel.Debug, "[{Label}] Failed to connect to the Lavalink node.", EventName = nameof(FailedToConnect))]
     public static partial void FailedToConnect(this ILogger<LavalinkSocket> logger, string label, Exception exception);
+
+    [LoggerMessage(4, LogLevel.Debug, "[{Label}] Waiting {Duration} second(s) before reconnecting to the node.", EventName = nameof(WaitingBeforeReconnect))]
+    public static partial void WaitingBeforeReconnect(this ILogger<LavalinkSocket> logger, string label, double duration);
 }

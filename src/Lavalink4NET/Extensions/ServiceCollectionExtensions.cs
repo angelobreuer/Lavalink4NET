@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IIntegrationManager, IntegrationManager>();
         services.TryAddSingleton<ILavalinkApiClientProvider, LavalinkApiClientProvider>();
         services.TryAddSingleton<ILavalinkSessionProvider, LavalinkSessionProvider>();
+        services.TryAddSingleton<IReconnectStrategy, ExponentialBackoffReconnectStrategy>();
 
         services.AddHostedService<AudioServiceHost>();
 
@@ -51,5 +52,36 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection ConfigureLavalink(this IServiceCollection services, Action<AudioServiceOptions> options)
     {
         return services.Configure(options);
+    }
+
+    public static IServiceCollection AddReconnectStrategy<TReconnectStrategy>(this IServiceCollection services)
+        where TReconnectStrategy : class, IReconnectStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.Replace(ServiceDescriptor.Singleton<IReconnectStrategy, TReconnectStrategy>());
+
+        return services;
+    }
+
+    public static IServiceCollection AddReconnectStrategy<TReconnectStrategy>(this IServiceCollection services, Func<IServiceProvider, TReconnectStrategy> implementationFactory)
+        where TReconnectStrategy : class, IReconnectStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(implementationFactory);
+
+        services.Replace(ServiceDescriptor.Singleton<IReconnectStrategy, TReconnectStrategy>(implementationFactory));
+
+        return services;
+    }
+
+    public static IServiceCollection AddReconnectStrategy<TReconnectStrategy>(this IServiceCollection services, TReconnectStrategy reconnectStrategy)
+        where TReconnectStrategy : class, IReconnectStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.Replace(ServiceDescriptor.Singleton<IReconnectStrategy>(reconnectStrategy));
+
+        return services;
     }
 }
