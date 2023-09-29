@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -26,6 +27,9 @@ public sealed class LavalinkSocketTests
         // Arrange
         var socketFactory = new LavalinkSocketFactory(
             httpMessageHandlerFactory: new HttpMessageHandlerFactory(),
+            reconnectStrategy: new ExponentialBackoffReconnectStrategy(
+                options: Options.Create(new ExponentialBackoffReconnectStrategyOptions())),
+            systemClock: new SystemClock(),
             logger: NullLogger<LavalinkSocket>.Instance);
 
         var builder = WebApplication.CreateBuilder();
@@ -78,6 +82,9 @@ public sealed class LavalinkSocketTests
         // Arrange
         var socketFactory = new LavalinkSocketFactory(
             httpMessageHandlerFactory: new HttpMessageHandlerFactory(),
+            reconnectStrategy: new ExponentialBackoffReconnectStrategy(
+                options: Options.Create(new ExponentialBackoffReconnectStrategyOptions())),
+            systemClock: new SystemClock(),
             logger: NullLogger<LavalinkSocket>.Instance);
 
         var builder = WebApplication.CreateBuilder();
