@@ -13,6 +13,9 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
     private readonly CancellationToken _shutdownCancellationToken;
     private readonly CancellationTokenSource _stopCancellationTokenSource;
     private readonly Task<ClientInformation> _readyTask;
+    private readonly object _taskSyncRoot;
+    private readonly ILavalinkClusterNodeListener? _clusterNodeListener;
+    private int _status;
     private Task? _task;
 
     public LavalinkClusterNode(
@@ -42,9 +45,13 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
         Metadata = options.Value.Metadata;
         Cluster = cluster;
         ApiClient = apiClient;
+
+        _status = (int)LavalinkNodeStatus.OnDemand;
         _readyTask = readyTask;
+        _taskSyncRoot = new object();
         _stopCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownCancellationToken);
         _shutdownCancellationToken = _stopCancellationTokenSource.Token;
+        _clusterNodeListener = serviceContext.NodeListener as ILavalinkClusterNodeListener;
     }
 
     public string? SessionId => _node.SessionId;
@@ -57,40 +64,28 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
 
     public ILavalinkCluster Cluster { get; }
 
-    public LavalinkNodeStatus Status
-    {
-        get
-        {
-            if (_task is null)
-            {
-                return LavalinkNodeStatus.OnDemand;
-            }
-
-            if (!_node.IsReady)
-            {
-                return LavalinkNodeStatus.WaitingForReady;
-            }
-
-            if (_task.Status is not TaskStatus.Running)
-            {
-                return LavalinkNodeStatus.Unavailable;
-            }
-
-            return LavalinkNodeStatus.Available; // TODO: Check if degraded
-        }
-    }
+    public LavalinkNodeStatus Status => (LavalinkNodeStatus)_status;
 
     public ILavalinkApiClient ApiClient { get; }
 
-    public async ValueTask StartAsync(CancellationToken cancellationToken = default)
+    public ValueTask StartAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var clientInformation = await _readyTask
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
+        lock (_taskSyncRoot)
+        {
+            if (_task is null || Status is LavalinkNodeStatus.OnDemand)
+            {
+                _task = RunInternalAsync(_shutdownCancellationToken);
+            }
 
-        _task ??= _node.RunAsync(clientInformation, _shutdownCancellationToken).AsTask();
+            if (_task.IsCompleted)
+            {
+                return new ValueTask(_task);
+            }
+        }
+
+        return default;
     }
 
     public async ValueTask StopAsync(CancellationToken cancellationToken = default)
@@ -99,13 +94,18 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
 
         _stopCancellationTokenSource.Cancel();
 
-        if (_task is not null)
+        Task? task;
+        lock (_taskSyncRoot)
         {
-            await _task
+            task = _task;
+            _task = null;
+        }
+
+        if (task is not null)
+        {
+            await task
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
-
-            _task = null;
         }
     }
 
@@ -113,5 +113,56 @@ internal sealed class LavalinkClusterNode : ILavalinkNode
     {
         cancellationToken.ThrowIfCancellationRequested();
         return _node.WaitForReadyAsync(cancellationToken);
+    }
+
+    private async ValueTask UpdateStatusAsync(LavalinkNodeStatus nodeStatus, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var previousStatus = (LavalinkNodeStatus)Interlocked.Exchange(ref _status, (int)nodeStatus);
+
+        if (previousStatus == nodeStatus)
+        {
+            return;
+        }
+
+        if (_clusterNodeListener is not null)
+        {
+            await _clusterNodeListener
+                .OnStatusChangedAsync(this, previousStatus, nodeStatus, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async Task RunInternalAsync(CancellationToken shutdownCancellationToken = default)
+    {
+        shutdownCancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await UpdateStatusAsync(LavalinkNodeStatus.WaitingForReady, shutdownCancellationToken);
+
+            var clientInformation = await _readyTask
+                .WaitAsync(shutdownCancellationToken)
+                .ConfigureAwait(false);
+
+            var nodeTask = _node.RunAsync(clientInformation, _shutdownCancellationToken).AsTask();
+
+            await _node
+                .WaitForReadyAsync(shutdownCancellationToken)
+                .ConfigureAwait(false);
+
+            await UpdateStatusAsync(LavalinkNodeStatus.Available, shutdownCancellationToken);
+
+            await nodeTask.ConfigureAwait(false);
+        }
+        finally
+        {
+            var exitStatus = _shutdownCancellationToken.IsCancellationRequested
+                ? LavalinkNodeStatus.OnDemand
+                : LavalinkNodeStatus.Unavailable;
+
+            await UpdateStatusAsync(exitStatus, shutdownCancellationToken);
+        }
     }
 }

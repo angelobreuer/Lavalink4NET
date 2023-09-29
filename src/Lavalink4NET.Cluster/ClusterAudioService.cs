@@ -4,7 +4,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
+using Lavalink4NET.Cluster.Events;
 using Lavalink4NET.Cluster.Nodes;
+using Lavalink4NET.Events;
 using Lavalink4NET.Integrations;
 using Lavalink4NET.Players;
 using Lavalink4NET.Rest;
@@ -13,7 +15,7 @@ using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioService
+public class ClusterAudioService : AudioServiceBase, IClusterAudioService, ILavalinkClusterNodeListener
 {
     private readonly object _syncRoot;
     private readonly ClusterAudioServiceOptions _options;
@@ -21,6 +23,8 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
     private readonly ILavalinkApiClientFactory _lavalinkApiClientFactory;
     private readonly ILoggerFactory _loggerFactory;
     private readonly TaskCompletionSource<ClientInformation> _clientReadyTaskCompletionSource;
+
+    public event AsyncEventHandler<NodeStatusChangedEventArgs>? NodeStatusChanged;
 
     public ClusterAudioService(
         IDiscordClientWrapper discordClient,
@@ -130,5 +134,19 @@ internal sealed class ClusterAudioService : AudioServiceBase, IClusterAudioServi
         {
             await RemoveAsync(node, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    protected virtual ValueTask OnStatusChangedAsync(ILavalinkNode node, LavalinkNodeStatus previousStatus, LavalinkNodeStatus currentStatus, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var eventArgs = new NodeStatusChangedEventArgs(node, previousStatus, currentStatus);
+        return NodeStatusChanged.InvokeAsync(this, eventArgs);
+    }
+
+    ValueTask ILavalinkClusterNodeListener.OnStatusChangedAsync(ILavalinkNode node, LavalinkNodeStatus previousStatus, LavalinkNodeStatus currentStatus, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return OnStatusChangedAsync(node, previousStatus, currentStatus, cancellationToken);
     }
 }
