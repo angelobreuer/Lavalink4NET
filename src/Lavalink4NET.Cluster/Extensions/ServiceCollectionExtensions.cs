@@ -66,4 +66,34 @@ public static class ServiceCollectionExtensions
     {
         return services.Configure(options);
     }
+
+    public static IServiceCollection AddLavalinkLoadBalancingStrategy<TLoadBalancingStrategy>(this IServiceCollection services)
+        where TLoadBalancingStrategy : class, INodeBalancingStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.Replace(ServiceDescriptor.Singleton<INodeBalancingStrategy, TLoadBalancingStrategy>());
+
+        return services;
+    }
+
+    public static IServiceCollection AddLavalinkLoadBalancingStrategy<TLoadBalancingStrategy>(this IServiceCollection services, Func<IServiceProvider, TLoadBalancingStrategy> func)
+        where TLoadBalancingStrategy : class, INodeBalancingStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.Replace(ServiceDescriptor.Singleton<INodeBalancingStrategy, TLoadBalancingStrategy>(func));
+
+        return services;
+    }
+
+    public static IServiceCollection AddLavalinkLoadBalancingStrategy<TLoadBalancingStrategy>(this IServiceCollection services, TLoadBalancingStrategy loadBalancingStrategy)
+        where TLoadBalancingStrategy : class, INodeBalancingStrategy
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.Replace(ServiceDescriptor.Singleton<INodeBalancingStrategy>(loadBalancingStrategy));
+
+        return services;
+    }
 }
