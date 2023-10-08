@@ -18,7 +18,7 @@ public static class LavalinkApiClientExtensions
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.Version}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
+        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
         using var httpClient = apiClient.CreateHttpClient();
 
         return await httpClient
@@ -36,7 +36,7 @@ public static class LavalinkApiClientExtensions
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.Version}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
+        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
         using var httpClient = apiClient.CreateHttpClient();
 
         using var responseMessage = await httpClient
@@ -55,7 +55,7 @@ public static class LavalinkApiClientExtensions
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.Version}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
+        var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/sessions/{sessionId}/players/{guildId}/sponsorblock/categories");
         using var httpClient = apiClient.CreateHttpClient();
 
         using var responseMessage = await httpClient
