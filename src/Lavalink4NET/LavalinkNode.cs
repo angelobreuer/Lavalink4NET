@@ -498,7 +498,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
             catch (Exception exception)
             {
                 _logger.ExceptionOccurredDuringCommunication(Label, exception);
-                break;
+                continue;
             }
 
             if (payload is null)
@@ -506,7 +506,14 @@ internal sealed class LavalinkNode : IAsyncDisposable
                 break;
             }
 
-            await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await ProcessPayloadAsync(payload, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                _logger.ExceptionOccurredWhileProcessingPayload(Label, payload, exception);
+            }
 
             foreach (var (_, integration) in _serviceContext.IntegrationManager)
             {
@@ -593,4 +600,7 @@ internal static partial class Logging
 
     [LoggerMessage(8, LogLevel.Error, "[{Label}] Exception occurred during communication.", EventName = nameof(ExceptionOccurredDuringCommunication))]
     public static partial void ExceptionOccurredDuringCommunication(this ILogger<LavalinkNode> logger, string label, Exception exception);
+
+    [LoggerMessage(9, LogLevel.Error, "[{Label}] Exception occurred while processing a payload: {Payload}.", EventName = nameof(ExceptionOccurredWhileProcessingPayload))]
+    public static partial void ExceptionOccurredWhileProcessingPayload(this ILogger<LavalinkNode> logger, string label, object payload, Exception exception);
 }
