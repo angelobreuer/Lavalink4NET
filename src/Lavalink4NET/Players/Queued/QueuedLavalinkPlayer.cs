@@ -32,7 +32,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 
         var options = properties.Options.Value;
 
-        Queue = new TrackQueue(historyCapacity: options.HistoryCapacity);
+        Queue = options.TrackQueue ?? new TrackQueue(historyCapacity: options.HistoryCapacity);
 
         _respectTrackRepeatOnSkip = options.RespectTrackRepeatOnSkip;
         _clearQueueOnStop = options.ClearQueueOnStop;

@@ -2,6 +2,11 @@
 
 public record class QueuedLavalinkPlayerOptions : LavalinkPlayerOptions
 {
+    /// <summary>
+    ///     If set, the player will use this queue instead of creating a new one.
+    /// </summary>
+    public ITrackQueue? TrackQueue { get; init; }
+
     public int? HistoryCapacity { get; init; } = 8;
 
     public bool ClearQueueOnStop { get; init; } = true;
