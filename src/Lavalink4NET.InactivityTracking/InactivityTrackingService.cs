@@ -635,7 +635,7 @@ public partial class InactivityTrackingService : IInactivityTrackingService
                         .InvokeAsync(this, cancellationToken)
                         .ConfigureAwait(false);
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     Logger.EventDispatchFailed(exception);
                 }
@@ -703,7 +703,7 @@ internal static partial class Logger
     [LoggerMessage(12, LogLevel.Debug, "Player '{Label}' was resumed by the inactivity tracking service.", EventName = nameof(PlayerResumedByInactivityTrackingService))]
     public static partial void PlayerResumedByInactivityTrackingService(this ILogger<InactivityTrackingService> logger, string label);
 
-    [LoggerMessage(13, LogLevel.Warning, "An event dispatch has failed on the inactivity tracking dispatch queue.", EventName = nameof(EventDispatchFailed)]
+    [LoggerMessage(13, LogLevel.Warning, "An event dispatch has failed on the inactivity tracking dispatch queue.", EventName = nameof(EventDispatchFailed))]
     public static partial void EventDispatchFailed(this ILogger<InactivityTrackingService> logger, Exception exception);
 }
 
