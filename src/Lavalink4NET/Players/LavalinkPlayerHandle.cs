@@ -210,6 +210,14 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             playerProperties = playerProperties with { Volume = _options.Value.InitialVolume.Value, };
         }
 
+        if (playerSession.SessionId is null)
+        {
+            throw new InvalidOperationException(
+                "The session identifier for the preferred node is not available.\n" +
+                "Please ensure that the connection to the node has been established and is ready.\n" +
+                "If you are not using Lavalink4NET in combination with Microsoft.Extensions.Hosting, ensure that you have explicitly called `.StartAsync()` on the required services.");
+        }
+
         var initialState = await playerSession.ApiClient
             .UpdatePlayerAsync(playerSession.SessionId, _guildId, playerProperties, cancellationToken)
             .ConfigureAwait(false);
