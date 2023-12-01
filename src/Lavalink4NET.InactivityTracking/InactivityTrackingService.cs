@@ -628,9 +628,17 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
             await foreach (var eventDispatch in events)
             {
-                await eventDispatch
-                    .InvokeAsync(this, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+
+                    await eventDispatch
+                        .InvokeAsync(this, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch(Exception exception)
+                {
+                    Logger.EventDispatchFailed(exception);
+                }
             }
         }
         catch (OperationCanceledException)
@@ -694,6 +702,9 @@ internal static partial class Logger
 
     [LoggerMessage(12, LogLevel.Debug, "Player '{Label}' was resumed by the inactivity tracking service.", EventName = nameof(PlayerResumedByInactivityTrackingService))]
     public static partial void PlayerResumedByInactivityTrackingService(this ILogger<InactivityTrackingService> logger, string label);
+
+    [LoggerMessage(13, LogLevel.Warning, "An event dispatch has failed on the inactivity tracking dispatch queue.", EventName = nameof(EventDispatchFailed)]
+    public static partial void EventDispatchFailed(this ILogger<InactivityTrackingService> logger, Exception exception);
 }
 
 internal readonly record struct PausedPlayersState(
