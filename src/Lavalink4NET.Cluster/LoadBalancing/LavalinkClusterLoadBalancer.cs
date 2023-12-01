@@ -48,10 +48,6 @@ internal sealed class LavalinkClusterLoadBalancer : ILavalinkClusterLoadBalancer
 
             _primaryNode = primaryNode;
             RefreshAt = _systemClock.UtcNow + balanceResult.Duration;
-
-            await primaryNode
-                .StartAsync(cancellationToken)
-                .ConfigureAwait(false);
         }
 
         return _primaryNode ?? throw new InvalidOperationException("No node is currently available according to the node balancing strategy.");

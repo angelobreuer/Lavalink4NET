@@ -24,6 +24,10 @@ internal sealed class LavalinkClusterApiClientProvider : ILavalinkApiClientProvi
             .GetPreferredNodeAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        await node
+            .StartAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         return node.ApiClient;
     }
 }

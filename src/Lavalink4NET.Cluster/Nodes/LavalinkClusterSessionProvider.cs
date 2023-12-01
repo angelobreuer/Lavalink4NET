@@ -25,6 +25,10 @@ internal sealed class LavalinkClusterSessionProvider : ILavalinkSessionProvider
             .ConfigureAwait(false);
 
         await node
+            .StartAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        await node
             .WaitForReadyAsync(cancellationToken)
             .ConfigureAwait(false);
 
