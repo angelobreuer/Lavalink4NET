@@ -19,6 +19,8 @@ public class LavalinkApiClientTests
     [InlineData("ytsearch:abc", "ytsearch:abc", null, false)]
     [InlineData("scsearch:abc", "scsearch:abc", null, false)]
     [InlineData("othersearch:abc", "othersearch:abc", null, false)]
+    [InlineData("other search:abc", "othersearch:other search:abc", "othersearch", true)]
+    [InlineData("ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch:ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch", true)]
     public void TestBuildIdentifier(string identifier, string expected, string searchMode, bool strict)
     {
         // Arrange

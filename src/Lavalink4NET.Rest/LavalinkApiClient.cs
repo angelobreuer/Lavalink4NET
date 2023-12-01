@@ -201,9 +201,9 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
                 : $"{loadOptions.SearchMode.Prefix}:{identifier}";
         }
 
-        var separatorIndex = identifier.AsSpan().IndexOf(':');
+        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
 
-        if (separatorIndex is -1)
+        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
         {
             return loadOptions.SearchMode.Prefix is null
                 ? identifier
