@@ -36,8 +36,9 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ILavalinkApiClientProvider, LavalinkClusterApiClientProvider>();
         services.TryAddSingleton<ILavalinkApiClientFactory, LavalinkApiClientFactory>();
         services.TryAddSingleton<ILavalinkSessionProvider, LavalinkClusterSessionProvider>();
+		services.TryAddSingleton<IReconnectStrategy, ExponentialBackoffReconnectStrategy>();
 
-        services.TryAddSingleton<ILavalinkCluster>(x => x.GetRequiredService<IClusterAudioService>());
+		services.TryAddSingleton<ILavalinkCluster>(x => x.GetRequiredService<IClusterAudioService>());
         services.TryAddSingleton<IAudioService>(x => x.GetRequiredService<IClusterAudioService>());
 
         services.TryAddSingleton<INodeBalancingStrategy>(
