@@ -210,6 +210,21 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     public ValueTask<ClientInformation> WaitForReadyAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // If the client was preinitialized, the ready event may have already been fired
+        // but the task completion source was not set yet.
+        if (!_readyTaskCompletionSource.Task.IsCompleted && _baseSocketClient.CurrentUser is not null)
+        {
+            var clientInformation = new ClientInformation(
+                Label: "discord.net",
+                CurrentUserId: _baseSocketClient.CurrentUser.Id,
+                ShardCount: GetShardCount());
+
+            _readyTaskCompletionSource.TrySetResult(clientInformation);
+
+            return new(clientInformation);
+        }
+
         return new(_readyTaskCompletionSource.Task.WaitAsync(cancellationToken));
     }
 
