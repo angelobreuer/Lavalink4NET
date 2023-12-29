@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Options;
@@ -231,6 +232,228 @@ public static class PlayerManagerExtensions
 
         return playerManager.RetrieveAsync(
             interactionContext: interactionContext,
+            playerFactory: PlayerFactory.Default,
+            options: Options.Create(new LavalinkPlayerOptions()),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<TPlayer>> RetrieveAsync<TPlayer, TOptions>(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<TPlayer, TOptions> playerFactory,
+        IOptions<TOptions> options,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+        where TPlayer : class, ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions
+    {
+        var userVoiceState = commandContext.User as IVoiceState;
+
+        return playerManager.RetrieveAsync(
+            guildId: commandContext.Guild.Id,
+            memberVoiceChannel: userVoiceState?.VoiceChannel?.Id,
+            playerFactory: playerFactory,
+            options: options,
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<TPlayer>> RetrieveAsync<TPlayer, TOptions>(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<TPlayer, TOptions> playerFactory,
+        Action<TOptions>? configure,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+        where TPlayer : class, ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions, new()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: playerFactory,
+            options: CreateOptions(configure),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<TPlayer>> RetrieveAsync<TPlayer, TOptions>(
+        this IPlayerManager playerManager,
+        ICommandContext interactionContext,
+        PlayerFactory<TPlayer, TOptions> playerFactory,
+        TOptions options,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+        where TPlayer : class, ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return playerManager.RetrieveAsync(
+            commandContext: interactionContext,
+            playerFactory: playerFactory,
+            options: Options.Create(options),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<TPlayer>> RetrieveAsync<TPlayer, TOptions>(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<TPlayer, TOptions> playerFactory,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+        where TPlayer : class, ILavalinkPlayer
+        where TOptions : LavalinkPlayerOptions, new()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: playerFactory,
+            options: Options.Create(new TOptions()),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<ILavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<ILavalinkPlayer, LavalinkPlayerOptions> playerFactory,
+        Action<LavalinkPlayerOptions>? configure,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory,
+            options: CreateOptions(configure),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<ILavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<ILavalinkPlayer, LavalinkPlayerOptions> playerFactory,
+        LavalinkPlayerOptions options,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: playerFactory,
+            options: Options.Create(options),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<ILavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerFactory<ILavalinkPlayer, LavalinkPlayerOptions> playerFactory,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(playerFactory);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: playerFactory,
+            options: Options.Create(new LavalinkPlayerOptions()),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<LavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        IOptions<LavalinkPlayerOptions> options,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: PlayerFactory.Default,
+            options: options,
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<LavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        Action<LavalinkPlayerOptions>? configure,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: PlayerFactory.Default,
+            options: CreateOptions(configure),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<LavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        LavalinkPlayerOptions options,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+        ArgumentNullException.ThrowIfNull(options);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
+            playerFactory: PlayerFactory.Default,
+            options: Options.Create(options),
+            retrieveOptions: retrieveOptions,
+            cancellationToken: cancellationToken);
+    }
+
+    public static ValueTask<PlayerResult<LavalinkPlayer>> RetrieveAsync(
+        this IPlayerManager playerManager,
+        ICommandContext commandContext,
+        PlayerRetrieveOptions retrieveOptions = default,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerManager);
+
+        return playerManager.RetrieveAsync(
+            commandContext: commandContext,
             playerFactory: PlayerFactory.Default,
             options: Options.Create(new LavalinkPlayerOptions()),
             retrieveOptions: retrieveOptions,
