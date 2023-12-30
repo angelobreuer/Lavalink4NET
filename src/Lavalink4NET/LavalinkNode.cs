@@ -465,6 +465,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
                 UserId = clientInformation.CurrentUserId,
                 Passphrase = _options.Passphrase,
                 SessionId = SessionId,
+                BufferSize = _options.BufferSize,
             };
 
             using var socket = _serviceContext.LavalinkSocketFactory.Create(Options.Create(socketOptions));

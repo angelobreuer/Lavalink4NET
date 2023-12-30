@@ -20,4 +20,6 @@ public sealed record class LavalinkSocketOptions
     public ulong UserId { get; init; }
 
     public string? SessionId { get; init; }
+
+    public int BufferSize { get; init; } = 32 * 1024; // 32 KiB
 }

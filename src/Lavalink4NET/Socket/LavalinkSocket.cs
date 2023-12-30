@@ -24,7 +24,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
     private readonly IReconnectStrategy _reconnectStrategy;
     private readonly ISystemClock _systemClock;
     private readonly ILogger<LavalinkSocket> _logger;
-    private readonly IOptions<LavalinkSocketOptions> _options;
+    private readonly LavalinkSocketOptions _options;
     private bool _disposed;
 
     public LavalinkSocket(
@@ -45,7 +45,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
         _reconnectStrategy = reconnectStrategy;
         _systemClock = systemClock;
         _logger = logger;
-        _options = options;
+        _options = options.Value;
         _channel = Channel.CreateUnbounded<IPayload>();
     }
 
@@ -79,7 +79,7 @@ internal sealed class LavalinkSocket : ILavalinkSocket
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var buffer = GC.AllocateUninitializedArray<byte>(32 * 1024);
+        var buffer = GC.AllocateUninitializedArray<byte>(_options.BufferSize);
 
         async ValueTask<WebSocket> ConnectWithRetryAsync(CancellationToken cancellationToken = default)
         {
@@ -97,27 +97,27 @@ internal sealed class LavalinkSocket : ILavalinkSocket
                 var webSocket = new ClientWebSocket();
 
                 var assemblyVersion = typeof(LavalinkSocket).Assembly.GetName().Version;
-                webSocket.Options.SetRequestHeader("Authorization", _options.Value.Passphrase);
-                webSocket.Options.SetRequestHeader("User-Id", _options.Value.UserId.ToString());
+                webSocket.Options.SetRequestHeader("Authorization", _options.Passphrase);
+                webSocket.Options.SetRequestHeader("User-Id", _options.UserId.ToString());
                 webSocket.Options.SetRequestHeader("Client-Name", $"Lavalink4NET/{assemblyVersion}");
 
-                if (_options.Value.SessionId is not null)
+                if (_options.SessionId is not null)
                 {
-                    webSocket.Options.SetRequestHeader("Session-Id", _options.Value.SessionId);
+                    webSocket.Options.SetRequestHeader("Session-Id", _options.SessionId);
                 }
 
                 try
                 {
 #if NET7_0_OR_GREATER
-                    var httpMessageHandler = _httpMessageHandlerFactory.CreateHandler(_options.Value.HttpClientName);
+                    var httpMessageHandler = _httpMessageHandlerFactory.CreateHandler(_options.HttpClientName);
                     var httpMessageInvoker = new HttpMessageInvoker(httpMessageHandler, disposeHandler: true);
 
                     await webSocket
-                        .ConnectAsync(_options.Value.Uri, httpMessageInvoker, cancellationToken)
+                        .ConnectAsync(_options.Uri, httpMessageInvoker, cancellationToken)
                         .ConfigureAwait(false);
 #else
                     await webSocket
-                        .ConnectAsync(_options.Value.Uri, cancellationToken)
+                        .ConnectAsync(_options.Uri, cancellationToken)
                         .ConfigureAwait(false);
 #endif
 

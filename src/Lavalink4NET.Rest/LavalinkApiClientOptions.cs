@@ -14,4 +14,6 @@ public record class LavalinkApiClientOptions
     public string HttpClientName { get; set; } = Options.DefaultName;
 
     public Uri BaseAddress { get; set; } = DefaultBaseAddress;
+
+    public int BufferSize { get; set; } = 32 * 1024; // 32 KiB
 }
