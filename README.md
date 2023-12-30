@@ -8,6 +8,8 @@
 
 [Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net), [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/) and [Remora](https://github.com/Remora/Remora.Discord).
 
+[![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
+
 ### Features
 - ⚖️ **Node Clustering / Load Balancing**<br>Distribute load across nodes for efficient and reliable audio playback (for large scale bots).
 
@@ -41,8 +43,6 @@
 
 - ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus), [Discord.Net](https://github.com/discord-net/Discord.Net), and [Remora](https://github.com/Remora/Remora.Discord).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus, Discord.Net and Remora are supported out-of-the-box.
   
-[![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
-
 ### Documentation
 
 > [!IMPORTANT]
