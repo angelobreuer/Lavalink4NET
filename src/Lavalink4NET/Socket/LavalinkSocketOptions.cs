@@ -21,5 +21,5 @@ public sealed record class LavalinkSocketOptions
 
     public string? SessionId { get; init; }
 
-    public int BufferSize { get; init; } = 32 * 1024; // 32 KiB
+    public int BufferSize { get; init; } = 64 * 1024; // 64 KiB
 }

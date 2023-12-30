@@ -15,5 +15,5 @@ public record class LavalinkApiClientOptions
 
     public Uri BaseAddress { get; set; } = DefaultBaseAddress;
 
-    public int BufferSize { get; set; } = 32 * 1024; // 32 KiB
+    public int BufferSize { get; set; } = 64 * 1024; // 64 KiB
 }
