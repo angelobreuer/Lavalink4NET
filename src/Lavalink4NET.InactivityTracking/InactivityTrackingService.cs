@@ -73,7 +73,7 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
             if (trackerOptions.Mode is InactivityTrackerMode.Polling)
             {
-                var pollInterval = trackerOptions.PollInterval ?? _defaultPollInterval;
+                var pollInterval = trackerOptions.PollInterval ?? options.Value.DefaultPollInterval;
 
                 return new PollingInactivityTrackerLifetime(
                     label,
