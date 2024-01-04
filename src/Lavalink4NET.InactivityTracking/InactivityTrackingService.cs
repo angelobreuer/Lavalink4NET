@@ -713,9 +713,9 @@ internal readonly record struct PausedPlayersState(
 
 internal readonly record struct PlayerTrackerMapEntry(int TrackerIndex, DateTimeOffset InactiveSince, TimeSpan Timeout)
 {
-    private readonly int _timeoutValue = (int)Timeout.TotalMilliseconds;
+    private readonly long _timeoutValue = Timeout.Ticks;
 
-    public TimeSpan Timeout => TimeSpan.FromMilliseconds(_timeoutValue);
+    public TimeSpan Timeout => TimeSpan.FromTicks(_timeoutValue);
 
     public DateTimeOffset InactiveSince { get; } = InactiveSince;
 }
