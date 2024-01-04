@@ -4,13 +4,13 @@ using System;
 
 public readonly struct InactivityTrackerEntry(DateTimeOffset inactiveSince, TimeSpan? timeout = null)
 {
-    private readonly int _timeoutValue = timeout.HasValue
-        ? (int)timeout.Value.TotalMilliseconds
+    private readonly long _timeoutValue = timeout.HasValue
+        ? timeout.Value.Ticks
         : -1;
 
     public TimeSpan? Timeout => _timeoutValue < 0
         ? null
-        : TimeSpan.FromMilliseconds(_timeoutValue);
+        : TimeSpan.FromTicks(_timeoutValue);
 
     public DateTimeOffset InactiveSince { get; } = inactiveSince;
 }
