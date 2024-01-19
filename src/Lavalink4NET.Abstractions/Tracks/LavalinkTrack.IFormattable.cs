@@ -118,9 +118,7 @@ public partial record class LavalinkTrack : ISpanFormattable
             throw new InvalidOperationException("Unknown source.");
         }
 
-        var isProbingAudioTrack =
-            SourceName.Equals("http", StringComparison.OrdinalIgnoreCase) ||
-            SourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
+        var isProbingAudioTrack = IsProbingTrack(SourceName);
 
         if (isProbingAudioTrack && ProbeInfo is null)
         {
@@ -207,6 +205,38 @@ public partial record class LavalinkTrack : ISpanFormattable
         if (isProbingAudioTrack && !TryEncodeString(ref buffer, ProbeInfo, ref bytesWritten))
         {
             return false;
+        }
+
+        if (IsExtendedTrack(SourceName))
+        {
+            bool TryEncodeOptionalJsonString(ref Span<byte> buffer, string propertyName, ref int bytesWritten)
+            {
+                var value = AdditionalInformation.TryGetValue(propertyName, out var jsonElement)
+                    ? jsonElement.GetString()!
+                    : string.Empty;
+
+                return TryEncodeOptionalString(ref buffer, value, ref bytesWritten);
+            }
+
+            if (!TryEncodeOptionalJsonString(ref buffer, "albumName", ref bytesWritten) ||
+                !TryEncodeOptionalJsonString(ref buffer, "albumUrl", ref bytesWritten) ||
+                !TryEncodeOptionalJsonString(ref buffer, "artistUrl", ref bytesWritten) ||
+                !TryEncodeOptionalJsonString(ref buffer, "artistArtworkUrl", ref bytesWritten) ||
+                !TryEncodeOptionalJsonString(ref buffer, "previewUrl", ref bytesWritten))
+            {
+                return false;
+            }
+
+            var isPreview = AdditionalInformation.TryGetValue("isPreview", out var isPreviewElement) && isPreviewElement.GetBoolean();
+
+            if (buffer.Length < 1)
+            {
+                return false;
+            }
+
+            buffer[0] = (byte)(isPreview ? 1 : 0);
+            bytesWritten++;
+            buffer = buffer[1..];
         }
 
         // Write track start position

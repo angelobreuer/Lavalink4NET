@@ -75,4 +75,17 @@ public partial record class LavalinkTrack
         cancellationToken.ThrowIfCancellationRequested();
         return ValueTask.FromResult(this);
     }
+
+    private static bool IsExtendedTrack(string sourceName)
+    {
+        return sourceName.Equals("spotify", StringComparison.OrdinalIgnoreCase)
+            || sourceName.Equals("applemusic", StringComparison.OrdinalIgnoreCase)
+            || sourceName.Equals("deezer", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsProbingTrack(string sourceName)
+    {
+        return sourceName.Equals("http", StringComparison.OrdinalIgnoreCase)
+            || sourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -3,8 +3,11 @@
 using System;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Unicode;
 
 public partial record class LavalinkTrack
@@ -67,14 +70,51 @@ public partial record class LavalinkTrack
             return false;
         }
 
-        var isProbingAudioTrack =
-            sourceName.Equals("http", StringComparison.OrdinalIgnoreCase) ||
-            sourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
-
         var containerProbeInformation = default(string?);
-        if (isProbingAudioTrack && !trackDecoder.TryReadString(out containerProbeInformation))
+
+        if (IsProbingTrack(sourceName) && !trackDecoder.TryReadString(out containerProbeInformation))
         {
             return false;
+        }
+
+        var additionalInformationBuilder = ImmutableDictionary.CreateBuilder<string, JsonElement>();
+
+        if (IsExtendedTrack(sourceName))
+        {
+            if (!trackDecoder.TryReadOptionalString(out var albumName) ||
+                !trackDecoder.TryReadOptionalString(out var rawAlbumUri) ||
+                !trackDecoder.TryReadOptionalString(out var rawArtistUri) ||
+                !trackDecoder.TryReadOptionalString(out var rawArtistArtworkUri) ||
+                !trackDecoder.TryReadOptionalString(out var rawPreviewUri) ||
+                !trackDecoder.TryReadBoolean(out var isPreview))
+            {
+                return false;
+            }
+
+            var data = new JsonObject
+            {
+                {"albumName", albumName },
+                {"albumUrl", rawAlbumUri },
+                {"artistUrl", rawArtistUri },
+                {"artistArtworkUrl", rawArtistArtworkUri },
+                {"previewUrl", rawPreviewUri },
+                {"isPreview", isPreview },
+            };
+
+            var bufferWriter = new ArrayBufferWriter<byte>();
+            using var utf8JsonWriter = new Utf8JsonWriter(bufferWriter);
+            data.WriteTo(utf8JsonWriter);
+            utf8JsonWriter.Dispose();
+
+            var utf8JsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
+            var jsonDocument = JsonElement.ParseValue(ref utf8JsonReader);
+
+            additionalInformationBuilder.Add("albumName", jsonDocument.GetProperty("albumName"));
+            additionalInformationBuilder.Add("albumUrl", jsonDocument.GetProperty("albumUrl"));
+            additionalInformationBuilder.Add("artistUrl", jsonDocument.GetProperty("artistUrl"));
+            additionalInformationBuilder.Add("artistArtworkUrl", jsonDocument.GetProperty("artistArtworkUrl"));
+            additionalInformationBuilder.Add("previewUrl", jsonDocument.GetProperty("previewUrl"));
+            additionalInformationBuilder.Add("isPreview", jsonDocument.GetProperty("isPreview"));
         }
 
         if (!trackDecoder.TryReadInt64(out var startPositionValue))
@@ -86,7 +126,7 @@ public partial record class LavalinkTrack
             ? default(TimeSpan?)
             : TimeSpan.FromMilliseconds(startPositionValue);
 
-        var duration = durationValue == long.MaxValue
+        var duration = durationValue >= TimeSpan.MaxValue.TotalMilliseconds
             ? TimeSpan.MaxValue
             : TimeSpan.FromMilliseconds(durationValue);
 
@@ -105,6 +145,7 @@ public partial record class LavalinkTrack
             ArtworkUri = artworkUri,
             Isrc = isrc,
             TrackData = originalTrackData.ToString(),
+            AdditionalInformation = additionalInformationBuilder.ToImmutable(),
         };
 
         return true;
