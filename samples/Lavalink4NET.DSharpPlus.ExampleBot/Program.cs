@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.EventArgs;
 using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
@@ -46,17 +45,9 @@ file sealed class ApplicationHost : BackgroundService
             .ConnectAsync()
             .ConfigureAwait(false);
 
-        var readyTaskCompletionSource = new TaskCompletionSource();
-
-        Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
-        {
-            readyTaskCompletionSource.TrySetResult();
-            return Task.CompletedTask;
-        }
-
-        _discordClient.Ready += SetResult;
-        await readyTaskCompletionSource.Task.ConfigureAwait(false);
-        _discordClient.Ready -= SetResult;
+        await _audioService
+            .WaitForReadyAsync(stoppingToken)
+            .ConfigureAwait(false);
 
         var playerOptions = new LavalinkPlayerOptions
         {
