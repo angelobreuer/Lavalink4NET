@@ -31,4 +31,10 @@ public static class PlayerPrecondition
 
     public static IPlayerPrecondition All(params IPlayerPrecondition[] preconditions)
         => new AggregateAllPrecondition(preconditions.ToImmutableArray());
+
+    public static IPlayerPrecondition Status(ImmutableArray<PlayerState> states)
+        => new PlayerStatePrecondition(states);
+
+    public static IPlayerPrecondition Status(params PlayerState[] states)
+        => new PlayerStatePrecondition(states.ToImmutableArray());
 }
