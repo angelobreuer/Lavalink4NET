@@ -1,6 +1,9 @@
 ﻿namespace Lavalink4NET.Players.Preconditions;
 
+using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 public static class PlayerPrecondition
 {
@@ -37,4 +40,18 @@ public static class PlayerPrecondition
 
     public static IPlayerPrecondition Status(params PlayerState[] states)
         => new PlayerStatePrecondition(states.ToImmutableArray());
+
+    public static IPlayerPrecondition Create(Func<ILavalinkPlayer, CancellationToken, ValueTask<bool>> precondition)
+        => new InlineAsynchronousPrecondition(precondition);
+
+    public static IPlayerPrecondition Create<TPlayer>(Func<TPlayer, CancellationToken, ValueTask<bool>> precondition)
+        where TPlayer : ILavalinkPlayer
+        => new InlineAsynchronousPrecondition<TPlayer>(precondition);
+
+    public static IPlayerPrecondition Create(Func<ILavalinkPlayer, bool> precondition)
+        => new InlineSynchronousPrecondition(precondition);
+
+    public static IPlayerPrecondition Create<TPlayer>(Func<TPlayer, bool> precondition)
+        where TPlayer : ILavalinkPlayer
+        => new InlineSynchronousPrecondition<TPlayer>(precondition);
 }
