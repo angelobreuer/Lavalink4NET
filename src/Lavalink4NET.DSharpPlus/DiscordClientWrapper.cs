@@ -13,6 +13,7 @@ using global::DSharpPlus.Net.Abstractions;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Events;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Wraps a <see cref="DiscordClient"/> or <see cref="DiscordShardedClient"/> instance.
@@ -26,19 +27,30 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     public event AsyncEventHandler<VoiceStateUpdatedEventArgs>? VoiceStateUpdated;
 
     private readonly object _client; // either DiscordShardedClient or DiscordClient
+    private readonly ILogger<DiscordClientWrapper> _logger;
     private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
     private bool _disposed;
+
+    private DiscordClientWrapper(object discordClient, ILogger<DiscordClientWrapper> logger)
+    {
+        ArgumentNullException.ThrowIfNull(discordClient);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _client = discordClient;
+        _logger = logger;
+
+        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
 
     /// <summary>
     /// Creates a new instance of <see cref="DiscordClientWrapper"/>.
     /// </summary>
     /// <param name="discordClient">The Discord Client to wrap.</param>
-    public DiscordClientWrapper(DiscordClient discordClient)
+    /// <param name="logger">a logger associated with this wrapper.</param>
+    public DiscordClientWrapper(DiscordClient discordClient, ILogger<DiscordClientWrapper> logger)
+        : this((object)discordClient, logger)
     {
         ArgumentNullException.ThrowIfNull(discordClient);
-
-        _client = discordClient;
-        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         discordClient.VoiceStateUpdated += OnVoiceStateUpdated;
         discordClient.VoiceServerUpdated += OnVoiceServerUpdated;
@@ -49,12 +61,11 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     /// Creates a new instance of <see cref="DiscordClientWrapper"/>.
     /// </summary>
     /// <param name="shardedDiscordClient">The Sharded Discord Client to wrap.</param>
-    public DiscordClientWrapper(DiscordShardedClient shardedDiscordClient)
+    /// <param name="logger">a logger associated with this wrapper.</param>
+    public DiscordClientWrapper(DiscordShardedClient shardedDiscordClient, ILogger<DiscordClientWrapper> logger)
+        : this((object)shardedDiscordClient, logger)
     {
         ArgumentNullException.ThrowIfNull(shardedDiscordClient);
-
-        _client = shardedDiscordClient;
-        _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         shardedDiscordClient.VoiceStateUpdated += OnVoiceStateUpdated;
         shardedDiscordClient.VoiceServerUpdated += OnVoiceServerUpdated;
@@ -83,10 +94,12 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
                 return ImmutableArray<ulong>.Empty;
             }
         }
-        catch (DiscordException)
+        catch (DiscordException exception)
         {
-            // Jan 23, 2024, OoLunar: You should be logging this!!
-            // Or handling it in some way, not just silently ignoring it.
+            _logger.LogWarning(
+                exception, "An error occurred while retrieving the users for voice channel '{VoiceChannelId}' of the guild '{GuildId}'.",
+                voiceChannelId, guildId);
+
             return ImmutableArray<ulong>.Empty;
         }
 
