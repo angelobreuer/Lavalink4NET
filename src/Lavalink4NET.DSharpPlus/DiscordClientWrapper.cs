@@ -192,7 +192,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             CurrentUserId: discordClient.CurrentUser.Id,
             ShardCount: discordClient.ShardCount);
 
-        _readyTaskCompletionSource.SetResult(clientInformation);
+        _readyTaskCompletionSource.TrySetResult(clientInformation);
         return Task.CompletedTask;
     }
 
