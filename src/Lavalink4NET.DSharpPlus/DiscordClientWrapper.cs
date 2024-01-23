@@ -1,7 +1,6 @@
 namespace Lavalink4NET.DSharpPlus;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading;
@@ -92,7 +91,8 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         }
 
         var filteredUsers = ImmutableArray.CreateBuilder<ulong>(channel.Users.Count);
-        foreach (DiscordMember member in channel.Users)
+
+        foreach (var member in channel.Users)
         {
             // Always skip the current user.
             // If we're not including bots and the member is a bot, skip them.
@@ -115,14 +115,22 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        var client = GetClientForGuild(guildId);
+
+        var payload = new VoiceStateUpdatePayload(
+            guildId: guildId,
+            channelId: voiceChannelId,
+            isSelfMuted: selfMute,
+            isSelfDeafened: selfDeaf);
+
 #pragma warning disable CS0618 // This method should not be used unless you know what you're doing. Instead, look towards the other explicitly implemented methods which come with client-side validation.
         // Jan 23, 2024, OoLunar: We're telling Discord that we're joining a voice channel.
         // At the time of writing, both DSharpPlus.VoiceNext and DSharpPlus.VoiceLink™
         // use this method to send voice state updates.
-        await GetClientForGuild(guildId).SendPayloadAsync(
-            GatewayOpCode.VoiceStateUpdate,
-            JsonSerializer.Serialize(new VoiceStateUpdatePayload(guildId, voiceChannelId, selfMute, selfDeaf))
-        ).ConfigureAwait(false);
+        await client
+            .SendPayloadAsync(GatewayOpCode.VoiceStateUpdate, JsonSerializer.Serialize(payload))
+            .ConfigureAwait(false);
 #pragma warning restore CS0618 // This method should not be used unless you know what you're doing. Instead, look towards the other explicitly implemented methods which come with client-side validation.
     }
 
@@ -142,6 +150,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         }
 
         _disposed = true;
+
         if (_client is DiscordClient discordClient)
         {
             discordClient.VoiceStateUpdated -= OnVoiceStateUpdated;
@@ -164,11 +173,11 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         ArgumentNullException.ThrowIfNull(discordClient);
         ArgumentNullException.ThrowIfNull(eventArgs);
-        ClientInformation clientInformation = new(
+
+        var clientInformation = new ClientInformation(
             Label: "DSharpPlus",
             CurrentUserId: discordClient.CurrentUser.Id,
-            ShardCount: discordClient.ShardCount
-        );
+            ShardCount: discordClient.ShardCount);
 
         _readyTaskCompletionSource.SetResult(clientInformation);
         return Task.CompletedTask;
@@ -181,15 +190,15 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
         var server = new VoiceServer(
             Token: voiceServerUpdateEventArgs.VoiceToken,
-            Endpoint: voiceServerUpdateEventArgs.Endpoint
-        );
+            Endpoint: voiceServerUpdateEventArgs.Endpoint);
 
         var eventArgs = new VoiceServerUpdatedEventArgs(
             guildId: voiceServerUpdateEventArgs.Guild.Id,
-            voiceServer: server
-        );
+            voiceServer: server);
 
-        await VoiceServerUpdated.InvokeAsync(this, eventArgs);
+        await VoiceServerUpdated
+            .InvokeAsync(this, eventArgs)
+            .ConfigureAwait(false);
     }
 
     private async Task OnVoiceStateUpdated(DiscordClient discordClient, VoiceStateUpdateEventArgs voiceStateUpdateEventArgs)
@@ -204,23 +213,22 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         // create voice state
         var voiceState = new VoiceState(
             VoiceChannelId: voiceStateUpdateEventArgs.After?.Channel?.Id,
-            SessionId: sessionId
-        );
+            SessionId: sessionId);
 
         var oldVoiceState = new VoiceState(
             VoiceChannelId: voiceStateUpdateEventArgs.Before?.Channel?.Id,
-            SessionId: sessionId
-        );
+            SessionId: sessionId);
 
         // invoke event
-        VoiceStateUpdatedEventArgs eventArgs = new(
+        var eventArgs = new VoiceStateUpdatedEventArgs(
             guildId: voiceStateUpdateEventArgs.Guild.Id,
             userId: voiceStateUpdateEventArgs.User.Id,
             isCurrentUser: voiceStateUpdateEventArgs.User.Id == discordClient.CurrentUser.Id,
             oldVoiceState: oldVoiceState,
-            voiceState: voiceState
-        );
+            voiceState: voiceState);
 
-        await VoiceStateUpdated.InvokeAsync(this, eventArgs);
+        await VoiceStateUpdated
+            .InvokeAsync(this, eventArgs)
+            .ConfigureAwait(false);
     }
 }
