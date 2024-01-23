@@ -2,8 +2,20 @@ namespace Lavalink4NET.DSharpPlus;
 
 using System.Text.Json.Serialization;
 
-internal sealed class VoiceStateUpdatePayload
+internal readonly record struct VoiceStateUpdatePayload
 {
+    [JsonPropertyName("guild_id")]
+    public ulong GuildId { get; init; }
+
+    [JsonPropertyName("channel_id")]
+    public ulong? ChannelId { get; init; }
+
+    [JsonPropertyName("self_mute")]
+    public bool IsSelfMuted { get; init; }
+
+    [JsonPropertyName("self_deaf")]
+    public bool IsSelfDeafened { get; init; }
+
     public VoiceStateUpdatePayload(ulong guildId, ulong? channelId, bool isSelfMuted = false, bool isSelfDeafened = false)
     {
         GuildId = guildId;
@@ -11,16 +23,4 @@ internal sealed class VoiceStateUpdatePayload
         IsSelfMuted = isSelfMuted;
         IsSelfDeafened = isSelfDeafened;
     }
-
-    [JsonPropertyName("guild_id")]
-    public ulong GuildId { get; }
-
-    [JsonPropertyName("channel_id")]
-    public ulong? ChannelId { get; }
-
-    [JsonPropertyName("self_mute")]
-    public bool IsSelfMuted { get; }
-
-    [JsonPropertyName("self_deaf")]
-    public bool IsSelfDeafened { get; }
 }
