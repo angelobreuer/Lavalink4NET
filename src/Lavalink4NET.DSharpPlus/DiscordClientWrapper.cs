@@ -2,7 +2,6 @@ namespace Lavalink4NET.DSharpPlus;
 
 using System;
 using System.Collections.Immutable;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using global::DSharpPlus;
@@ -131,18 +130,20 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
         var client = GetClientForGuild(guildId);
 
-        var payload = new VoiceStateUpdatePayload(
-            guildId: guildId,
-            channelId: voiceChannelId,
-            isSelfMuted: selfMute,
-            isSelfDeafened: selfDeaf);
+        var payload = new VoiceStateUpdatePayload
+        {
+            GuildId = guildId,
+            ChannelId = voiceChannelId,
+            IsSelfMuted = selfMute,
+            IsSelfDeafened = selfDeaf,
+        };
 
 #pragma warning disable CS0618 // This method should not be used unless you know what you're doing. Instead, look towards the other explicitly implemented methods which come with client-side validation.
         // Jan 23, 2024, OoLunar: We're telling Discord that we're joining a voice channel.
         // At the time of writing, both DSharpPlus.VoiceNext and DSharpPlus.VoiceLink™
         // use this method to send voice state updates.
         await client
-            .SendPayloadAsync(GatewayOpCode.VoiceStateUpdate, JsonSerializer.Serialize(payload))
+            .SendPayloadAsync(GatewayOpCode.VoiceStateUpdate, payload)
             .ConfigureAwait(false);
 #pragma warning restore CS0618 // This method should not be used unless you know what you're doing. Instead, look towards the other explicitly implemented methods which come with client-side validation.
     }

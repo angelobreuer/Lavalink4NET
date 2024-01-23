@@ -1,26 +1,18 @@
 namespace Lavalink4NET.DSharpPlus;
 
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
-internal readonly record struct VoiceStateUpdatePayload
+internal sealed class VoiceStateUpdatePayload
 {
-    [JsonPropertyName("guild_id")]
+    [JsonProperty("guild_id")]
     public ulong GuildId { get; init; }
 
-    [JsonPropertyName("channel_id")]
+    [JsonProperty("channel_id")]
     public ulong? ChannelId { get; init; }
 
-    [JsonPropertyName("self_mute")]
+    [JsonProperty("self_mute")]
     public bool IsSelfMuted { get; init; }
 
-    [JsonPropertyName("self_deaf")]
+    [JsonProperty("self_deaf")]
     public bool IsSelfDeafened { get; init; }
-
-    public VoiceStateUpdatePayload(ulong guildId, ulong? channelId, bool isSelfMuted = false, bool isSelfDeafened = false)
-    {
-        GuildId = guildId;
-        ChannelId = channelId;
-        IsSelfMuted = isSelfMuted;
-        IsSelfDeafened = isSelfDeafened;
-    }
 }
