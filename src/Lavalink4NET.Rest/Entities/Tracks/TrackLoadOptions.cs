@@ -2,5 +2,5 @@
 
 public readonly record struct TrackLoadOptions(
     TrackSearchMode SearchMode = default,
-    bool? StrictSearch = null,
+    StrictSearchBehavior SearchBehavior = StrictSearchBehavior.Throw,
     CacheMode CacheMode = CacheMode.Dynamic);
