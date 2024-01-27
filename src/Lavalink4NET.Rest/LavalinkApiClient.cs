@@ -192,36 +192,9 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
     internal static string BuildIdentifier(string identifier, TrackLoadOptions loadOptions = default)
     {
-        var strict = loadOptions.StrictSearch.GetValueOrDefault(true);
+        ArgumentNullException.ThrowIfNull(identifier);
 
-        if (!strict)
-        {
-            return loadOptions.SearchMode.Prefix is null
-                ? identifier
-                : $"{loadOptions.SearchMode.Prefix}:{identifier}";
-        }
-
-        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
-
-        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
-        {
-            return loadOptions.SearchMode.Prefix is null
-                ? identifier
-                : $"{loadOptions.SearchMode.Prefix}:{identifier}";
-        }
-
-        var currentPrefix = identifier[..separatorIndex];
-
-        if (identifier.AsSpan(separatorIndex + 1).StartsWith("//"))
-        {
-            if (currentPrefix.Equals("https", StringComparison.OrdinalIgnoreCase) ||
-                currentPrefix.Equals("http", StringComparison.OrdinalIgnoreCase))
-            {
-                return identifier;
-            }
-        }
-
-        throw new InvalidOperationException($"The query '{identifier}' has an search mode specified while search mode is set explicitly and strict mode is enabled.");
+        return StrictSearchHelper.Process(loadOptions.SearchBehavior, identifier, loadOptions.SearchMode);
     }
 
     internal static (PlaylistInformation Playlist, ImmutableArray<LavalinkTrack> Tracks) CreatePlaylist(PlaylistLoadResultData loadResult)
@@ -420,5 +393,106 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         }
 
         throw new HttpRequestException($"Response status code does not indicate success: {errorResponse.StatusCode} ({errorResponse.ReasonPhrase}): '{errorResponse.ErrorMessage}' at {errorResponse.RequestPath}");
+    }
+}
+
+internal static class StrictSearchHelper
+{
+    public static string Process(StrictSearchBehavior searchBehavior, string identifier, TrackSearchMode searchMode) => searchBehavior switch
+    {
+        StrictSearchBehavior.Throw => ProcessThrow(identifier, searchMode),
+        StrictSearchBehavior.Resolve => ProcessResolve(identifier, searchMode),
+        StrictSearchBehavior.Implicit => ProcessImplicit(identifier, searchMode),
+        StrictSearchBehavior.Explicit => ProcessExplicit(identifier, searchMode),
+        StrictSearchBehavior.Passthrough => ProcessPassthrough(identifier, searchMode),
+    };
+
+    private static string ProcessThrow(string identifier, TrackSearchMode searchMode)
+    {
+        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
+
+        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
+        {
+            return PrefixIdentifier(identifier, searchMode);
+        }
+
+        var currentPrefix = identifier[..separatorIndex];
+
+        if (identifier.AsSpan(separatorIndex + 1).StartsWith("//"))
+        {
+            if (currentPrefix.Equals("https", StringComparison.OrdinalIgnoreCase) ||
+                currentPrefix.Equals("http", StringComparison.OrdinalIgnoreCase))
+            {
+                return identifier;
+            }
+        }
+
+        throw new InvalidOperationException($"The query '{identifier}' has an search mode specified while search mode is set explicitly and strict mode is enabled (throw).");
+    }
+
+    private static string ProcessResolve(string identifier, TrackSearchMode searchMode)
+    {
+        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
+
+        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
+        {
+            return PrefixIdentifier(identifier, searchMode);
+        }
+
+        var currentPrefix = identifier[..separatorIndex];
+
+        if (identifier.AsSpan(separatorIndex + 1).StartsWith("//"))
+        {
+            if (currentPrefix.Equals("https", StringComparison.OrdinalIgnoreCase) ||
+                currentPrefix.Equals("http", StringComparison.OrdinalIgnoreCase))
+            {
+                return identifier;
+            }
+        }
+
+        return PrefixIdentifier(identifier, searchMode);
+    }
+
+    private static string ProcessImplicit(string identifier, TrackSearchMode searchMode)
+    {
+        ArgumentNullException.ThrowIfNull(searchMode.Prefix);
+
+        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
+
+        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
+        {
+            return PrefixIdentifier(identifier, searchMode);
+        }
+
+        throw new InvalidOperationException($"The query '{identifier}' has an search mode specified while search mode is set explicitly and strict mode is enabled (implicit).");
+    }
+
+    private static string ProcessExplicit(string identifier, TrackSearchMode searchMode)
+    {
+        return PrefixIdentifier(identifier, searchMode);
+    }
+
+    private static string ProcessPassthrough(string identifier, TrackSearchMode searchMode)
+    {
+        if (searchMode.Prefix is null)
+        {
+            return identifier;
+        }
+
+        var separatorIndex = identifier.AsSpan().IndexOfAny(':', ' ', '\t');
+
+        if (separatorIndex is -1 || identifier[separatorIndex] is not ':')
+        {
+            return PrefixIdentifier(identifier, searchMode);
+        }
+
+        return identifier;
+    }
+
+    private static string PrefixIdentifier(string identifier, TrackSearchMode searchMode)
+    {
+        return searchMode.Prefix is null
+            ? identifier
+            : $"{searchMode.Prefix}:{identifier}";
     }
 }
