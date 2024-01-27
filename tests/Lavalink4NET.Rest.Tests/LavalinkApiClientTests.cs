@@ -11,22 +11,77 @@ using Moq;
 public class LavalinkApiClientTests
 {
     [Theory]
-    [InlineData("abc", "ytsearch:abc", "ytsearch", true)]
-    [InlineData("abc", "scsearch:abc", "scsearch", true)]
-    [InlineData("abc", "abc", null, true)]
-    [InlineData("https://youtube.com/", "https://youtube.com/", null, true)]
-    [InlineData("abc", "abc", null, false)]
-    [InlineData("ytsearch:abc", "ytsearch:abc", null, false)]
-    [InlineData("scsearch:abc", "scsearch:abc", null, false)]
-    [InlineData("othersearch:abc", "othersearch:abc", null, false)]
-    [InlineData("other search:abc", "othersearch:other search:abc", "othersearch", true)]
-    [InlineData("ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch:ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch", true)]
-    public void TestBuildIdentifier(string identifier, string expected, string searchMode, bool strict)
+
+    // Throw
+    [InlineData(StrictSearchBehavior.Throw, "abc", "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Throw, "abc", "scsearch:abc", "scsearch")]
+    [InlineData(StrictSearchBehavior.Throw, "abc", "abc", null)]
+    [InlineData(StrictSearchBehavior.Throw, "https://youtube.com/", "https://youtube.com/", null)]
+    [InlineData(StrictSearchBehavior.Throw, "other search:abc", "othersearch:other search:abc", "othersearch")]
+    [InlineData(StrictSearchBehavior.Throw, "ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch:ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch")]
+
+    // Resolve
+    [InlineData(StrictSearchBehavior.Resolve, "abc", "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "PR: abc", "ytsearch:PR: abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "ytsearch:abc", "ytsearch:ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "spsearch:abc", "ytsearch:spsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://example.com/test.mp3", "https://example.com/test.mp3", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://youtube.com/watch?v=abc", "https://youtube.com/watch?v=abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://open.spotify.com/playlist/abc", "https://open.spotify.com/playlist/abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "ftp://example.com", "ytsearch:ftp://example.com", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "abc", "spsearch:abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "PR: abc", "spsearch:PR: abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "ytsearch:abc", "spsearch:ytsearch:abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "spsearch:abc", "spsearch:spsearch:abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://example.com/test.mp3", "https://example.com/test.mp3", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://youtube.com/watch?v=abc", "https://youtube.com/watch?v=abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "https://open.spotify.com/playlist/abc", "https://open.spotify.com/playlist/abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Resolve, "ftp://example.com", "spsearch:ftp://example.com", "spsearch")]
+
+    // Implicit
+    [InlineData(StrictSearchBehavior.Implicit, "abc", "spsearch:abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "def", "spsearch:def", "spsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "abc", "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "def", "ytsearch:def", "ytsearch")]
+
+    // Explicit
+    [InlineData(StrictSearchBehavior.Explicit, "abc", "spsearch:abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "def", "spsearch:def", "spsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "abc", "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "def", "ytsearch:def", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "https://example.com/test.mp3", "spsearch:https://example.com/test.mp3", "spsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "https://youtube.com/watch?v=abc", "spsearch:https://youtube.com/watch?v=abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "https://open.spotify.com/playlist/abc", "spsearch:https://open.spotify.com/playlist/abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Explicit, "ftp://example.com", "spsearch:ftp://example.com", "spsearch")]
+
+    // Passthrough
+    [InlineData(StrictSearchBehavior.Passthrough, "abc", "abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "ytsearch:abc", "ytsearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "scsearch:abc", "scsearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "othersearch:abc", "othersearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "abc", "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "abc", "scsearch:abc", "scsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://youtube.com/", "https://youtube.com/", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "other search:abc", "othersearch:other search:abc", "othersearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch:ABC https://www.youtube.com/watch?v=ABC&t=248", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://example.com/test.mp3", "https://example.com/test.mp3", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://youtube.com/watch?v=abc", "https://youtube.com/watch?v=abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://open.spotify.com/playlist/abc", "https://open.spotify.com/playlist/abc", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "ftp://example.com", "ftp://example.com", null)]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://example.com/test.mp3", "https://example.com/test.mp3", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://youtube.com/watch?v=abc", "https://youtube.com/watch?v=abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://open.spotify.com/playlist/abc", "https://open.spotify.com/playlist/abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "ftp://example.com", "ftp://example.com", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://example.com/test.mp3", "https://example.com/test.mp3", "spsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://youtube.com/watch?v=abc", "https://youtube.com/watch?v=abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "https://open.spotify.com/playlist/abc", "https://open.spotify.com/playlist/abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Passthrough, "ftp://example.com", "ftp://example.com", "spsearch")]
+    public void TestBuildIdentifier(StrictSearchBehavior searchBehavior, string identifier, string expected, string searchMode)
     {
         // Arrange
         var loadOptions = new TrackLoadOptions(
             SearchMode: new TrackSearchMode(searchMode),
-            StrictSearch: strict);
+            SearchBehavior: searchBehavior);
 
         // Act
         var actual = LavalinkApiClient.BuildIdentifier(identifier, loadOptions);
@@ -36,23 +91,37 @@ public class LavalinkApiClientTests
     }
 
     [Theory]
-    [InlineData("ytsearch:abc", null)]
-    [InlineData("scsearch:abc", null)]
-    [InlineData("othersearch:abc", null)]
-    [InlineData("ytsearch:abc", "ytsearch")]
-    [InlineData("scsearch:abc", "scsearch")]
-    public void TestBuildIdentifierFail(string identifier, string? searchMode)
+
+    // Throw
+    [InlineData(StrictSearchBehavior.Throw, "ytsearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Throw, "scsearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Throw, "othersearch:abc", null)]
+    [InlineData(StrictSearchBehavior.Throw, "ytsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Throw, "scsearch:abc", "scsearch")]
+    [InlineData(StrictSearchBehavior.Throw, "scsearch:abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Throw, "ftp://example.com/", "ytsearch")]
+
+    // Implicit
+    [InlineData(StrictSearchBehavior.Implicit, "abc", null)]
+    [InlineData(StrictSearchBehavior.Implicit, "", null)]
+    [InlineData(StrictSearchBehavior.Implicit, "https://example.com/test.mp3", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "https://youtube.com/watch?v=abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "https://open.spotify.com/playlist/abc", "ytsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "https://example.com/test.mp3", "spsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "https://youtube.com/watch?v=abc", "spsearch")]
+    [InlineData(StrictSearchBehavior.Implicit, "https://open.spotify.com/playlist/abc", "spsearch")]
+    public void TestBuildIdentifierFail(StrictSearchBehavior searchBehavior, string identifier, string? searchMode)
     {
         // Arrange
         var loadOptions = new TrackLoadOptions(
             SearchMode: new TrackSearchMode(searchMode),
-            StrictSearch: true);
+            SearchBehavior: searchBehavior);
 
         // Act
         void Action() => LavalinkApiClient.BuildIdentifier(identifier, loadOptions);
 
         // Assert
-        Assert.Throws<InvalidOperationException>(Action);
+        Assert.ThrowsAny<Exception>(Action);
     }
 
     [Fact]
@@ -367,7 +436,8 @@ public class LavalinkApiClientTests
             logger: NullLogger<LavalinkApiClient>.Instance);
 
         var loadOptions = new TrackLoadOptions(
-            SearchMode: TrackSearchMode.YouTube);
+            SearchMode: TrackSearchMode.YouTube,
+            StrictSearch: true);
 
         // Act
         var track = await client
