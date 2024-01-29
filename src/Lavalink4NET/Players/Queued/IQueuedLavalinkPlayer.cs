@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
 
 public interface IQueuedLavalinkPlayer : ILavalinkPlayer

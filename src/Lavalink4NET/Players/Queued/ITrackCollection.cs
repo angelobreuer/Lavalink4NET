@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Lavalink4NET.Players;
 
 public interface ITrackCollection : IReadOnlyList<ITrackQueueItem>
 {

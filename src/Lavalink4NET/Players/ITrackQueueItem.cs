@@ -1,4 +1,4 @@
-﻿namespace Lavalink4NET.Players.Queued;
+﻿namespace Lavalink4NET.Players;
 
 using Lavalink4NET.Tracks;
 

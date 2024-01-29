@@ -1,10 +1,10 @@
 namespace Lavalink4NET.Players.Queued;
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Extensions;
+using Lavalink4NET.Players;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Tracks;
@@ -20,8 +20,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     private readonly bool _resetShuffleOnStop;
     private readonly bool _respectTrackRepeatOnSkip;
     private readonly TrackRepeatMode _defaultTrackRepeatMode;
-    private ITrackQueueItem? _nextTrackQueueItem;
-    private ITrackQueueItem? _stoppedTrackQueueItem;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
@@ -43,13 +41,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         _clearHistoryOnStop = options.ClearHistoryOnStop;
 
         RepeatMode = _defaultTrackRepeatMode;
-
-        _nextTrackQueueItem = CurrentItem = CurrentTrack is not null
-            ? new TrackQueueItem(new TrackReference(CurrentTrack))
-            : null;
     }
-
-    public ITrackQueueItem? CurrentItem { get; private set; }
 
     /// <summary>
     ///     Gets the track queue.
@@ -84,13 +76,9 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return position;
         }
 
-        _nextTrackQueueItem = queueItem;
-        CurrentItem ??= queueItem;
-        _stoppedTrackQueueItem = null;
-
         // play the track immediately
         await base
-            .PlayAsync(queueItem.Reference, properties, cancellationToken)
+            .PlayAsync(queueItem, properties, cancellationToken)
             .ConfigureAwait(false);
 
         // 0 = now playing
@@ -101,6 +89,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(track);
 
         return PlayAsync(new TrackReference(track), enqueue, properties, cancellationToken);
     }
@@ -109,6 +98,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     {
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(identifier);
 
         return PlayAsync(new TrackReference(identifier), enqueue, properties, cancellationToken);
     }
@@ -121,10 +111,12 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         return PlayAsync(new TrackQueueItem(trackReference), enqueue, properties, cancellationToken);
     }
 
-    public override async ValueTask PlayAsync(TrackReference trackReference, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
+    public override ValueTask PlayAsync(ITrackQueueItem trackQueueItem, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await PlayAsync(trackReference, enqueue: true, properties, cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(trackQueueItem);
+
+        return new ValueTask(PlayAsync(trackQueueItem, enqueue: true, properties, cancellationToken).AsTask());
     }
 
     /// <summary>
@@ -178,9 +170,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             Shuffle = false;
         }
 
-        _stoppedTrackQueueItem = CurrentItem;
-        CurrentItem = null;
-
         await base
             .StopAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -193,7 +182,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         return default;
     }
 
-    protected virtual async ValueTask NotifyTrackEndedAsync(ITrackQueueItem queueItem, TrackEndReason endReason, CancellationToken cancellationToken = default)
+    protected override async ValueTask NotifyTrackEndedAsync(ITrackQueueItem queueItem, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(queueItem);
@@ -207,7 +196,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         }
 
         await base
-            .NotifyTrackEndedAsync(queueItem.Track!, endReason, cancellationToken)
+            .NotifyTrackEndedAsync(queueItem, endReason, cancellationToken)
             .ConfigureAwait(false);
 
         if (endReason.MayStartNext())
@@ -218,22 +207,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         {
             CurrentItem = null;
         }
-    }
-
-    protected sealed override ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(track);
-
-        var currentItem = Interlocked.Exchange(ref _stoppedTrackQueueItem, null) ?? CurrentItem;
-
-        Debug.Assert(currentItem?.Track?.Identifier == track.Identifier);
-
-        var queueItem = currentItem?.Track?.Identifier == track.Identifier
-            ? currentItem
-            : new TrackQueueItem(new TrackReference(track));
-
-        return NotifyTrackEndedAsync(queueItem, endReason, cancellationToken);
     }
 
     private async ValueTask PlayNextAsync(int skipCount = 1, bool respectTrackRepeat = false, CancellationToken cancellationToken = default)
@@ -250,39 +223,8 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return;
         }
 
-        _nextTrackQueueItem = track.Value;
-        _stoppedTrackQueueItem = CurrentItem;
-        CurrentItem = track.Value;
-
         await base
-            .PlayAsync(track.Value.Reference, properties: default, cancellationToken)
-            .ConfigureAwait(false);
-    }
-
-    protected sealed override ValueTask NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(track);
-
-        Debug.Assert(_nextTrackQueueItem?.Track?.Identifier == track.Identifier);
-
-        var queueItem = _nextTrackQueueItem?.Track?.Identifier == track.Identifier
-            ? _nextTrackQueueItem
-            : new TrackQueueItem(new TrackReference(track));
-
-        CurrentItem = queueItem;
-        _nextTrackQueueItem = null;
-
-        return NotifyTrackStartedAsync(queueItem, cancellationToken);
-    }
-
-    protected virtual async ValueTask NotifyTrackStartedAsync(ITrackQueueItem queueItem, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(queueItem);
-
-        await base
-            .NotifyTrackStartedAsync(queueItem.Track!, cancellationToken)
+            .PlayAsync(track.Value, properties: default, cancellationToken)
             .ConfigureAwait(false);
     }
 

@@ -16,7 +16,6 @@ using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -913,25 +912,25 @@ internal sealed class CustomTracingLavalinkPlayer : LavalinkPlayer
         return base.NotifyFiltersUpdatedAsync(filters, cancellationToken);
     }
 
-    protected override ValueTask NotifyTrackEndedAsync(LavalinkTrack track, TrackEndReason endReason, CancellationToken cancellationToken = default)
+    protected override ValueTask NotifyTrackEndedAsync(ITrackQueueItem track, TrackEndReason endReason, CancellationToken cancellationToken = default)
     {
         TriggeredEvents.Add(nameof(NotifyTrackEndedAsync));
         return base.NotifyTrackEndedAsync(track, endReason, cancellationToken);
     }
 
-    protected override ValueTask NotifyTrackExceptionAsync(LavalinkTrack track, TrackException exception, CancellationToken cancellationToken = default)
+    protected override ValueTask NotifyTrackExceptionAsync(ITrackQueueItem track, TrackException exception, CancellationToken cancellationToken = default)
     {
         TriggeredEvents.Add(nameof(NotifyTrackExceptionAsync));
         return base.NotifyTrackExceptionAsync(track, exception, cancellationToken);
     }
 
-    protected override ValueTask NotifyTrackStartedAsync(LavalinkTrack track, CancellationToken cancellationToken = default)
+    protected override ValueTask NotifyTrackStartedAsync(ITrackQueueItem track, CancellationToken cancellationToken = default)
     {
         TriggeredEvents.Add(nameof(NotifyTrackStartedAsync));
         return base.NotifyTrackStartedAsync(track, cancellationToken);
     }
 
-    protected override ValueTask NotifyTrackStuckAsync(LavalinkTrack track, TimeSpan threshold, CancellationToken cancellationToken = default)
+    protected override ValueTask NotifyTrackStuckAsync(ITrackQueueItem track, TimeSpan threshold, CancellationToken cancellationToken = default)
     {
         TriggeredEvents.Add(nameof(NotifyTrackStuckAsync));
         return base.NotifyTrackStuckAsync(track, threshold, cancellationToken);
