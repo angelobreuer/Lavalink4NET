@@ -109,8 +109,6 @@ public class TrackQueue : TrackCollection, ITrackQueue
             Items = Items.RemoveAt(index);
         }
 
-        History?.Add(item);
-
         return true;
     }
 
