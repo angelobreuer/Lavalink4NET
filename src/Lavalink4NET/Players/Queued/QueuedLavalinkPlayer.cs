@@ -21,6 +21,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     private readonly bool _respectTrackRepeatOnSkip;
     private readonly TrackRepeatMode _defaultTrackRepeatMode;
     private ITrackQueueItem? _nextTrackQueueItem;
+    private ITrackQueueItem? _stoppedTrackQueueItem;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="QueuedLavalinkPlayer"/> class.
@@ -85,6 +86,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 
         _nextTrackQueueItem = queueItem;
         CurrentItem ??= queueItem;
+        _stoppedTrackQueueItem = null;
 
         // play the track immediately
         await base
@@ -176,6 +178,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             Shuffle = false;
         }
 
+        _stoppedTrackQueueItem = CurrentItem;
         CurrentItem = null;
 
         await base
@@ -222,10 +225,12 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
 
-        Debug.Assert(CurrentItem?.Track?.Identifier == track.Identifier);
+        var currentItem = Interlocked.Exchange(ref _stoppedTrackQueueItem, null) ?? CurrentItem;
 
-        var queueItem = CurrentItem?.Track?.Identifier == track.Identifier
-            ? CurrentItem
+        Debug.Assert(currentItem?.Track?.Identifier == track.Identifier);
+
+        var queueItem = currentItem?.Track?.Identifier == track.Identifier
+            ? currentItem
             : new TrackQueueItem(new TrackReference(track));
 
         return NotifyTrackEndedAsync(queueItem, endReason, cancellationToken);
@@ -246,6 +251,8 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         }
 
         _nextTrackQueueItem = track.Value;
+        _stoppedTrackQueueItem = CurrentItem;
+        CurrentItem = track.Value;
 
         await base
             .PlayAsync(track.Value.Reference, properties: default, cancellationToken)
