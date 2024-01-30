@@ -162,8 +162,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
 
-        Debug.Assert(State is PlayerState.Playing);
-
         var currentTrackVersion = _trackVersion;
         var previousItem = Interlocked.Exchange(ref _skippedTrack, null) ?? ResolveTrackQueueItem(track);
 
@@ -173,7 +171,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
         finally
         {
-            if (Volatile.Read(ref _trackVersion) == currentTrackVersion)
+            if (Volatile.Read(ref _trackVersion) == currentTrackVersion && endReason is not TrackEndReason.Replaced)
             {
                 CurrentItem = null;
                 await UpdateStateAsync(PlayerState.NotPlaying, cancellationToken).ConfigureAwait(false);
