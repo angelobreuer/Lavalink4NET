@@ -270,4 +270,25 @@ public sealed class LavalinkTrackTests
         // Assert
         Assert.NotNull(result);
     }
+
+    [Fact]
+    public void TestDecodeMutateAndEncode()
+    {
+        // This test should test if the track does not inherit the cached track data
+
+        // Arrange
+        // Parsing from a base64 string will cache it internally
+        var originalTrackInfo = LavalinkTrack.Parse(
+            s: "QAAAjAIAJFZhbmNlIEpveSAtICdSaXB0aWRlJyBPZmZpY2lhbCBWaWRlbwAObXVzaHJvb212aWRlb3MAAAAAAAMgyAALdUpfMUhNQUdiNGsAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj11Sl8xSE1BR2I0awAHeW91dHViZQAAAAAAAAAA",
+            provider: null);
+
+        // Mutate track
+        var mutatedTrack = originalTrackInfo with { StartPosition = TimeSpan.FromSeconds(30), };
+
+        // Act
+        var result = mutatedTrack.ToString();
+
+        // Assert
+        Assert.NotEqual(result, originalTrackInfo.ToString());
+    }
 }

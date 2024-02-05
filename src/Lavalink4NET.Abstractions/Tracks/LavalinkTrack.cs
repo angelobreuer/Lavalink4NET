@@ -7,6 +7,8 @@ public partial record class LavalinkTrack
 {
     private StreamProvider? _cachedProvider;
     private bool _providerCached;
+    private string? _cachedTrackData;
+    private LavalinkTrack? _trackDataOwner;
 
 #if NET7_0_OR_GREATER
     required
@@ -64,7 +66,16 @@ public partial record class LavalinkTrack
 
     public IImmutableDictionary<string, JsonElement> AdditionalInformation { get; init; } = ImmutableDictionary<string, JsonElement>.Empty;
 
-    internal string? TrackData { get; set; }
+    internal string? TrackData
+    {
+        get => ReferenceEquals(this, _trackDataOwner) ? _cachedTrackData : null;
+
+        set
+        {
+            _cachedTrackData = value;
+            _trackDataOwner = this;
+        }
+    }
 
     /// <summary>
     ///     Allows you to override a track that will be sent to Lavalink for playback
