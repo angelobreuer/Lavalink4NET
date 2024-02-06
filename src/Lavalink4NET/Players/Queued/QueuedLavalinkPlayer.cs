@@ -1,6 +1,7 @@
 namespace Lavalink4NET.Players.Queued;
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Extensions;
@@ -220,6 +221,8 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         {
             // Do nothing, stop
             await StopAsync(cancellationToken).ConfigureAwait(false);
+
+            Debug.Assert(this is { CurrentItem: null, CurrentTrack: null, });
             return;
         }
 

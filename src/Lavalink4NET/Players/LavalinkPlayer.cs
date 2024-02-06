@@ -26,15 +26,15 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private readonly ISystemClock _systemClock;
     private readonly bool _disconnectOnStop;
     private readonly IPlayerLifecycle _playerLifecycle;
-    private string? _currentTrackState;
     private int _disposed;
     private DateTimeOffset _syncedAt;
     private TimeSpan _unstretchedRelativePosition;
     private bool _disconnectOnDestroy;
     private bool _connectedOnce;
     private ulong _trackVersion;
-    private ITrackQueueItem? _nextTrack;
-    private ITrackQueueItem? _skippedTrack;
+    private volatile ITrackQueueItem? _nextTrack;
+    private volatile ITrackQueueItem? _skippedTrack;
+    private volatile ITrackQueueItem? _currentItem;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -128,7 +128,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     public LavalinkTrack? CurrentTrack => CurrentItem?.Track;
 
-    public ITrackQueueItem? CurrentItem { get; protected internal set; }
+    public ITrackQueueItem? CurrentItem
+    {
+        get => _currentItem;
+        protected internal set => _currentItem = value;
+    }
 
     private async ValueTask NotifyChannelUpdateCoreAsync(ulong? voiceChannelId, CancellationToken cancellationToken)
     {
@@ -192,6 +196,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         ArgumentNullException.ThrowIfNull(track);
 
         var nextTrack = Interlocked.Exchange(ref _nextTrack, null) ?? CurrentItem;
+        Debug.Assert(track.Identifier == nextTrack?.Identifier);
 
         CurrentItem = track.Identifier == nextTrack?.Identifier
             ? nextTrack
@@ -345,7 +350,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
 
         // Store stopped track to restore state information in TrackEnd dispatch
-        _skippedTrack = CurrentItem;
+        _skippedTrack = Interlocked.Exchange(ref _currentItem, null);
 
         var properties = new PlayerUpdateProperties
         {
@@ -419,43 +424,44 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     private void Refresh(PlayerInformationModel model)
     {
+        static LavalinkTrack RestoreTrack(TrackModel track) => new()
+        {
+            Author = track.Information.Author,
+            Identifier = track.Information.Identifier,
+            Title = track.Information.Title,
+            Duration = track.Information.Duration,
+            IsLiveStream = track.Information.IsLiveStream,
+            IsSeekable = track.Information.IsSeekable,
+            Uri = track.Information.Uri,
+            SourceName = track.Information.SourceName,
+            StartPosition = track.Information.Position,
+            ArtworkUri = track.Information.ArtworkUri,
+            Isrc = track.Information.Isrc,
+            TrackData = track.Data,
+            AdditionalInformation = track.AdditionalInformation,
+        };
+
         ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.GuildId == GuildId);
 
         IsPaused = model.IsPaused;
 
-        if (_currentTrackState != model.CurrentTrack?.Data)
+        var currentTrack = CurrentTrack;
+
+        if (currentTrack is null && model.CurrentTrack is null)
         {
-            if (model.CurrentTrack is null)
-            {
-                _currentTrackState = null;
-                CurrentItem = null;
-            }
-            else if (model.CurrentTrack.Information.Identifier != CurrentItem?.Track?.Identifier)
-            {
-                _currentTrackState = model.CurrentTrack.Data;
+            CurrentItem = null;
+        }
+        else if (model.CurrentTrack?.Information.Identifier != currentTrack?.Identifier)
+        {
+            // This indicates that the track had been restored from API information
+            Debug.Assert(_nextTrack is not null || model.CurrentTrack?.Information.Identifier == currentTrack?.Identifier);
 
-                var track = model.CurrentTrack.Information;
+            var track = model.CurrentTrack is null
+                ? _nextTrack
+                : new TrackQueueItem(new TrackReference(RestoreTrack(model.CurrentTrack)));
 
-                var currentTrack = new LavalinkTrack
-                {
-                    Author = track.Author,
-                    Identifier = track.Identifier,
-                    Title = track.Title,
-                    Duration = track.Duration,
-                    IsLiveStream = track.IsLiveStream,
-                    IsSeekable = track.IsSeekable,
-                    Uri = track.Uri,
-                    SourceName = track.SourceName,
-                    StartPosition = track.Position,
-                    ArtworkUri = track.ArtworkUri,
-                    Isrc = track.Isrc,
-                    TrackData = model.CurrentTrack.Data,
-                    AdditionalInformation = model.CurrentTrack.AdditionalInformation,
-                };
-
-                CurrentItem = new TrackQueueItem(new TrackReference(currentTrack));
-            }
+            CurrentItem = track;
 
             Interlocked.Increment(ref _trackVersion);
         }
