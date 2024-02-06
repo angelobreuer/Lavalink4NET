@@ -5,6 +5,7 @@ using DSharpPlus;
 using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
+using Lavalink4NET.Players.Queued;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -51,7 +52,7 @@ file sealed class ApplicationHost : BackgroundService
 
         var playerOptions = new LavalinkPlayerOptions
         {
-            InitialTrack = new TrackReference("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+            InitialTrack = new TrackQueueItem("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
         };
 
         await _audioService.Players
