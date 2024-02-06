@@ -183,10 +183,7 @@ public sealed class QueuedLavalinkPlayerTests
 
         var resultModel = playerModel with
         {
-            CurrentTrack = new TrackModel(
-                Data: "track2",
-                Information: CreateDummyTrack(),
-                AdditionalInformation: ImmutableDictionary<string, JsonElement>.Empty),
+            CurrentTrack = null,
         };
 
         apiClientMock
