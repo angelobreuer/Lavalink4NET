@@ -203,7 +203,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         {
             await PlayNextAsync(skipCount: 1, respectTrackRepeat: true, cancellationToken).ConfigureAwait(false);
         }
-        else
+        else if (endReason is not TrackEndReason.Replaced)
         {
             CurrentItem = null;
         }
