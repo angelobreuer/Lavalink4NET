@@ -344,6 +344,9 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Store stopped track to restore state information in TrackEnd dispatch
+        _skippedTrack = CurrentItem;
+
         var properties = new PlayerUpdateProperties
         {
             TrackData = new Optional<string?>(null),
