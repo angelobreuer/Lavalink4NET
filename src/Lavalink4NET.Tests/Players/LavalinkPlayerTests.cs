@@ -10,12 +10,14 @@ using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Players;
+using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Models.Filters;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
 using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
+using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -859,12 +861,31 @@ public sealed class LavalinkPlayerTests
             Lifecycle: Mock.Of<IPlayerLifecycle>(),
             ApiClient: apiClientMock.Object,
             InitialState: playerModel,
+            InitialTrack: playerModel.CurrentTrack is null
+                ? null
+                : new TrackQueueItem(new TrackReference(RestoreTrack(playerModel.CurrentTrack))),
             Label: "Player",
             VoiceChannelId: 0,
             SessionId: sessionId,
             Options: Options.Create(options ?? new LavalinkPlayerOptions()),
             Logger: NullLogger<CustomTracingLavalinkPlayer>.Instance);
     }
+
+    private static LavalinkTrack RestoreTrack(TrackModel track) => new()
+    {
+        Author = track.Information.Author,
+        Identifier = track.Information.Identifier,
+        Title = track.Information.Title,
+        Duration = track.Information.Duration,
+        IsLiveStream = track.Information.IsLiveStream,
+        IsSeekable = track.Information.IsSeekable,
+        Uri = track.Information.Uri,
+        SourceName = track.Information.SourceName,
+        StartPosition = track.Information.Position,
+        ArtworkUri = track.Information.ArtworkUri,
+        Isrc = track.Information.Isrc,
+        AdditionalInformation = track.AdditionalInformation,
+    };
 
     private static TrackInformationModel CreateDummyTrack()
     {

@@ -177,7 +177,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         var playerSession = await _playerContext.SessionProvider
             .GetSessionAsync(_guildId, cancellationToken)
             .ConfigureAwait(false);
-        
+
         var playerProperties = new PlayerUpdateProperties
         {
             VoiceState = new VoiceStateProperties(
@@ -188,12 +188,12 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_options.Value.InitialTrack is not null)
         {
-            var initialTrack = _options.Value.InitialTrack.Value;
+            var initialTrack = _options.Value.InitialTrack;
             var loadOptions = _options.Value.InitialLoadOptions;
 
-            if (initialTrack.IsPresent)
+            if (initialTrack.Reference.IsPresent)
             {
-                playerProperties = playerProperties with { TrackData = initialTrack.Track.ToString(), };
+                playerProperties = playerProperties with { TrackData = initialTrack.Track!.ToString(), };
             }
             else
             {
@@ -231,6 +231,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         var properties = new PlayerProperties<TPlayer, TOptions>(
             Context: _playerContext,
             VoiceChannelId: _voiceState.Value.VoiceChannelId!.Value,
+            InitialTrack: _options.Value.InitialTrack,
             InitialState: initialState,
             Label: label,
             SessionId: playerSession.SessionId,

@@ -10,7 +10,7 @@ public record class LavalinkPlayerOptions
 
     public string? Label { get; set; }
 
-    public TrackReference? InitialTrack { get; set; }
+    public ITrackQueueItem? InitialTrack { get; set; }
 
     public TrackLoadOptions InitialLoadOptions { get; set; }
 

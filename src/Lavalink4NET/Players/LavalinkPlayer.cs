@@ -77,7 +77,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 
         _currentItem = _nextTrack = properties.InitialState.CurrentTrack is not null
-            ? new TrackQueueItem(new TrackReference(RestoreTrack(properties.InitialState.CurrentTrack)))
+            ? properties.Options.Value.InitialTrack ?? new TrackQueueItem(new TrackReference(RestoreTrack(properties.InitialState.CurrentTrack)))
             : null;
 
         Refresh(properties.InitialState);

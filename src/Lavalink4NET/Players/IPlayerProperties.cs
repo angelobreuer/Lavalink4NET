@@ -18,6 +18,8 @@ public interface IPlayerProperties<out TPlayer, out TOptions>
 
     PlayerInformationModel InitialState { get; }
 
+    ITrackQueueItem? InitialTrack { get; }
+
     string Label { get; }
 
     ILogger<TPlayer> Logger { get; }

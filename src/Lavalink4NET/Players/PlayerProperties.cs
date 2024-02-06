@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 
 internal sealed record class PlayerProperties<TPlayer, TOptions>(
     PlayerContext Context,
+    ITrackQueueItem? InitialTrack,
     PlayerInformationModel InitialState,
     string Label,
     ulong VoiceChannelId,
