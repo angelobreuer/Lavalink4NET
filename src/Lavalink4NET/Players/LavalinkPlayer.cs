@@ -76,8 +76,8 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             State = PlayerState.Playing;
         }
 
-        _nextTrack = CurrentTrack is not null
-            ? new TrackQueueItem(new TrackReference(CurrentTrack))
+        _currentItem = _nextTrack = properties.InitialState.CurrentTrack is not null
+            ? new TrackQueueItem(new TrackReference(RestoreTrack(properties.InitialState.CurrentTrack)))
             : null;
 
         Refresh(properties.InitialState);
@@ -424,23 +424,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
     private void Refresh(PlayerInformationModel model)
     {
-        static LavalinkTrack RestoreTrack(TrackModel track) => new()
-        {
-            Author = track.Information.Author,
-            Identifier = track.Information.Identifier,
-            Title = track.Information.Title,
-            Duration = track.Information.Duration,
-            IsLiveStream = track.Information.IsLiveStream,
-            IsSeekable = track.Information.IsSeekable,
-            Uri = track.Information.Uri,
-            SourceName = track.Information.SourceName,
-            StartPosition = track.Information.Position,
-            ArtworkUri = track.Information.ArtworkUri,
-            Isrc = track.Information.Isrc,
-            TrackData = track.Data,
-            AdditionalInformation = track.AdditionalInformation,
-        };
-
         ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.GuildId == GuildId);
 
@@ -668,6 +651,23 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         return new TrackQueueItem(new TrackReference(track));
     }
+    private static LavalinkTrack RestoreTrack(TrackModel track) => new()
+    {
+        Author = track.Information.Author,
+        Identifier = track.Information.Identifier,
+        Title = track.Information.Title,
+        Duration = track.Information.Duration,
+        IsLiveStream = track.Information.IsLiveStream,
+        IsSeekable = track.Information.IsSeekable,
+        Uri = track.Information.Uri,
+        SourceName = track.Information.SourceName,
+        StartPosition = track.Information.Position,
+        ArtworkUri = track.Information.ArtworkUri,
+        Isrc = track.Information.Isrc,
+        TrackData = track.Data,
+        AdditionalInformation = track.AdditionalInformation,
+    };
+
 }
 
 internal static partial class Logging
