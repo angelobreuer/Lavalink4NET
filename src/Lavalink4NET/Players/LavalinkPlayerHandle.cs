@@ -148,9 +148,14 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
             Interlocked.Decrement(ref Diagnostics.PendingHandles);
             Interlocked.Increment(ref Diagnostics.ActivePlayers);
         }
-
-        if (_value is ILavalinkPlayerListener playerListener)
+        else
         {
+            // Player already created which indicates that the completion indicates a voice server or voice state update
+            if (_value is not ILavalinkPlayerListener playerListener)
+            {
+                return;
+            }
+
             if (isVoiceServerUpdated)
             {
                 await playerListener
@@ -245,6 +250,17 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
         await lifecycle
             .NotifyPlayerCreatedAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        if (player is ILavalinkPlayerListener playerListener)
+        {
+            await playerListener
+                .NotifyVoiceServerUpdatedAsync(_voiceServer.Value, cancellationToken)
+                .ConfigureAwait(false);
+
+            await playerListener
+                .NotifyVoiceStateUpdatedAsync(_voiceState.Value, cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         return player;
     }
