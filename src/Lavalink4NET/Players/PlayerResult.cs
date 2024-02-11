@@ -32,6 +32,8 @@ public readonly record struct PlayerResult<TPlayer> where TPlayer : class, ILava
 
     public static PlayerResult<TPlayer> VoiceChannelMismatch => new(null, PlayerRetrieveStatus.VoiceChannelMismatch, null);
 
+    public static PlayerResult<TPlayer> UserInSameVoiceChannel => new(null, PlayerRetrieveStatus.UserInSameVoiceChannel, null);
+
     public static PlayerResult<TPlayer> BotNotConnected => new(null, PlayerRetrieveStatus.BotNotConnected, null);
 
     public static PlayerResult<TPlayer> PreconditionFailed(TPlayer player, IPlayerPrecondition precondition)

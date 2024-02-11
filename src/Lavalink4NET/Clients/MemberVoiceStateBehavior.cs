@@ -16,4 +16,9 @@ public enum MemberVoiceStateBehavior : byte
     ///     Regardless of the player's connection state, the user must be in the same voice channel as the player.
     /// </summary>
     RequireSame,
+
+    /// <summary>
+    ///     Regardless of the player's connection state, the user must be in a different voice channel than the player.
+    /// </summary>
+    RequireDifferent,
 }

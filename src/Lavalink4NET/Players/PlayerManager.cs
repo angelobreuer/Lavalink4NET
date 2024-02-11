@@ -254,8 +254,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
 
         if (player is not null)
         {
-            if (voiceStateBehavior is MemberVoiceStateBehavior.AlwaysRequired or MemberVoiceStateBehavior.RequireSame &&
-                memberVoiceChannel is null)
+            if (voiceStateBehavior is not MemberVoiceStateBehavior.Ignore && memberVoiceChannel is null)
             {
                 return PlayerResult<TPlayer>.UserNotInVoiceChannel;
             }
@@ -275,6 +274,14 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
                     await DiscordClient
                         .SendVoiceUpdateAsync(guildId, memberVoiceChannel.Value, selfDeaf: options.Value.SelfDeaf, selfMute: options.Value.SelfMute, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                // Player is in same voice chanenl as bot
+                if (voiceStateBehavior is MemberVoiceStateBehavior.RequireDifferent)
+                {
+                    return PlayerResult<TPlayer>.UserInSameVoiceChannel;
                 }
             }
 
