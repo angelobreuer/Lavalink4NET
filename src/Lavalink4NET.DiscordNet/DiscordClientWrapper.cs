@@ -33,7 +33,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             .GetProperties(BindingFlags.NonPublic | BindingFlags.Instance)
             .First(x => x.Name.Equals("ApiClient"));
 
-        _sendVoiceStateUpdateAsyncMethod = _discordApiClientProperty.PropertyType
+        _sendVoiceStateUpdateAsyncMethod = typeof(DiscordSocketClient).Assembly.GetType("Discord.API.DiscordSocketApiClient")!
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
             .First(x => x.Name.Equals("SendVoiceStateUpdateAsync"));
     }
@@ -207,9 +207,9 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             guildId, // Guild Id
             voiceChannelId, // Voice Channel Id
             selfMute, // Self Mute
-            selfDeaf, // Self Deaf
-            requestOptions, // Request Options
-        };
+			selfDeaf, // Self Deaf
+			requestOptions, // Request Options
+		};
 
         return new ValueTask((Task)_sendVoiceStateUpdateAsyncMethod.Invoke(_apiClient, arguments)!);
     }
