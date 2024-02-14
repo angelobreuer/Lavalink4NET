@@ -4,9 +4,11 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
@@ -17,9 +19,24 @@ using Lavalink4NET.Events;
 /// </summary>
 public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 {
+    private static readonly PropertyInfo _discordApiClientProperty;
+    private static readonly MethodInfo _sendVoiceStateUpdateAsyncMethod;
+
     private readonly BaseSocketClient _baseSocketClient;
     private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
     private readonly int? _shardCount;
+    private readonly object _apiClient;
+
+    static DiscordClientWrapper()
+    {
+        _discordApiClientProperty = typeof(BaseDiscordClient)
+            .GetProperties(BindingFlags.NonPublic | BindingFlags.Instance)
+            .First(x => x.Name.Equals("ApiClient"));
+
+        _sendVoiceStateUpdateAsyncMethod = _discordApiClientProperty.PropertyType
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .First(x => x.Name.Equals("SendVoiceStateUpdateAsync"));
+    }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DiscordClientWrapper"/> class.
@@ -81,6 +98,8 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         _baseSocketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
 
         _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _apiClient = _discordApiClientProperty.GetValue(baseSocketClient)!;
 
         if (baseSocketClient is DiscordShardedClient discordShardedClient)
         {
@@ -177,33 +196,22 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     /// <param name="selfDeaf">a value indicating whether the bot user should be self deafened</param>
     /// <param name="selfMute">a value indicating whether the bot user should be self muted</param>
     /// <returns>a task that represents the asynchronous operation</returns>
-    public async ValueTask SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false, CancellationToken cancellationToken = default)
+    public ValueTask SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var guild = _baseSocketClient.GetGuild(guildId)
-            ?? throw new ArgumentException($"Invalid or inaccessible guild: {guildId}", nameof(guildId));
+        var requestOptions = new RequestOptions { CancelToken = cancellationToken, };
 
-        if (voiceChannelId.HasValue)
+        var arguments = new object?[]
         {
-            var channel = guild.GetVoiceChannel(voiceChannelId.Value)
-                ?? throw new ArgumentException($"Invalid or inaccessible voice channel: {voiceChannelId}", nameof(voiceChannelId));
+            guildId, // Guild Id
+            voiceChannelId, // Voice Channel Id
+            selfMute, // Self Mute
+			selfDeaf, // Self Deaf
+			requestOptions, // Request Options
+		};
 
-            await channel
-                .ConnectAsync(selfDeaf, selfMute, external: true)
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            return;
-        }
-
-        // Disconnect from voice channel
-        // Note: Internally it does not matter which voice channel to disconnect from
-        await guild
-            .VoiceChannels.First()
-            .DisconnectAsync()
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
+        return new ValueTask((Task)_sendVoiceStateUpdateAsyncMethod.Invoke(_apiClient, arguments)!);
     }
 
     /// <inheritdoc/>
