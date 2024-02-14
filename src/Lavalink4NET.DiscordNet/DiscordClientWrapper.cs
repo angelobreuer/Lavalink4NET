@@ -207,9 +207,9 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             guildId, // Guild Id
             voiceChannelId, // Voice Channel Id
             selfMute, // Self Mute
-			selfDeaf, // Self Deaf
-			requestOptions, // Request Options
-		};
+            selfDeaf, // Self Deaf
+            requestOptions, // Request Options
+        };
 
         return new ValueTask((Task)_sendVoiceStateUpdateAsyncMethod.Invoke(_apiClient, arguments)!);
     }
