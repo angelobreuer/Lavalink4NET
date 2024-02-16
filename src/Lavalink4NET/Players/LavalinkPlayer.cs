@@ -32,9 +32,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private bool _disconnectOnDestroy;
     private bool _connectedOnce;
     private ulong _trackVersion;
-    private volatile ITrackQueueItem? _nextTrack;
-    private volatile ITrackQueueItem? _skippedTrack;
+    private volatile ITrackQueueItem? _stoppedItem;
     private volatile ITrackQueueItem? _currentItem;
+    private volatile ITrackQueueItem? _replacedItem;
+    private volatile ITrackQueueItem? _nextItem;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -76,7 +77,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             State = PlayerState.Playing;
         }
 
-        _currentItem = _nextTrack = properties.InitialState.CurrentTrack is not null
+        _currentItem = properties.InitialState.CurrentTrack is not null
             ? properties.Options.Value.InitialTrack ?? new TrackQueueItem(new TrackReference(RestoreTrack(properties.InitialState.CurrentTrack)))
             : null;
 
@@ -167,7 +168,13 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         ArgumentNullException.ThrowIfNull(track);
 
         var currentTrackVersion = _trackVersion;
-        var previousItem = Interlocked.Exchange(ref _skippedTrack, null) ?? ResolveTrackQueueItem(track);
+
+        var previousItem = endReason switch
+        {
+            TrackEndReason.Replaced => Interlocked.Exchange(ref _replacedItem, null) ?? ResolveTrackQueueItem(track),
+            TrackEndReason.Stopped => Interlocked.Exchange(ref _stoppedItem, null) ?? ResolveTrackQueueItem(track),
+            _ => ResolveTrackQueueItem(track),
+        };
 
         try
         {
@@ -195,7 +202,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(track);
 
-        var nextTrack = Interlocked.Exchange(ref _nextTrack, null) ?? CurrentItem;
+        var nextTrack = Interlocked.Exchange(ref _nextItem, null) ?? CurrentItem;
         Debug.Assert(track.Identifier == nextTrack?.Identifier);
 
         CurrentItem = track.Identifier == nextTrack?.Identifier
@@ -230,8 +237,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         EnsureNotDestroyed();
         cancellationToken.ThrowIfCancellationRequested();
 
-        _skippedTrack = CurrentItem;
-        CurrentItem = _nextTrack = trackQueueItem;
+        _replacedItem = CurrentItem;
+        CurrentItem = _nextItem = trackQueueItem;
+
+        Interlocked.Increment(ref _trackVersion);
 
         var updateProperties = new PlayerUpdateProperties();
 
@@ -350,7 +359,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         cancellationToken.ThrowIfCancellationRequested();
 
         // Store stopped track to restore state information in TrackEnd dispatch
-        _skippedTrack = Interlocked.Exchange(ref _currentItem, null);
+        _stoppedItem = Interlocked.Exchange(ref _currentItem, null);
 
         var properties = new PlayerUpdateProperties
         {
@@ -438,10 +447,10 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         else if (model.CurrentTrack?.Information.Identifier != currentTrack?.Identifier)
         {
             // This indicates that the track had been restored from API information
-            Debug.Assert(_nextTrack is not null || model.CurrentTrack?.Information.Identifier == currentTrack?.Identifier);
+            Debug.Assert(_nextItem is not null || model.CurrentTrack?.Information.Identifier == currentTrack?.Identifier);
 
             var track = model.CurrentTrack is null
-                ? _nextTrack
+                ? _nextItem
                 : new TrackQueueItem(new TrackReference(RestoreTrack(model.CurrentTrack)));
 
             CurrentItem = track;
