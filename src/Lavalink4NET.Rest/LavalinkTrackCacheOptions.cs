@@ -3,8 +3,8 @@
 using System;
 
 public readonly record struct LavalinkTrackCacheOptions(
-    TimeSpan? SuccessCacheDuration = null, // default: 2 hours
-    TimeSpan? FailureCacheDuration = null) // default: 10 minutes
+    TimeSpan? SuccessCacheDuration = null, // default: 8 hours
+    TimeSpan? FailureCacheDuration = null) // default: 30 minutes
 {
     public static LavalinkTrackCacheOptions Default => default;
 }
