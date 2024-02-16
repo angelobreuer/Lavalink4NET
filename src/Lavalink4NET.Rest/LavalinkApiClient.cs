@@ -22,6 +22,8 @@ using Microsoft.Extensions.Options;
 
 public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClient
 {
+    private readonly TimeSpan _trackSearchSuccessCacheDuration;
+    private readonly TimeSpan _trackSearchFailureCacheDuration;
     private readonly IMemoryCache _memoryCache;
 
     public LavalinkApiClient(
@@ -37,6 +39,9 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         Endpoints = new LavalinkApiEndpoints(options.Value.BaseAddress);
         _memoryCache = memoryCache;
+
+        _trackSearchSuccessCacheDuration = options.Value.TrackCacheOptions.SuccessCacheDuration.GetValueOrDefault(TimeSpan.FromHours(8));
+        _trackSearchFailureCacheDuration = options.Value.TrackCacheOptions.FailureCacheDuration.GetValueOrDefault(TimeSpan.FromHours(0.5));
     }
 
     public LavalinkApiEndpoints Endpoints { get; }
@@ -79,8 +84,8 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             var success = loadResult is TrackLoadResultModel or PlaylistLoadResultModel or SearchLoadResultModel;
 
             var relativeExpiration = success
-                ? TimeSpan.FromHours(2)
-                : TimeSpan.FromMinutes(1);
+                ? _trackSearchSuccessCacheDuration
+                : _trackSearchFailureCacheDuration;
 
             cacheAccessor.Set(loadResult, relativeExpiration);
         }
