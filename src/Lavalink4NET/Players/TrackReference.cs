@@ -1,9 +1,11 @@
 ﻿namespace Lavalink4NET.Players;
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Lavalink4NET.Tracks;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly record struct TrackReference
 {
     private readonly object _value; // either string or LavalinkTrack
@@ -33,4 +35,8 @@ public readonly record struct TrackReference
         LavalinkTrack track => track.Identifier,
         _ => null,
     };
+
+    public override string ToString() => Identifier ?? string.Empty;
+
+    internal string GetDebuggerDisplay() => Track?.GetDebuggerDisplay() ?? ToString();
 }

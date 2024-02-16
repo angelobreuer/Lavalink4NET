@@ -1,8 +1,10 @@
 ﻿namespace Lavalink4NET.Tracks;
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public partial record class LavalinkTrack
 {
     private StreamProvider? _cachedProvider;
@@ -99,4 +101,6 @@ public partial record class LavalinkTrack
         return sourceName.Equals("http", StringComparison.OrdinalIgnoreCase)
             || sourceName.Equals("local", StringComparison.OrdinalIgnoreCase);
     }
+
+    internal string GetDebuggerDisplay() => $"{Title} ({Author}), {ToString()}";
 }
