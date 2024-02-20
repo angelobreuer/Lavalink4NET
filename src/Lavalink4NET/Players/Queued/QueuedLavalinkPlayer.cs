@@ -77,13 +77,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return position;
         }
 
-        if (Queue.HasHistory)
-        {
-            await Queue.History
-                .AddAsync(queueItem, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
         if (RepeatMode is TrackRepeatMode.Queue)
         {
             await Queue
