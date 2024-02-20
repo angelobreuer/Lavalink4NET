@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
@@ -19,23 +18,27 @@ using Lavalink4NET.Events;
 /// </summary>
 public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 {
+    private static readonly PropertyInfo _discordProperty;
     private static readonly PropertyInfo _discordApiClientProperty;
     private static readonly MethodInfo _sendVoiceStateUpdateAsyncMethod;
 
     private readonly BaseSocketClient _baseSocketClient;
     private readonly TaskCompletionSource<ClientInformation> _readyTaskCompletionSource;
     private readonly int? _shardCount;
-    private readonly object _apiClient;
 
     static DiscordClientWrapper()
     {
-        _discordApiClientProperty = typeof(BaseDiscordClient)
+        _discordProperty = typeof(SocketEntity<ulong>)
             .GetProperties(BindingFlags.NonPublic | BindingFlags.Instance)
-            .First(x => x.Name.Equals("ApiClient"));
+            .First(x => x.Name.Equals("Discord", StringComparison.Ordinal));
+
+        _discordApiClientProperty = typeof(DiscordSocketClient)
+            .GetProperties(BindingFlags.NonPublic | BindingFlags.Instance)
+            .First(x => x.Name.Equals("ApiClient", StringComparison.Ordinal));
 
         _sendVoiceStateUpdateAsyncMethod = typeof(DiscordSocketClient).Assembly.GetType("Discord.API.DiscordSocketApiClient")!
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-            .First(x => x.Name.Equals("SendVoiceStateUpdateAsync"));
+            .First(x => x.Name.Equals("SendVoiceStateUpdateAsync", StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -98,8 +101,6 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         _baseSocketClient.UserVoiceStateUpdated += OnVoiceStateUpdated;
 
         _readyTaskCompletionSource = new TaskCompletionSource<ClientInformation>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        _apiClient = _discordApiClientProperty.GetValue(baseSocketClient)!;
 
         if (baseSocketClient is DiscordShardedClient discordShardedClient)
         {
@@ -200,6 +201,10 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var guild = _baseSocketClient.GetGuild(guildId) ?? throw new InvalidOperationException("Could not find associated guild.");
+        var client = _discordProperty.GetValue(guild);
+        var apiClient = _discordApiClientProperty.GetValue(client);
+
         var requestOptions = new RequestOptions { CancelToken = cancellationToken, };
 
         var arguments = new object?[]
@@ -211,7 +216,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 			requestOptions, // Request Options
 		};
 
-        return new ValueTask((Task)_sendVoiceStateUpdateAsyncMethod.Invoke(_apiClient, arguments)!);
+        return new ValueTask((Task)_sendVoiceStateUpdateAsyncMethod.Invoke(apiClient, arguments)!);
     }
 
     /// <inheritdoc/>
