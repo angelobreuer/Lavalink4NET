@@ -84,6 +84,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
                 .ConfigureAwait(false);
         }
 
+        if (RepeatMode is TrackRepeatMode.Queue)
+        {
+            await Queue
+                .AddAsync(queueItem, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         // play the track immediately
         await base
             .PlayAsync(queueItem, properties, cancellationToken)
