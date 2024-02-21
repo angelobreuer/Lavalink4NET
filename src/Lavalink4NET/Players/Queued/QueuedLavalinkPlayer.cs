@@ -77,6 +77,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return position;
         }
 
+        if (Queue.HasHistory)
+        {
+            await Queue.History
+                .AddAsync(queueItem, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         // play the track immediately
         await base
             .PlayAsync(queueItem, properties, cancellationToken)
