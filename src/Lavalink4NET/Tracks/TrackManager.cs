@@ -1,4 +1,5 @@
 ﻿namespace Lavalink4NET.Tracks;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -145,7 +146,7 @@ file static class Diagnostics
         ResolvedTracks = meter.CreateCounter<long>(
             name: "resolved-tracks",
             unit: "Tracks",
-            description: "The number of resolved tracks.");
+            description: "The number of resolved tracks (including cached and non-cached).");
 
         FailedQueries = meter.CreateCounter<long>(
             name: "failed-queries",

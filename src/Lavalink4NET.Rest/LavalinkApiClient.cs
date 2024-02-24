@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.Rest;
 
 using System.Collections.Immutable;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -241,6 +242,9 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(identifier);
+
+        var metricTag = KeyValuePair.Create<string, object?>("Identifier", identifier);
+        Diagnostics.QueriedTracks.Add(1, metricTag);
 
         var queryParameters = HttpUtility.ParseQueryString(string.Empty);
         queryParameters["identifier"] = identifier;
@@ -499,5 +503,20 @@ internal static class StrictSearchHelper
         return searchMode.Prefix is null
             ? identifier
             : $"{searchMode.Prefix}:{identifier}";
+    }
+}
+
+file static class Diagnostics
+{
+    public static Counter<long> QueriedTracks { get; }
+
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        QueriedTracks = meter.CreateCounter<long>(
+            name: "queried-tracks",
+            unit: "Tracks",
+            description: "The number of tracks queried from the node (non-cached only).");
     }
 }
