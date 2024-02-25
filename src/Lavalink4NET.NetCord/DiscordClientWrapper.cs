@@ -34,35 +34,26 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         _client.VoiceServerUpdate -= HandleVoiceServerUpdateAsync;
     }
 
-    public async ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId, bool includeBots = false, CancellationToken cancellationToken = default)
+    public ValueTask<ImmutableArray<ulong>> GetChannelUsersAsync(ulong guildId, ulong voiceChannelId, bool includeBots = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var restGuild = await _client.Rest
-            .GetGuildAsync(guildId)
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        if (restGuild is not Guild guild)
+        if (!_client.Cache.Guilds.TryGetValue(guildId, out var guild))
         {
-            return [];
+            return new ValueTask<ImmutableArray<ulong>>([]);
         }
-
-        var currentUser = await _client.Rest
-            .GetCurrentUserAsync()
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
 
         var voiceStates = guild.VoiceStates
             .Where(x => x.Value.ChannelId == voiceChannelId)
-            .Where(x => x.Value.UserId != currentUser.Id);
+            .Where(x => x.Value.UserId != _client.Id);
 
         if (!includeBots)
         {
             voiceStates = voiceStates.Where(x => x.Value.User is not { IsBot: true, });
         }
 
-        return voiceStates.Select(x => x.Value.UserId).ToImmutableArray();
+        var userIds = voiceStates.Select(x => x.Value.UserId).ToImmutableArray();
+        return new ValueTask<ImmutableArray<ulong>>(userIds);
     }
 
     public async ValueTask SendVoiceUpdateAsync(ulong guildId, ulong? voiceChannelId, bool selfDeaf = false, bool selfMute = false, CancellationToken cancellationToken = default)
@@ -86,12 +77,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
 
         var shardCount = _client.Shard?.Count ?? 0;
 
-        var currentUser = await _client.Rest
-            .GetCurrentUserAsync()
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return new ClientInformation("NetCord", currentUser.Id, shardCount);
+        return new ClientInformation("NetCord", _client.Id, shardCount);
     }
 
     private ValueTask HandleVoiceServerUpdateAsync(VoiceServerUpdateEventArgs eventArgs)
@@ -120,10 +106,6 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             ? new Clients.VoiceState(VoiceChannelId: previousVoiceStateData.ChannelId, SessionId: previousVoiceStateData.SessionId)
             : default;
 
-        var currentUser = await _client.Rest
-            .GetCurrentUserAsync()
-            .ConfigureAwait(false);
-
         var updatedVoiceState = new Clients.VoiceState(
             VoiceChannelId: eventArgs.ChannelId,
             SessionId: eventArgs.SessionId);
@@ -131,7 +113,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
         var voiceStateUpdatedEventArgs = new VoiceStateUpdatedEventArgs(
             eventArgs.GuildId,
             eventArgs.UserId,
-            eventArgs.UserId == currentUser.Id,
+            eventArgs.UserId == _client.Id,
             updatedVoiceState,
             previousVoiceState);
 
