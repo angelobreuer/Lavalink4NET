@@ -3,22 +3,26 @@
 using Lavalink4NET;
 using Lavalink4NET.NetCord;
 using Lavalink4NET.Players;
-using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
-using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
 public class MusicModule(IAudioService audioService) : ApplicationCommandModule<SlashCommandContext>
 {
     [SlashCommand("play", "Plays a track!")]
-    public async Task<string?> PlayAsync([SlashCommandParameter(Name = "query", Description = "The query to search for")] string query)
+    public async Task<string> PlayAsync([SlashCommandParameter(Name = "query", Description = "The query to search for")] string query)
     {
-        var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
+        var retrieveOptions = new PlayerRetrieveOptions(ChannelBehavior: PlayerChannelBehavior.Join);
 
-        if (player is null)
+        var result = await audioService.Players
+            .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
         {
-            return null; // error message is already sent by GetPlayerAsync
+            return GetErrorMessage(result.Status);
         }
+
+        var player = result.Player;
 
         var track = await audioService.Tracks
             .LoadTrackAsync(query, TrackSearchMode.YouTube)
@@ -36,29 +40,10 @@ public class MusicModule(IAudioService audioService) : ApplicationCommandModule<
         return $"Now playing: {track.Title}";
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
+    private static string GetErrorMessage(PlayerRetrieveStatus retrieveStatus) => retrieveStatus switch
     {
-        var retrieveOptions = new PlayerRetrieveOptions(
-            ChannelBehavior: connectToVoiceChannel ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None);
-
-        var result = await audioService.Players
-            .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions)
-            .ConfigureAwait(false);
-
-        if (!result.IsSuccess)
-        {
-            var errorMessage = result.Status switch
-            {
-                PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
-                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
-                _ => "Unknown error.",
-            };
-
-            await RespondAsync(InteractionCallback.Message(errorMessage)).ConfigureAwait(false);
-
-            return null;
-        }
-
-        return result.Player;
-    }
+        PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel.",
+        PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
+        _ => "Unknown error.",
+    };
 }
