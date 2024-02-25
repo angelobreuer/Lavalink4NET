@@ -75,7 +75,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
             .WaitAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var shardCount = _client.Shard?.Count ?? 0;
+        var shardCount = _client.Shard?.Count ?? 1;
 
         return new ClientInformation("NetCord", _client.Id, shardCount);
     }
