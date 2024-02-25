@@ -14,8 +14,7 @@ public class MusicModule(IAudioService audioService) : ApplicationCommandModule<
         var retrieveOptions = new PlayerRetrieveOptions(ChannelBehavior: PlayerChannelBehavior.Join);
 
         var result = await audioService.Players
-            .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions)
-            .ConfigureAwait(false);
+            .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions);
 
         if (!result.IsSuccess)
         {
@@ -25,17 +24,14 @@ public class MusicModule(IAudioService audioService) : ApplicationCommandModule<
         var player = result.Player;
 
         var track = await audioService.Tracks
-            .LoadTrackAsync(query, TrackSearchMode.YouTube)
-            .ConfigureAwait(false);
+            .LoadTrackAsync(query, TrackSearchMode.YouTube);
 
         if (track is null)
         {
             return "No tracks found.";
         }
 
-        await player
-            .PlayAsync(track)
-            .ConfigureAwait(false);
+        await player.PlayAsync(track);
 
         return $"Now playing: {track.Title}";
     }
