@@ -114,16 +114,17 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         ArgumentNullException.ThrowIfNull(eventArgs);
 
+        // Retrieve previous voice state from cache
+        var previousVoiceState = _client.Cache.Guilds.TryGetValue(eventArgs.GuildId, out var guild)
+            && guild.VoiceStates.TryGetValue(eventArgs.UserId, out var previousVoiceStateData)
+            ? new Clients.VoiceState(VoiceChannelId: previousVoiceStateData.ChannelId, SessionId: previousVoiceStateData.SessionId)
+            : default;
+
         var currentUser = await _client.Rest
             .GetCurrentUserAsync()
             .ConfigureAwait(false);
 
         var updatedVoiceState = new Clients.VoiceState(
-            VoiceChannelId: eventArgs.ChannelId,
-            SessionId: eventArgs.SessionId);
-
-        // TODO: is there a way to get the previous voice state?
-        var previousVoiceState = new Clients.VoiceState(
             VoiceChannelId: eventArgs.ChannelId,
             SessionId: eventArgs.SessionId);
 
