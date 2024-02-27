@@ -1,11 +1,10 @@
 ﻿namespace Lavalink4NET.Integrations.SponsorBlock.Payloads;
 
-using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Lavalink4NET.Protocol.Converters;
 using Lavalink4NET.Protocol.Payloads;
 
-public sealed record class ChaptersLoadedEventPayload(
+public sealed record class ChapterStartedEventPayload(
 #if NET7_0_OR_GREATER
     [property: JsonRequired]
 #endif
@@ -16,5 +15,5 @@ public sealed record class ChaptersLoadedEventPayload(
 #if NET7_0_OR_GREATER
     [property: JsonRequired]
 #endif
-    [property: JsonPropertyName("chapters")]
-    ImmutableArray<ChapterModel> Chapters) : IEventPayload;
+    [property: JsonPropertyName("chapter")]
+    ChapterModel Chapter) : IEventPayload;

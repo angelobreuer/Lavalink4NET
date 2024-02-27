@@ -10,4 +10,8 @@ public interface ISponsorBlockPlayerListener : ILavalinkPlayerListener
     ValueTask NotifySegmentSkippedAsync(Segment segment, CancellationToken cancellationToken = default);
 
     ValueTask NotifySegmentsLoadedAsync(ImmutableArray<Segment> segments, CancellationToken cancellationToken = default);
+
+    ValueTask NotifyChapterStartedAsync(Chapter chapter, CancellationToken cancellationToken = default);
+
+    ValueTask NotifyChaptersLoadedAsync(ImmutableArray<Chapter> chapters, CancellationToken cancellationToken = default);
 }
