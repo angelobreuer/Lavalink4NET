@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddLavalink<DiscordClientWrapper>();
+        services.AddLavalink<SocketDiscordClientWrapper>();
 
         return services;
     }
