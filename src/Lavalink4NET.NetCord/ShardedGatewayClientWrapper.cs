@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using global::NetCord.Gateway;
 using Lavalink4NET.Clients;
 
-internal sealed class ShardedDiscordClientWrapper : DiscordClientWrapperBase, IDiscordClientWrapper, IDisposable
+internal sealed class ShardedGatewayClientWrapper : GatewayClientWrapperBase, IDiscordClientWrapper, IDisposable
 {
     private readonly ShardedGatewayClient _client;
     private readonly TaskCompletionSource _readyTaskCompletionSource;
 
-    public ShardedDiscordClientWrapper(ShardedGatewayClient client)
+    public ShardedGatewayClientWrapper(ShardedGatewayClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
 

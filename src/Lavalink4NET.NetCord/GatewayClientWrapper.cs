@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using global::NetCord.Gateway;
 using Lavalink4NET.Clients;
 
-internal sealed class SocketDiscordClientWrapper : DiscordClientWrapperBase, IDiscordClientWrapper, IDisposable
+internal sealed class GatewayClientWrapper : GatewayClientWrapperBase, IDiscordClientWrapper, IDisposable
 {
     private readonly GatewayClient _client;
 
-    public SocketDiscordClientWrapper(GatewayClient client)
+    public GatewayClientWrapper(GatewayClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
 

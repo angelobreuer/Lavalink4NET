@@ -11,7 +11,7 @@ using Lavalink4NET.Clients;
 using Lavalink4NET.Clients.Events;
 using Lavalink4NET.Events;
 
-internal abstract class DiscordClientWrapperBase : IDiscordClientWrapper
+internal abstract class GatewayClientWrapperBase : IDiscordClientWrapper
 {
     public event AsyncEventHandler<VoiceServerUpdatedEventArgs>? VoiceServerUpdated;
 

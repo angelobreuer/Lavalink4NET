@@ -17,14 +17,14 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper
     {
         ArgumentNullException.ThrowIfNull(client);
 
-        _client = new SocketDiscordClientWrapper(client);
+        _client = new GatewayClientWrapper(client);
     }
 
     public DiscordClientWrapper(ShardedGatewayClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
 
-        _client = new ShardedDiscordClientWrapper(client);
+        _client = new ShardedGatewayClientWrapper(client);
     }
 
     public event AsyncEventHandler<VoiceServerUpdatedEventArgs>? VoiceServerUpdated
