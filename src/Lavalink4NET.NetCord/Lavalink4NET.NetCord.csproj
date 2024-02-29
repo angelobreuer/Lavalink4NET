@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NetCord" Version="1.0.0-alpha.267" />
-        <PackageReference Include="NetCord.Services" Version="1.0.0-alpha.168" />
+        <PackageReference Include="NetCord" Version="1.0.0-alpha.270" />
+        <PackageReference Include="NetCord.Services" Version="1.0.0-alpha.171" />
     </ItemGroup>
 
     <ItemGroup>
