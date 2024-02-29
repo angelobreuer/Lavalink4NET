@@ -9,7 +9,7 @@ using NetCord.Services.ApplicationCommands;
 var builder = Host.CreateDefaultBuilder(args)
     .UseDiscordGateway()
     .UseLavalink()
-    .UseApplicationCommandService<SlashCommandInteraction, SlashCommandContext>();
+    .UseApplicationCommands<SlashCommandInteraction, SlashCommandContext>();
 
 var host = builder.Build()
     .AddModules(typeof(Program).Assembly)
