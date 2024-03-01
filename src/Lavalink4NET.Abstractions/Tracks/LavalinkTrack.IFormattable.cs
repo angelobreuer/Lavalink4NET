@@ -278,26 +278,19 @@ public partial record class LavalinkTrack : ISpanFormattable
         var lengthBuffer = span[..2];
         span = span[2..];
 
-        var operationStatus = Utf8.FromUtf16(
-            source: value,
-            destination: span,
-            charsRead: out _,
-            bytesWritten: out var utf8BytesWritten);
+        var previousBytesWritten = bytesWritten;
 
-        if (operationStatus is not OperationStatus.Done)
+        if (!TryWriteModifiedUtf8(ref span, value, ref bytesWritten))
         {
-            if (operationStatus is OperationStatus.DestinationTooSmall)
-            {
-                return false;
-            }
-
-            throw new InvalidOperationException("Invalid data for UTF-8.");
+            return false;
         }
 
-        span = span[utf8BytesWritten..];
-        bytesWritten += utf8BytesWritten + 2;
+        var utf8BytesWritten = bytesWritten - previousBytesWritten;
 
         BinaryPrimitives.WriteUInt16BigEndian(lengthBuffer, (ushort)utf8BytesWritten);
+
+        bytesWritten += 2;
+
         return true;
     }
 
@@ -322,6 +315,75 @@ public partial record class LavalinkTrack : ISpanFormattable
         if (!TryEncodeString(ref span, value, ref bytesWritten))
         {
             return false;
+        }
+
+        return true;
+    }
+
+    private static bool TryWriteModifiedUtf8(ref Span<byte> span, ReadOnlySpan<char> value, ref int bytesWritten)
+    {
+        // Ported from https://android.googlesource.com/platform/prebuilts/fullsdk/sources/android-29/+/refs/heads/androidx-wear-release/java/io/DataOutputStream.java
+
+        int index;
+        for (index = 0; index < value.Length; index++)
+        {
+            var character = value[index];
+
+            if (character is not (>= (char)0x0001 and <= (char)0x007F))
+            {
+                break;
+            }
+
+            if (span.IsEmpty)
+            {
+                return false;
+            }
+
+            span[0] = (byte)character;
+            bytesWritten++;
+            span = span[1..];
+        }
+
+        for (; index < value.Length; index++)
+        {
+            var character = value[index];
+
+            if (character is >= (char)0x0001 and <= (char)0x007F)
+            {
+                if (span.IsEmpty)
+                {
+                    return false;
+                }
+
+                span[0] = (byte)character;
+                bytesWritten++;
+                span = span[1..];
+            }
+            else if (character > 0x07FF)
+            {
+                if (span.Length < 3)
+                {
+                    return false;
+                }
+
+                span[0] = (byte)(0xE0 | ((character >> 12) & 0x0F));
+                span[1] = (byte)(0x80 | ((character >> 6) & 0x3F));
+                span[2] = (byte)(0x80 | ((character >> 0) & 0x3F));
+                bytesWritten += 3;
+                span = span[3..];
+            }
+            else
+            {
+                if (span.Length < 2)
+                {
+                    return false;
+                }
+
+                span[0] = (byte)(0xC0 | ((character >> 6) & 0x1F));
+                span[1] = (byte)(0x80 | ((character >> 0) & 0x3F));
+                bytesWritten += 2;
+                span = span[2..];
+            }
         }
 
         return true;
