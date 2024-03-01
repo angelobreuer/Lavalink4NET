@@ -296,7 +296,7 @@ public sealed class LavalinkTrackTests
     }
 
     [Fact]
-    public void TestKnownTrackWithSpecialCharacters()
+    public void TestEncodeKnownTrackWithSpecialCharacters()
     {
         // Arrange
         var model = JsonSerializer.Deserialize<TrackModel>("""
@@ -328,6 +328,48 @@ public sealed class LavalinkTrackTests
 
         // Assert
         Assert.Equal(model.Data, actualIdentifier);
+    }
+
+    [Fact]
+    public void TestDecodeKnownTrackWithSpecialCharacters()
+    {
+        // Arrange
+        var model = JsonSerializer.Deserialize<TrackModel>("""
+            {
+            	"encoded": "QAAA2gMAN0NvenkgYW5pbWFsIGNyb3NzaW5nIG11c2ljIHRoYXQgY3VyZSBteSBoZWFkYWNoZXPtoLztvL8AC1RlbmRvIEZhcm1zAAAAAAA/26gACzhUYkx1Qk9DbFNnAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9OFRiTHVCT0NsU2cBADpodHRwczovL2kueXRpbWcuY29tL3ZpX3dlYnAvOFRiTHVCT0NsU2cvbWF4cmVzZGVmYXVsdC53ZWJwAAAHeW91dHViZQAAAAAAAAAA",
+            	"info": {
+            		"identifier": "8TbLuBOClSg",
+            		"isSeekable": true,
+            		"author": "Tendo Farms",
+            		"length": 4185000,
+            		"isStream": false,
+            		"position": 0,
+            		"title": "Cozy animal crossing music that cure my headaches🌿",
+            		"uri": "https://www.youtube.com/watch?v=8TbLuBOClSg",
+            		"sourceName": "youtube",
+            		"artworkUrl": "https://i.ytimg.com/vi_webp/8TbLuBOClSg/maxresdefault.webp",
+            		"isrc": null
+            	},
+            	"pluginInfo": {},
+            	"userData": {}
+            }
+            """)!;
+
+        // Act
+        var parsedTrack = LavalinkTrack.Parse(model.Data, provider: null);
+
+        // Assert
+        Assert.Equal(model.Information.Identifier, parsedTrack.Identifier);
+        Assert.Equal(model.Information.IsSeekable, parsedTrack.IsSeekable);
+        Assert.Equal(model.Information.Author, parsedTrack.Author);
+        Assert.Equal(model.Information.Duration, parsedTrack.Duration);
+        Assert.Equal(model.Information.IsLiveStream, parsedTrack.IsLiveStream);
+        Assert.Equal(model.Information.Position, parsedTrack.StartPosition);
+        Assert.Equal(model.Information.Title, parsedTrack.Title);
+        Assert.Equal(model.Information.Uri, parsedTrack.Uri);
+        Assert.Equal(model.Information.SourceName, parsedTrack.SourceName);
+        Assert.Equal(model.Information.ArtworkUri, parsedTrack.ArtworkUri);
+        Assert.Equal(model.Information.Isrc, parsedTrack.Isrc);
     }
 
     private static LavalinkTrack CreateTrack(TrackModel track) => new()
