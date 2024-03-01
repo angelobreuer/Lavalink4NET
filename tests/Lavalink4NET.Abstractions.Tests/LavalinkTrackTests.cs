@@ -1,5 +1,7 @@
-namespace Lavalink4NET.Abstractions.Tests;
+﻿namespace Lavalink4NET.Abstractions.Tests;
 
+using System.Text.Json;
+using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Tracks;
 
 public sealed class LavalinkTrackTests
@@ -24,6 +26,7 @@ public sealed class LavalinkTrackTests
     }
 
     [Theory]
+    [InlineData("QAAA2AMANUNvenkgYW5pbWFsIGNyb3NzaW5nIG11c2ljIHRoYXQgY3VyZSBteSBoZWFkYWNoZXPwn4y/AAtUZW5kbyBGYXJtcwAAAAAAP9uoAAs4VGJMdUJPQ2xTZwABACtodHRwczovL3d3dy55b3V0dWJlLmNvbS93YXRjaD92PThUYkx1Qk9DbFNnAQA6aHR0cHM6Ly9pLnl0aW1nLmNvbS92aV93ZWJwLzhUYkx1Qk9DbFNnL21heHJlc2RlZmF1bHQud2VicAAAB3lvdXR1YmUAAAAAAAKYtw==")]
     [InlineData("QAAAjgMAJFZhbmNlIEpveSAtICdSaXB0aWRlJyBPZmZpY2lhbCBWaWRlbwAObXVzaHJvb212aWRlb3MAAAAAAAMgyAALdUpfMUhNQUdiNGsAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj11Sl8xSE1BR2I0awAAAAd5b3V0dWJlAAAAAAAAAAA=")]
     [InlineData("QAAAjwMAK1JpdGEgT3JhIC0gWW91ciBTb25nIChPZmZpY2lhbCBMeXJpYyBWaWRlbykACFJpdGEgT3JhAAAAAAACwwgAC2k5NU5sYjdraVBvAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9aTk1TmxiN2tpUG8AAAAHeW91dHViZQAAAAAAAAAA")]
     [InlineData("QAAAmgMAMkx1a2FzIEdyYWhhbSAtIExvdmUgU29tZW9uZSBbT0ZGSUNJQUwgTVVTSUMgVklERU9dAAxMdWthcyBHcmFoYW0AAAAAAAOhsAALZE40NHhwSGpOeEUAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kTjQ0eHBIak54RQAAAAd5b3V0dWJlAAAAAAAAAAA=")]
@@ -291,4 +294,57 @@ public sealed class LavalinkTrackTests
         // Assert
         Assert.NotEqual(result, originalTrackInfo.ToString());
     }
+
+    [Fact]
+    public void TestKnownTrackWithSpecialCharacters()
+    {
+        // Arrange
+        var model = JsonSerializer.Deserialize<TrackModel>("""
+            {
+            	"encoded": "QAAA2gMAN0NvenkgYW5pbWFsIGNyb3NzaW5nIG11c2ljIHRoYXQgY3VyZSBteSBoZWFkYWNoZXPtoLztvL8AC1RlbmRvIEZhcm1zAAAAAAA/26gACzhUYkx1Qk9DbFNnAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9OFRiTHVCT0NsU2cBADpodHRwczovL2kueXRpbWcuY29tL3ZpX3dlYnAvOFRiTHVCT0NsU2cvbWF4cmVzZGVmYXVsdC53ZWJwAAAHeW91dHViZQAAAAAAAAAA",
+            	"info": {
+            		"identifier": "8TbLuBOClSg",
+            		"isSeekable": true,
+            		"author": "Tendo Farms",
+            		"length": 4185000,
+            		"isStream": false,
+            		"position": 0,
+            		"title": "Cozy animal crossing music that cure my headaches🌿",
+            		"uri": "https://www.youtube.com/watch?v=8TbLuBOClSg",
+            		"sourceName": "youtube",
+            		"artworkUrl": "https://i.ytimg.com/vi_webp/8TbLuBOClSg/maxresdefault.webp",
+            		"isrc": null
+            	},
+            	"pluginInfo": {},
+            	"userData": {}
+            }
+            """)!;
+
+        var track = CreateTrack(model!);
+        track.TrackData = null; // avoid caching
+
+        // Act
+        var actualIdentifier = track.ToString(version: null);
+
+        // Assert
+        Assert.Equal(model.Data, actualIdentifier);
+    }
+
+    private static LavalinkTrack CreateTrack(TrackModel track) => new()
+    {
+        Duration = track.Information.Duration,
+        Identifier = track.Information.Identifier,
+        IsLiveStream = track.Information.IsLiveStream,
+        IsSeekable = track.Information.IsSeekable,
+        SourceName = track.Information.SourceName,
+        StartPosition = track.Information.Position,
+        Title = track.Information.Title,
+        Uri = track.Information.Uri,
+        TrackData = track.Data,
+        Author = track.Information.Author,
+        ArtworkUri = track.Information.ArtworkUri,
+        Isrc = track.Information.Isrc,
+        AdditionalInformation = track.AdditionalInformation,
+    };
+
 }

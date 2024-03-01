@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lavalink4NET.Abstractions\Lavalink4NET.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Lavalink4NET.Protocol\Lavalink4NET.Protocol.csproj" />
   </ItemGroup>
 
 </Project>
