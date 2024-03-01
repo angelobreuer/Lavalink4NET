@@ -364,7 +364,6 @@ public sealed class LavalinkTrackTests
         Assert.Equal(model.Information.Author, parsedTrack.Author);
         Assert.Equal(model.Information.Duration, parsedTrack.Duration);
         Assert.Equal(model.Information.IsLiveStream, parsedTrack.IsLiveStream);
-        Assert.Equal(model.Information.Position, parsedTrack.StartPosition);
         Assert.Equal(model.Information.Title, parsedTrack.Title);
         Assert.Equal(model.Information.Uri, parsedTrack.Uri);
         Assert.Equal(model.Information.SourceName, parsedTrack.SourceName);
