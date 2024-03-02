@@ -60,7 +60,7 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 - [**Lavalink4NET.Remora.Discord**](https://www.nuget.org/packages/Lavalink4NET.Remora.Discord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your Remora-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with Remora.
 
-- [**Lavalink4NET.NetCord**](https://www.nuget.org/packages/Lavalink4NET.Remora.Discord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your NetCord-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with NetCord.
+- [**Lavalink4NET.NetCord**](https://www.nuget.org/packages/Lavalink4NET.NetCord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your NetCord-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with NetCord.
 
 #### _Clustering_
 
