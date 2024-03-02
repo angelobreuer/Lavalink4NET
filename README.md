@@ -6,7 +6,7 @@
 <!-- Center badges -->
 <p align="center"><b>High performance Lavalink wrapper for .NET</b></p>
 
-[Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net), [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/) and [Remora](https://github.com/Remora/Remora.Discord).
+[Lavalink4NET](https://github.com/angelobreuer/Lavalink4NET) is a [Lavalink](https://github.com/freyacodes/Lavalink) wrapper with node clustering, caching and custom players for .NET with support for [Discord.Net](https://github.com/RogueException/Discord.Net), [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/), [Remora](https://github.com/Remora/Remora.Discord), and [NetCord](https://github.com/KubaZ2/NetCord).
 
 [![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
 
@@ -59,6 +59,8 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 - [**Lavalink4NET.DSharpPlus**](https://www.nuget.org/packages/Lavalink4NET.DSharpPlus/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.DSharpPlus.svg?style=flat-square)<br>Add powerful audio playback to your DSharpPlus-based applications with this integration for Lavalink4NET. Suitable for end users developing with DSharpPlus.
 
 - [**Lavalink4NET.Remora.Discord**](https://www.nuget.org/packages/Lavalink4NET.Remora.Discord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your Remora-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with Remora.
+
+- [**Lavalink4NET.NetCord**](https://www.nuget.org/packages/Lavalink4NET.Remora.Discord/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Remora.Discord.svg?style=flat-square)<br>Add powerful audio playback to your NetCord-based discord bots with this integration for Lavalink4NET. Suitable for end users developing with NetCord.
 
 #### _Clustering_
 
@@ -118,7 +120,7 @@ var audioService = app.Services.GetRequiredService<IAudioService>();
 // Play a track
 var playerOptions = new LavalinkPlayerOptions
 {
-    InitialTrack = new TrackReference("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+    InitialTrack = new TrackQueueItem("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
 };
 
 await audioService.Players
