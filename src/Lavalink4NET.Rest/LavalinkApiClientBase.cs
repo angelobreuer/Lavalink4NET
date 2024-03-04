@@ -1,7 +1,6 @@
 ﻿namespace Lavalink4NET.Rest;
 
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,7 +11,7 @@ public abstract class LavalinkApiClientBase
     private readonly IOptions<LavalinkApiClientOptions> _options;
     private readonly ILogger<LavalinkApiClientBase> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly AuthenticationHeaderValue _authenticationHeaderValue;
+    private readonly string _authenticationHeaderValue;
 
     protected LavalinkApiClientBase(
         IHttpClientFactory httpClientFactory,
@@ -31,13 +30,13 @@ public abstract class LavalinkApiClientBase
         _options = options;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _authenticationHeaderValue = new AuthenticationHeaderValue(options.Value.Passphrase);
+        _authenticationHeaderValue = options.Value.Passphrase;
     }
 
     public HttpClient CreateHttpClient()
     {
         var httpClient = _httpClientFactory.CreateClient(_options.Value.HttpClientName);
-        httpClient.DefaultRequestHeaders.Authorization = _authenticationHeaderValue;
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _authenticationHeaderValue);
         return httpClient;
     }
 }
