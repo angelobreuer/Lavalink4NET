@@ -82,11 +82,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Remora.Discord
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Samples.Remora.Discord", "..\samples\Lavalink4NET.Samples.Remora.Discord\Lavalink4NET.Samples.Remora.Discord.csproj", "{500740AC-ACCE-41D8-BF13-7A2C17AE92F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.Lavasearch", "Lavalink4NET.Integrations.Lavasearch\Lavalink4NET.Integrations.Lavasearch.csproj", "{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.Lavasearch", "Lavalink4NET.Integrations.Lavasearch\Lavalink4NET.Integrations.Lavasearch.csproj", "{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.Lavasrc", "Lavalink4NET.Integrations.Lavasrc\Lavalink4NET.Integrations.Lavasrc.csproj", "{AA551948-593B-4245-ACFB-D392A499C08F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.Lavasrc", "Lavalink4NET.Integrations.Lavasrc\Lavalink4NET.Integrations.Lavasrc.csproj", "{AA551948-593B-4245-ACFB-D392A499C08F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Integrations.Lavasrc.Tests", "..\tests\Lavalink4NET.Integrations.Lavasrc.Tests\Lavalink4NET.Integrations.Lavasrc.Tests.csproj", "{5779F765-5F0D-422C-984A-7E44EAE737C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lavalink4NET.Integrations.Lavasrc.Tests", "..\tests\Lavalink4NET.Integrations.Lavasrc.Tests\Lavalink4NET.Integrations.Lavasrc.Tests.csproj", "{5779F765-5F0D-422C-984A-7E44EAE737C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.NetCord", "Lavalink4NET.NetCord\Lavalink4NET.NetCord.csproj", "{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lavalink4NET.Samples.NetCord", "..\samples\Lavalink4NET.Samples.NetCord\Lavalink4NET.Samples.NetCord.csproj", "{02FE863F-D979-439A-9A51-C4EA69D58D29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -234,6 +238,14 @@ Global
 		{5779F765-5F0D-422C-984A-7E44EAE737C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5779F765-5F0D-422C-984A-7E44EAE737C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5779F765-5F0D-422C-984A-7E44EAE737C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02FE863F-D979-439A-9A51-C4EA69D58D29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02FE863F-D979-439A-9A51-C4EA69D58D29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02FE863F-D979-439A-9A51-C4EA69D58D29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02FE863F-D979-439A-9A51-C4EA69D58D29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -258,6 +270,8 @@ Global
 		{9ADE9CE1-F5E0-44F8-8B82-BAD357F15204} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{AA551948-593B-4245-ACFB-D392A499C08F} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
 		{5779F765-5F0D-422C-984A-7E44EAE737C8} = {48ECDC71-B9E3-4086-8194-DA81B4667CA6}
+		{8587F98B-CFE1-4559-9614-ED3B2B0C4F4E} = {5FAEC63E-9752-48C4-8BC9-B101E0DBDBD3}
+		{02FE863F-D979-439A-9A51-C4EA69D58D29} = {B9402D29-5B12-4672-97B8-570A60C0F878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {466A619D-5C4B-4A8F-9852-7A5322F160A2}
