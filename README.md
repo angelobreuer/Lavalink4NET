@@ -41,7 +41,7 @@
 
 - 📊 **Statistics tracking support**<br>Lavalink4NET supports tracking and evaluation of node statistics. In clustering, node statistics can be used to evaluate the best node for efficient resource usage.
 
-- ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus), [Discord.Net](https://github.com/discord-net/Discord.Net), and [Remora](https://github.com/Remora/Remora.Discord).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus, Discord.Net and Remora are supported out-of-the-box.
+- ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus), [Discord.Net](https://github.com/discord-net/Discord.Net), [Remora](https://github.com/Remora/Remora.Discord), and [NetCord](https://github.com/KubaZ2/NetCord).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus, Discord.Net, Remora and NetCord are supported out-of-the-box.
   
 ### Documentation
 
@@ -84,7 +84,7 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 #### _Core Components_
 
-- [**Lavalink4NET**](https://www.nuget.org/packages/Lavalink4NET/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)<br>This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus instead. 
+- [**Lavalink4NET**](https://www.nuget.org/packages/Lavalink4NET/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)<br>This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net, Lavalink4NET.DSharpPlus, Lavalink4NET.Remora.Discord or Lavalink4NET.NetCord instead. 
 
 - [**Lavalink4NET.Abstractions**](https://www.nuget.org/packages/Lavalink4NET.Abstractions/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Abstractions.svg?style=flat-square)<br>General abstractions and common primitives for the Lavalink4NET client library.
 
