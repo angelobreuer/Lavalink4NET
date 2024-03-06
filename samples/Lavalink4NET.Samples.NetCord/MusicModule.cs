@@ -15,7 +15,7 @@ public class MusicModule(IAudioService audioService) : ApplicationCommandModule<
 
         var result = await audioService.Players
             .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions);
-        
+
         if (!result.IsSuccess)
         {
             return GetErrorMessage(result.Status);
