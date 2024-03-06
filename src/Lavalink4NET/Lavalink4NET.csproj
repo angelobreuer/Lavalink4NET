@@ -7,7 +7,7 @@
 
 	  <!-- Package Description -->
 	  <Description>
-		  High performance Lavalink wrapper for .NET | This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net or Lavalink4NET.DSharpPlus instead.
+		  High performance Lavalink wrapper for .NET | This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net, Lavalink4NET.DSharpPlus, Lavalink4NET.Remora.Discord, or Lavalink4NET.NetCord instead.
 	  </Description>
 
 	  <PackageTags>lavalink,lavalink-wrapper,discord,discord-music,discord-music-bot</PackageTags>
