@@ -9,7 +9,7 @@ using NetCord.Services.ApplicationCommands;
 public class MusicModule(IAudioService audioService) : ApplicationCommandModule<SlashCommandContext>
 {
     [SlashCommand("play", "Plays a track!")]
-    public async Task<string> PlayAsync([SlashCommandParameter(Name = "query", Description = "The query to search for")] string query)
+    public async Task<string> PlayAsync([SlashCommandParameter(Description = "The query to search for")] string query)
     {
         var retrieveOptions = new PlayerRetrieveOptions(ChannelBehavior: PlayerChannelBehavior.Join);
 
