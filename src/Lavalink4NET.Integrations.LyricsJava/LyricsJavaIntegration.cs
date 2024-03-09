@@ -8,16 +8,20 @@ using Lavalink4NET.Integrations.LyricsJava.Models;
 using Lavalink4NET.Integrations.LyricsJava.Players;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Protocol.Payloads.Events;
+using Microsoft.Extensions.Options;
 
 public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegration
 {
     private readonly IAudioService _audioService;
+    private readonly LyricsJavaIntegrationOptions _options;
 
-    public LyricsJavaIntegration(IAudioService audioService)
+    public LyricsJavaIntegration(IAudioService audioService, IOptions<LyricsJavaIntegrationOptions> options)
     {
         ArgumentNullException.ThrowIfNull(audioService);
+        ArgumentNullException.ThrowIfNull(options);
 
         _audioService = audioService;
+        _options = options.Value;
     }
 
     public event AsyncEventHandler<LyricsLoadedEventArgs>? LyricsLoaded;
@@ -27,7 +31,7 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(payload);
 
-        if (payload is TrackStartEventPayload trackStartEventPayload)
+        if (_options.AutoResolve && payload is TrackStartEventPayload trackStartEventPayload)
         {
             var player = await _audioService.Players
                 .GetPlayerAsync(trackStartEventPayload.GuildId, cancellationToken)
