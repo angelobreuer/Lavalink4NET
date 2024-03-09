@@ -40,7 +40,7 @@ public static class LavalinkApiClientExtensions
         return LyricsJavaIntegration.CreateLyrics(result);
     }
 
-    public static async ValueTask<ImmutableArray<LyricsSearchResult>> SearchAsync(
+    public static async ValueTask<ImmutableArray<LyricsSearchResult>> SearchLyricsAsync(
         this ILavalinkApiClient apiClient,
         string query,
         CancellationToken cancellationToken = default)
