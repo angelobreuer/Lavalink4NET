@@ -39,7 +39,14 @@ public partial record class LavalinkTrack : ISpanFormattable
             buffer = GC.AllocateUninitializedArray<char>(buffer.Length * 2);
         }
 
-        return TrackData = new string(buffer[..charsWritten]);
+        var trackData = new string(buffer[..charsWritten]);
+
+        if (version is null)
+        {
+            TrackData = trackData;
+        }
+
+        return trackData;
     }
 
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
