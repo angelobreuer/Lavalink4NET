@@ -103,9 +103,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
             return null;
         }
 
-        return await handle
-            .GetPlayerAsync(cancellationToken)
-            .ConfigureAwait(false);
+        return await GetPlayerInternalAsync(handle, cancellationToken).ConfigureAwait(false);
     }
 
     public IEnumerable<T> GetPlayers<T>() where T : ILavalinkPlayer
@@ -147,9 +145,7 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
                 .ConfigureAwait(false);
         }
 
-        var player = await handle
-            .GetPlayerAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var player = await GetPlayerInternalAsync(handle, cancellationToken).ConfigureAwait(false);
 
         if (player is not TPlayer playerValue)
         {
