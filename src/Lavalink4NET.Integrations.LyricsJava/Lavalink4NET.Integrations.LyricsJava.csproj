@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <Description>
+            Fetch timed lyrics from youtube or non-timed lyrics from genius. Automatically fetches lyrics for the current track. Requires the installation of the corresponding plugin on the Lavalink node.
+        </Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Lavalink4NET\Lavalink4NET.csproj" />
+    </ItemGroup>
+
+    <Import Project="../Lavalink4NET.targets" />
+</Project>

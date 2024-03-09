@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Lavalink4NET.Integrations.LyricsJava.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52780;http://localhost:52781"
+    }
+  }
+}

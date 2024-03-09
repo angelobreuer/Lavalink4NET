@@ -11,6 +11,7 @@
 [![Lavalink4NET Support Server Banner](https://discordapp.com/api/guilds/894533462428635146/embed.png?style=banner3)](https://discord.gg/cD4qTmnqRg)
 
 ### Features
+
 - ⚖️ **Node Clustering / Load Balancing**<br>Distribute load across nodes for efficient and reliable audio playback (for large scale bots).
 
 - ✳️ **Extensible**<br>Customize and enhance features using plugins to match your bot's needs.
@@ -42,7 +43,7 @@
 - 📊 **Statistics tracking support**<br>Lavalink4NET supports tracking and evaluation of node statistics. In clustering, node statistics can be used to evaluate the best node for efficient resource usage.
 
 - ➕ **Compatible with [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus), [Discord.Net](https://github.com/discord-net/Discord.Net), [Remora](https://github.com/Remora/Remora.Discord), and [NetCord](https://github.com/KubaZ2/NetCord).**<br>Lavalink4NET has an adaptive client API, meaning it can support any discord client. Currently, DSharpPlus, Discord.Net, Remora and NetCord are supported out-of-the-box.
-  
+
 ### Documentation
 
 > [!IMPORTANT]
@@ -74,6 +75,8 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 - [**Lavalink4NET.Integrations.TextToSpeech**](https://www.nuget.org/packages/Lavalink4NET.Integrations.TextToSpeech/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.TextToSpeech.svg?style=flat-square)<br>Enable text-to-speech functionality in Lavalink4NET. Convert written text into spoken words, allowing your application to generate and play audio from text inputs. Requires the installation of the corresponding plugin on the Lavalink node.
 
+- [**Lavalink4NET.Integrations.LyricsJava**](https://www.nuget.org/packages/Lavalink4NET.Integrations.LyricsJava/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.LyricsJava.svg?style=flat-square)<br>Fetch timed lyrics from youtube or non-timed lyrics from genius. Automatically fetches lyrics for the current track. Requires the installation of the corresponding plugin on the Lavalink node.
+
 #### _Services_
 
 - [**Lavalink4NET.Lyrics**](https://www.nuget.org/packages/Lavalink4NET.Lyrics/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Lyrics.svg?style=flat-square)<br>Fetch and display song lyrics from lyrics.ovh with this lyrics service integrated with Lavalink4NET. Enhance the music experience for your users.
@@ -84,7 +87,7 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 #### _Core Components_
 
-- [**Lavalink4NET**](https://www.nuget.org/packages/Lavalink4NET/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)<br>This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net, Lavalink4NET.DSharpPlus, Lavalink4NET.Remora.Discord or Lavalink4NET.NetCord instead. 
+- [**Lavalink4NET**](https://www.nuget.org/packages/Lavalink4NET/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.svg?style=flat-square)<br>This core library is used to implement client wrappers. It is not intended for end users. Please use Lavalink4NET.Discord.Net, Lavalink4NET.DSharpPlus, Lavalink4NET.Remora.Discord or Lavalink4NET.NetCord instead.
 
 - [**Lavalink4NET.Abstractions**](https://www.nuget.org/packages/Lavalink4NET.Abstractions/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Abstractions.svg?style=flat-square)<br>General abstractions and common primitives for the Lavalink4NET client library.
 
@@ -93,6 +96,7 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 - [**Lavalink4NET.Rest**](https://www.nuget.org/packages/Lavalink4NET.Rest/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Rest.svg?style=flat-square)<br>Easily interact with the Lavalink REST API using this REST API client primitives library. Build custom functionalities or integrate Lavalink4NET with other services.
 
 ### Prerequisites
+
 - At least one lavalink node
 - At least .NET 6
 
@@ -124,7 +128,7 @@ var playerOptions = new LavalinkPlayerOptions
 };
 
 await audioService.Players
-    .JoinAsync(<guild id>, <voice channel id>, playerOptions, stoppingToken) 
+    .JoinAsync(<guild id>, <voice channel id>, playerOptions, stoppingToken)
     .ConfigureAwait(false);
 ```
 
