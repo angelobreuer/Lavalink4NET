@@ -7,11 +7,13 @@ public sealed record class AlbumArtModel
 {
     [JsonPropertyName("url")]
     [JsonConverter(typeof(StringUriJsonConverter))]
-    public Uri Url { get; set; } = null!;
-    
+    public Uri Uri { get; set; } = null!;
+
     [JsonPropertyName("height")]
-    public int Height { get; set; }
-    
+    [JsonConverter(typeof(ImageDimensionJsonConverter))]
+    public int? Height { get; set; }
+
     [JsonPropertyName("width")]
-    public int Width { get; set; }
+    [JsonConverter(typeof(ImageDimensionJsonConverter))]
+    public int? Width { get; set; }
 }

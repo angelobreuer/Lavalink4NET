@@ -71,7 +71,7 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
         Title: model.Title,
         Author: model.Author,
         Album: model.Album,
-        AlbumArt: model.AlbumArt.Select(x => new AlbumArt(x.Url, x.Width, x.Height)).ToImmutableArray());
+        AlbumArt: model.AlbumArt.Select(x => new AlbumArt(x.Uri, x.Width, x.Height)).ToImmutableArray());
 
     private static Lyrics CreateLyrics(TimedLyricsResponseModel model) => new(
         Source: model.Source,
