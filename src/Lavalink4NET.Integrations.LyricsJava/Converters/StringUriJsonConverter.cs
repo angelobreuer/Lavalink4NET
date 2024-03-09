@@ -12,6 +12,6 @@ public sealed class StringUriJsonConverter : JsonConverter<Uri>
 
     public override void Write(Utf8JsonWriter writer, Uri value, JsonSerializerOptions options)
     {
-        writer.WriteString("url", value.ToString());
+        writer.WriteStringValue(value.ToString());
     }
 }
