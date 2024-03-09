@@ -26,11 +26,11 @@
 
 - 🔌 **Fully Asynchronous Interface**<br>Effortlessly communicate with the Lavalink audio server without causing delays in your bot. All actions that can be offloaded are asynchronous and can be canceled at any time if needed.
 
-- 📝 **Logging** _(optional)_<br>Enable insights for troubleshooting and debugging.
+- 📝 **Logging** *(optional)*<br>Enable insights for troubleshooting and debugging.
 
-- ⚡ **Request Caching** _(optional)_<br>Improve performance by reducing redundant requests.
+- ⚡ **Request Caching** *(optional)*<br>Improve performance by reducing redundant requests.
 
-- ⏱️ **Inactivity Tracking** _(optional)_<br>Monitor inactive players and disconnect them to save resources.
+- ⏱️ **Inactivity Tracking** *(optional)*<br>Monitor inactive players and disconnect them to save resources.
 
 - 🖋️ **Supports Lavalink plugins**<br>Expand capabilities by integrating with Lavalink plugins.
 
@@ -75,7 +75,7 @@ Lavalink4NET offers high flexibility and extensibility by providing an isolated 
 
 - [**Lavalink4NET.Integrations.TextToSpeech**](https://www.nuget.org/packages/Lavalink4NET.Integrations.TextToSpeech/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.TextToSpeech.svg?style=flat-square)<br>Enable text-to-speech functionality in Lavalink4NET. Convert written text into spoken words, allowing your application to generate and play audio from text inputs. Requires the installation of the corresponding plugin on the Lavalink node.
 
-- [**Lavalink4NET.Integrations.LyricsJava**](https://www.nuget.org/packages/Lavalink4NET.Integrations.TextToSpeech/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.TextToSpeech.svg?style=flat-square)<br>Fetch timed lyrics from youtube or non-timed lyrics from genius. Automatically fetches lyrics for the current track. Requires the installation of the corresponding plugin on the Lavalink node.
+- [**Lavalink4NET.Integrations.LyricsJava**](https://www.nuget.org/packages/Lavalink4NET.Integrations.LyricsJava/)&nbsp;&nbsp;&nbsp;![NuGet](https://img.shields.io/nuget/vpre/Lavalink4NET.Integrations.LyricsJava.svg?style=flat-square)<br>Fetch timed lyrics from youtube or non-timed lyrics from genius. Automatically fetches lyrics for the current track. Requires the installation of the corresponding plugin on the Lavalink node.
 
 #### _Services_
 
