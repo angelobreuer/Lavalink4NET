@@ -201,7 +201,7 @@ public sealed class DiscordClientWrapper : IDiscordClientWrapper, IDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var guild = _baseSocketClient.GetGuild(guildId) ?? throw new InvalidOperationException("Could not find associated guild.");
+        var guild = _baseSocketClient.GetGuild(guildId) ?? throw new InvalidOperationException($"Could not find associated guild (GuildId: {guildId}, VoiceChannelId: {voiceChannelId}).");
         var client = _discordProperty.GetValue(guild);
         var apiClient = _discordApiClientProperty.GetValue(client);
 
