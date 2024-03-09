@@ -21,21 +21,25 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/sessions/{sessionId}/players/{guildId}/lyrics");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
-        
+        var response = await httpClient
+            .GetAsync(endpoint, cancellationToken)
+            .ConfigureAwait(false);
+
         LyricsResponseModel? result;
         try
         {
-            result = await response.Content.ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken);
+            result = await response.Content
+                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (JsonException)
         {
             result = null;
         }
-        
+
         return result;
     }
-    
+
     public static async ValueTask<ImmutableArray<SearchResultModel>> SearchAsync(
         this ILavalinkApiClient apiClient,
         string query,
@@ -47,22 +51,26 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/search?query={query}");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
-        
+        var response = await httpClient
+            .GetAsync(endpoint, cancellationToken)
+            .ConfigureAwait(false);
+
         ImmutableArray<SearchResultModel> result;
         try
         {
-            result = await response.Content.ReadFromJsonAsync<ImmutableArray<SearchResultModel>>(cancellationToken: cancellationToken).ConfigureAwait(false);
+            result = await response.Content
+                .ReadFromJsonAsync<ImmutableArray<SearchResultModel>>(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (JsonException)
         {
             result = ImmutableArray<SearchResultModel>.Empty;
         }
-        
+
         return result;
     }
-    
-    public static async ValueTask<LyricsResponseModel?> GetYoutubeLyricsAsync(
+
+    public static async ValueTask<LyricsResponseModel?> GetYouTubeLyricsAsync(
         this ILavalinkApiClient apiClient,
         string videoId,
         CancellationToken cancellationToken = default)
@@ -73,21 +81,25 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/{videoId}");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
-        
+        var response = await httpClient
+            .GetAsync(endpoint, cancellationToken)
+            .ConfigureAwait(false);
+
         LyricsResponseModel? result;
         try
         {
-            result = await response.Content.ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken);
+            result = await response.Content
+                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (JsonException)
         {
             result = null;
         }
-        
+
         return result;
     }
-    
+
     public static async ValueTask<LyricsResponseModel?> GetGeniusLyricsAsync(
         this ILavalinkApiClient apiClient,
         string query,
@@ -99,18 +111,22 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/search?query={query}&source=genius");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
-        
+        var response = await httpClient
+            .GetAsync(endpoint, cancellationToken)
+            .ConfigureAwait(false);
+
         LyricsResponseModel? result;
         try
         {
-            result = await response.Content.ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken);
+            result = await response.Content
+                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (JsonException)
         {
             result = null;
         }
-        
+
         return result;
     }
 }
