@@ -7,5 +7,4 @@ public sealed record class Lyrics(
     string? Source,
     string? Basic,
     LyricsTrack? Track,
-    ImmutableArray<TimedLyricsLine>? Timed 
-);
+    ImmutableArray<TimedLyricsLine>? Timed);
