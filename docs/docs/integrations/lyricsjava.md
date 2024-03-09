@@ -31,16 +31,12 @@ That's it! The LyricsJava plugin is now integrated with Lavalink4NET.
 For getting the lyrics of the current track, you can use the `GetCurrentTrackLyricsAsync` method. This method will return the lyrics of the current track. The method requires the session id and the guild id both of which you can get from player properties.
 
 ```csharp
-var apiClient = await AudioService.ApiClientProvider
-    .GetClientAsync()
-    .ConfigureAwait(false);
-
 var player = await audioService.Players
     .GetPlayerAsync(guildId)
     .ConfigureAwait(false);
 
-var lyrics = await apiClient
-    .GetCurrentTrackLyricsAsync(player.SessionId, player.GuildId)
+var lyrics = await audioService.Tracks
+    .GetCurrentTrackLyricsAsync(player)
     .ConfigureAwait(false);
 ```
 
@@ -49,18 +45,14 @@ var lyrics = await apiClient
 For getting the lyrics of a youtube video, you can use the `GetYoutubeLyricsAsync` method. This method will return the lyrics of the youtube video. The method requires a youtube video id, which can be acquired by using the `SearchAsync` method if using a different provider (e.g. Spotify).
 
 ```csharp
-var apiClient = await AudioService.ApiClientProvider
-    .GetClientAsync()
-    .ConfigureAwait(false);
-
-var results = await apiClient
-    .SearchAsync("Queen - Bohemian Rhapsody")
+var results = await AudioService.Tracks
+    .SearchLyricsAsync("Queen - Bohemian Rhapsody")
     .ConfigureAwait(false);
 
 var videoId = results.First().VideoId;
 
-var lyrics = await apiClient
-    .GetYoutubeLyricsAsync(videoId) // Youtube Video Id (e.g. dQw4w9WgXcQ)
+var lyrics = await AudioService.Tracks
+    .GetYouTubeLyricsAsync(videoId) // Youtube Video Id (e.g. dQw4w9WgXcQ)
     .ConfigureAwait(false);
 ```
 
@@ -69,11 +61,7 @@ var lyrics = await apiClient
 For getting the lyrics of a song from genius, you can use the `GetGeniusLyricsAsync` method. This method will return the lyrics of the song. The method requires the song name and the artist name.
 
 ```csharp
-var apiClient = await AudioService.ApiClientProvider
-    .GetClientAsync()
-    .ConfigureAwait(false);
-
-var lyrics = await apiClient
+var lyrics = await AudioService.Tracks
     .GetGeniusLyricsAsync("Queen - Bohemian Rhapsody")
     .ConfigureAwait(false);
 ```
