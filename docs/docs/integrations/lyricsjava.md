@@ -1,6 +1,6 @@
 # Lyrics.Java
 
-The Lyrics.java plugin for Lavalink allows you to fetch lyrics from youtube or genius. The plugin will automatically fetch lyrics for the current track.
+The Lyrics.Java plugin for Lavalink allows you to fetch lyrics from YouTube or genius. The plugin will automatically fetch lyrics for the current track.
 
 Lavalink4NET provides an integration for the Lyrics.Java plugin with the [`Lavalink4NET.Integrations.LyricsJava`](https://www.nuget.org/packages/Lavalink4NET.Integrations.LyricsJava) package.
 
@@ -21,7 +21,7 @@ var app = builder.Build();
 
 app.UseLyricsJava();
 
-await app.RunAsync();
+app.Run();
 ```
 
 That's it! The LyricsJava plugin is now integrated with Lavalink4NET.
@@ -31,12 +31,13 @@ That's it! The LyricsJava plugin is now integrated with Lavalink4NET.
 For getting the lyrics of the current track, you can use the `GetCurrentTrackLyricsAsync` method. This method will return the lyrics of the current track. The method requires the session id and the guild id both of which you can get from player properties.
 
 ```csharp
-var apiClient = await AudioService
-                    .ApiClientProvider
-                    .GetClientAsync()
-                    .ConfigureAwait(false);
+var apiClient = await AudioService.ApiClientProvider
+    .GetClientAsync()
+    .ConfigureAwait(false);
 
-var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
+var player = await audioService.Players
+    .GetPlayerAsync(guildId)
+    .ConfigureAwait(false);
 
 var lyrics = await apiClient
     .GetCurrentTrackLyricsAsync(player.SessionId, player.GuildId)
@@ -48,10 +49,9 @@ var lyrics = await apiClient
 For getting the lyrics of a youtube video, you can use the `GetYoutubeLyricsAsync` method. This method will return the lyrics of the youtube video. The method requires a youtube video id, which can be acquired by using the `SearchAsync` method if using a different provider (e.g. Spotify).
 
 ```csharp
-var apiClient = await AudioService
-                    .ApiClientProvider
-                    .GetClientAsync()
-                    .ConfigureAwait(false);
+var apiClient = await AudioService.ApiClientProvider
+    .GetClientAsync()
+    .ConfigureAwait(false);
 
 var results = await apiClient
     .SearchAsync("Queen - Bohemian Rhapsody")
@@ -69,10 +69,9 @@ var lyrics = await apiClient
 For getting the lyrics of a song from genius, you can use the `GetGeniusLyricsAsync` method. This method will return the lyrics of the song. The method requires the song name and the artist name.
 
 ```csharp
-var apiClient = await AudioService
-                    .ApiClientProvider
-                    .GetClientAsync()
-                    .ConfigureAwait(false);
+var apiClient = await AudioService.ApiClientProvider
+    .GetClientAsync()
+    .ConfigureAwait(false);
 
 var lyrics = await apiClient
     .GetGeniusLyricsAsync("Queen - Bohemian Rhapsody")
