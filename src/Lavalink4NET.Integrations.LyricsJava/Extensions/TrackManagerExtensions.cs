@@ -7,7 +7,7 @@ using Lavalink4NET.Tracks;
 
 public static class TrackManagerExtensions
 {
-    public static async ValueTask<Lyrics> GetCurrentTrackLyricsAsync(
+    public static async ValueTask<Lyrics?> GetCurrentTrackLyricsAsync(
         this ITrackManager trackManager,
         ILavalinkPlayer player,
         CancellationToken cancellationToken = default)
@@ -45,7 +45,7 @@ public static class TrackManagerExtensions
             .ConfigureAwait(false);
     }
 
-    public static async ValueTask<Lyrics> GetYouTubeLyricsAsync(
+    public static async ValueTask<Lyrics?> GetYouTubeLyricsAsync(
         this ITrackManager trackManager,
         string query,
         CancellationToken cancellationToken = default)
@@ -64,7 +64,7 @@ public static class TrackManagerExtensions
             .ConfigureAwait(false);
     }
 
-    public static async ValueTask<Lyrics> GetGeniusLyricsAsync(
+    public static async ValueTask<Lyrics?> GetGeniusLyricsAsync(
         this ITrackManager trackManager,
         string query,
         CancellationToken cancellationToken = default)
