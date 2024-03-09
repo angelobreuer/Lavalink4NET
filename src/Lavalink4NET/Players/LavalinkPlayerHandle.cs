@@ -80,7 +80,7 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
         {
-            return new ValueTask<ILavalinkPlayer>(task: taskCompletionSource.Task);
+            return new ValueTask<ILavalinkPlayer>(task: taskCompletionSource.Task.WaitAsync(cancellationToken));
         }
 
         return ValueTask.FromResult<ILavalinkPlayer>(Unsafe.As<object, TPlayer>(ref Unsafe.AsRef(_value)));
