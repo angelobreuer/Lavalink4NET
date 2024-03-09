@@ -384,6 +384,33 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
             .InvokeAsync(this, eventArgs)
             .ConfigureAwait(false);
     }
+
+    private static async ValueTask<ILavalinkPlayer> GetPlayerInternalAsync(ILavalinkPlayerHandle playerHandle, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(playerHandle);
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));
+
+        try
+        {
+            return await playerHandle
+                .GetPlayerAsync(cancellationTokenSource.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                """
+                The player could not be retrieved within the specified time. There are a few possibilities why this might occur:
+                - You are currently operating on the gateway thread which can cause a deadlock since no further gateway messages can be processed.
+                    - In case you are using Discord.Net, a common solution would be to enable RunMode.Async which dispatches commands on a separate task which allows
+                      further gateway messages to be processed while the player is being created
+                - The client lost connection to the Lavalink server.
+                """);
+        }
+    }
 }
 
 internal static partial class Logging
