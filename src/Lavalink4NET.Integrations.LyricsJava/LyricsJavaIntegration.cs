@@ -15,6 +15,8 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
 
     public LyricsJavaIntegration(IAudioService audioService)
     {
+        ArgumentNullException.ThrowIfNull(audioService);
+
         _audioService = audioService;
     }
 
@@ -25,25 +27,13 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(payload);
 
-        static LyricsTrack CreateLyricsTrack(LyricsResponseTrackModel model) => new(
-            Title: model.Title,
-            Author: model.Author,
-            Album: model.Album,
-            AlbumArt: model.AlbumArt.Select(x => new AlbumArt(x.Url, x.Width, x.Height)).ToImmutableArray());
-
-        static Lyrics CreateLyrics(LyricsResponseModel? model) => new(
-            Type: model?.Type == "timed" ? model.Type == "text" ? LyricsType.Basic : LyricsType.Timed : LyricsType.NotFound,
-            Source: model?.Source,
-            Basic: model?.LyricsText,
-            Track: model?.Track is not null ? CreateLyricsTrack(model.Track) : null,
-            Timed: model?.TimedLines?.Select(x => new TimedLyricsLine(x.Line, new TimeRange(x.Range.Start, x.Range.End))).ToImmutableArray());
-
         if (payload is TrackStartEventPayload trackStartEventPayload)
         {
-            var player = await _audioService.Players.GetPlayerAsync(trackStartEventPayload.GuildId, cancellationToken)
+            var player = await _audioService.Players
+                .GetPlayerAsync(trackStartEventPayload.GuildId, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (player?.CurrentTrack is null)
+            if (player is null)
             {
                 return;
             }
@@ -56,11 +46,9 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
                 .GetCurrentTrackLyricsAsync(player.SessionId, player.GuildId, cancellationToken)
                 .ConfigureAwait(false);
 
-            var lyrics = CreateLyrics(lyricsResult);
-
             var eventArgs = new LyricsLoadedEventArgs(
                 guildId: trackStartEventPayload.GuildId,
-                lyrics: lyrics);
+                lyrics: lyricsResult);
 
             await LyricsLoaded
                 .InvokeAsync(this, eventArgs)
@@ -69,9 +57,22 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
             if (player is ILavaLyricsPlayerListener playerListener)
             {
                 await playerListener
-                    .NotifyLyricsLoadedAsync(lyrics, cancellationToken)
+                    .NotifyLyricsLoadedAsync(lyricsResult, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
     }
+
+    internal static LyricsTrack CreateLyricsTrack(LyricsResponseTrackModel model) => new(
+        Title: model.Title,
+        Author: model.Author,
+        Album: model.Album,
+        AlbumArt: model.AlbumArt.Select(x => new AlbumArt(x.Url, x.Width, x.Height)).ToImmutableArray());
+
+    internal static Lyrics CreateLyrics(LyricsResponseModel? model) => new(
+        Type: model?.Type == "timed" ? model.Type == "text" ? LyricsType.Basic : LyricsType.Timed : LyricsType.NotFound,
+        Source: model?.Source,
+        Basic: model?.LyricsText,
+        Track: model?.Track is not null ? CreateLyricsTrack(model.Track) : null,
+        Timed: model?.TimedLines?.Select(x => new TimedLyricsLine(x.Line, new TimeRange(x.Range.Start, x.Range.End))).ToImmutableArray());
 }

@@ -8,7 +8,7 @@ using Lavalink4NET.Rest;
 
 public static class LavalinkApiClientExtensions
 {
-    public static async ValueTask<LyricsResponseModel?> GetCurrentTrackLyricsAsync(
+    public static async ValueTask<Lyrics> GetCurrentTrackLyricsAsync(
         this ILavalinkApiClient apiClient,
         string sessionId,
         ulong guildId,
@@ -37,10 +37,10 @@ public static class LavalinkApiClientExtensions
             result = null;
         }
 
-        return result;
+        return LyricsJavaIntegration.CreateLyrics(result);
     }
 
-    public static async ValueTask<ImmutableArray<SearchResultModel>> SearchAsync(
+    public static async ValueTask<ImmutableArray<LyricsSearchResult>> SearchAsync(
         this ILavalinkApiClient apiClient,
         string query,
         CancellationToken cancellationToken = default)
@@ -67,10 +67,12 @@ public static class LavalinkApiClientExtensions
             result = ImmutableArray<SearchResultModel>.Empty;
         }
 
-        return result;
+        return result
+            .Select(x => new LyricsSearchResult(x.VideoId, x.Title))
+            .ToImmutableArray();
     }
 
-    public static async ValueTask<LyricsResponseModel?> GetYouTubeLyricsAsync(
+    public static async ValueTask<Lyrics> GetYouTubeLyricsAsync(
         this ILavalinkApiClient apiClient,
         string videoId,
         CancellationToken cancellationToken = default)
@@ -97,10 +99,10 @@ public static class LavalinkApiClientExtensions
             result = null;
         }
 
-        return result;
+        return LyricsJavaIntegration.CreateLyrics(result);
     }
 
-    public static async ValueTask<LyricsResponseModel?> GetGeniusLyricsAsync(
+    public static async ValueTask<Lyrics> GetGeniusLyricsAsync(
         this ILavalinkApiClient apiClient,
         string query,
         CancellationToken cancellationToken = default)
@@ -127,6 +129,6 @@ public static class LavalinkApiClientExtensions
             result = null;
         }
 
-        return result;
+        return LyricsJavaIntegration.CreateLyrics(result);
     }
 }
