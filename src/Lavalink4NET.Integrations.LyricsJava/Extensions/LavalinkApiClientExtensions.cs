@@ -29,7 +29,7 @@ public static class LavalinkApiClientExtensions
         try
         {
             result = await response.Content
-                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
+                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (JsonException)
@@ -59,7 +59,7 @@ public static class LavalinkApiClientExtensions
         try
         {
             result = await response.Content
-                .ReadFromJsonAsync<ImmutableArray<SearchResultModel>>(cancellationToken: cancellationToken)
+                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.ImmutableArraySearchResultModel, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (JsonException)
@@ -89,7 +89,7 @@ public static class LavalinkApiClientExtensions
         try
         {
             result = await response.Content
-                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
+                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (JsonException)
