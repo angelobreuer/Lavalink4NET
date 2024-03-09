@@ -77,13 +77,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return position;
         }
 
-        if (RepeatMode is TrackRepeatMode.Queue)
-        {
-            await Queue
-                .AddAsync(queueItem, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
         // play the track immediately
         await base
             .PlayAsync(queueItem, properties, cancellationToken)
@@ -233,6 +226,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             return;
         }
 
+        if (CurrentItem is not null && RepeatMode is TrackRepeatMode.Queue)
+        {
+            await Queue
+                .AddAsync(CurrentItem, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         await base
             .PlayAsync(track.Value, properties: default, cancellationToken)
             .ConfigureAwait(false);
@@ -281,13 +281,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             if (peekedTrack is null)
             {
                 return Optional<ITrackQueueItem>.Default; // do nothing
-            }
-
-            if (RepeatMode is TrackRepeatMode.Queue)
-            {
-                await Queue
-                    .AddAsync(peekedTrack, cancellationToken)
-                    .ConfigureAwait(false);
             }
 
             track = new Optional<ITrackQueueItem>(peekedTrack);
