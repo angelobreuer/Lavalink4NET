@@ -4,5 +4,5 @@ using Lavalink4NET.Players;
 
 public interface ILavaLyricsPlayerListener : ILavalinkPlayerListener
 {
-    ValueTask NotifyLyricsLoadedAsync(Lyrics lyrics, CancellationToken cancellationToken = default);
+    ValueTask NotifyLyricsLoadedAsync(Lyrics? lyrics, CancellationToken cancellationToken = default);
 }

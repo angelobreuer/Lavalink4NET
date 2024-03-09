@@ -67,16 +67,29 @@ public class LyricsJavaIntegration : ILavalinkIntegration, ILyricsJavaIntegratio
         }
     }
 
-    internal static LyricsTrack CreateLyricsTrack(LyricsResponseTrackModel model) => new(
+    private static LyricsTrack CreateLyricsTrack(LyricsResponseTrackModel model) => new(
         Title: model.Title,
         Author: model.Author,
         Album: model.Album,
         AlbumArt: model.AlbumArt.Select(x => new AlbumArt(x.Url, x.Width, x.Height)).ToImmutableArray());
 
-    internal static Lyrics CreateLyrics(LyricsResponseModel? model) => new(
-        Type: model?.Type == "timed" ? model.Type == "text" ? LyricsType.Basic : LyricsType.Timed : LyricsType.NotFound,
-        Source: model?.Source,
-        Basic: model?.LyricsText,
-        Track: model?.Track is not null ? CreateLyricsTrack(model.Track) : null,
-        Timed: model?.TimedLines?.Select(x => new TimedLyricsLine(x.Line, new TimeRange(x.Range.Start, x.Range.End))).ToImmutableArray());
+    private static Lyrics CreateLyrics(TimedLyricsResponseModel model) => new(
+        Source: model.Source,
+        Text: string.Join("\n", model.TimedLines.Select(x => x.Line).Where(x => !string.IsNullOrWhiteSpace(x))),
+        Track: CreateLyricsTrack(model.Track),
+        TimedLines: model.TimedLines.Select(x => new TimedLyricsLine(x.Line, new TimeRange(x.Range.Start, x.Range.End))).ToImmutableArray());
+
+    private static Lyrics CreateLyrics(TextLyricsResponseModel model) => new(
+        Source: model.Source,
+        Text: model.LyricsText,
+        Track: CreateLyricsTrack(model.Track),
+        TimedLines: null);
+
+    internal static Lyrics? CreateLyrics(LyricsResponseModel? model) => model switch
+    {
+        TimedLyricsResponseModel timedLyrics => CreateLyrics(timedLyrics),
+        TextLyricsResponseModel textLyrics => CreateLyrics(textLyrics),
+        null => null,
+        _ => throw new NotSupportedException(),
+    };
 }

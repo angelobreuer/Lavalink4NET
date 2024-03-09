@@ -3,8 +3,7 @@
 using System.Collections.Immutable;
 
 public sealed record class Lyrics(
-    LyricsType Type,
-    string? Source,
-    string? Basic,
-    LyricsTrack? Track,
-    ImmutableArray<TimedLyricsLine>? Timed);
+    string Source,
+    string Text,
+    LyricsTrack Track,
+    ImmutableArray<TimedLyricsLine>? TimedLines);

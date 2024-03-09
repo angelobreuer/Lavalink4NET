@@ -1,14 +1,16 @@
 ﻿namespace Lavalink4NET.Integrations.LyricsJava.Extensions;
 
 using System.Collections.Immutable;
-using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using Lavalink4NET.Integrations.LyricsJava.Models;
 using Lavalink4NET.Rest;
 
 public static class LavalinkApiClientExtensions
 {
-    public static async ValueTask<Lyrics> GetCurrentTrackLyricsAsync(
+    public static async ValueTask<Lyrics?> GetCurrentTrackLyricsAsync(
         this ILavalinkApiClient apiClient,
         string sessionId,
         ulong guildId,
@@ -25,17 +27,14 @@ public static class LavalinkApiClientExtensions
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
-        LyricsResponseModel? result;
-        try
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            result = await response.Content
-                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+            return null;
         }
-        catch (JsonException)
-        {
-            result = null;
-        }
+
+        var result = await response.Content
+            .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         return LyricsJavaIntegration.CreateLyrics(result);
     }
@@ -55,24 +54,21 @@ public static class LavalinkApiClientExtensions
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
-        ImmutableArray<SearchResultModel> result;
-        try
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            result = await response.Content
-                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.ImmutableArraySearchResultModel, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+            return ImmutableArray<LyricsSearchResult>.Empty;
         }
-        catch (JsonException)
-        {
-            result = ImmutableArray<SearchResultModel>.Empty;
-        }
+
+        var result = await response.Content
+            .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.ImmutableArraySearchResultModel, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         return result
             .Select(x => new LyricsSearchResult(x.VideoId, x.Title))
             .ToImmutableArray();
     }
 
-    public static async ValueTask<Lyrics> GetYouTubeLyricsAsync(
+    public static async ValueTask<Lyrics?> GetYouTubeLyricsAsync(
         this ILavalinkApiClient apiClient,
         string videoId,
         CancellationToken cancellationToken = default)
@@ -87,22 +83,19 @@ public static class LavalinkApiClientExtensions
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
-        LyricsResponseModel? result;
-        try
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            result = await response.Content
-                .ReadFromJsonAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+            return null;
         }
-        catch (JsonException)
-        {
-            result = null;
-        }
+
+        var result = await response.Content
+            .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         return LyricsJavaIntegration.CreateLyrics(result);
     }
 
-    public static async ValueTask<Lyrics> GetGeniusLyricsAsync(
+    public static async ValueTask<Lyrics?> GetGeniusLyricsAsync(
         this ILavalinkApiClient apiClient,
         string query,
         CancellationToken cancellationToken = default)
@@ -117,18 +110,62 @@ public static class LavalinkApiClientExtensions
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
-        LyricsResponseModel? result;
-        try
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            result = await response.Content
-                .ReadFromJsonAsync<LyricsResponseModel>(cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (JsonException)
-        {
-            result = null;
+            return null;
         }
 
+        var result = await response.Content
+            .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
         return LyricsJavaIntegration.CreateLyrics(result);
+    }
+}
+
+file static class LyricsJavaWorkaround
+{
+    public static async Task<T?> ReadFromJsonWithWorkaroundAsync<T>(this HttpContent content, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
+    {
+        // FIXME: LyricsJava somehow returns the type property twice in the object
+        cancellationToken.ThrowIfCancellationRequested();
+
+        T? Parse(ReadOnlySpan<byte> value)
+        {
+            var jsonObject = new JsonObject();
+            var utf8JsonReader = new Utf8JsonReader(value);
+            var isFirst = true;
+
+            if (!utf8JsonReader.Read())
+            {
+                throw new JsonException("Unexpected EOF", new EndOfStreamException());
+            }
+
+            while (utf8JsonReader.Read() && utf8JsonReader.TokenType is not JsonTokenType.EndObject)
+            {
+                var propertyName = utf8JsonReader.GetString()!;
+
+                if (!utf8JsonReader.Read())
+                {
+                    throw new JsonException("Unexpected EOF", new EndOfStreamException());
+                }
+
+                if (!isFirst && propertyName.Equals("type", StringComparison.Ordinal))
+                {
+                    continue; // Fix duplicate property
+                }
+
+                jsonObject[propertyName] = JsonNode.Parse(ref utf8JsonReader);
+                isFirst = true;
+            }
+
+            return jsonObject.Deserialize(jsonTypeInfo);
+        }
+
+        var jsonObject = await content
+            .ReadAsByteArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return Parse(jsonObject);
     }
 }

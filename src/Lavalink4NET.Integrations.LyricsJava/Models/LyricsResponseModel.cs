@@ -1,22 +1,17 @@
 ﻿namespace Lavalink4NET.Integrations.LyricsJava.Models;
 
-using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 
-public sealed record class LyricsResponseModel
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type", UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
+[JsonDerivedType(typeof(TextLyricsResponseModel), "text")]
+[JsonDerivedType(typeof(TimedLyricsResponseModel), "timed")]
+public abstract record class LyricsResponseModel
 {
-    [JsonPropertyName("type")]
-    public string Type { get; set; } = null!;
-    
+    [JsonRequired]
     [JsonPropertyName("track")]
-    public LyricsResponseTrackModel? Track { get; set; }
-    
+    public LyricsResponseTrackModel Track { get; set; } = null!;
+
+    [JsonRequired]
     [JsonPropertyName("source")]
     public string Source { get; set; } = null!;
-    
-    [JsonPropertyName("text")]
-    public string? LyricsText { get; set; }
-    
-    [JsonPropertyName("lines")]
-    public ImmutableArray<TimedLyricsLineModel>? TimedLines { get; set; }
 }
