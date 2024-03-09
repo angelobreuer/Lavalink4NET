@@ -22,7 +22,7 @@ public static class LavalinkApiClientExtensions
         using var httpClient = apiClient.CreateHttpClient();
 
         var response = await httpClient
-            .GetAsync(endpoint, cancellationToken)
+            .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         LyricsResponseModel? result;
@@ -52,7 +52,7 @@ public static class LavalinkApiClientExtensions
         using var httpClient = apiClient.CreateHttpClient();
 
         var response = await httpClient
-            .GetAsync(endpoint, cancellationToken)
+            .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         ImmutableArray<SearchResultModel> result;
@@ -82,7 +82,7 @@ public static class LavalinkApiClientExtensions
         using var httpClient = apiClient.CreateHttpClient();
 
         var response = await httpClient
-            .GetAsync(endpoint, cancellationToken)
+            .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         LyricsResponseModel? result;
@@ -112,7 +112,7 @@ public static class LavalinkApiClientExtensions
         using var httpClient = apiClient.CreateHttpClient();
 
         var response = await httpClient
-            .GetAsync(endpoint, cancellationToken)
+            .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         LyricsResponseModel? result;
