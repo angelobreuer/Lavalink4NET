@@ -2,10 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
-using Lavalink4NET;
+using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
+using ExampleBot;
 using Lavalink4NET.Extensions;
-using Lavalink4NET.Players;
-using Lavalink4NET.Players.Queued;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,7 +17,6 @@ builder.Services.AddHostedService<ApplicationHost>();
 builder.Services.AddSingleton<DiscordClient>();
 builder.Services.AddSingleton(new DiscordConfiguration { Token = "", }); // Put token here
 
-// Lavalink
 builder.Services.AddLavalink();
 
 // Logging
@@ -27,36 +26,43 @@ builder.Build().Run();
 
 file sealed class ApplicationHost : BackgroundService
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly DiscordClient _discordClient;
-    private readonly IAudioService _audioService;
 
-    public ApplicationHost(DiscordClient discordClient, IAudioService audioService)
+    public ApplicationHost(IServiceProvider serviceProvider, DiscordClient discordClient)
     {
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(discordClient);
-        ArgumentNullException.ThrowIfNull(audioService);
 
+        _serviceProvider = serviceProvider;
         _discordClient = discordClient;
-        _audioService = audioService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _discordClient
+            .UseSlashCommands(new SlashCommandsConfiguration { Services = _serviceProvider })
+            .RegisterCommands<MusicCommands>(0); // Add guild id here
+
         // connect to discord gateway and initialize node connection
         await _discordClient
             .ConnectAsync()
             .ConfigureAwait(false);
 
-        await _audioService
-            .WaitForReadyAsync(stoppingToken)
-            .ConfigureAwait(false);
+        var readyTaskCompletionSource = new TaskCompletionSource();
 
-        var playerOptions = new LavalinkPlayerOptions
+        Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
         {
-            InitialTrack = new TrackQueueItem("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
-        };
+            readyTaskCompletionSource.TrySetResult();
+            return Task.CompletedTask;
+        }
 
-        await _audioService.Players
-            .JoinAsync(0, 0, playerOptions, stoppingToken) // Ids
+        _discordClient.Ready += SetResult;
+        await readyTaskCompletionSource.Task.ConfigureAwait(false);
+        _discordClient.Ready -= SetResult;
+
+        await Task
+            .Delay(Timeout.InfiniteTimeSpan, stoppingToken)
             .ConfigureAwait(false);
     }
 }
