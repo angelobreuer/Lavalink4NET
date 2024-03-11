@@ -41,6 +41,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         _defaultTrackRepeatMode = options.DefaultTrackRepeatMode;
         _clearHistoryOnStop = options.ClearHistoryOnStop;
 
+        AutoPlay = options.EnableAutoPlay;
         RepeatMode = _defaultTrackRepeatMode;
     }
 
@@ -55,6 +56,8 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
     public TrackRepeatMode RepeatMode { get; set; }
 
     public bool Shuffle { get; set; }
+
+    public bool AutoPlay { get; set; }
 
     public async ValueTask<int> PlayAsync(ITrackQueueItem queueItem, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default)
     {
@@ -200,7 +203,7 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
             .NotifyTrackEndedAsync(queueItem, endReason, cancellationToken)
             .ConfigureAwait(false);
 
-        if (endReason.MayStartNext())
+        if (endReason.MayStartNext() && AutoPlay)
         {
             await PlayNextAsync(skipCount: 1, respectTrackRepeat: true, cancellationToken).ConfigureAwait(false);
         }

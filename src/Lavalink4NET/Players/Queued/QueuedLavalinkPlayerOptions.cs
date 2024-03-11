@@ -9,6 +9,8 @@ public record class QueuedLavalinkPlayerOptions : LavalinkPlayerOptions
 
     public int? HistoryCapacity { get; init; } = 8;
 
+    public bool EnableAutoPlay { get; init; } = true;
+
     public bool ClearQueueOnStop { get; init; } = true;
 
     public bool ClearHistoryOnStop { get; init; } = false;

@@ -15,6 +15,8 @@ public interface IQueuedLavalinkPlayer : ILavalinkPlayer
 
     bool Shuffle { get; set; }
 
+    bool AutoPlay { get; set; }
+
     ValueTask<int> PlayAsync(ITrackQueueItem queueItem, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default);
 
     ValueTask<int> PlayAsync(LavalinkTrack track, bool enqueue = true, TrackPlayProperties properties = default, CancellationToken cancellationToken = default);
