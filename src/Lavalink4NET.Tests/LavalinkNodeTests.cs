@@ -483,6 +483,8 @@ file sealed class LavalinkSocket : ILavalinkSocket
     private readonly CancellationTokenSource _shutdownCancellationTokenSource;
     private readonly SemaphoreSlim _flushSemaphoreSlim;
 
+    public event AsyncEventHandler<ConnectionClosedEventArgs>? ConnectionClosed;
+
     public LavalinkSocket()
     {
         _payloadChannel = Channel.CreateUnbounded<IPayload>();
