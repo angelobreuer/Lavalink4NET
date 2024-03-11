@@ -268,6 +268,11 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
             var clientInformation = await clientTask.ConfigureAwait(false);
             await RunInternalAsync(clientInformation, cancellationToken).ConfigureAwait(false);
         }
+        catch (Exception exception)
+        {
+            _logger.AudioServiceError(exception);
+            throw;
+        }
         finally
         {
             _logger.AudioServiceStopped();
@@ -337,4 +342,7 @@ internal static partial class Logging
 
     [LoggerMessage(6, LogLevel.Information, "Audio Service is ready ({Duration}ms).", EventName = nameof(AudioServiceIsReady))]
     public static partial void AudioServiceIsReady(this ILogger<AudioServiceBase> logger, long duration);
+
+    [LoggerMessage(7, LogLevel.Error, "The audio Service entered a failure state.", EventName = nameof(AudioServiceError))]
+    public static partial void AudioServiceError(this ILogger<AudioServiceBase> logger, Exception exception);
 }

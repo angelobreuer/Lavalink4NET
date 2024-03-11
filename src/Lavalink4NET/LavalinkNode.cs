@@ -427,6 +427,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         catch (Exception exception)
         {
             _readyTaskCompletionSource.TrySetException(exception);
+            _logger.LogError(exception, "An exception occurred while running the Lavalink node.");
             throw;
         }
         finally
