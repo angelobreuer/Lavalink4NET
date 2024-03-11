@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Lavalink4NET.Events;
 using Lavalink4NET.Protocol;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Rest;
@@ -26,6 +27,8 @@ internal sealed class LavalinkSocket : ILavalinkSocket
     private readonly ILogger<LavalinkSocket> _logger;
     private readonly LavalinkSocketOptions _options;
     private bool _disposed;
+
+    public event AsyncEventHandler<ConnectionClosedEventArgs>? ConnectionClosed;
 
     public LavalinkSocket(
         IHttpMessageHandlerFactory httpMessageHandlerFactory,
@@ -132,6 +135,19 @@ internal sealed class LavalinkSocket : ILavalinkSocket
                 {
                     _logger.FailedToConnect(Label, exception);
 
+                    var connectionClosedEventArgs = new ConnectionClosedEventArgs(
+                        lavalinkSocket: this,
+                        closeStatus: webSocket.CloseStatus,
+                        closeStatusDescription: webSocket.CloseStatusDescription,
+                        exception: exception);
+
+                    await InvokeConnectionClosedAsync(connectionClosedEventArgs).ConfigureAwait(false);
+
+                    if (!connectionClosedEventArgs.AllowReconnect)
+                    {
+                        throw;
+                    }
+
                     interruptedSince ??= _systemClock.UtcNow;
 
                     var reconnectDelay = await _reconnectStrategy
@@ -202,6 +218,16 @@ internal sealed class LavalinkSocket : ILavalinkSocket
         }
         catch (Exception exception)
         {
+            _logger.CommunicationError(Label, exception);
+
+            var connectionClosedEventArgs = new ConnectionClosedEventArgs(
+                lavalinkSocket: this,
+                closeStatus: webSocket.CloseStatus,
+                closeStatusDescription: webSocket.CloseStatusDescription,
+                exception: exception);
+
+            await InvokeConnectionClosedAsync(connectionClosedEventArgs).ConfigureAwait(false);
+
             _channel.Writer.TryComplete(exception);
         }
         finally
@@ -228,6 +254,22 @@ internal sealed class LavalinkSocket : ILavalinkSocket
         Debug.Assert(result);
 
         return default;
+    }
+
+    private async Task InvokeConnectionClosedAsync(ConnectionClosedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        try
+        {
+            await ConnectionClosed
+                .InvokeAsync(this, eventArgs)
+                .ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            _logger.ErrorConnectionClosedEvent(Label, exception);
+        }
     }
 
     private void Dispose(bool disposing)
@@ -265,4 +307,10 @@ internal static partial class Logging
 
     [LoggerMessage(4, LogLevel.Debug, "[{Label}] Waiting {Duration} second(s) before reconnecting to the node.", EventName = nameof(WaitingBeforeReconnect))]
     public static partial void WaitingBeforeReconnect(this ILogger<LavalinkSocket> logger, string label, double duration);
+
+    [LoggerMessage(5, LogLevel.Error, "[{Label}] An error occurred during communication with the Lavalink server.", EventName = nameof(CommunicationError))]
+    public static partial void CommunicationError(this ILogger<LavalinkSocket> logger, string label, Exception exception);
+
+    [LoggerMessage(6, LogLevel.Warning, "[{Label}] An error occurred while dispatching the ConnectionClosed event.", EventName = nameof(ErrorConnectionClosedEvent))]
+    public static partial void ErrorConnectionClosedEvent(this ILogger<LavalinkSocket> logger, string label, Exception exception);
 }

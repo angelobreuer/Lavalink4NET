@@ -145,11 +145,20 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
 
     public event AsyncEventHandler<WebSocketClosedEventArgs>? WebSocketClosed;
 
+    public event AsyncEventHandler<ConnectionClosedEventArgs>? ConnectionClosed;
+
     protected virtual ValueTask OnTrackEndedAsync(TrackEndedEventArgs eventArgs, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(eventArgs);
         return TrackEnded.InvokeAsync(this, eventArgs);
+    }
+
+    protected virtual ValueTask OnConnectionClosedAsync(ConnectionClosedEventArgs eventArgs, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+        return ConnectionClosed.InvokeAsync(this, eventArgs);
     }
 
     protected virtual ValueTask OnTrackExceptionAsync(TrackExceptionEventArgs eventArgs, CancellationToken cancellationToken = default)
@@ -321,6 +330,14 @@ public abstract class AudioServiceBase : IAudioService, ILavalinkNodeListener
     }
 
     protected abstract ValueTask RunInternalAsync(ClientInformation clientInformation, CancellationToken cancellationToken = default);
+
+    ValueTask ILavalinkNodeListener.OnConnectionClosedAsync(ConnectionClosedEventArgs eventArgs, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        return OnConnectionClosedAsync(eventArgs, cancellationToken);
+    }
 }
 
 internal static partial class Logging

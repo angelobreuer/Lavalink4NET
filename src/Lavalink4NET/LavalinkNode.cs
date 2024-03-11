@@ -478,10 +478,27 @@ internal sealed class LavalinkNode : IAsyncDisposable
                 break;
             }
 
-            _ = socket.RunAsync(socketCancellationSource.Token).AsTask();
+            socket.ConnectionClosed += InvokeConnectionClosedAsync;
 
-            await ReceiveInternalAsync(socket, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                _ = socket.RunAsync(socketCancellationSource.Token).AsTask();
+
+                await ReceiveInternalAsync(socket, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                socket.ConnectionClosed -= InvokeConnectionClosedAsync;
+            }
         }
+    }
+
+    private Task InvokeConnectionClosedAsync(object sender, ConnectionClosedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        return _serviceContext.NodeListener.OnConnectionClosedAsync(eventArgs).AsTask();
     }
 
     private async ValueTask ReceiveInternalAsync(ILavalinkSocket socket, CancellationToken cancellationToken)
