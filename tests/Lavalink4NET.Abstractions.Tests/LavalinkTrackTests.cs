@@ -370,4 +370,70 @@ public sealed class LavalinkTrackTests
         Assert.Equal(model.Information.ArtworkUri, parsedTrack.ArtworkUri);
         Assert.Equal(model.Information.Isrc, parsedTrack.Isrc);
     }
+
+    [Fact]
+    public void TestDecodedTrackEqualsParsedTrack()
+    {
+        // Arrange
+        var model = JsonSerializer.Deserialize<TrackModel>("""
+            {
+            	"encoded": "QAAA2gMAN0NvenkgYW5pbWFsIGNyb3NzaW5nIG11c2ljIHRoYXQgY3VyZSBteSBoZWFkYWNoZXPtoLztvL8AC1RlbmRvIEZhcm1zAAAAAAA/26gACzhUYkx1Qk9DbFNnAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9OFRiTHVCT0NsU2cBADpodHRwczovL2kueXRpbWcuY29tL3ZpX3dlYnAvOFRiTHVCT0NsU2cvbWF4cmVzZGVmYXVsdC53ZWJwAAAHeW91dHViZQAAAAAAAAAA",
+            	"info": {
+            		"identifier": "8TbLuBOClSg",
+            		"isSeekable": true,
+            		"author": "Tendo Farms",
+            		"length": 4185000,
+            		"isStream": false,
+            		"position": 0,
+            		"title": "Cozy animal crossing music that cure my headaches🌿",
+            		"uri": "https://www.youtube.com/watch?v=8TbLuBOClSg",
+            		"sourceName": "youtube",
+            		"artworkUrl": "https://i.ytimg.com/vi_webp/8TbLuBOClSg/maxresdefault.webp",
+            		"isrc": null
+            	},
+            	"pluginInfo": {},
+            	"userData": {}
+            }
+            """)!;
+
+        // Act
+        var parsedTrack = LavalinkTrack.Parse(model.Data, provider: null);
+        var decodedTrack = LavalinkApiClient.CreateTrack(model);
+
+        // Assert
+        Assert.Equal(decodedTrack, parsedTrack);
+    }
+
+    [Fact]
+    public void TestDecodedTrackHasSameHashCode()
+    {
+        // Arrange
+        var model = JsonSerializer.Deserialize<TrackModel>("""
+            {
+            	"encoded": "QAAA2gMAN0NvenkgYW5pbWFsIGNyb3NzaW5nIG11c2ljIHRoYXQgY3VyZSBteSBoZWFkYWNoZXPtoLztvL8AC1RlbmRvIEZhcm1zAAAAAAA/26gACzhUYkx1Qk9DbFNnAAEAK2h0dHBzOi8vd3d3LnlvdXR1YmUuY29tL3dhdGNoP3Y9OFRiTHVCT0NsU2cBADpodHRwczovL2kueXRpbWcuY29tL3ZpX3dlYnAvOFRiTHVCT0NsU2cvbWF4cmVzZGVmYXVsdC53ZWJwAAAHeW91dHViZQAAAAAAAAAA",
+            	"info": {
+            		"identifier": "8TbLuBOClSg",
+            		"isSeekable": true,
+            		"author": "Tendo Farms",
+            		"length": 4185000,
+            		"isStream": false,
+            		"position": 0,
+            		"title": "Cozy animal crossing music that cure my headaches🌿",
+            		"uri": "https://www.youtube.com/watch?v=8TbLuBOClSg",
+            		"sourceName": "youtube",
+            		"artworkUrl": "https://i.ytimg.com/vi_webp/8TbLuBOClSg/maxresdefault.webp",
+            		"isrc": null
+            	},
+            	"pluginInfo": {},
+            	"userData": {}
+            }
+            """)!;
+
+        // Act
+        var parsedTrack = LavalinkTrack.Parse(model.Data, provider: null).GetHashCode();
+        var decodedTrack = LavalinkApiClient.CreateTrack(model).GetHashCode();
+
+        // Assert
+        Assert.Equal(decodedTrack, parsedTrack);
+    }
 }
