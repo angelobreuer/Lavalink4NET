@@ -78,7 +78,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 
         _currentItem = properties.InitialState.CurrentTrack is not null
-            ? properties.Options.Value.InitialTrack ?? new TrackQueueItem(new TrackReference(RestoreTrack(properties.InitialState.CurrentTrack)))
+            ? properties.Options.Value.InitialTrack ?? new TrackQueueItem(new TrackReference(LavalinkApiClient.CreateTrack(properties.InitialState.CurrentTrack)))
             : null;
 
         Refresh(properties.InitialState);
@@ -451,7 +451,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
             var track = model.CurrentTrack is null
                 ? _nextItem
-                : new TrackQueueItem(new TrackReference(RestoreTrack(model.CurrentTrack)));
+                : new TrackQueueItem(new TrackReference(LavalinkApiClient.CreateTrack(model.CurrentTrack)));
 
             CurrentItem = track;
 
@@ -660,23 +660,6 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
 
         return new TrackQueueItem(new TrackReference(track));
     }
-    private static LavalinkTrack RestoreTrack(TrackModel track) => new()
-    {
-        Author = track.Information.Author,
-        Identifier = track.Information.Identifier,
-        Title = track.Information.Title,
-        Duration = track.Information.Duration,
-        IsLiveStream = track.Information.IsLiveStream,
-        IsSeekable = track.Information.IsSeekable,
-        Uri = track.Information.Uri,
-        SourceName = track.Information.SourceName,
-        StartPosition = track.Information.Position,
-        ArtworkUri = track.Information.ArtworkUri,
-        Isrc = track.Information.Isrc,
-        TrackData = track.Data,
-        AdditionalInformation = track.AdditionalInformation,
-    };
-
 }
 
 internal static partial class Logging

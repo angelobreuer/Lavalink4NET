@@ -14,7 +14,6 @@ using Lavalink4NET.Events;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol;
-using Lavalink4NET.Protocol.Models;
 using Lavalink4NET.Protocol.Payloads;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Lavalink4NET.Protocol.Requests;
@@ -22,7 +21,6 @@ using Lavalink4NET.Rest;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Rest.Entities.Usage;
 using Lavalink4NET.Socket;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -84,23 +82,6 @@ internal sealed class LavalinkNode : IAsyncDisposable
             .WaitAsync(cancellationToken)
             .ConfigureAwait(false);
     }
-
-    private static LavalinkTrack CreateTrack(TrackModel track) => new()
-    {
-        Duration = track.Information.Duration,
-        Identifier = track.Information.Identifier,
-        IsLiveStream = track.Information.IsLiveStream,
-        IsSeekable = track.Information.IsSeekable,
-        SourceName = track.Information.SourceName,
-        StartPosition = track.Information.Position,
-        Title = track.Information.Title,
-        Uri = track.Information.Uri,
-        TrackData = track.Data,
-        Author = track.Information.Author,
-        ArtworkUri = track.Information.ArtworkUri,
-        Isrc = track.Information.Isrc,
-        AdditionalInformation = track.AdditionalInformation,
-    };
 
     private static string SerializePayload(IPayload payload)
     {
@@ -270,7 +251,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackEndEvent);
 
-        var track = CreateTrack(trackEndEvent.Track);
+        var track = LavalinkApiClient.CreateTrack(trackEndEvent.Track);
 
         if (player is ILavalinkPlayerListener playerListener)
         {
@@ -296,7 +277,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackExceptionEvent);
 
-        var track = CreateTrack(trackExceptionEvent.Track);
+        var track = LavalinkApiClient.CreateTrack(trackExceptionEvent.Track);
 
         var exception = new TrackException(
             Severity: trackExceptionEvent.Exception.Severity,
@@ -327,7 +308,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackStartEvent);
 
-        var track = CreateTrack(trackStartEvent.Track);
+        var track = LavalinkApiClient.CreateTrack(trackStartEvent.Track);
 
         if (player is ILavalinkPlayerListener playerListener)
         {
@@ -352,7 +333,7 @@ internal sealed class LavalinkNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(trackStuckEvent);
 
-        var track = CreateTrack(trackStuckEvent.Track);
+        var track = LavalinkApiClient.CreateTrack(trackStuckEvent.Track);
 
         if (player is ILavalinkPlayerListener playerListener)
         {

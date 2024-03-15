@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using Lavalink4NET.Protocol.Models;
+using Lavalink4NET.Rest;
 using Lavalink4NET.Tracks;
 
 public sealed class LavalinkTrackTests
@@ -319,7 +320,7 @@ public sealed class LavalinkTrackTests
             }
             """)!;
 
-        var track = CreateTrack(model!);
+        var track = LavalinkApiClient.CreateTrack(model!);
         track.TrackData = null; // avoid caching
 
         // Act
@@ -369,22 +370,4 @@ public sealed class LavalinkTrackTests
         Assert.Equal(model.Information.ArtworkUri, parsedTrack.ArtworkUri);
         Assert.Equal(model.Information.Isrc, parsedTrack.Isrc);
     }
-
-    private static LavalinkTrack CreateTrack(TrackModel track) => new()
-    {
-        Duration = track.Information.Duration,
-        Identifier = track.Information.Identifier,
-        IsLiveStream = track.Information.IsLiveStream,
-        IsSeekable = track.Information.IsSeekable,
-        SourceName = track.Information.SourceName,
-        StartPosition = track.Information.Position,
-        Title = track.Information.Title,
-        Uri = track.Information.Uri,
-        TrackData = track.Data,
-        Author = track.Information.Author,
-        ArtworkUri = track.Information.ArtworkUri,
-        Isrc = track.Information.Isrc,
-        AdditionalInformation = track.AdditionalInformation,
-    };
-
 }
