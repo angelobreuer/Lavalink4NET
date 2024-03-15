@@ -236,6 +236,10 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         ArtworkUri = track.Information.ArtworkUri,
         Isrc = track.Information.Isrc,
         AdditionalInformation = track.AdditionalInformation,
+
+        ProbeInfo = track.AdditionalInformation.TryGetValue("probeInfo", out var probeInformationElement)
+            ? probeInformationElement.GetString()
+            : null,
     };
 
     private async ValueTask<LoadResultModel> LoadTracksInternalAsync(string identifier, CancellationToken cancellationToken = default)
