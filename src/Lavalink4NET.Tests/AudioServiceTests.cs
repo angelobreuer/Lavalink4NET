@@ -574,11 +574,11 @@ public sealed class AudioServiceTests
             return raisedEvent;
         }
 
-        var raisedEvent = await RaisesAsyncInternal().ConfigureAwait(false) ?? throw new RaisesException(typeof(T));
+        var raisedEvent = await RaisesAsyncInternal().ConfigureAwait(false) ?? throw RaisesException.ForNoEvent(typeof(T));
 
         if (raisedEvent.Arguments is not null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
         {
-            throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
+            throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
         }
     }
 
