@@ -37,7 +37,6 @@ public partial class InactivityTrackingService : IInactivityTrackingService
     private readonly InactivityTrackingMode _trackingMode;
     private readonly InactivityTrackingTimeoutBehavior _timeoutBehavior;
     private readonly TimeSpan _defaultTimeout;
-    private readonly TimeSpan _defaultPollInterval;
     private readonly uint _allMask;
     private CancellationTokenSource? _stoppingCancellationTokenSource;
     private bool _disposed;
@@ -128,7 +127,6 @@ public partial class InactivityTrackingService : IInactivityTrackingService
         _systemClock = systemClock;
 
         _defaultTimeout = options.Value.DefaultTimeout;
-        _defaultPollInterval = options.Value.DefaultPollInterval;
         _trackingMode = options.Value.TrackingMode;
         _timeoutBehavior = options.Value.TimeoutBehavior;
 
