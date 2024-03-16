@@ -106,7 +106,6 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
             _ => TrackLoadResult.CreateEmpty(),
         };
-
     }
 
     public async ValueTask<LavalinkServerInformation> RetrieveServerInformationAsync(CancellationToken cancellationToken = default)
@@ -156,7 +155,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         using var jsonContent = JsonContent.Create(
             inputValue: properties,
-            options: ProtocolSerializerContext.Default.Options);
+            jsonTypeInfo: ProtocolSerializerContext.Default.SessionUpdateProperties);
 
         using var responseMessage = await httpClient
             .PatchAsync(requestUri, jsonContent, cancellationToken)
@@ -181,7 +180,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
 
         using var jsonContent = JsonContent.Create(
             inputValue: properties,
-            options: ProtocolSerializerContext.Default.Options);
+            jsonTypeInfo: ProtocolSerializerContext.Default.PlayerUpdateProperties);
 
         using var responseMessage = await httpClient
             .PatchAsync(requestUri, jsonContent, cancellationToken)
@@ -360,7 +359,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         using var httpClient = CreateHttpClient();
 
         using var responseMessage = await httpClient
-            .PostAsJsonAsync(requestUri, properties, ProtocolSerializerContext.Default.Options, cancellationToken)
+            .PostAsJsonAsync(requestUri, properties, ProtocolSerializerContext.Default.AddressUnmarkProperties, cancellationToken)
             .ConfigureAwait(false);
 
         await EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken).ConfigureAwait(false);
