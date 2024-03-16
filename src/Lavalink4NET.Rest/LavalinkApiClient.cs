@@ -394,7 +394,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         try
         {
             var errorResponseModel = await responseMessage.Content
-                .ReadFromJsonAsync<HttpErrorResponse>(cancellationToken: cancellationToken)
+                .ReadFromJsonAsync(ProtocolSerializerContext.Default.HttpErrorResponse, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
             errorResponse = errorResponseModel!;
