@@ -158,7 +158,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             inputValue: properties,
             options: ProtocolSerializerContext.Default.Options);
 
-        var responseMessage = await httpClient
+        using var responseMessage = await httpClient
             .PatchAsync(requestUri, jsonContent, cancellationToken)
             .ConfigureAwait(false);
 
@@ -183,7 +183,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             inputValue: properties,
             options: ProtocolSerializerContext.Default.Options);
 
-        var responseMessage = await httpClient
+        using var responseMessage = await httpClient
             .PatchAsync(requestUri, jsonContent, cancellationToken)
             .ConfigureAwait(false);
 
@@ -293,7 +293,7 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         var requestUri = Endpoints.Player(sessionId, guildId);
         using var httpClient = CreateHttpClient();
 
-        var responseMessage = await httpClient
+        using var responseMessage = await httpClient
             .GetAsync(requestUri, cancellationToken)
             .ConfigureAwait(false);
 
