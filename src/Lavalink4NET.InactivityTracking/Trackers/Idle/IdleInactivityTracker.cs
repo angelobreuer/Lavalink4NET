@@ -1,6 +1,7 @@
 ﻿namespace Lavalink4NET.InactivityTracking.Trackers.Idle;
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Options;
@@ -33,7 +34,9 @@ public sealed class IdleInactivityTracker : IInactivityTracker
             trackerContext: trackerContext,
             playerManager: _playerManager,
             idleStates: _options.IdleStates,
-             timeout: _options.Timeout);
+            timeout: _options.Timeout,
+            initialTimeout: _options.InitialTimeout,
+            trackNewPlayers: _options.TrackNewPlayers);
 
         return context.RunAsync(cancellationToken);
     }
@@ -46,12 +49,16 @@ file sealed class IdleInactivityTrackerContext
     private readonly IPlayerManager _playerManager;
     private readonly ImmutableArray<PlayerState> _idleStates;
     private readonly TimeSpan? _timeout;
+    private readonly TimeSpan? _initialTimeout;
+    private readonly bool _trackNewPlayers;
 
     public IdleInactivityTrackerContext(
         IInactivityTrackerContext trackerContext,
         IPlayerManager playerManager,
         ImmutableArray<PlayerState> idleStates,
-        TimeSpan? timeout)
+        TimeSpan? timeout,
+        TimeSpan? initialTimeout,
+        bool trackNewPlayers)
     {
         ArgumentNullException.ThrowIfNull(trackerContext);
         ArgumentNullException.ThrowIfNull(playerManager);
@@ -61,6 +68,8 @@ file sealed class IdleInactivityTrackerContext
         _playerManager = playerManager;
         _timeout = timeout;
         _idleStates = idleStates;
+        _initialTimeout = initialTimeout;
+        _trackNewPlayers = trackNewPlayers;
     }
 
     public async ValueTask RunAsync(CancellationToken cancellationToken = default)
@@ -68,6 +77,11 @@ file sealed class IdleInactivityTrackerContext
         cancellationToken.ThrowIfCancellationRequested();
 
         _playerManager.PlayerStateChanged += PlayerStateChanged;
+
+        if (_trackNewPlayers)
+        {
+            _playerManager.PlayerCreated += PlayerCreated;
+        }
 
         try
         {
@@ -83,7 +97,24 @@ file sealed class IdleInactivityTrackerContext
         finally
         {
             _playerManager.PlayerStateChanged -= PlayerStateChanged;
+
+            if (_trackNewPlayers)
+            {
+                _playerManager.PlayerCreated -= PlayerCreated;
+            }
         }
+    }
+
+    private Task PlayerCreated(object sender, PlayerCreatedEventArgs eventArgs)
+    {
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(eventArgs);
+
+        Debug.Assert(_trackNewPlayers);
+
+        NotifyActivityStateChange(eventArgs.Player, eventArgs.Player.State, _initialTimeout ?? _timeout);
+
+        return Task.CompletedTask;
     }
 
     private Task PlayerStateChanged(object sender, PlayerStateChangedEventArgs eventArgs)
@@ -96,21 +127,26 @@ file sealed class IdleInactivityTrackerContext
             return Task.CompletedTask; // ignore, player is destroyed
         }
 
+        NotifyActivityStateChange(eventArgs.Player, eventArgs.State, _timeout);
+
+        return Task.CompletedTask;
+    }
+
+    private void NotifyActivityStateChange(ILavalinkPlayer player, PlayerState playerState, TimeSpan? timeout)
+    {
         lock (_trackerContextSyncRoot)
         {
             using var scope = _trackerContext.CreateScope();
-            var isIdle = _idleStates.Contains(eventArgs.State);
+            var isIdle = _idleStates.Contains(playerState);
 
             if (isIdle)
             {
-                scope.MarkInactive(eventArgs.Player.GuildId, _timeout);
+                scope.MarkInactive(player.GuildId, timeout);
             }
             else
             {
-                scope.MarkActive(eventArgs.Player.GuildId);
+                scope.MarkActive(player.GuildId);
             }
         }
-
-        return Task.CompletedTask;
     }
 }
