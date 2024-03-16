@@ -2,7 +2,9 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -236,6 +238,21 @@ internal sealed class LavalinkNode : IAsyncDisposable
             MemoryUsage: memoryUsage,
             ProcessorUsage: processorUsage,
             FrameStatistics: frameStatistics);
+
+        var tag = KeyValuePair.Create<string, object?>("label", Label);
+
+        Diagnostics.ConnectedPlayers.Set(statistics.ConnectedPlayers, tag);
+        Diagnostics.PlayingPlayers.Set(statistics.PlayingPlayers, tag);
+        Diagnostics.FreeMemory.Set(statistics.MemoryUsage.FreeMemory, tag);
+        Diagnostics.UsedMemory.Set(statistics.MemoryUsage.UsedMemory, tag);
+        Diagnostics.AllocatedMemory.Set(statistics.MemoryUsage.AllocatedMemory, tag);
+        Diagnostics.ReservableMemory.Set(statistics.MemoryUsage.ReservableMemory, tag);
+        Diagnostics.CoreCount.Set(statistics.ProcessorUsage.CoreCount, tag);
+        Diagnostics.SystemLoad.Set(statistics.ProcessorUsage.SystemLoad, tag);
+        Diagnostics.LavalinkLoad.Set(statistics.ProcessorUsage.LavalinkLoad, tag);
+        Diagnostics.SentFrames.Set(statistics.FrameStatistics?.SentFrames ?? 0, tag);
+        Diagnostics.NulledFrames.Set(statistics.FrameStatistics?.NulledFrames ?? 0, tag);
+        Diagnostics.DeficitFrames.Set(statistics.FrameStatistics?.DeficitFrames ?? 0, tag);
 
         var eventArgs = new StatisticsUpdatedEventArgs(statistics);
 
@@ -608,4 +625,85 @@ internal static partial class Logging
 
     [LoggerMessage(9, LogLevel.Error, "[{Label}] Exception occurred while processing a payload: {Payload}.", EventName = nameof(ExceptionOccurredWhileProcessingPayload))]
     public static partial void ExceptionOccurredWhileProcessingPayload(this ILogger<LavalinkNode> logger, string label, object payload, Exception exception);
+}
+
+file static class Diagnostics
+{
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        ConnectedPlayers = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-connected-players", unit: "Players"));
+        PlayingPlayers = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-playing-players", unit: "Players"));
+        FreeMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-free-memory", "Bytes"));
+        UsedMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-used-memory", "Bytes"));
+        AllocatedMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-allocated-memory", "Bytes"));
+        ReservableMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-reservable-memory", "Bytes"));
+        CoreCount = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-core-count", "Cores"));
+        SystemLoad = new AbsoluteCounterSingle(meter.CreateCounter<float>(name: "server-system-load", "Load%"));
+        LavalinkLoad = new AbsoluteCounterSingle(meter.CreateCounter<float>(name: "server-lavalink-load", "Load%"));
+        SentFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-sent-frames", "Frames"));
+        NulledFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-nulled-frames", "Frames"));
+        DeficitFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-deficit-frames", "Frames"));
+    }
+
+    public static AbsoluteCounterInt32 ConnectedPlayers { get; }
+
+    public static AbsoluteCounterInt32 PlayingPlayers { get; }
+
+    public static AbsoluteCounterInt64 FreeMemory { get; }
+
+    public static AbsoluteCounterInt64 UsedMemory { get; }
+
+    public static AbsoluteCounterInt64 AllocatedMemory { get; }
+
+    public static AbsoluteCounterInt64 ReservableMemory { get; }
+
+    public static AbsoluteCounterInt32 CoreCount { get; }
+
+    public static AbsoluteCounterSingle SystemLoad { get; }
+
+    public static AbsoluteCounterSingle LavalinkLoad { get; }
+
+    public static AbsoluteCounterInt32 SentFrames { get; }
+
+    public static AbsoluteCounterInt32 NulledFrames { get; }
+
+    public static AbsoluteCounterInt32 DeficitFrames { get; }
+}
+
+file abstract class AbsoluteCounterBase<T> where T : struct
+{
+    private readonly Counter<T> _counter;
+    private T _value;
+
+    protected AbsoluteCounterBase(Counter<T> counter)
+    {
+        ArgumentNullException.ThrowIfNull(counter);
+
+        _counter = counter;
+    }
+
+    public void Set(T value, KeyValuePair<string, object?> tag)
+    {
+        _counter.Add(Mutate(value, _value), tag);
+        _value = value;
+    }
+
+    protected abstract T Mutate(T operand1, T operand2);
+}
+
+file sealed class AbsoluteCounterInt32(Counter<int> counter) : AbsoluteCounterBase<int>(counter)
+{
+    protected override int Mutate(int operand1, int operand2) => operand1 - operand2;
+}
+
+file sealed class AbsoluteCounterInt64(Counter<long> counter) : AbsoluteCounterBase<long>(counter)
+{
+    protected override long Mutate(long operand1, long operand2) => operand1 - operand2;
+}
+
+file sealed class AbsoluteCounterSingle(Counter<float> counter) : AbsoluteCounterBase<float>(counter)
+{
+    protected override float Mutate(float operand1, float operand2) => operand1 - operand2;
 }
