@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public interface IPlayerLifecycle : IAsyncDisposable
 {
-    ValueTask NotifyPlayerCreatedAsync(CancellationToken cancellationToken = default);
+    ValueTask NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default);
 
-    ValueTask NotifyStateChangedAsync(PlayerState playerState, CancellationToken cancellationToken = default);
+    ValueTask NotifyStateChangedAsync(ILavalinkPlayer player, PlayerState playerState, CancellationToken cancellationToken = default);
 }

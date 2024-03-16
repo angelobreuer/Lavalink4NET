@@ -140,8 +140,8 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         if (_value is TaskCompletionSource<ILavalinkPlayer> taskCompletionSource)
         {
+            // _value is automatically set by CreatePlayerAsync
             var player = await CreatePlayerAsync(cancellationToken).ConfigureAwait(false);
-            _value = player;
 
             taskCompletionSource.TrySetResult(player);
 
@@ -247,8 +247,10 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         var player = await _playerFactory(properties, cancellationToken).ConfigureAwait(false);
 
+        _value = player; // Set value early to make it available for lifecycle notifications
+
         await lifecycle
-            .NotifyPlayerCreatedAsync(cancellationToken)
+            .NotifyPlayerCreatedAsync(player, cancellationToken)
             .ConfigureAwait(false);
 
         if (player is ILavalinkPlayerListener playerListener)
@@ -272,9 +274,9 @@ file sealed class EmptyPlayerLifecycle : IPlayerLifecycle
 
     public ValueTask DisposeAsync() => default;
 
-    public ValueTask NotifyPlayerCreatedAsync(CancellationToken cancellationToken = default) => default;
+    public ValueTask NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default) => default;
 
-    public ValueTask NotifyStateChangedAsync(PlayerState playerState, CancellationToken cancellationToken = default) => default;
+    public ValueTask NotifyStateChangedAsync(ILavalinkPlayer player, PlayerState playerState, CancellationToken cancellationToken = default) => default;
 }
 
 file sealed class PlayerLifecycle : IPlayerLifecycle
@@ -292,16 +294,18 @@ file sealed class PlayerLifecycle : IPlayerLifecycle
 
     public ValueTask DisposeAsync() => _lifecycleNotifier.NotifyDisposeAsync(_guildId);
 
-    public ValueTask NotifyPlayerCreatedAsync(CancellationToken cancellationToken = default)
+    public ValueTask NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _lifecycleNotifier.NotifyPlayerCreatedAsync(_guildId, cancellationToken);
+        Debug.Assert(player.GuildId == _guildId);
+        return _lifecycleNotifier.NotifyPlayerCreatedAsync(player, cancellationToken);
     }
 
-    public ValueTask NotifyStateChangedAsync(PlayerState playerState, CancellationToken cancellationToken = default)
+    public ValueTask NotifyStateChangedAsync(ILavalinkPlayer player, PlayerState playerState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _lifecycleNotifier.NotifyStateChangedAsync(_guildId, playerState, cancellationToken);
+        Debug.Assert(player.GuildId == _guildId);
+        return _lifecycleNotifier.NotifyStateChangedAsync(player, playerState, cancellationToken);
     }
 }
 

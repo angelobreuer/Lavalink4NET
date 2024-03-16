@@ -568,7 +568,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         State = playerState;
 
         await _playerLifecycle
-            .NotifyStateChangedAsync(playerState, cancellationToken)
+            .NotifyStateChangedAsync(this, playerState, cancellationToken)
             .ConfigureAwait(false);
     }
 

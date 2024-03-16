@@ -323,14 +323,9 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
         }
     }
 
-    async ValueTask IPlayerLifecycleNotifier.NotifyStateChangedAsync(ulong guildId, PlayerState playerState, CancellationToken cancellationToken)
+    async ValueTask IPlayerLifecycleNotifier.NotifyStateChangedAsync(ILavalinkPlayer player, PlayerState playerState, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        if (!TryGetPlayer(guildId, out var player))
-        {
-            return;
-        }
 
         Debug.Assert(playerState == player.State);
 
@@ -365,14 +360,9 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
         return false;
     }
 
-    async ValueTask IPlayerLifecycleNotifier.NotifyPlayerCreatedAsync(ulong guildId, CancellationToken cancellationToken)
+    async ValueTask IPlayerLifecycleNotifier.NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        if (!TryGetPlayer(guildId, out var player))
-        {
-            return;
-        }
 
         var eventArgs = new PlayerCreatedEventArgs(player);
 
