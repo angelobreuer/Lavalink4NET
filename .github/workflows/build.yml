@@ -57,12 +57,14 @@ jobs:
         
     - name: Archive code coverage results
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: CoverageSummary.html
         path: coverage/summary.html
         
     - name: Archive code coverage history
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: CoverageHistory.html
         path: coverage/history/*.xml
