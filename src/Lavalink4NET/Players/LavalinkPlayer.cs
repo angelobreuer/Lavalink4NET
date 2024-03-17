@@ -756,10 +756,10 @@ file static class Diagnostics
     {
         var meter = new Meter("Lavalink4NET");
 
-        PausedPlayers = meter.CreateUpDownCounter<int>("paused-players");
-        NotPlayingPlayers = meter.CreateUpDownCounter<int>("not-playing-players");
-        PlayingPlayers = meter.CreateUpDownCounter<int>("playing-players");
-        VoiceServer = meter.CreateUpDownCounter<int>("voice-server");
+        PausedPlayers = meter.CreateUpDownCounter<int>("paused-players", "Players");
+        NotPlayingPlayers = meter.CreateUpDownCounter<int>("not-playing-players", "Players");
+        PlayingPlayers = meter.CreateUpDownCounter<int>("playing-players", "Players");
+        VoiceServer = meter.CreateUpDownCounter<int>("voice-server", "Uses");
     }
 
     public static UpDownCounter<int> PausedPlayers { get; }
