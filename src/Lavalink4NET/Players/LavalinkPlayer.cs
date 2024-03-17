@@ -1,8 +1,10 @@
 ﻿namespace Lavalink4NET.Players;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
@@ -36,6 +38,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private volatile ITrackQueueItem? _currentItem;
     private volatile ITrackQueueItem? _replacedItem;
     private volatile ITrackQueueItem? _nextItem;
+    private Counter<int>? _previousStateCounter;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -570,6 +573,18 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         await _playerLifecycle
             .NotifyStateChangedAsync(this, playerState, cancellationToken)
             .ConfigureAwait(false);
+
+        _previousStateCounter?.Add(-1, KeyValuePair.Create<string, object?>("label", Label));
+
+        _previousStateCounter = playerState switch
+        {
+            PlayerState.Paused => Diagnostics.PausedPlayers,
+            PlayerState.NotPlaying => Diagnostics.NotPlayingPlayers,
+            PlayerState.Playing => Diagnostics.PlayingPlayers,
+            _ => null,
+        };
+
+        _previousStateCounter?.Add(1, KeyValuePair.Create<string, object?>("label", Label));
     }
 
     protected virtual async ValueTask NotifyVoiceStateUpdatedAsync(VoiceState voiceState, CancellationToken cancellationToken = default)
@@ -693,4 +708,22 @@ internal static partial class Logging
 
     [LoggerMessage(10, LogLevel.Information, "[{Label}] Player destroyed.", EventName = nameof(PlayerDestroyed))]
     public static partial void PlayerDestroyed(this ILogger<LavalinkPlayer> logger, string label);
+}
+
+file static class Diagnostics
+{
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        PausedPlayers = meter.CreateCounter<int>("paused-players");
+        NotPlayingPlayers = meter.CreateCounter<int>("not-playing-players");
+        PlayingPlayers = meter.CreateCounter<int>("playing-players");
+    }
+
+    public static Counter<int> PausedPlayers { get; }
+
+    public static Counter<int> NotPlayingPlayers { get; }
+
+    public static Counter<int> PlayingPlayers { get; }
 }
