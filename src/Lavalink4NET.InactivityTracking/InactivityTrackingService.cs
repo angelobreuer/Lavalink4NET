@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -417,6 +418,11 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
             Logger.PlayerMarkedActive(lifetime.Label, player.Label);
             ActivatePlayer(player);
+
+            Diagnostics.ActivePlayerNotifications.Add(
+                delta: 1,
+                tag1: KeyValuePair.Create<string, object?>("player", player.Label),
+                tag2: KeyValuePair.Create<string, object?>("tracker", lifetime.Label));
         }
 
         foreach (var (trackedPlayerId, entry) in trackedPlayers)
@@ -430,6 +436,11 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
             var expireAfter = entry.InactiveSince + (entry.Timeout ?? _defaultTimeout);
             Logger.PlayerMarkedInactive(lifetime.Label, player.Label, expireAfter);
+
+            Diagnostics.InactivePlayerNotifications.Add(
+                delta: 1,
+                tag1: KeyValuePair.Create<string, object?>("player", player.Label),
+                tag2: KeyValuePair.Create<string, object?>("tracker", lifetime.Label));
         }
     }
 
@@ -774,6 +785,8 @@ file sealed class PlayerActiveEventDispatch(ILavalinkPlayer Player) : IEventDisp
                     .ConfigureAwait(false);
 
                 inactivityTrackingService.Logger.PlayerResumedByInactivityTrackingService(Player.Label);
+
+                Diagnostics.PausedInactivityPlayers.Add(-1, KeyValuePair.Create<string, object?>("label", Player.Label));
             }
         }
     }
@@ -849,6 +862,8 @@ file sealed class PlayerTrackedEventDispatch(ILavalinkPlayer Player) : IEventDis
                 }
 
                 inactivityTrackingService.Logger.PlayerPausedByInactivityTrackingService(Player.Label);
+
+                Diagnostics.PausedInactivityPlayers.Add(1, KeyValuePair.Create<string, object?>("label", Player.Label));
             }
             else
             {
@@ -946,4 +961,22 @@ file sealed class InactivityExpirationQueueHost : BackgroundService
             await using var _ = player.ConfigureAwait(false);
         }
     }
+}
+
+file static class Diagnostics
+{
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        InactivePlayerNotifications = meter.CreateCounter<int>("inactive-player-notifications", "Notifications");
+        ActivePlayerNotifications = meter.CreateCounter<int>("active-player-notifications", "Notifications");
+        PausedInactivityPlayers = meter.CreateCounter<int>("paused-inactivity-players", "Players");
+    }
+
+    public static Counter<int> InactivePlayerNotifications { get; }
+
+    public static Counter<int> ActivePlayerNotifications { get; }
+
+    public static Counter<int> PausedInactivityPlayers { get; }
 }

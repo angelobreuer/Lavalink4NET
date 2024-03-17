@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Players;
@@ -40,10 +41,14 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
     private void PromoteInternal()
     {
         // Promote pending players to the expiration queue
-        _expirationQueue.EnsureCapacity(_expirationQueue.Count + _expirationQueue.Count);
+        _expirationQueue.EnsureCapacity(_expirationQueue.Count + _playerQueue.Count);
+        Diagnostics.PromotedPlayers.Add(_playerQueue.Count);
 
         while (_playerQueue.TryDequeue(out var expiringPlayer))
         {
+            Diagnostics.InactivityExpirationQueueSize.Add(delta: -1, tag: KeyValuePair.Create<string, object?>("label", expiringPlayer.Player.Label));
+            Diagnostics.PromotedExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", expiringPlayer.Player.Label));
+
             _logger.LogInformation(
                 "Player '{Label}' was promoted to the expiration queue (expires after {ExpireAfter}).",
                 expiringPlayer.Player.Label, expiringPlayer.ExpireAfter);
@@ -84,6 +89,9 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
             "Player '{Label}' will be expired after {ExpireAfter}.",
             player.Label, expireAfter);
 
+        Diagnostics.InactivityExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
+        Diagnostics.TotalExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
+
         if (expireAfter < _lowestExpirationAt)
         {
             _lowestExpirationAt = expireAfter;
@@ -121,6 +129,9 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                 return false;
             }
 
+            Diagnostics.PromotedExpirationQueueSize.Add(delta: -1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
+            Diagnostics.TotalExpirationQueueSize.Add(delta: -1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
+
             while (PeekImmune(player, expiresAt))
             {
                 IsImmune(player, expiresAt);
@@ -135,6 +146,9 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
 
                     return false;
                 }
+
+                Diagnostics.PromotedExpirationQueueSize.Add(delta: -1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
+                Diagnostics.TotalExpirationQueueSize.Add(delta: -1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
             }
 
             _logger.LogTrace(
@@ -200,6 +214,8 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                         "Player '{Label}' expired after {ExpireAfter}.",
                         player.Label, expiresAt);
 
+                    Diagnostics.ExpiredPlayers.Add(1);
+
                     return player;
                 }
                 else
@@ -207,6 +223,8 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                     _logger.LogTrace(
                         "The expiration of the promoted player '{Label}' was cancelled.",
                         player.Label);
+
+                    Diagnostics.CancelledExpirationPlayers.Add(1);
                 }
             }
         }
@@ -241,3 +259,30 @@ file static class WaitState
 }
 
 internal readonly record struct ExpiringPlayer(ILavalinkPlayer Player, DateTimeOffset ExpireAfter);
+
+file static class Diagnostics
+{
+    static Diagnostics()
+    {
+        var meter = new Meter("Lavalink4NET");
+
+        InactivityExpirationQueueSize = meter.CreateCounter<int>("inactivity-expiration-queue-size", "Players");
+        PromotedExpirationQueueSize = meter.CreateCounter<int>("inactivity-promoted-expiration-queue-size", "Players");
+        TotalExpirationQueueSize = meter.CreateCounter<int>("inactivity-total-expiration-queue-size", "Players");
+        CancelledExpirationPlayers = meter.CreateCounter<int>("inactivity-cancelled-expiration-players", "Players");
+        ExpiredPlayers = meter.CreateCounter<int>("inactivity-expired-players", "Players");
+        PromotedPlayers = meter.CreateCounter<int>("inactivity-promoted-players", "Players");
+    }
+
+    public static Counter<int> InactivityExpirationQueueSize { get; }
+
+    public static Counter<int> PromotedExpirationQueueSize { get; }
+
+    public static Counter<int> TotalExpirationQueueSize { get; }
+
+    public static Counter<int> CancelledExpirationPlayers { get; }
+
+    public static Counter<int> ExpiredPlayers { get; }
+
+    public static Counter<int> PromotedPlayers { get; }
+}
