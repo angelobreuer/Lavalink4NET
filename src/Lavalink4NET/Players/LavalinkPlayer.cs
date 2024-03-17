@@ -39,7 +39,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private volatile ITrackQueueItem? _currentItem;
     private volatile ITrackQueueItem? _replacedItem;
     private volatile ITrackQueueItem? _nextItem;
-    private Counter<int>? _previousStateCounter;
+    private UpDownCounter<int>? _previousStateCounter;
     private string? _previousVoiceServer;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
@@ -756,17 +756,17 @@ file static class Diagnostics
     {
         var meter = new Meter("Lavalink4NET");
 
-        PausedPlayers = meter.CreateCounter<int>("paused-players");
-        NotPlayingPlayers = meter.CreateCounter<int>("not-playing-players");
-        PlayingPlayers = meter.CreateCounter<int>("playing-players");
-        VoiceServer = meter.CreateCounter<int>("voice-server");
+        PausedPlayers = meter.CreateUpDownCounter<int>("paused-players");
+        NotPlayingPlayers = meter.CreateUpDownCounter<int>("not-playing-players");
+        PlayingPlayers = meter.CreateUpDownCounter<int>("playing-players");
+        VoiceServer = meter.CreateUpDownCounter<int>("voice-server");
     }
 
-    public static Counter<int> PausedPlayers { get; }
+    public static UpDownCounter<int> PausedPlayers { get; }
 
-    public static Counter<int> NotPlayingPlayers { get; }
+    public static UpDownCounter<int> NotPlayingPlayers { get; }
 
-    public static Counter<int> PlayingPlayers { get; }
+    public static UpDownCounter<int> PlayingPlayers { get; }
 
-    public static Counter<int> VoiceServer { get; }
+    public static UpDownCounter<int> VoiceServer { get; }
 }
