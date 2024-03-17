@@ -670,7 +670,7 @@ internal static partial class Logging
     [LoggerMessage(2, LogLevel.Information, "[{Label}] Player moved to channel {ChannelId}.", EventName = nameof(PlayerMoved))]
     public static partial void PlayerMoved(this ILogger<LavalinkPlayer> logger, string label, ulong? channelId);
 
-    [LoggerMessage(3, LogLevel.Information, "[{Label}] Player connected to channel {ChannelId}.", EventName = nameof(PlayerMoved))]
+    [LoggerMessage(3, LogLevel.Information, "[{Label}] Player connected to channel {ChannelId}.", EventName = nameof(PlayerConnected))]
     public static partial void PlayerConnected(this ILogger<LavalinkPlayer> logger, string label, ulong? channelId);
 
     [LoggerMessage(4, LogLevel.Information, "[{Label}] Player disconnected from channel.", EventName = nameof(PlayerDisconnected))]
