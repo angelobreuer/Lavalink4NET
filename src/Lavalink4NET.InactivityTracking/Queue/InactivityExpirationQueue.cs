@@ -271,19 +271,19 @@ file static class Diagnostics
     {
         var meter = new Meter("Lavalink4NET");
 
-        InactivityExpirationQueueSize = meter.CreateCounter<int>("inactivity-expiration-queue-size", "Players");
-        PromotedExpirationQueueSize = meter.CreateCounter<int>("inactivity-promoted-expiration-queue-size", "Players");
-        TotalExpirationQueueSize = meter.CreateCounter<int>("inactivity-total-expiration-queue-size", "Players");
+        InactivityExpirationQueueSize = meter.CreateUpDownCounter<int>("inactivity-expiration-queue-size", "Players");
+        PromotedExpirationQueueSize = meter.CreateUpDownCounter<int>("inactivity-promoted-expiration-queue-size", "Players");
+        TotalExpirationQueueSize = meter.CreateUpDownCounter<int>("inactivity-total-expiration-queue-size", "Players");
         CancelledExpirationPlayers = meter.CreateCounter<int>("inactivity-cancelled-expiration-players", "Players");
         ExpiredPlayers = meter.CreateCounter<int>("inactivity-expired-players", "Players");
         PromotedPlayers = meter.CreateCounter<int>("inactivity-promoted-players", "Players");
     }
 
-    public static Counter<int> InactivityExpirationQueueSize { get; }
+    public static UpDownCounter<int> InactivityExpirationQueueSize { get; }
 
-    public static Counter<int> PromotedExpirationQueueSize { get; }
+    public static UpDownCounter<int> PromotedExpirationQueueSize { get; }
 
-    public static Counter<int> TotalExpirationQueueSize { get; }
+    public static UpDownCounter<int> TotalExpirationQueueSize { get; }
 
     public static Counter<int> CancelledExpirationPlayers { get; }
 

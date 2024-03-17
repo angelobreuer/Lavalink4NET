@@ -633,18 +633,18 @@ file static class Diagnostics
     {
         var meter = new Meter("Lavalink4NET");
 
-        ConnectedPlayers = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-connected-players", unit: "Players"));
-        PlayingPlayers = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-playing-players", unit: "Players"));
-        FreeMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-free-memory", "Bytes"));
-        UsedMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-used-memory", "Bytes"));
-        AllocatedMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-allocated-memory", "Bytes"));
-        ReservableMemory = new AbsoluteCounterInt64(meter.CreateCounter<long>(name: "server-reservable-memory", "Bytes"));
-        CoreCount = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-core-count", "Cores"));
-        SystemLoad = new AbsoluteCounterSingle(meter.CreateCounter<float>(name: "server-system-load", "Load%"));
-        LavalinkLoad = new AbsoluteCounterSingle(meter.CreateCounter<float>(name: "server-lavalink-load", "Load%"));
-        SentFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-sent-frames", "Frames"));
-        NulledFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-nulled-frames", "Frames"));
-        DeficitFrames = new AbsoluteCounterInt32(meter.CreateCounter<int>(name: "server-deficit-frames", "Frames"));
+        ConnectedPlayers = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-connected-players", unit: "Players"));
+        PlayingPlayers = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-playing-players", unit: "Players"));
+        FreeMemory = new AbsoluteCounterInt64(meter.CreateUpDownCounter<long>(name: "server-free-memory", "Bytes"));
+        UsedMemory = new AbsoluteCounterInt64(meter.CreateUpDownCounter<long>(name: "server-used-memory", "Bytes"));
+        AllocatedMemory = new AbsoluteCounterInt64(meter.CreateUpDownCounter<long>(name: "server-allocated-memory", "Bytes"));
+        ReservableMemory = new AbsoluteCounterInt64(meter.CreateUpDownCounter<long>(name: "server-reservable-memory", "Bytes"));
+        CoreCount = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-core-count", "Cores"));
+        SystemLoad = new AbsoluteCounterSingle(meter.CreateUpDownCounter<float>(name: "server-system-load", "Load%"));
+        LavalinkLoad = new AbsoluteCounterSingle(meter.CreateUpDownCounter<float>(name: "server-lavalink-load", "Load%"));
+        SentFrames = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-sent-frames", "Frames"));
+        NulledFrames = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-nulled-frames", "Frames"));
+        DeficitFrames = new AbsoluteCounterInt32(meter.CreateUpDownCounter<int>(name: "server-deficit-frames", "Frames"));
     }
 
     public static AbsoluteCounterInt32 ConnectedPlayers { get; }
@@ -674,10 +674,10 @@ file static class Diagnostics
 
 file abstract class AbsoluteCounterBase<T> where T : struct
 {
-    private readonly Counter<T> _counter;
+    private readonly UpDownCounter<T> _counter;
     private T _value;
 
-    protected AbsoluteCounterBase(Counter<T> counter)
+    protected AbsoluteCounterBase(UpDownCounter<T> counter)
     {
         ArgumentNullException.ThrowIfNull(counter);
 
@@ -693,17 +693,17 @@ file abstract class AbsoluteCounterBase<T> where T : struct
     protected abstract T Mutate(T operand1, T operand2);
 }
 
-file sealed class AbsoluteCounterInt32(Counter<int> counter) : AbsoluteCounterBase<int>(counter)
+file sealed class AbsoluteCounterInt32(UpDownCounter<int> counter) : AbsoluteCounterBase<int>(counter)
 {
     protected override int Mutate(int operand1, int operand2) => operand1 - operand2;
 }
 
-file sealed class AbsoluteCounterInt64(Counter<long> counter) : AbsoluteCounterBase<long>(counter)
+file sealed class AbsoluteCounterInt64(UpDownCounter<long> counter) : AbsoluteCounterBase<long>(counter)
 {
     protected override long Mutate(long operand1, long operand2) => operand1 - operand2;
 }
 
-file sealed class AbsoluteCounterSingle(Counter<float> counter) : AbsoluteCounterBase<float>(counter)
+file sealed class AbsoluteCounterSingle(UpDownCounter<float> counter) : AbsoluteCounterBase<float>(counter)
 {
     protected override float Mutate(float operand1, float operand2) => operand1 - operand2;
 }
