@@ -1,10 +1,11 @@
 ﻿namespace Lavalink4NET.Players;
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Lavalink4NET.Clients;
 
-internal interface ILavalinkPlayerHandle
+internal interface ILavalinkPlayerHandle : IAsyncDisposable
 {
     ILavalinkPlayer? Player { get; }
 

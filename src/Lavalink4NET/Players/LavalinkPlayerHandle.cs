@@ -225,13 +225,13 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
 
         var initialState = await playerSession.ApiClient
             .UpdatePlayerAsync(playerSession.SessionId, _guildId, playerProperties, cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(continueOnCapturedContext: false);
 
         var label = _options.Value.Label ?? $"{typeof(TPlayer).Name}@{_guildId} on {playerSession.Label}";
 
         var lifecycle = _playerContext.LifecycleNotifier is null
-            ? EmptyPlayerLifecycle.Instance as IPlayerLifecycle
-            : new PlayerLifecycle(_guildId, _playerContext.LifecycleNotifier);
+            ? new EmptyPlayerLifecycle(this) as IPlayerLifecycle
+            : new PlayerLifecycle(this, _guildId, _playerContext.LifecycleNotifier);
 
         var properties = new PlayerProperties<TPlayer, TOptions>(
             Context: _playerContext,
@@ -268,11 +268,9 @@ internal sealed class LavalinkPlayerHandle<TPlayer, TOptions> : ILavalinkPlayerH
     }
 }
 
-file sealed class EmptyPlayerLifecycle : IPlayerLifecycle
+file sealed class EmptyPlayerLifecycle(ILavalinkPlayerHandle handle) : IPlayerLifecycle
 {
-    public static EmptyPlayerLifecycle Instance { get; } = new();
-
-    public ValueTask DisposeAsync() => default;
+    public ValueTask DisposeAsync() => handle.DisposeAsync();
 
     public ValueTask NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default) => default;
 
@@ -281,18 +279,28 @@ file sealed class EmptyPlayerLifecycle : IPlayerLifecycle
 
 file sealed class PlayerLifecycle : IPlayerLifecycle
 {
+    private readonly ILavalinkPlayerHandle _handle;
     private readonly ulong _guildId;
     private readonly IPlayerLifecycleNotifier _lifecycleNotifier;
 
-    public PlayerLifecycle(ulong guildId, IPlayerLifecycleNotifier lifecycleNotifier)
+    public PlayerLifecycle(ILavalinkPlayerHandle handle, ulong guildId, IPlayerLifecycleNotifier lifecycleNotifier)
     {
+        ArgumentNullException.ThrowIfNull(handle);
         ArgumentNullException.ThrowIfNull(lifecycleNotifier);
 
+        _handle = handle;
         _guildId = guildId;
         _lifecycleNotifier = lifecycleNotifier;
     }
 
-    public ValueTask DisposeAsync() => _lifecycleNotifier.NotifyDisposeAsync(_guildId);
+    public async ValueTask DisposeAsync()
+    {
+        await using var _ = _handle.ConfigureAwait(false);
+
+        await _lifecycleNotifier
+            .NotifyDisposeAsync(_guildId)
+            .ConfigureAwait(false);
+    }
 
     public ValueTask NotifyPlayerCreatedAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default)
     {

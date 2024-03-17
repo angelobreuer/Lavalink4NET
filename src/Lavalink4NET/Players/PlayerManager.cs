@@ -310,6 +310,8 @@ internal sealed class PlayerManager : IPlayerManager, IDisposable, IPlayerLifecy
             return;
         }
 
+        await using var _ = playerHandle.ConfigureAwait(false);
+
         Debug.Assert(playerHandle.Player is not null);
         Debug.Assert(playerHandle.Player is { State: PlayerState.Destroyed, });
 
