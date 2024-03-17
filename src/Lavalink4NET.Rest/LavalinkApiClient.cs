@@ -402,13 +402,38 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
         {
         }
 
-        if (errorResponse is null)
-        {
-            throw new HttpRequestException($"Response status code does not indicate success: {responseMessage.StatusCode} ({responseMessage.ReasonPhrase}): '{responseContent}' at {responseMessage.RequestMessage?.RequestUri}: {responseContent}.");
-        }
+        var innerException = errorResponse is null
+            ? default(Exception?)
+            : new RemoteLavalinkException(errorResponse.ErrorMessage, errorResponse.StackTrace);
 
-        throw new HttpRequestException($"Response status code does not indicate success: {errorResponse.StatusCode} ({errorResponse.ReasonPhrase}): '{errorResponse.ErrorMessage}' at {errorResponse.RequestPath}");
+        var httpRequestException = errorResponse is null
+            ? new HttpRequestException($"Response status code does not indicate success: {responseMessage.StatusCode} ({responseMessage.ReasonPhrase}): '{responseContent}' at {responseMessage.RequestMessage?.RequestUri}: {responseContent}.", innerException)
+            : new HttpRequestException($"Response status code does not indicate success: {errorResponse.StatusCode} ({errorResponse.ReasonPhrase}): '{errorResponse.ErrorMessage}' at {errorResponse.RequestPath}", innerException);
+
+        httpRequestException.Data["StatusCode"] = responseMessage.StatusCode;
+        httpRequestException.Data["ReasonPhrase"] = responseMessage.ReasonPhrase;
+        httpRequestException.Data["RequestUri"] = responseMessage.RequestMessage?.RequestUri;
+        httpRequestException.Data["ResponseContent"] = responseContent;
+        httpRequestException.Data["ErrorResponse"] = errorResponse;
+        httpRequestException.Data["RequestPath"] = errorResponse?.RequestPath;
+        httpRequestException.Data["ErrorMessage"] = errorResponse?.ErrorMessage;
+        httpRequestException.Data["StackTrace"] = errorResponse?.StackTrace;
+
+        throw httpRequestException;
     }
+}
+
+internal sealed class RemoteLavalinkException : Exception
+{
+    private readonly string? _stackTrace;
+
+    public RemoteLavalinkException(string? message, string? stackTrace)
+        : base(message)
+    {
+        _stackTrace = stackTrace;
+    }
+
+    public override string? StackTrace => _stackTrace ?? base.StackTrace;
 }
 
 internal static class StrictSearchHelper
