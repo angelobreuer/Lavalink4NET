@@ -33,6 +33,10 @@ public static class LavalinkApiClientExtensions
             return null;
         }
 
+        await LavalinkApiClient
+            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
+            .ConfigureAwait(false);
+
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -59,6 +63,10 @@ public static class LavalinkApiClientExtensions
         {
             return ImmutableArray<LyricsSearchResult>.Empty;
         }
+
+        await LavalinkApiClient
+            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
+            .ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.ImmutableArraySearchResultModel, cancellationToken: cancellationToken)
@@ -89,6 +97,10 @@ public static class LavalinkApiClientExtensions
             return null;
         }
 
+        await LavalinkApiClient
+            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
+            .ConfigureAwait(false);
+
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
@@ -115,6 +127,10 @@ public static class LavalinkApiClientExtensions
         {
             return null;
         }
+
+        await LavalinkApiClient
+            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
+            .ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
