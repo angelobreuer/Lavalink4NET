@@ -93,11 +93,12 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
         Diagnostics.InactivityExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
         Diagnostics.TotalExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
 
-        if (_lowestExpirationAt == DateTimeOffset.MaxValue)
-        {
-            _lowestExpirationAt = expireAfter;
-        }
-        else if (expireAfter < _lowestExpirationAt)
+        NotifyExpiration(expireAfter);
+    }
+
+    private void NotifyExpiration(DateTimeOffset expireAfter)
+    {
+        if (expireAfter < _lowestExpirationAt)
         {
             _lowestExpirationAt = expireAfter;
             _expirationUndercutTaskCompletionSource?.TrySetResult();
@@ -174,6 +175,7 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                     location1: ref _expirationUndercutTaskCompletionSource,
                     value: taskCompletionSource);
 
+                _lowestExpirationAt = DateTimeOffset.MaxValue;
                 previousTaskCompletionSource?.TrySetCanceled(CancellationToken.None);
 
                 var utcNow = _systemClock.UtcNow;
@@ -208,7 +210,12 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                             "Player '{Label}' was undercut by a new player with expiration after {ExpireAfter}.",
                             player.Label, expiresAt);
 
+                        _lowestExpirationAt = DateTimeOffset.MaxValue;
+                        _expirationQueue.Enqueue(player, expiresAt);
+
+                        NotifyExpiration(expiresAt);
                         PromoteInternal();
+
                         continue;
                     }
                 }
