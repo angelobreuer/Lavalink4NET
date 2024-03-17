@@ -389,19 +389,22 @@ public sealed class LavalinkApiClient : LavalinkApiClientBase, ILavalinkApiClien
             return;
         }
 
-        HttpErrorResponse errorResponse;
+        var responseContent = await responseMessage.Content
+            .ReadAsStringAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var errorResponse = default(HttpErrorResponse?);
         try
         {
-            var errorResponseModel = await responseMessage.Content
-                .ReadFromJsonAsync(ProtocolSerializerContext.Default.HttpErrorResponse, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-
-            errorResponse = errorResponseModel!;
+            errorResponse = JsonSerializer.Deserialize(responseContent, ProtocolSerializerContext.Default.HttpErrorResponse);
         }
         catch (JsonException)
         {
-            responseMessage.EnsureSuccessStatusCode(); // Throw manually
-            throw new Exception(); // not reachable
+        }
+
+        if (errorResponse is null)
+        {
+            throw new HttpRequestException($"Response status code does not indicate success: {responseMessage.StatusCode} ({responseMessage.ReasonPhrase}): '{responseContent}' at {responseMessage.RequestMessage?.RequestUri}: {responseContent}.");
         }
 
         throw new HttpRequestException($"Response status code does not indicate success: {errorResponse.StatusCode} ({errorResponse.ReasonPhrase}): '{errorResponse.ErrorMessage}' at {errorResponse.RequestPath}");
