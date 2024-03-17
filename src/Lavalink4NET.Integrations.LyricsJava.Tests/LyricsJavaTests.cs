@@ -25,7 +25,6 @@ public sealed class LyricsJavaTests
 
             return TypedResults.Text("""
                 {
-                	"type": "text",
                 	"track": {
                 		"title": "Never Gonna Give You Up",
                 		"author": "Rick Astley",
@@ -82,7 +81,6 @@ public sealed class LyricsJavaTests
 
             return TypedResults.Text("""
                 {
-                	"type": "text",
                 	"track": {
                 		"title": "Never Gonna Give You Up",
                 		"author": "Rick Astley",
@@ -138,7 +136,6 @@ public sealed class LyricsJavaTests
 
             return TypedResults.Text("""
                 {
-                	"type": "text",
                 	"track": {
                 		"title": "Never Gonna Give You Up",
                 		"author": "Rick Astley",
@@ -214,9 +211,7 @@ public sealed class LyricsJavaTests
             logger: NullLogger<LavalinkApiClient>.Instance);
 
         // Act
-        var lyrics = await client
-            .GetYouTubeLyricsAsync("dQw4w9WgXcQ")
-            .ConfigureAwait(false);
+        var lyrics = await client.GetYouTubeLyricsAsync("dQw4w9WgXcQ");
 
         // Assert
         Assert.Null(lyrics);
