@@ -77,8 +77,14 @@ jobs:
         recreate: true
         path: coverage/DeltaSummary.md
 
-    - name: Publish NuGet artifacts
+    - name: Upload NuGet artifacts
       uses: actions/upload-artifact@v3
       with:
         name: NuGet Packages-${{ matrix.configuration }}
         path: '**/*.nupkg'
+
+    - name: Publish NuGet Packages
+      working-directory: ci
+      if: matrix.configuration == 'Release'
+      run: dotnet nuget push --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json **/*.nupkg
+      shell: bash
