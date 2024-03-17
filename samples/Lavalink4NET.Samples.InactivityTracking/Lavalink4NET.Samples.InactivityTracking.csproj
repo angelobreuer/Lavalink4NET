@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Discord.Net.Interactions" Version="3.10.0" />
-	<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-	<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+	<PackageReference Include="Discord.Net.Interactions" Version="3.13.1" />
+	<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
 	  
     <ProjectReference Include="..\..\src\Lavalink4NET.DiscordNet\Lavalink4NET.DiscordNet.csproj" />
     <ProjectReference Include="..\..\src\Lavalink4NET.InactivityTracking\Lavalink4NET.InactivityTracking.csproj" />
