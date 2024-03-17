@@ -614,7 +614,8 @@ public partial class InactivityTrackingService : IInactivityTrackingService
 
         var queueExpirationHost = new InactivityExpirationQueueHost(
             inactivityExpirationQueue: _expirationQueue,
-            inactivityTrackingService: this);
+            inactivityTrackingService: this,
+            logger: Logger);
 
         await queueExpirationHost
             .StartAsync(cancellationToken)
@@ -639,7 +640,6 @@ public partial class InactivityTrackingService : IInactivityTrackingService
             {
                 try
                 {
-
                     await eventDispatch
                         .InvokeAsync(this, cancellationToken)
                         .ConfigureAwait(false);
@@ -714,6 +714,18 @@ internal static partial class Logger
 
     [LoggerMessage(13, LogLevel.Warning, "An event dispatch has failed on the inactivity tracking dispatch queue.", EventName = nameof(EventDispatchFailed))]
     public static partial void EventDispatchFailed(this ILogger<InactivityTrackingService> logger, Exception exception);
+
+    [LoggerMessage(14, LogLevel.Information, "Inactivity tracking expiration queue started.", EventName = nameof(InactivityTrackingExpirationQueueStarted))]
+    public static partial void InactivityTrackingExpirationQueueStarted(this ILogger<InactivityTrackingService> logger);
+
+    [LoggerMessage(15, LogLevel.Information, "Inactivity tracking expiration queue stopped.", EventName = nameof(InactivityTrackingExpirationQueueStopped))]
+    public static partial void InactivityTrackingExpirationQueueStopped(this ILogger<InactivityTrackingService> logger);
+
+    [LoggerMessage(16, LogLevel.Error, "An error occurred while processing the inactivity tracking expiration queue.", EventName = nameof(InactivityTrackingExpirationQueueError))]
+    public static partial void InactivityTrackingExpirationQueueError(this ILogger<InactivityTrackingService> logger, Exception exception);
+
+    [LoggerMessage(17, LogLevel.Warning, "An error occurred while expiring an inactive player.", EventName = nameof(InactivityTrackingExpirationPlayerExpireError))]
+    public static partial void InactivityTrackingExpirationPlayerExpireError(this ILogger<InactivityTrackingService> logger, Exception exception);
 }
 
 internal readonly record struct PausedPlayersState(
@@ -932,13 +944,20 @@ file sealed class TrackerInactiveEventDispatch(ILavalinkPlayer Player, IInactivi
 file sealed class InactivityExpirationQueueHost : BackgroundService
 {
     private readonly IInactivityExpirationQueue _inactivityExpirationQueue;
+    private readonly ILogger<InactivityTrackingService> _logger;
     private readonly InactivityTrackingService _inactivityTrackingService;
 
-    public InactivityExpirationQueueHost(IInactivityExpirationQueue inactivityExpirationQueue, IInactivityTrackingService inactivityTrackingService)
+    public InactivityExpirationQueueHost(
+        IInactivityExpirationQueue inactivityExpirationQueue,
+        IInactivityTrackingService inactivityTrackingService,
+        ILogger<InactivityTrackingService> logger)
     {
         ArgumentNullException.ThrowIfNull(inactivityExpirationQueue);
+        ArgumentNullException.ThrowIfNull(inactivityExpirationQueue);
+        ArgumentNullException.ThrowIfNull(logger);
 
         _inactivityExpirationQueue = inactivityExpirationQueue;
+        _logger = logger;
         _inactivityTrackingService = (InactivityTrackingService)inactivityTrackingService;
     }
 
@@ -946,20 +965,43 @@ file sealed class InactivityExpirationQueueHost : BackgroundService
     {
         stoppingToken.ThrowIfCancellationRequested();
 
+        _logger.InactivityTrackingExpirationQueueStarted();
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            var player = await _inactivityExpirationQueue
-                .GetExpiredPlayerAsync(stoppingToken)
-                .ConfigureAwait(false);
+            ILavalinkPlayer? player;
+            try
+            {
+                player = await _inactivityExpirationQueue
+                    .GetExpiredPlayerAsync(stoppingToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                _logger.InactivityTrackingExpirationPlayerExpireError(exception);
+                throw;
+            }
 
             if (player is null)
             {
                 break;
             }
 
-            _inactivityTrackingService.NotifyDestroyed(player);
-            await using var _ = player.ConfigureAwait(false);
+            try
+            {
+                await player
+                    .DisposeAsync()
+                    .ConfigureAwait(false);
+
+                _inactivityTrackingService.NotifyDestroyed(player);
+            }
+            catch (Exception exception)
+            {
+                _logger.InactivityTrackingExpirationPlayerExpireError(exception);
+            }
         }
+
+        _logger.InactivityTrackingExpirationQueueStopped();
     }
 }
 

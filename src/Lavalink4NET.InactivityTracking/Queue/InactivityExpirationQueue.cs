@@ -228,9 +228,14 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
                 }
             }
         }
-        catch
+        catch (OperationCanceledException)
         {
             // returns null
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "An error occurred while processing inactivity expiration queue.");
+            throw;
         }
         finally
         {
