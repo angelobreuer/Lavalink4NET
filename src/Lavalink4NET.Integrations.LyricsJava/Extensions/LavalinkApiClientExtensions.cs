@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using Lavalink4NET.Integrations.LyricsJava.Models;
+using Lavalink4NET.Protocol.Responses;
 using Lavalink4NET.Rest;
 
 public static class LavalinkApiClientExtensions
@@ -33,9 +34,7 @@ public static class LavalinkApiClientExtensions
             return null;
         }
 
-        await LavalinkApiClient
-            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
-            .ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response, cancellationToken).ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
@@ -64,9 +63,7 @@ public static class LavalinkApiClientExtensions
             return ImmutableArray<LyricsSearchResult>.Empty;
         }
 
-        await LavalinkApiClient
-            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
-            .ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response, cancellationToken).ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.ImmutableArraySearchResultModel, cancellationToken: cancellationToken)
@@ -97,15 +94,35 @@ public static class LavalinkApiClientExtensions
             return null;
         }
 
-        await LavalinkApiClient
-            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
-            .ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response, cancellationToken).ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         return LyricsJavaIntegration.CreateLyrics(result);
+    }
+
+    private static async ValueTask EnsureSuccessStatusCodeAsync(HttpResponseMessage responseMessage, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(responseMessage);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        try
+        {
+            await LavalinkApiClient
+                .EnsureSuccessStatusCodeAsync(responseMessage, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (HttpRequestException exception) when (exception.Data.Contains("ErrorResponse") && exception.Data["ErrorResponse"] is HttpErrorResponse errorResponse && errorResponse.ErrorMessage.Contains("\"this.geniusClient\" is null"))
+        {
+            throw new HttpRequestException("The Genius API key is missing in your server configuration.", exception);
+        }
     }
 
     public static async ValueTask<Lyrics?> GetGeniusLyricsAsync(
@@ -128,9 +145,7 @@ public static class LavalinkApiClientExtensions
             return null;
         }
 
-        await LavalinkApiClient
-            .EnsureSuccessStatusCodeAsync(response, cancellationToken)
-            .ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response, cancellationToken).ConfigureAwait(false);
 
         var result = await response.Content
             .ReadFromJsonWithWorkaroundAsync(ModelJsonSerializerContext.Default.LyricsResponseModel, cancellationToken: cancellationToken)
