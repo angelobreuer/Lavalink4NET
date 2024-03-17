@@ -47,20 +47,20 @@ public static class TrackManagerExtensions
 
     public static async ValueTask<Lyrics?> GetYouTubeLyricsAsync(
         this ITrackManager trackManager,
-        string query,
+        string videoId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         ArgumentNullException.ThrowIfNull(trackManager);
-        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(videoId);
 
         var apiClient = await trackManager.ApiClientProvider
             .GetClientAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return await apiClient
-            .GetYouTubeLyricsAsync(query, cancellationToken)
+            .GetYouTubeLyricsAsync(videoId, cancellationToken)
             .ConfigureAwait(false);
     }
 
