@@ -82,6 +82,16 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             State = PlayerState.Playing;
         }
 
+        _previousStateCounter = State switch
+        {
+            PlayerState.Paused => Diagnostics.PausedPlayers,
+            PlayerState.NotPlaying => Diagnostics.NotPlayingPlayers,
+            PlayerState.Playing => Diagnostics.PlayingPlayers,
+            _ => null,
+        };
+
+        _previousStateCounter?.Add(1, KeyValuePair.Create<string, object?>("label", Label));
+
         _currentItem = properties.InitialState.CurrentTrack is not null
             ? properties.Options.Value.InitialTrack ?? new TrackQueueItem(new TrackReference(LavalinkApiClient.CreateTrack(properties.InitialState.CurrentTrack)))
             : null;
