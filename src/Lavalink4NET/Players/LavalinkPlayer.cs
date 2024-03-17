@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +40,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     private volatile ITrackQueueItem? _replacedItem;
     private volatile ITrackQueueItem? _nextItem;
     private Counter<int>? _previousStateCounter;
+    private string? _previousVoiceServer;
 
     public LavalinkPlayer(IPlayerProperties<LavalinkPlayer, LavalinkPlayerOptions> properties)
     {
@@ -488,6 +490,12 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
             return;
         }
 
+        if (_previousVoiceServer is not null)
+        {
+            Diagnostics.VoiceServer.Add(-1, KeyValuePair.Create<string, object?>("server", _previousVoiceServer));
+            _previousVoiceServer = null;
+        }
+
         await UpdateStateAsync(PlayerState.Destroyed).ConfigureAwait(false);
 
         // Dispose the lifecycle to notify the player is being destroyed
@@ -641,7 +649,7 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (_disposed is 1 || VoiceServer is null || VoiceState.SessionId is null)
+        if (_disposed is 1 || VoiceServer is null || VoiceServer is { Endpoint: null, } or { Token: null, } || VoiceState.SessionId is null)
         {
             return ValueTask.CompletedTask;
         }
@@ -653,6 +661,23 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
                 Endpoint: VoiceServer.Value.Endpoint,
                 SessionId: VoiceState.SessionId),
         };
+
+        var voiceServerName = GetVoiceServerName(VoiceServer.Value);
+
+        if (!StringComparer.Ordinal.Equals(voiceServerName, _previousVoiceServer))
+        {
+            if (_previousVoiceServer is not null)
+            {
+                Diagnostics.VoiceServer.Add(-1, KeyValuePair.Create<string, object?>("server", _previousVoiceServer));
+            }
+
+            if (voiceServerName is not null)
+            {
+                Diagnostics.VoiceServer.Add(1, KeyValuePair.Create<string, object?>("server", voiceServerName));
+            }
+
+            _previousVoiceServer = voiceServerName;
+        }
 
         return PerformUpdateAsync(properties, cancellationToken);
     }
@@ -674,6 +699,11 @@ public class LavalinkPlayer : ILavalinkPlayer, ILavalinkPlayerListener
         }
 
         return new TrackQueueItem(new TrackReference(track));
+    }
+
+    private static string? GetVoiceServerName(VoiceServer voiceServer)
+    {
+        return voiceServer.Endpoint.Split('.', StringSplitOptions.TrimEntries).FirstOrDefault();
     }
 }
 
@@ -719,6 +749,7 @@ file static class Diagnostics
         PausedPlayers = meter.CreateCounter<int>("paused-players");
         NotPlayingPlayers = meter.CreateCounter<int>("not-playing-players");
         PlayingPlayers = meter.CreateCounter<int>("playing-players");
+        VoiceServer = meter.CreateCounter<int>("voice-server");
     }
 
     public static Counter<int> PausedPlayers { get; }
@@ -726,4 +757,6 @@ file static class Diagnostics
     public static Counter<int> NotPlayingPlayers { get; }
 
     public static Counter<int> PlayingPlayers { get; }
+
+    public static Counter<int> VoiceServer { get; }
 }
