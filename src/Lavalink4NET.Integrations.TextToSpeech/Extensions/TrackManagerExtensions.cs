@@ -26,7 +26,7 @@ public static class TrackManagerExtensions
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: TrackSearchMode.None,
-            StrictSearch: false,
+            SearchBehavior: StrictSearchBehavior.Passthrough,
             CacheMode: cacheMode);
 
         return trackManager.LoadTrackAsync(encodedUri.ToString(), loadOptions, resolutionScope, cancellationToken);
@@ -48,7 +48,7 @@ public static class TrackManagerExtensions
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: TrackSearchMode.None,
-            StrictSearch: false,
+            SearchBehavior: StrictSearchBehavior.Passthrough,
             CacheMode: cacheMode);
 
         return trackManager.LoadTrackAsync(encodedUri.ToString(), loadOptions, resolutionScope, cancellationToken);

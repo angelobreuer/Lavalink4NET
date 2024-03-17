@@ -68,7 +68,7 @@ public static class TrackManagerExtensions
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: TrackSearchMode.None,
-            StrictSearch: false,
+            SearchBehavior: StrictSearchBehavior.Passthrough,
             CacheMode: options.CacheMode ?? CacheMode.Dynamic);
 
         var track = await trackManager

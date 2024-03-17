@@ -70,7 +70,7 @@ internal sealed class TrackManager : ITrackManager
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: searchMode,
-            StrictSearch: null,
+            SearchBehavior: StrictSearchBehavior.Throw,
             CacheMode: CacheMode.Dynamic);
 
         return LoadTrackAsync(identifier, loadOptions, resolutionScope, cancellationToken);
@@ -126,7 +126,7 @@ internal sealed class TrackManager : ITrackManager
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: searchMode,
-            StrictSearch: null,
+            SearchBehavior: StrictSearchBehavior.Throw,
             CacheMode: CacheMode.Dynamic);
 
         return LoadTracksAsync(identifier, loadOptions, resolutionScope, cancellationToken);

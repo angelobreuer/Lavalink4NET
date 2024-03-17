@@ -437,7 +437,7 @@ public class LavalinkApiClientTests
 
         var loadOptions = new TrackLoadOptions(
             SearchMode: TrackSearchMode.YouTube,
-            StrictSearch: true);
+            SearchBehavior: StrictSearchBehavior.Throw);
 
         // Act
         var track = await client
