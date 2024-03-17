@@ -49,7 +49,7 @@ public static class LavalinkApiClientExtensions
             .GetAsync(requestUri, cancellationToken)
             .ConfigureAwait(false);
 
-        if (responseMessage.StatusCode is HttpStatusCode.NotFound)
+        if (responseMessage.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.NoContent)
         {
             return null;
         }
