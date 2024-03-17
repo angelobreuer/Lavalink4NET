@@ -36,6 +36,7 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
         _playerQueueSyncRoot = new object();
         _expirationUndercutTaskCompletionSource = new TaskCompletionSource(creationOptions: TaskCreationOptions.RunContinuationsAsynchronously);
         _queueWaitSemaphoreSlim = new SemaphoreSlim(0, int.MaxValue);
+        _lowestExpirationAt = DateTimeOffset.MaxValue;
     }
 
     private void PromoteInternal()
@@ -92,7 +93,11 @@ internal sealed class InactivityExpirationQueue : IInactivityExpirationQueue
         Diagnostics.InactivityExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
         Diagnostics.TotalExpirationQueueSize.Add(delta: 1, tag: KeyValuePair.Create<string, object?>("label", player.Label));
 
-        if (expireAfter < _lowestExpirationAt)
+        if (_lowestExpirationAt == DateTimeOffset.MaxValue)
+        {
+            _lowestExpirationAt = expireAfter;
+        }
+        else if (expireAfter < _lowestExpirationAt)
         {
             _lowestExpirationAt = expireAfter;
             _expirationUndercutTaskCompletionSource?.TrySetResult();
