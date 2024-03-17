@@ -86,5 +86,5 @@ jobs:
     - name: Publish NuGet Packages
       working-directory: ci
       if: matrix.configuration == 'Release'
-      run: dotnet nuget push --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json **/*.nupkg
+      run: dotnet nuget push --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate **/*.nupkg
       shell: bash
