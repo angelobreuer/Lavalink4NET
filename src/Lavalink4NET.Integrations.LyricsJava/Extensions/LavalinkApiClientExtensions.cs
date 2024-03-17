@@ -24,7 +24,7 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/sessions/{sessionId}/players/{guildId}/lyrics");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient
+        using var response = await httpClient
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
@@ -51,7 +51,7 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/search?query={query}");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient
+        using var response = await httpClient
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
@@ -80,7 +80,7 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/{videoId}");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient
+        using var response = await httpClient
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
@@ -107,7 +107,7 @@ public static class LavalinkApiClientExtensions
         var endpoint = apiClient.Endpoints.Build($"/v{apiClient.Endpoints.ApiVersion}/lyrics/search?query={query}&source=genius");
         using var httpClient = apiClient.CreateHttpClient();
 
-        var response = await httpClient
+        using var response = await httpClient
             .GetAsync(endpoint, completionOption: HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
