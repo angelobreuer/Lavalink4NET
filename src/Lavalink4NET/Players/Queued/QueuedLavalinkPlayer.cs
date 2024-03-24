@@ -218,6 +218,13 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
         cancellationToken.ThrowIfCancellationRequested();
         EnsureNotDestroyed();
 
+        if (CurrentItem is not null && RepeatMode is TrackRepeatMode.Queue)
+        {
+            await Queue
+                .AddAsync(CurrentItem, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         var track = await GetNextTrackAsync(skipCount, respectTrackRepeat, cancellationToken).ConfigureAwait(false);
 
         if (!track.IsPresent)
@@ -227,13 +234,6 @@ public class QueuedLavalinkPlayer : LavalinkPlayer, IQueuedLavalinkPlayer
 
             Debug.Assert(this is { CurrentItem: null, CurrentTrack: null, });
             return;
-        }
-
-        if (CurrentItem is not null && RepeatMode is TrackRepeatMode.Queue)
-        {
-            await Queue
-                .AddAsync(CurrentItem, cancellationToken)
-                .ConfigureAwait(false);
         }
 
         await base
